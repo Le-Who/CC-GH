@@ -14,7 +14,7 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Run Vite build to generate the production dist/ folder.
-RUN pnpm run build
+RUN pnpm run build && node scripts/yard-public-media.mjs --verify dist
 
 # ── Stage 2: Production ──
 FROM node:24-alpine
@@ -43,6 +43,9 @@ COPY middleware/ ./middleware/
 COPY data/ ./data/
 COPY migrations/ ./migrations/
 COPY scripts/ ./scripts/
+
+# Verify final image delivery without any recovery-tools/ or public/ source trees.
+RUN node scripts/yard-public-media.mjs --verify dist
 
 ENV NODE_ENV=production
 EXPOSE 8080

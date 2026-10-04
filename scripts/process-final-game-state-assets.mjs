@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
+import { sourceOnlyAssetDestination, RETIRED_UNUSED_PUBLIC_FILES } from "./asset-source-only-policy.mjs";
 
 const ROOT = process.cwd();
 const RAW_ROOT = path.join(ROOT, "assets-source", "imagegen");
@@ -11,7 +12,7 @@ function source(...parts) {
 }
 
 function publicTarget(relativePath) {
-  return path.join(ROOT, "public", "games", ...relativePath.split("/"));
+  return path.join(ROOT, cellName(relativePath));
 }
 
 function asPosix(relativePath) {
@@ -19,7 +20,8 @@ function asPosix(relativePath) {
 }
 
 function cellName(relativePath) {
-  return `public/games/${asPosix(relativePath)}`;
+  const publicPath = `public/games/${asPosix(relativePath)}`;
+  return sourceOnlyAssetDestination(publicPath) || publicPath;
 }
 
 const singleObjectSheetOutputs = new Set([
@@ -261,7 +263,7 @@ async function writeGridSheet({ input, cols, rows, outputs }) {
     for (let col = 0; col < cols; col += 1) {
       const index = row * cols + col;
       const relativeOutput = outputs[index];
-      if (!relativeOutput) {
+      if (!relativeOutput || RETIRED_UNUSED_PUBLIC_FILES.includes(`public/games/${relativeOutput}`)) {
         skipped.push({ sheet: asPosix(path.relative(ROOT, inputPath)), row, col });
         continue;
       }

@@ -279,11 +279,15 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.match(triviaCss, /\.trv2-lifelines\s*\{[^}]*grid-template-columns:\s*repeat\(3,minmax\(0,1fr\)\)/);
   });
 
-  it("keeps Brain Blitz answers in portrait rows and an independent landscape 2x2 grid", () => {
+  it("keeps Brain Blitz portrait rows and independent landscape panels with width-adaptive answer columns", () => {
     const triviaCss = readFileSync(new URL("../src/games/trivia/trivia-presentation.css", import.meta.url), "utf8");
     const triviaGame = readFileSync(new URL("../src/games/trivia/TriviaGame.jsx", import.meta.url), "utf8");
     assert.match(triviaCss, /\.trv2-answers\s*\{[^}]*grid-template-columns:\s*minmax\(0,1fr\)/);
-    assert.match(triviaCss, /\[data-trivia-layout='landscape'\] \.trv2-answers\s*\{[^}]*grid-template-columns:\s*repeat\(2,minmax\(0,1fr\)\)/);
+    // The landscape question/answer panels remain independent. Only the answer
+    // panel's internal columns collapse when two readable choices cannot fit.
+    assert.match(triviaCss, /\[data-trivia-layout='landscape'\] \.trv2-quiz\s*\{[^}]*grid-template-columns:\s*minmax\(0,\.95fr\) minmax\(0,1\.05fr\)/);
+    assert.match(triviaCss, /\[data-trivia-layout='landscape'\] \.trv2-answers\s*\{[^}]*grid-template-columns:\s*repeat\(auto-fit,minmax\(min\(100%,13rem\),1fr\)\)/);
+    assert.match(triviaCss, /\.trv2-answer\s*\{[^}]*width:\s*100%;[^}]*min-width:\s*44px;[^}]*min-height:\s*58px/);
     assert.match(triviaCss, /\[data-trivia-layout='landscape'\] \.trv2-answer\s*\{[^}]*min-height:\s*80px/);
     assert.match(triviaGame, /className="trv2-answer-letter"/);
     assert.match(triviaGame, /'ABCD'\[index\]/);

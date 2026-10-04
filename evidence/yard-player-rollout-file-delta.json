@@ -1,0 +1,295 @@
+{
+  "format": "yard-player-rollout-reviewed-delta/v1",
+  "baselineTree": "b188563cc86dbb3f0bf61ddddffe7cacf8f619a2",
+  "rolloutEnabled": false,
+  "sourceAcceptanceChanged": false,
+  "autoRebasedGuard": false,
+  "excludedSelf": "evidence/yard-player-rollout-file-delta.json",
+  "files": [
+    {
+      "path": "docs/yard-player-rollout-integration.md",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 13140,
+        "sha256": "714e8afadcf41b22aa8ddebf94257eacab4b2530330fbb78242036ea23b8ae6a"
+      }
+    },
+    {
+      "path": "game-logic/merge-lab-service.js",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 11041,
+        "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973"
+      },
+      "after": {
+        "bytes": 11606,
+        "sha256": "97e5e6d3ce63a025080e2812a2992e00547a95de72aa5cd83378610e5cd832a7"
+      },
+      "archivedGuardFingerprint": {
+        "path": "game-logic/merge-lab-service.js",
+        "bytes": 11041,
+        "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/player-release.mjs",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 2122,
+        "sha256": "727cf497cf1a1b8705b341c0d1dfcb084b7986c200cc0ae4ab36e2987fb8452c"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/release-policy.mjs",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 535,
+        "sha256": "643d47263de2d3cb94f6f5bbcf86d2de4485475c57a1b1f3d561c07027454ea0"
+      }
+    },
+    {
+      "path": "game-logic/yard-v2/released-prop-profiles.mjs",
+      "protectedByInactiveGuard": false,
+      "before": {
+        "bytes": 1478,
+        "sha256": "beac8cfd2a9ba9eb5ba5502433b879487576f4311b3259882d0bdc90390cffa6"
+      },
+      "after": {
+        "bytes": 2725,
+        "sha256": "23890823031b9fa0556dc8afbc00d7881ae6c6859c39b4c03966e1c1153ecc27"
+      }
+    },
+    {
+      "path": "package.json",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 8513,
+        "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445"
+      },
+      "after": {
+        "bytes": 8650,
+        "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21"
+      },
+      "archivedGuardFingerprint": {
+        "path": "package.json",
+        "bytes": 8513,
+        "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445"
+      }
+    },
+    {
+      "path": "playerManager.js",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 16860,
+        "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
+      },
+      "after": {
+        "bytes": 17325,
+        "sha256": "fdbc6c9f70c39ce4b760b595b4b2994960a18f323bcde09a350db7e8f50ec2c4"
+      },
+      "archivedGuardFingerprint": {
+        "path": "playerManager.js",
+        "bytes": 16860,
+        "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
+      }
+    },
+    {
+      "path": "routes/mergeRoutes.js",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 21618,
+        "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb"
+      },
+      "after": {
+        "bytes": 22001,
+        "sha256": "56fc38c20a4e7151e931f3206e639191a43516a32aba778b5db5f30906233bb6"
+      },
+      "archivedGuardFingerprint": {
+        "path": "routes/mergeRoutes.js",
+        "bytes": 21618,
+        "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb"
+      }
+    },
+    {
+      "path": "routes/player.js",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 60103,
+        "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
+      },
+      "after": {
+        "bytes": 61600,
+        "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa"
+      },
+      "archivedGuardFingerprint": {
+        "path": "routes/player.js",
+        "bytes": 60103,
+        "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
+      }
+    },
+    {
+      "path": "scripts/game-loading-graph.mjs",
+      "protectedByInactiveGuard": false,
+      "before": {
+        "bytes": 2288,
+        "sha256": "2b8c82e9ecf6ce1a6744d2073eee8a910726f8b8dfddb55e6a202a30702da153"
+      },
+      "after": {
+        "bytes": 2434,
+        "sha256": "dc47930bb1b002186cff5152f09dfb8b29bad69ab188f4c108ede2224ec51564"
+      }
+    },
+    {
+      "path": "scripts/perf-build-guard.mjs",
+      "protectedByInactiveGuard": false,
+      "before": {
+        "bytes": 15559,
+        "sha256": "9d236d4e9b9b8834121cfbdddc7d344465a283a16abaaab291cd06726bf53455"
+      },
+      "after": {
+        "bytes": 15573,
+        "sha256": "4927b315e08c7b95de12396ba9e2b42b5910d695fdf46200b329dd2af61dfa3d"
+      }
+    },
+    {
+      "path": "src/app/gameChunks.jsx",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 1486,
+        "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb"
+      },
+      "after": {
+        "bytes": 1487,
+        "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2"
+      },
+      "archivedGuardFingerprint": {
+        "path": "src/app/gameChunks.jsx",
+        "bytes": 1486,
+        "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb"
+      }
+    },
+    {
+      "path": "src/app/hud-layout/defaultLayouts/room.json",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 2690,
+        "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
+      },
+      "after": {
+        "bytes": 3248,
+        "sha256": "c1d704329625ee99c9bdaddd2805a2a11531eb3c481b8d0203addfea90e8a2e3"
+      },
+      "archivedGuardFingerprint": {
+        "path": "src/app/hud-layout/defaultLayouts/room.json",
+        "bytes": 2690,
+        "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
+      }
+    },
+    {
+      "path": "src/app/hud-layout/registry.js",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 18524,
+        "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
+      },
+      "after": {
+        "bytes": 18796,
+        "sha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca"
+      },
+      "archivedGuardFingerprint": {
+        "path": "src/app/hud-layout/registry.js",
+        "bytes": 18524,
+        "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
+      }
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "protectedByInactiveGuard": true,
+      "before": {
+        "bytes": 27629,
+        "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf"
+      },
+      "after": {
+        "bytes": 28619,
+        "sha256": "04591b270ab5eca3eea89730211e138342e14964e9e840c2816639c46eac5d33"
+      },
+      "archivedGuardFingerprint": {
+        "path": "src/game-state/useGameHub.js",
+        "bytes": 27629,
+        "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf"
+      }
+    },
+    {
+      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "protectedByInactiveGuard": false,
+      "before": {
+        "bytes": 15972,
+        "sha256": "6f0b4232f82e1dbd673c39e17a5de90dda4138ad7dedd8d06eff25e8cf334e04"
+      },
+      "after": {
+        "bytes": 16003,
+        "sha256": "8b56e225ff7e548923d6ebaa537a0cb5ed1a63eea3f2f647cb4cd9367d115476"
+      }
+    },
+    {
+      "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 1364,
+        "sha256": "ae7d2e736a03dfe7b52b2b779c4e1d03ef84db1744d30788e016073401b042cb"
+      }
+    },
+    {
+      "path": "src/games/companion-yard-v2/feedback.mjs",
+      "protectedByInactiveGuard": false,
+      "before": {
+        "bytes": 834,
+        "sha256": "4224ecdedf7bbcf25c9ad217d8286aabbf1ca9f93759258edde3cce0f7527e26"
+      },
+      "after": {
+        "bytes": 889,
+        "sha256": "f3d71574c96966f89798f12ab83f933d757c0c9917f9d06448cacc108bb6c2f0"
+      }
+    },
+    {
+      "path": "src/games/companion-yard-v2/release-presentation.mjs",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 436,
+        "sha256": "a6d9bc30f82f48e6b35ad43675f274c7dc6e8152573009b668392111cf81afc6"
+      }
+    },
+    {
+      "path": "tests/helpers/yard-player-active.checks.mjs",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 7441,
+        "sha256": "125e3411504460dd5c62917ddc15be06b4fd34a40d1f9ebdb1eacca0af530912"
+      }
+    },
+    {
+      "path": "tests/helpers/yard-player-rollout-test-loader.mjs",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 837,
+        "sha256": "e0e6dce54fa11f0151436c40c03672aa87c8518cfa8edd55a93887f2e14f703b"
+      }
+    },
+    {
+      "path": "tests/yard-player-rollout.test.mjs",
+      "protectedByInactiveGuard": false,
+      "before": null,
+      "after": {
+        "bytes": 8993,
+        "sha256": "c18eecba3998ecfdc73f202cd593940e605fb731be8d970a874438bc4b3f09fc"
+      }
+    }
+  ]
+}

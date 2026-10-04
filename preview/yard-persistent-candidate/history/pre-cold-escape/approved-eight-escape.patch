@@ -1,0 +1,302 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index a4d4d05..11d764a 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -214,7 +214,14 @@ jobs:
+           group: yard-player-integration
+ 
+   yard-eight-player:
++    name: Yard eight-player / ${{ matrix.group }}
+     runs-on: ubuntu-latest
++    strategy:
++      fail-fast: false
++      matrix:
++        group: [small-phone, phone, landscape, desktop]
++    env:
++      YARD_EIGHT_PLAYER_GROUP: ${{ matrix.group }}
+     timeout-minutes: 30
+     services:
+       postgres:
+@@ -240,7 +247,7 @@ jobs:
+       - name: Install locked dependencies
+         run: pnpm install --frozen-lockfile
+       - name: Check exact isolated eight-actor policy contracts
+-        run: node --test tests/yard-eight-player-contract.test.mjs
++        run: node --test tests/yard-eight-player-contract.test.mjs tests/yard-panel-escape.test.mjs
+       - name: Build separate test-only eight-actor player
+         timeout-minutes: 8
+         env:
+@@ -262,7 +269,7 @@ jobs:
+           NODE_OPTIONS: ''
+           YARD_CANDIDATE_CI: ''
+           YARD_PLAYER_WIRING_TEST: ''
+-        run: node --import ./tests/helpers/yard-eight-player-loader.mjs tests/helpers/yard-eight-player-fixtures.mjs --all
++        run: node --import ./tests/helpers/yard-eight-player-loader.mjs tests/helpers/yard-eight-player-fixtures.mjs --group "$YARD_EIGHT_PLAYER_GROUP"
+       - name: Install acceptance Chromium
+         run: pnpm exec playwright install --with-deps chromium
+       - name: Genuine eight-actor API store browser PostgreSQL15 acceptance
+@@ -280,12 +287,15 @@ jobs:
+           NODE_OPTIONS: ''
+           YARD_CANDIDATE_CI: ''
+           YARD_PLAYER_WIRING_TEST: ''
+-        run: pnpm exec playwright test --config playwright.yard-eight-player.config.js
++        run: |
++          pnpm exec playwright test --config playwright.yard-eight-player.config.js --list --reporter=json > "test-results/yard-eight-player-${YARD_EIGHT_PLAYER_GROUP}-discovery.json"
++          node tests/helpers/yard-eight-player-groups.mjs --verify-list "test-results/yard-eight-player-${YARD_EIGHT_PLAYER_GROUP}-discovery.json" "$YARD_EIGHT_PLAYER_GROUP"
++          pnpm exec playwright test --config playwright.yard-eight-player.config.js
+       - name: Preserve bounded eight-actor player evidence
+         if: always()
+         uses: ./.github/actions/upload-browser-evidence
+         with:
+-          group: yard-eight-player
++          group: yard-eight-player-${{ matrix.group }}
+ 
+   browser-plan:
+     runs-on: ubuntu-latest
+diff --git a/docs/yard-eight-player-acceptance-tests.md b/docs/yard-eight-player-acceptance-tests.md
+index b34e57d..187a677 100644
+--- a/docs/yard-eight-player-acceptance-tests.md
++++ b/docs/yard-eight-player-acceptance-tests.md
+@@ -18,7 +18,7 @@ The native fixture generator runs before the server starts. It searches seeds, t
+ 
+ Single-actor fixtures contain a migrated historical Yard before its first opportunity. The actual authenticated snapshot must perform native admission and persist the result. Positive pair fixtures contain one already-admitted native guest and an ordinary native food-refill history before the second hourly opportunity; the actual HTTP snapshot must admit the second guest. Only Yard and its historical storage/archive are copied into a fresh canonical fixture account. The saved deterministic seed remains a historical fixture input; the account's identity, Merge, Garden and shared resources come from its real default player.
+ 
+-The server's test-only authoritative `Date.now` starts at2026-10-03T14:02:00Z and increases with real monotonic elapsed time at1×. Browser clocks and requestAnimationFrame are unchanged. This puts actual source-authored visits into a visible rest interval without speeding them up or rewriting a schedule. The 14-minute browser bound leaves every expected guest present; the shortest first guest (Pip in the80/81-minute pair) has18 minutes remaining at the clock origin. Fixture setup has its own10-minute limit; server startup/browser14-minute limit and overall CI30-minute limit remain fail-closed. This is bounded live integration, not a complete visit-duration observation or the earlier frozen110-minute proof.
++Each independent viewport runner's test-only authoritative `Date.now` starts at2026-10-03T14:02:00Z and increases with real monotonic elapsed time at1×. Browser clocks and requestAnimationFrame are unchanged. This puts actual source-authored visits into a visible rest interval without speeding them up or rewriting a schedule. The 14-minute browser bound leaves every expected guest present; the shortest first guest (Pip in the80/81-minute pair) has18 minutes remaining at the clock origin. Fixture setup has its own10-minute limit; each runner retains the server startup/browser14-minute limit,90-second per-case limit and overall CI30-minute limit. This is bounded live integration, not a complete visit-duration observation or the earlier frozen110-minute proof.
+ 
+ Representative positive mixed layouts:
+ 
+@@ -41,10 +41,16 @@ The browser observer only wraps standard Response.blob, createImageBitmap and ca
+ 
+ ## CI and remaining limits
+ 
+-The required `yard-eight-player` job uses locked dependencies, Node24, PostgreSQL15 and Chromium. It builds the separate candidate, generates/validates all22 fixture inputs, then runs:
++The required `yard-eight-player` matrix uses locked dependencies, Node24, PostgreSQL15 and Chromium. Four runners execute in parallel with fail-fast disabled: small-phone12 cases, phone23 cases, landscape12 cases, desktop12 cases. Each retains exactly one browser worker, zero retries, its own disposable service and authored clock. The phone runner owns all11 extra wear/rejection checks. There are still exactly59 cases; none are skipped or selected by an unreviewed grep. Each runner builds the separate candidate and generates its required native inputs (11 per ordinary group,22 on phone). Actual Playwright discovery must match that group's complete exact title set before execution. Artifact names include the viewport group, so independent evidence cannot overwrite another group.
++
++Run with `YARD_EIGHT_PLAYER_GROUP` explicitly set to `small-phone`, `phone`, `landscape` or `desktop` and the existing guarded test/database environment:
+ 
+ `pnpm exec playwright test --config playwright.yard-eight-player.config.js`
+ 
++The first integrated run (37178002141, job111364578359, source02c40142377c5e472e50c1c105cbda39fc65ba85) produced39 passes,9 failures and11 cases not run at the unchanged global deadline. Six failures were real cold-snapshot timeouts before canvas creation: every corresponding trace shows an aborted snapshot and the error screenshot shows the timeout/loading screen. A fresh native benchmark took12.165s for admission plus12.469s for public presentation, exceeding the unchanged8s client request deadline. The phone repair trace records three aborted attempts with identical request bytes, followed by a200 duplicate response roughly57s after the first attempt and the expected single80-treat repair debit. The normal UI assertion remains `duplicate:false` while source latency is repaired independently; no request was intentionally dropped in this case.
++
++Two other failures exposed the Hub Escape fallback opening Home behind the native Yard dialog; screenshots and accessibility snapshots show both dialogs simultaneously. Courtyard now registers its open panel with the existing Escape layer, preserving the real browser close assertion and native cancel/close handling. The browser also requires Home to remain absent after that Escape. Parallel grouping addresses scheduling only; it does not prewarm snapshots, raise deadlines or turn those runtime failures into passes. Evidence identities: review artifact11294122303 SHA256 `96c8b6bf4dd7afbc7981197adae97e1315853ef028d73d176fcb2e2f2b3a0f6b`; trace artifact11294536192 SHA256 `158af6e41c54bb634ef9ed2214668fce997b0b0db131aa0cc6576043219f297a`.
++
+ The normal build's independently owned Workbox fix is a prerequisite. No image/transfer/cache budget is raised or disabled here. The full real lane cannot run in the current incomplete local dependency tree; native contracts and fixture generation are distinct from CI execution. An empty or failed evidence upload never means a pass.
+ 
+ This lane does not complete source work for Pip worn/broken, expansion, bowl2 or other remodels; does not replace source pixel/art review, full-duration observation, measured global decoded-memory/performance proofs, unavailable network-recovery/account-switch scenarios, or real deployment health/rollback checks. The current PREVIEW/Mika-only copy and candidate chrome are preserved and still need product review. Production gates and prior frozen long-run identities remain closed/unchanged.
+diff --git a/playwright.yard-eight-player.config.js b/playwright.yard-eight-player.config.js
+index 4a16ea5..60845bf 100644
+--- a/playwright.yard-eight-player.config.js
++++ b/playwright.yard-eight-player.config.js
+@@ -1,10 +1,12 @@
+ import {defineConfig} from '@playwright/test';
+ import {assertEightCandidateApi,CANDIDATE_PORT} from './tests/helpers/yard-eight-player-candidate.mjs';
++import {assertEightPlayerGroup} from './tests/helpers/yard-eight-player-groups.mjs';
+ assertEightCandidateApi();
++const group=assertEightPlayerGroup();
+ export default defineConfig({
+  testDir:'./tests/yard-eight-player-e2e',testMatch:'*.spec.js',fullyParallel:false,workers:1,retries:0,forbidOnly:true,
+- timeout:90000,globalTimeout:14*60*1000,outputDir:'test-results/yard-eight-player',
+- reporter:[['list'],['json',{outputFile:'test-results/yard-eight-player-results.json'}]],
++ timeout:90000,globalTimeout:14*60*1000,outputDir:`test-results/yard-eight-player-${group}`,
++ reporter:[['list'],['json',{outputFile:`test-results/yard-eight-player-${group}-results.json`}]],
+  use:{baseURL:`http://127.0.0.1:${CANDIDATE_PORT}`,serviceWorkers:'block',trace:'retain-on-failure',screenshot:'only-on-failure'},
+  projects:[{name:'chromium',use:{browserName:'chromium'}}],
+  webServer:{command:'node --import ./tests/helpers/yard-eight-player-loader.mjs tests/helpers/yard-eight-player-server.mjs',url:`http://127.0.0.1:${CANDIDATE_PORT}/api/health`,reuseExistingServer:false,timeout:120000},
+diff --git a/src/games/companion-yard-v2/CourtyardGame.jsx b/src/games/companion-yard-v2/CourtyardGame.jsx
+index ed4b39d..8846af6 100644
+--- a/src/games/companion-yard-v2/CourtyardGame.jsx
++++ b/src/games/companion-yard-v2/CourtyardGame.jsx
+@@ -9,6 +9,7 @@ import { MIKA_CLIPS as clips } from '../../../game-logic/yard-v2/media/mika-clip
+ import { MIKA_PLACEMENT_SUGGESTIONS } from '../../../game-logic/yard-v2/mika-media.mjs';
+ import { yardFeedbackText } from './feedback.mjs';
+ import {openHome} from '../../app/homeNavigation.js';
++import {useEscapeDismiss} from '../../app/useDismissableLayer.js';
+ import './courtyard.css';
+ import './i18n.js';
+ 
+@@ -36,6 +37,7 @@ export default function CourtyardGame() {
+   const yard=snapshot?.yard || {},busy=pending.some(p=>p.action.startsWith('yard.') && p.status!=='failed');
+   const current=view || courtyardPresentation(snapshot,snapshot?.yardRuntime?.serverNow||0,clips);
+   const closePanel=useCallback(()=>setPanel(null),[]);
++  useEscapeDismiss(!!panel,closePanel);
+   const cancel=useCallback(()=>{drag.current=null;ghostRef.current=null;setGhost(null);scene.current?.setGhost(null);},[]);
+   useEffect(()=>{
+     useGameHub.getState().setActiveGameShell({id:'room',openPanel:!!panel,closePanel});
+diff --git a/tests/helpers/yard-eight-player-fixtures.mjs b/tests/helpers/yard-eight-player-fixtures.mjs
+index 014a508..e3e9173 100644
+--- a/tests/helpers/yard-eight-player-fixtures.mjs
++++ b/tests/helpers/yard-eight-player-fixtures.mjs
+@@ -8,6 +8,7 @@ import {getYardServerOptions} from '../../game-logic/yard-v2/yard-media.mjs';
+ import {YARD_GOODIES} from '../../game-logic/yard-v2/catalog.mjs';
+ import {nativeDrawContext,drawNativeSeed} from './yard-native-draw.mjs';
+ import {AUTHORED_CLOCK_ORIGIN,EIGHT_IDS,assertEightCandidateBuild,CANDIDATE_SOURCE_PINS} from './yard-eight-player-candidate.mjs';
++import {fixtureKeysForGroup} from './yard-eight-player-groups.mjs';
+ const placement=(slotId,goodieId,x,y)=>({slotId,goodieId,x,y,uses:0,condition:'new',rotationZ:0});
+ export const PAIR_FIXTURES=Object.freeze({
+  'mika-willow':{first:'mika',second:'willow',seed:'yard-native-mika-supported-mika-willow-16683',placements:[placement('a-target','yarn_mouse',45,45),placement('b-target','moon_lamp',60,65)],source:'pair continuation: Mika Mouse/chase; exact positive witness'},
+@@ -58,8 +59,9 @@ export function prepareEightPlayerFixture(key){
+   expected:expected._yardV2.runtime.visits,expectedYard:expected.yard};
+ }
+ if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
+- if(process.argv[2]==='--all'){
++ if(process.argv[2]==='--all'||process.argv[2]==='--group'){
++  const keys=process.argv[2]==='--all'?ALL_FIXTURE_KEYS:fixtureKeysForGroup(process.argv[3]);
+   const dir=new URL('../../test-results/yard-eight-player-fixtures/',import.meta.url);await mkdir(dir,{recursive:true});
+-  for(const key of ALL_FIXTURE_KEYS){const fixture=prepareEightPlayerFixture(key);await writeFile(new URL(`${key.replaceAll(':','-')}.json`,dir),JSON.stringify({sourcePins:CANDIDATE_SOURCE_PINS,fixture}));console.log('Native fixture verified:',key);}
++  for(const key of keys){const fixture=prepareEightPlayerFixture(key);await writeFile(new URL(`${key.replaceAll(':','-')}.json`,dir),JSON.stringify({sourcePins:CANDIDATE_SOURCE_PINS,fixture}));console.log('Native fixture verified:',key);}
+  }else process.stdout.write(JSON.stringify(prepareEightPlayerFixture(process.argv[2])));
+ }
+diff --git a/tests/helpers/yard-eight-player-groups.mjs b/tests/helpers/yard-eight-player-groups.mjs
+new file mode 100644
+index 0000000..46cecb3
+--- /dev/null
++++ b/tests/helpers/yard-eight-player-groups.mjs
+@@ -0,0 +1,35 @@
++/** Exact ownership of all 59 genuine cases; never test-name grep or retries. */
++import {readFileSync} from 'node:fs';
++import {pathToFileURL} from 'node:url';
++import {EIGHT_IDS} from './yard-eight-player-candidate.mjs';
++export const EIGHT_PLAYER_VIEWPORTS=Object.freeze([
++ {name:'small-phone',width:320,height:568,dpr:1,touch:true},
++ {name:'phone',width:390,height:844,dpr:2,touch:true},
++ {name:'landscape',width:844,height:390,dpr:2,touch:true},
++ {name:'desktop',width:1280,height:800,dpr:1,touch:false},
++]);
++export const EIGHT_PLAYER_GROUPS=Object.freeze(EIGHT_PLAYER_VIEWPORTS.map(v=>v.name));
++export const EIGHT_PAIR_KEYS=Object.freeze(['mika-willow','pip-starlit','willow-starlit']);
++export const EIGHT_WEAR_KEYS=Object.freeze(['willow','starlit','basil','sage'].flatMap(id=>[`${id}:worn`,`${id}:broken`]));
++export const EIGHT_REJECT_KEYS=Object.freeze(['reject:pip:worn','reject:pip:broken','reject:starlit:threshold']);
++export function assertEightPlayerGroup(group=process.env.YARD_EIGHT_PLAYER_GROUP){if(!EIGHT_PLAYER_GROUPS.includes(group))throw Error('Choose one exact Yard eight-player viewport group');return group;}
++export function fixtureKeysForGroup(group){assertEightPlayerGroup(group);return [...EIGHT_IDS,...EIGHT_PAIR_KEYS,...(group==='phone'?[...EIGHT_WEAR_KEYS,...EIGHT_REJECT_KEYS]:[])];}
++export function expectedEightPlayerTitles(group){
++ assertEightPlayerGroup(group);
++ const titles=[...[...EIGHT_PAIR_KEYS,...EIGHT_IDS].map(key=>`${group} > actual native admission, atlas and pixels: ${key}`),`${group} > all 14 intent contracts through real controls or explicit unavailable affordances`];
++ if(group==='phone'){
++  for(const key of EIGHT_WEAR_KEYS){const [id,condition]=key.split(':');titles.push(`supported wear pixels on phone > ${id} ${condition}: real persisted source condition reaches renderer`);}
++  for(const key of EIGHT_REJECT_KEYS)titles.push(`supported wear pixels on phone > ${key}: actual native rejection preserves serving, wear and balance`);
++ }
++ return titles;
++}
++export function verifyEightPlayerDiscovery(report,group){
++ if(report.errors?.length)throw Error('Playwright could not load every assigned test');
++ const actual=[];function visit(suites,parents=[]){for(const suite of suites||[]){const path=[...parents,suite.title];for(const spec of suite.specs||[]){if(spec.tests?.length!==1||spec.tests.some(t=>t.projectName!=='chromium'||(t.expectedStatus&&t.expectedStatus!=='passed')))throw Error('Only one runnable Chromium case may satisfy discovery');actual.push([...path,spec.title].slice(-2).join(' > '));}visit(suite.suites,path);}}
++ visit(report.suites);const expected=expectedEightPlayerTitles(group);if(new Set(actual).size!==actual.length||JSON.stringify(actual.sort())!==JSON.stringify(expected.sort()))throw Error(`Incomplete/duplicate ${group} discovery: expected ${expected.length}, got ${actual.length}`);
++ return {group,tests:actual.length};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
++ if(process.argv[2]!=='--verify-list'||process.argv.length!==5)throw Error('Usage: yard-eight-player-groups.mjs --verify-list report.json group');
++ console.log(JSON.stringify(verifyEightPlayerDiscovery(JSON.parse(readFileSync(process.argv[3],'utf8')),process.argv[4])));
++}
+diff --git a/tests/yard-eight-player-contract.test.mjs b/tests/yard-eight-player-contract.test.mjs
+index ba20c45..ed2482c 100644
+--- a/tests/yard-eight-player-contract.test.mjs
++++ b/tests/yard-eight-player-contract.test.mjs
+@@ -5,6 +5,7 @@ import {spawnSync} from 'node:child_process';
+ import {resolve} from 'node:path';
+ import {CANDIDATE_SOURCE_PINS,candidateSource,assertEightCandidateBuild,assertEightCandidateApi,EIGHT_IDS,CANDIDATE_DIST} from './helpers/yard-eight-player-candidate.mjs';
+ import {actorAtlasPages,attributedDraw} from './helpers/yard-eight-atlas-attribution.mjs';
++import {EIGHT_PLAYER_GROUPS,fixtureKeysForGroup,expectedEightPlayerTitles,verifyEightPlayerDiscovery,assertEightPlayerGroup} from './helpers/yard-eight-player-groups.mjs';
+ const root=resolve(import.meta.dirname,'..'),read=path=>readFileSync(resolve(root,path),'utf8');
+ const env={CI:'true',NODE_ENV:'test',YARD_EIGHT_PLAYER_CANDIDATE_TEST:'1',YARD_PLAYER_API_TEST:'1',YARD_V2_PG_TEST:'1',YARD_V2_PG_TARGET:'integrated',DEV_AUTH_ENABLED:'true',DATABASE_URL:'postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci',REDIS_URL:'',NODE_OPTIONS:'',YARD_CANDIDATE_CI:'',YARD_PLAYER_WIRING_TEST:''};
+ test('eight actor fixture is opt-in, disposable, loopback and rejects inherited loaders',()=>{
+@@ -56,6 +57,18 @@ test('family pixels are attributed by exact physical page and crop, never a shar
+  assert.ok(path.startsWith('/assets/yard-fox/'));assert.equal(attributedDraw(row,willow),true);assert.equal(attributedDraw(row,starlit),false);
+  assert.equal(attributedDraw({...row,sourceCrop:[-1,0,p.tileWidth,p.tileHeight]},willow),false);assert.equal(attributedDraw({...row,changedOpaquePixels:0},willow),false);
+ });
++test('four groups own the same 59 cases exactly once and reject incomplete real discovery',()=>{
++ assert.deepEqual(EIGHT_PLAYER_GROUPS,['small-phone','phone','landscape','desktop']);assert.throws(()=>assertEightPlayerGroup('all'));assert.throws(()=>assertEightPlayerGroup(''));
++ const all=EIGHT_PLAYER_GROUPS.flatMap(expectedEightPlayerTitles);assert.equal(all.length,59);assert.equal(new Set(all).size,59);
++ assert.deepEqual(EIGHT_PLAYER_GROUPS.map(g=>expectedEightPlayerTitles(g).length),[12,23,12,12]);assert.deepEqual(EIGHT_PLAYER_GROUPS.map(g=>fixtureKeysForGroup(g).length),[11,22,11,11]);
++ for(const group of EIGHT_PLAYER_GROUPS){
++  const suites=expectedEightPlayerTitles(group).map(title=>{const [suite,name]=title.split(' > ');return {title:suite,specs:[{title:name,tests:[{projectName:'chromium'}]}]};});
++  const report={suites};assert.equal(verifyEightPlayerDiscovery(report,group).tests,expectedEightPlayerTitles(group).length);
++  assert.throws(()=>verifyEightPlayerDiscovery({suites:suites.slice(1)},group));assert.throws(()=>verifyEightPlayerDiscovery({suites:[...suites,suites[0]]},group));assert.throws(()=>verifyEightPlayerDiscovery({...report,errors:[{message:'bad import'}]},group));
++  assert.throws(()=>verifyEightPlayerDiscovery({suites:[{title:group,specs:[{title:'invented',tests:[{projectName:'firefox'}]}]}]},group));
++  const skipped=structuredClone(report);skipped.suites[0].specs[0].tests[0].expectedStatus='skipped';assert.throws(()=>verifyEightPlayerDiscovery(skipped,group));
++ }
++});
+ test('real integration is bounded, separate from production artifacts and required in CI',()=>{
+  const config=read('playwright.yard-eight-player.config.js'),spec=read('tests/yard-eight-player-e2e/player.spec.js'),ci=read('.github/workflows/ci.yml');
+  assert.match(config,/workers:1,retries:0/);assert.match(config,/globalTimeout:14\*60\*1000/);assert.match(config,/reuseExistingServer:false/);
+@@ -63,6 +76,9 @@ test('real integration is bounded, separate from production artifacts and requir
+  assert.match(spec,/window\.__yardEightDrawWitness/);assert.match(read('tests/helpers/yard-eight-canvas-witness.mjs'),/changedOpaquePixels/);
+  for(const prohibited of [/route\.fulfill/,/page\.clock/,/useGameHub\.getState/,/setSnapshot/,/sourceCatalogActionPolicy/])assert.doesNotMatch(spec,prohibited);
+  assert.match(ci,/yard-eight-player:/);assert.match(ci,/needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
+- assert.match(ci,/playwright test --config playwright\.yard-eight-player\.config\.js/);assert.match(ci,/yard-eight-player-fixtures\.mjs --all/);
++ assert.match(ci,/playwright test --config playwright\.yard-eight-player\.config\.js/);assert.match(ci,/yard-eight-player-fixtures\.mjs --group/);
++ const block=ci.slice(ci.indexOf('  yard-eight-player:'),ci.indexOf('  browser-plan:'));
++ assert.match(block,/fail-fast: false/);assert.match(block,/group: \[small-phone, phone, landscape, desktop\]/);assert.match(block,/YARD_EIGHT_PLAYER_GROUP: \$\{\{ matrix\.group \}\}/);assert.match(block,/yard-eight-player-groups\.mjs --verify-list/);assert.match(block,/group: yard-eight-player-\$\{\{ matrix\.group \}\}/);
++ assert.doesNotMatch(block,/--grep|--max-failures|continue-on-error/);
+  assert.doesNotMatch(ci,/path: dist-yard-eight-player-candidate/);
+ });
+diff --git a/tests/yard-eight-player-e2e/player.spec.js b/tests/yard-eight-player-e2e/player.spec.js
+index fe6894c..e1c2b08 100644
+--- a/tests/yard-eight-player-e2e/player.spec.js
++++ b/tests/yard-eight-player-e2e/player.spec.js
+@@ -7,12 +7,14 @@ import {assertEightCandidateApi,CANDIDATE_PORT,CANDIDATE_DIST,AUTHORED_CLOCK_ORI
+ import {assertYardPlayerFixture} from '../helpers/yard-player-api-guard.mjs';
+ import {installEightCanvasWitness} from '../helpers/yard-eight-canvas-witness.mjs';
+ import {actorAtlasPages,attributedDraw} from '../helpers/yard-eight-atlas-attribution.mjs';
++import {assertEightPlayerGroup,EIGHT_PLAYER_VIEWPORTS} from '../helpers/yard-eight-player-groups.mjs';
+ import {createDefaultPlayer} from '../../game-logic/player.js';
+ import {ensureMergeLabState} from '../../game-logic/merge-lab-service.js';
+ import {YARD_GOODIES,YARD_FOODS,YARD_REMODELS} from '../../game-logic/yard-v2/catalog.mjs';
+ import {EIGHT_FIXTURE_SPECS} from '../helpers/yard-eight-domain-fixtures.mjs';
+ import {selectHomeGame} from '../e2e/helpers/home.js';
+ assertEightCandidateApi();
++const group=assertEightPlayerGroup();
+ const root=resolve(import.meta.dirname,'../..'),base=`http://127.0.0.1:${CANDIDATE_PORT}`,fixtures=[],templates=new Map();let database,closeDatabase;
+ const adjacent=p=>({merge:p.merge,fence:p._mergeLabFence,garden:p.garden,gold:p.resources.gold,gachaTokens:p.resources.gachaTokens});
+ const headers=f=>({Authorization:`dev ${f.externalId}`});
+@@ -58,8 +60,7 @@ async function evidence(page,request,info,observed,actors){
+ async function uiAction(page,action,click){const response=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action===action);await click();const r=await response,b=await r.json();expect(r.status(),JSON.stringify(b)).toBe(200);expect(b.duplicate).toBe(false);await expect(page.locator('.cy-status')).not.toContainText('Saving action');return {body:b,data:r.request().postDataJSON()};}
+ const row=(page,title)=>page.locator('.cy-row').filter({has:page.locator('strong').filter({hasText:new RegExp(`^${title}$`)})});
+ async function panel(page,index){if(await page.locator('.cy-dialog').isVisible())await page.getByRole('button',{name:'Close courtyard panel',exact:true}).click();await page.locator('.cy-actions button').nth(index).click();await expect(page.locator('.cy-dialog')).toBeVisible();}
+-const matrix=[{name:'small-phone',width:320,height:568,dpr:1,touch:true},{name:'phone',width:390,height:844,dpr:2,touch:true},{name:'landscape',width:844,height:390,dpr:2,touch:true},{name:'desktop',width:1280,height:800,dpr:1,touch:false}];
+-for(const viewport of matrix)test.describe(viewport.name,()=>{
++for(const viewport of EIGHT_PLAYER_VIEWPORTS.filter(v=>v.name===group))test.describe(viewport.name,()=>{
+  test.use({viewport:{width:viewport.width,height:viewport.height},deviceScaleFactor:viewport.dpr,isMobile:viewport.touch,hasTouch:viewport.touch});
+  // Run finite pairs first; the shortest first guest has 18 real minutes left at
+  // clock origin. The whole lane is bounded to 14 minutes, without time scaling.
+@@ -114,12 +115,12 @@ for(const viewport of matrix)test.describe(viewport.name,()=>{
+   expect(after.yard.placedGoodies.find(p=>p.goodieId==='sun_cushion').x).toBe(53);expect(after.yard.goodieInventory.moon_lamp).toBe(1);expect(after.yard.opaqueCandidate).toEqual(initial.yard.opaqueCandidate);expect(adjacent(after)).toEqual(adjacent(initial));
+   expect(new Set([...seen.map(r=>r.data.action),...unavailable]).size).toBe(14);
+   expect(after.yard.currencies.treats).toBe(initial.yard.currencies.treats-YARD_FOODS.kibble.cost.treats-YARD_GOODIES.moon_lamp.fixCost.treats-YARD_GOODIES.sun_cushion.cost.treats+12+35);
+-  await page.keyboard.press('Escape');await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.locator('.cy-scene canvas')).toBeVisible();
++  await page.keyboard.press('Escape');await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.getByTestId('home-catalogue')).toHaveCount(0);await expect(page.locator('.cy-scene canvas')).toBeVisible();
+   await page.getByRole('button',{name:'Back to games',exact:true}).click();await expect(page.getByTestId('home-catalogue')).toBeVisible();await selectHomeGame(page,'room');await expect(page.locator('.cy-app')).toBeVisible();await page.reload();await expect(page.locator('.cy-wallet')).toContainText(String(after.yard.currencies.treats));
+   await info.attach('fourteen-intent-results',{body:Buffer.from(JSON.stringify({positive:seen.map(r=>({action:r.data.action,nonce:r.data.clientActionId})),unavailable,balances:after.yard.currencies},null,2)),contentType:'application/json'});await info.attach('interactive-ui',{body:await page.screenshot(),contentType:'image/png'});expect(observed.errors).toEqual([]);
+  });
+ });
+-test.describe('supported wear pixels on phone',()=>{test.use({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
++if(group==='phone')test.describe('supported wear pixels on phone',()=>{test.use({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true});
+  for(const id of ['willow','starlit','basil','sage'])for(const condition of ['worn','broken'])test(`${id} ${condition}: real persisted source condition reaches renderer`,async({page,request},info)=>{
+   const f=await seed(`${id}:${condition}`),observed=await boot(page,f),s=await snapshot(request,f);expect(s.yardRuntime.visits).toHaveLength(1);
+   const clipId=s.yardRuntime.visits[0].mediaAdmission.plan.clipId,manifest=JSON.parse(readFileSync(resolve(root,CANDIDATE_DIST,actorPath(id).slice(1),'runtime-media.json'),'utf8'));
+diff --git a/tests/yard-panel-escape.test.mjs b/tests/yard-panel-escape.test.mjs
+new file mode 100644
+index 0000000..a6cfb03
+--- /dev/null
++++ b/tests/yard-panel-escape.test.mjs
+@@ -0,0 +1,20 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFileSync} from 'node:fs';
++import vm from 'node:vm';
++function harness(){
++ const listeners=[],cleanups=[];
++ const window={addEventListener:(name,fn,capture=false)=>listeners.push({name,fn,capture}),removeEventListener:(name,fn,capture=false)=>{const i=listeners.findIndex(x=>x.name===name&&x.fn===fn&&x.capture===capture);if(i>=0)listeners.splice(i,1);}};
++ const source=readFileSync(new URL('../src/app/useDismissableLayer.js',import.meta.url),'utf8').replace(/^import .*;\n/gm,'').replaceAll('export function','function');
++ const context={window,Event:{CAPTURING_PHASE:1},useEffect:fn=>{const cleanup=fn();if(cleanup)cleanups.push(cleanup);}};vm.createContext(context);vm.runInContext(source+'\nthis.useEscapeDismiss=useEscapeDismiss;',context);
++ return {register:context.useEscapeDismiss,retire:()=>cleanups.pop()?.(),escape(){const event={key:'Escape',eventPhase:1,defaultPrevented:false,stopped:false,preventDefault(){this.defaultPrevented=true;},stopImmediatePropagation(){this.stopped=true;}};for(const phase of [1,3]){event.eventPhase=phase;for(const listener of [...listeners])if(listener.name==='keydown'&&listener.capture===(phase===1)&&!event.stopped)listener.fn(event);}return event;}};
++}
++test('native dialog alone loses Escape to the Hub fallback, reproducing the CI failure',()=>{
++ const h=harness();let home=false,panel=true;h.register(true,()=>{home=true;},{priority:-100});const event=h.escape();if(!event.defaultPrevented)panel=false;
++ assert.equal(home,true);assert.equal(panel,true,'preventDefault suppresses native dialog cancel');
++});
++test('registered Yard panel closes before Home, then a later Escape can open Home',()=>{
++ const h=harness();let home=false,panel=true;h.register(true,()=>{home=true;},{priority:-100});h.register(true,()=>{panel=false;});
++ assert.equal(h.escape().defaultPrevented,true);assert.equal(panel,false);assert.equal(home,false);h.retire();h.escape();assert.equal(home,true);
++ const courtyard=readFileSync(new URL('../src/games/companion-yard-v2/CourtyardGame.jsx',import.meta.url),'utf8');assert.match(courtyard,/useEscapeDismiss\(!!panel,closePanel\)/);assert.match(courtyard,/onCancel=\{closePanel\} onClose=\{closePanel\}/);
++});

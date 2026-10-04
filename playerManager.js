@@ -12,6 +12,7 @@
  */
 
 import crypto from "crypto";
+import {initializeReleasedPlayerYard,releasedYardSnapshot,usesPersistentYard} from './game-logic/yard-v2/player-release.mjs';
 import { gardenR2Snapshot } from "./game-logic/garden-r2/service.js";
 import { ECONOMY, createDefaultPlayer, createDefaultGardenState, createDefaultYardState, createEmptyMergeBoard, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
@@ -109,6 +110,7 @@ function emitPlayerSync(userId, player) {
       merge: player.merge,
       garden: player.garden,
       yard: player.yard,
+      ...releasedYardSnapshot(player),
       pet: player.pet,
       achievements: player.achievements,
     },
@@ -293,16 +295,19 @@ export function applyMigrations(p) {
   const currentSchemaVersion = 11;
   
   if (!p) return null;
-  if (p.schemaVersion >= currentSchemaVersion && p.garden && p.yard) {
+  const persistentYard=usesPersistentYard(p);
+  if (p.schemaVersion >= currentSchemaVersion && p.garden && (persistentYard?Object.hasOwn(p,'yard'):p.yard)) {
+    if(persistentYard)initializeReleasedPlayerYard(p);
     return p;
   }
   const now = Date.now();
 
   if (!p.garden) p.garden = createDefaultGardenState(now);
-  if (!p.yard) p.yard = createDefaultYardState(now, { pet: p.pet, room: p.room });
+  if (!persistentYard && !p.yard) p.yard = createDefaultYardState(now, { pet: p.pet, room: p.room });
 
   // v8.1: Early-return
   if (p.schemaVersion >= currentSchemaVersion) {
+    if(persistentYard)initializeReleasedPlayerYard(p,{now});
     return p;
   }
 
@@ -439,7 +444,7 @@ export function applyMigrations(p) {
   }
 
   if (!p.schemaVersion || p.schemaVersion < 11) {
-    if (!p.yard) p.yard = createDefaultYardState(now, { pet: p.pet, room: p.room });
+    if (!persistentYard && !p.yard) p.yard = createDefaultYardState(now, { pet: p.pet, room: p.room });
     p.schemaVersion = 11;
   }
 
@@ -477,5 +482,6 @@ export function applyMigrations(p) {
     }
   }
 
+  if(persistentYard)initializeReleasedPlayerYard(p,{now});
   return p;
 }

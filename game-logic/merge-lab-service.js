@@ -3,6 +3,7 @@
  * Recovered preview economics live in merge-lab-domain.js without release-policy changes.
  */
 import {randomUUID} from 'node:crypto';
+import { inspectReleasedYardGrantTarget as inspectYardGrantTarget } from './yard-v2/player-release.mjs';
 import {MERGE_LAB_CATALOG} from './merge-lab-catalog.js';
 import {MergeLabError, MERGE_LAB_ACTION_FIELDS, compileMergeLabCatalog, createMergeLabState,
   validateMergeLabPlayer, createMergeLabQuote, applyMergeLabAction, hashCanonical} from './merge-lab-domain.js';
@@ -102,6 +103,12 @@ export function ensureMergeLabState(player, {now=Date.now(),policy=MERGE_LAB_REL
   return {migrated:previous.schemaVersion!==3,report:cleanClone(report),policy:release};
 }
 
+function checkYardGrantTarget(player,type,now) {
+  const short=type?.startsWith('merge.')?type.slice(6):type;
+  if (!['craftProject','exchange'].includes(short)) return;
+  const checked=inspectYardGrantTarget(player,{now});
+  assert(checked.status===200,checked.error||'YARD_STATE_REQUIRES_REVIEW','Yard save requires review before another grant');
+}
 function checkProjectPolicy(type,payload,catalog,policy){
   const short=type?.startsWith('merge.')?type.slice(6):type;
   assert(own(MERGE_LAB_ACTION_FIELDS,short),'INVALID_ACTION','Unsupported Merge action',400);
@@ -116,6 +123,7 @@ export function quoteMergeLab(player, type, parameters, {expectedMergeEpoch,now=
   const state=ensureMergeLabState(player,{now,policy,catalog,...rest});
   assert(expectedMergeEpoch===player.merge.serverEpoch,'MERGE_EPOCH_CONFLICT','Merge save changed; reload before a quote');
   const short=checkProjectPolicy(type,parameters,catalog,state.policy);
+  checkYardGrantTarget(player,short,now);
   const quote=createMergeLabQuote(player,short,parameters,catalog,{now});
   // The original quote ID still commits to exact catalog/revision/terms. Epoch is a transport fence.
   return {...quote,serverEpoch:player.merge.serverEpoch,releasePolicyVersion:state.policy.version};
@@ -133,7 +141,10 @@ export function executeMergeLab(player, payload, {now=Date.now(),policy=MERGE_LA
     // Policy can stop NEW crafts without hiding a previously committed outcome. The domain
     // still validates the exact payload hash/receipt, so an ID collision cannot gain a new grant.
     const savedReceipt=player.merge.actionLedger.some(receipt=>receipt.actionId===command.actionId);
-    if(!savedReceipt)checkProjectPolicy(command.type,command.payload,catalog,state.policy);
+    if(!savedReceipt){
+      checkProjectPolicy(command.type,command.payload,catalog,state.policy);
+      checkYardGrantTarget(player,command.type,now);
+    }
     const outcome=applyMergeLabAction(player,command,catalog,{now});
     if(!outcome.ok)return outcome;
     const next=outcome.player;

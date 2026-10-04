@@ -3,12 +3,17 @@ import sharp from "sharp";
 import { measurePlantTranslation } from "./helpers/plantPixelMotion.js";
 import { fitArtwork } from "../../src/games/garden-shelf/living/plant-presentation-contract.mjs";
 import { gardenDiagnostics } from "./helpers/gardenDiagnostics.js";
+import { gardenNavigationDiagnostics } from "./helpers/gardenNavigationObservation.js";
 import { exitBlox } from "./helpers/blox-v2.js";
 import { openHome, selectHomeGame } from './helpers/home.js';
 import { GARDEN_ECONOMY_VERSION, createGardenEconomyState, createDefaultPlayer, getGardenLevelReward, getGardenXpRequired, buildGardenDailyQuests } from "../../game-logic.js";
 import { formatGardenGoldAmount, PLANT_TYPES } from "../../game-logic/garden-shelf-plants.js";
 import { applyActionWithReceipt, buildSnapshot } from "../../routes/player.js";
 import { useLegacyGardenClient } from './helpers/legacyGardenClient.js';
+
+// Trace is a worker-scoped Playwright option, so configure it at file scope.
+// Retain the original failed navigation attempt, not only a successful retry.
+test.use({ trace: 'retain-on-failure' });
 
 // These tests mount the production App through the normal Playwright web server.
 // Fixture-backed layout cases call production actions/receipts; live save cases
@@ -133,6 +138,7 @@ test.describe('Garden Living production-source flow',()=>{
    // context.close cannot overwrite a failed assertion in a finally block.
    test(`full Hub ${width}x${height}: art, dock, dialogs, post-30 level and exits`,async({page},testInfo)=>{
     const diagnostics=gardenDiagnostics(page,testInfo),errors=diagnostics.errors;
+    const navigation=await gardenNavigationDiagnostics(page,testInfo);
     const player=makePlayer();player.garden.plants[0].level=42;const originalPlant=structuredClone(player.garden.plants[0]);
     try{
       diagnostics.mark('boot');await initialize(page);await mountFixture(page,player);await boot(page);await assertShellFit(page);
@@ -164,7 +170,7 @@ test.describe('Garden Living production-source flow',()=>{
       await expect(page.locator('.gs2-stage')).toBeVisible();await assertShellFit(page);
       await expect(page.locator('.gs2-stage [data-garden-xp]')).toContainText('32');
       expect(player.garden.plants.find(p=>p.id===originalPlant.id)?.level).toBe(42);expect(errors).toEqual([]);diagnostics.complete();
-    }catch(error){diagnostics.fail(error);throw error;}finally{diagnostics.dispose();}
+    }catch(error){diagnostics.fail(error);throw error;}finally{await navigation.save();navigation.dispose();diagnostics.dispose();}
    });
   });
 

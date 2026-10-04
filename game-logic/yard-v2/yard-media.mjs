@@ -5,9 +5,10 @@ import {getMikaServerOptions} from './mika-media.mjs';
 import {createMochiMedia} from './mochi-media.mjs';
 import {createPipMedia} from './pip-media.mjs';
 import {createPebbleMedia} from './pebble-media.mjs';
+import {createFamilyMedia} from './family-media.mjs';
 import {clone,deepFreeze} from './util.mjs';
-export function createYardMedia({mika=getMikaServerOptions(),mochi=createMochiMedia(),pebble=createPebbleMedia(),pip=createPipMedia()}={}){
- const sources=[mika,mochi,pebble,pip],bindings=sources.flatMap(s=>s.mediaRegistry.bindings);
+export function createYardMedia({mika=getMikaServerOptions(),mochi=createMochiMedia(),pebble=createPebbleMedia(),pip=createPipMedia(),willow=createFamilyMedia('willow'),starlit=createFamilyMedia('starlit'),basil=createFamilyMedia('basil'),sage=createFamilyMedia('sage')}={}){
+ const sources=[mika,mochi,pebble,pip,willow,starlit,basil,sage],bindings=sources.flatMap(s=>s.mediaRegistry.bindings);
  if(new Set(bindings.map(b=>b.id)).size!==bindings.length)throw Error('Duplicate Yard media binding');
  const sourceRegistry=deepFreeze({...clone(mika.mediaRegistry),revision:'yard-species-staged/r1',kind:'persistent-yard',bindings:clone(bindings)});
  // An inactive source must not perturb even the strict legacy registry digest.
@@ -18,7 +19,7 @@ export function createYardMedia({mika=getMikaServerOptions(),mochi=createMochiMe
  const mediaRegistry=admitted.length?deepFreeze({...clone(mika.mediaRegistry),revision:'yard-species-staged/r1',kind:'persistent-yard',
   bindings:[...clone(mika.mediaRegistry.bindings),...clone(admitted)]}):mika.mediaRegistry;
  const obstacleContext=createTrustedObstacleContext(mediaRegistry);
- const actorProfiles=Object.freeze({...mika.actorProfiles,...mochi.actorProfiles,...pebble.actorProfiles,...pip.actorProfiles});
+ const actorProfiles=Object.freeze(Object.assign({},...sources.map(s=>s.actorProfiles)));
  const scene=acceptedSources.length?deepFreeze({...clone(mika.scene),footprints:Object.assign({},mika.scene.footprints,...acceptedSources.map(s=>s.scene.footprints))}):mika.scene;
  const placementReadiness=admitted.length?yard=>{
   const baseline=mika.placementReadiness(yard,{obstacleContext}),others=acceptedSources.map(s=>({visitorId:s.candidateProfile.visitorId,rows:s.sourcePlacementReadiness(yard,obstacleContext)}));

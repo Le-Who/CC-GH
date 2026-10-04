@@ -1,0 +1,136 @@
+{
+  "baseCommit": "53e5fbf6b7b774ccf35ade0244dc6690519ea15f",
+  "groundSourceSha256": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e",
+  "longDurationEvidence": "A fresh full native-duration run is required for this new source; prior b92 proof remains historical.",
+  "regenerated": [
+    {
+      "path": "recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json",
+      "bytesBefore": 291519,
+      "bytesAfter": 291519,
+      "beforeSha256": "faa18a16de7e1945bf8618e38b9b3aec161329d2b11ab97a423e3625efe289b3",
+      "afterSha256": "faa18a16de7e1945bf8618e38b9b3aec161329d2b11ab97a423e3625efe289b3",
+      "byteEqual": true,
+      "jsonEqual": true
+    },
+    {
+      "path": "recovery-tools/yard-canonical-eight-qa/mochi110-witness.json",
+      "bytesBefore": 117328,
+      "bytesAfter": 117328,
+      "beforeSha256": "01bc23fa8d8ae00ed84d99fb3bee4b643996ac3e3e9ff59c3a1f9ef7785f4b4b",
+      "afterSha256": "01bc23fa8d8ae00ed84d99fb3bee4b643996ac3e3e9ff59c3a1f9ef7785f4b4b",
+      "byteEqual": true,
+      "jsonEqual": true
+    },
+    {
+      "path": "recovery-tools/yard-canonical-eight-qa/fixture.json",
+      "bytesBefore": 2770531,
+      "bytesAfter": 2770531,
+      "beforeSha256": "7d0c4e4e9f9156147aa35175e20125e5abd5270f977ff522acfd6afc55fa93b2",
+      "afterSha256": "7d0c4e4e9f9156147aa35175e20125e5abd5270f977ff522acfd6afc55fa93b2",
+      "byteEqual": true,
+      "jsonEqual": true
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/fixture.json",
+      "bytesBefore": 61810,
+      "bytesAfter": 61810,
+      "beforeSha256": "47ed2ba3b618bdd29413fa0953084c27bac826e1b9323327c977c9044973050c",
+      "afterSha256": "47ed2ba3b618bdd29413fa0953084c27bac826e1b9323327c977c9044973050c",
+      "byteEqual": true,
+      "jsonEqual": true
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pebble-qa/fixture.json",
+      "bytesBefore": 63528,
+      "bytesAfter": 63528,
+      "beforeSha256": "0cf9f53fe60deadee08899fa2b4c78cd2527ef5937aa99c5a1bbabde460e78b1",
+      "afterSha256": "0cf9f53fe60deadee08899fa2b4c78cd2527ef5937aa99c5a1bbabde460e78b1",
+      "byteEqual": true,
+      "jsonEqual": true
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/fixture.json",
+      "bytesBefore": 63713,
+      "bytesAfter": 63713,
+      "beforeSha256": "83094a9f721d050b49927403f38d7050f636b65999e797e22223ec29d32a5e84",
+      "afterSha256": "83094a9f721d050b49927403f38d7050f636b65999e797e22223ec29d32a5e84",
+      "byteEqual": true,
+      "jsonEqual": true
+    }
+  ],
+  "sourceClosures": [
+    {
+      "path": "recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json",
+      "fileCount": 95,
+      "beforeSha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+      "afterSha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472",
+      "changes": [
+        {
+          "path": "game-logic/yard-v2/ground-coverage.mjs",
+          "before": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+          "after": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+        }
+      ]
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pip-qa/SOURCE-CLOSURE.json",
+      "fileCount": 95,
+      "beforeSha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+      "afterSha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472",
+      "changes": [
+        {
+          "path": "game-logic/yard-v2/ground-coverage.mjs",
+          "before": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+          "after": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+        }
+      ]
+    },
+    {
+      "path": "recovery-tools/yard-canonical-pebble-qa/SOURCE-CLOSURE.json",
+      "fileCount": 95,
+      "beforeSha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+      "afterSha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472",
+      "changes": [
+        {
+          "path": "game-logic/yard-v2/ground-coverage.mjs",
+          "before": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+          "after": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+        }
+      ]
+    },
+    {
+      "path": "recovery-tools/yard-canonical-mochi-qa/SOURCE-CLOSURE.json",
+      "fileCount": 95,
+      "beforeSha256": "b85dde5ae047add2f2c1fd8dc58b452c3405a50bd41988fc76b0f0a188094760",
+      "afterSha256": "c97798fe2374ae454c159f46d1106d5278fe50c2a50da61d13944bc30a50b472",
+      "changes": [
+        {
+          "path": "game-logic/yard-v2/ground-coverage.mjs",
+          "before": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+          "after": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+        }
+      ]
+    },
+    {
+      "path": "recovery-tools/yard-mochi-combined-qa/SOURCE-CLOSURE.json",
+      "fileCount": 17,
+      "beforeSha256": "499bcda9b711c12ed5f0a9aad77364365a8bf4c58df519659d581592f1303798",
+      "afterSha256": "0331d436d68c153b0e6a53e026d3e0975f9ec0157a7ffa8004c61ad39c443028",
+      "changes": [
+        {
+          "path": "game-logic/yard-v2/ground-coverage.mjs",
+          "before": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9",
+          "after": "28758a6fd7a29fd2e97dd7d8c12ec0dcfdaf3ea182dd04bef0d983e3f961921e"
+        }
+      ]
+    }
+  ],
+  "mochiCombinedPlan": {
+    "byteEqual": true,
+    "bytes": 18250,
+    "sha256": "ee0585b6410d367f76fad6dabf45ef4cdc509d754da2fde9a24553efe10acc4e",
+    "boundarySamples": 21
+  },
+  "priorHistoryFilesUnchanged": 33,
+  "pipSnackFrozenCopy": "unchanged; its own existing ground file and closure are preserved"
+}

@@ -139,3 +139,18 @@
 .gs2-r2-card>.gs2-button{width:100%;flex:none}.gs2-r2-delta{display:block;font-size:12px;line-height:1.4}
 .gs2-metric>small{white-space:normal;overflow-wrap:anywhere;line-height:1.2}
 .gs2-xp>span{white-space:normal;flex-wrap:wrap;line-height:1.15}
+
+/* A confirmed tap gets one small leaf/coin, anchored inside its own card.
+   Living-plant geometry stays untouched; this never moves a hit target. */
+.gs2-button,.gs2-empty-target{transition:transform 130ms cubic-bezier(.2,.7,.25,1),filter 130ms ease}
+.gs2-button:active:not(:disabled),.gs2-empty-target:active:not(:disabled){transform:translateY(1px) scale(.985)}
+.gs2-detail-tap{position:relative;overflow:hidden}
+.gs2-tap-feedback{position:absolute;left:calc(50% - 12px);top:38%;z-index:4;pointer-events:none;animation:gs2-tap-reward 440ms cubic-bezier(.18,.7,.25,1) both}
+.gs2-tap-feedback>.gs2-art{width:24px;height:24px}
+.gs2-spot[data-gs2-placed=true] .gs2-plant-target{animation:gs2-plant-arrive 260ms ease-out both}
+.gs2-reward>.gs2-art{animation:gs2-reward-arrive 400ms cubic-bezier(.18,.7,.25,1) both}
+.gs2-stage[data-motion-blocked=true] .gs2-shelf-viewport *, .gs2-stage[data-motion-suspended=true] *, .gs2-modal-layer[data-motion-suspended=true] *{animation-play-state:paused!important;transition:none!important}
+@keyframes gs2-tap-reward{0%{opacity:0;transform:translateY(8px) scale(.82)}20%{opacity:1;transform:translateY(2px) scale(1.04)}65%{opacity:1}100%{opacity:0;transform:translateY(-18px) scale(1)}}
+@keyframes gs2-plant-arrive{from{opacity:.65}to{opacity:1}}
+@keyframes gs2-reward-arrive{0%{transform:scale(.9)}60%{transform:scale(1.045)}100%{transform:none}}
+@media(prefers-reduced-motion:reduce){.gs2-tap-feedback{display:none}.gs2-button:active:not(:disabled),.gs2-empty-target:active:not(:disabled){transform:none}}

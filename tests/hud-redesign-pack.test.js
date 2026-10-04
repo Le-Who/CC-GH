@@ -163,8 +163,8 @@ test("published HUD menu surfaces are free of chromakey spill", async () => {
   keyBySource.set("farmLegacy", "#ff00ff");
 
   const surfaceManifests = [
-    "public/games/ui-surfaces/screen-surface-extract-manifest.json",
-    "public/games/ui-surfaces/portrait-panel-extract-manifest.json",
+    "assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json",
+    "assets-source/imagegen/hud-redesign/portrait-panel-extract-manifest.json",
   ];
   for (const manifestFile of surfaceManifests) {
     const surfaceManifest = JSON.parse(await readFile(workspacePath(manifestFile), "utf8"));
@@ -172,7 +172,7 @@ test("published HUD menu surfaces are free of chromakey spill", async () => {
       const sourceId = output.sourcePath.match(/asset-sources\/([^/]+)\//)?.[1];
       const key = keyBySource.get(sourceId);
       assert.ok(key, `${output.file} must map to a known chromakey source`);
-      await assertRuntimeHasNoChromaSpill(`public/games/ui-surfaces/${output.file}`, key, output.file);
+      await assertRuntimeHasNoChromaSpill(output.path, key, output.file);
     }
   }
 });

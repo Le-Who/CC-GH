@@ -1,3 +1,4 @@
+import {installPresentationMotion,settlePresentationMotion} from '../shared/presentationMotion.js';
 import {makeLivingPlantArt,supportsLivingPlant,notifyPlantTouch,getLivingPlantMotionState,LIVING_MOTION_CHANGE,listenToMotionPreference} from './living/living-plant-art.mjs';
 import React, { createContext, useContext, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Home, Settings, X, Plus, Info, ChevronLeft, ChevronRight, Archive, Trash2, Lock, ArrowUpCircle, Check } from 'lucide-react';
@@ -15,7 +16,7 @@ import { createGardenPressSession, createGardenActionGate, createGardenShelfDrag
 import { R2_PLANTS, R2_SHELF_COSTS, R2_SHELF_CHAPTERS, r2GoldRate, r2ChapterReward } from '../../../game-logic/garden-r2/catalog.js';
 import { formatR2Gold, formatR2Rate, gardenPlantPhaseDuration } from './lib/gardenR2View.js';
 import { requiresGardenReload } from './lib/gardenR2Transactions.js';
-import { Art, Button, Dialog, FeedbackContext, PlantArt, Progress, art, remaining, usePlantTapAcknowledgement } from './GardenViewShared.tsx';
+import { Art, Button, Dialog, FeedbackContext, PlantArt, Progress, art, remaining, usePlantTapAcknowledgement, PlantTapFeedback } from './GardenViewShared.tsx';
 import { lazy, Suspense } from 'react';
 import './garden-presentation.css';
 const SettingsDialog=lazy(()=>import('./GardenSettingsDialog.tsx'));
@@ -74,7 +75,7 @@ function PlantSpot({
     canWater = !plant.lastWatered || (r2 ? r2.serverNow : Date.now()) - plant.lastWatered >= getGardenWaterCooldownMs(plant.phase);
   return <article className="gs2-spot" data-gs2-tapped={tapAcknowledgement.active ? "true" : undefined} data-plant-id={plant.id} data-gs2-placed={highlighted ? "true" : undefined}><button type="button" className="gs2-plant-target" disabled={blocked || (!!r2 && !accountingReady)} aria-label={`${t(`plant.${def.id}`)}: ${t(plant.phase >= 3 ? 'plantDetail.tapGold' : 'plantDetail.tapGrowth')}`} onPointerDown={e => press.start(e)} onPointerMove={e => press.move(e)} onPointerUp={e => press.end(e)} onPointerCancel={() => press.cancel()} onLostPointerCapture={() => press.cancel()} onPointerLeave={() => press.cancel()} onContextMenu={e => e.preventDefault()} onClick={e => {
       if (e.detail === 0) tapRef.current();
-    }}><PlantArt plant={plant} deferOffscreen={deferArt} size={Math.min(compact ? 90 : 122, Math.max(44, spotWidth - 28))} />{canWater && <span className="gs2-water-ready" aria-label={t('plantDetail.water')}><Art name="water" /></span>}</button><h3>{t(`plant.${def.id}`)}</h3><div className="gs2-plant-state">{plant.phase < 3 ? <span data-testid="garden-growth-timer">{remaining(plant, r2)}</span> : <span>{t('ui.mature')}</span>}<small>{t(r2 ? 'r2.rankShort' : 'label.levelShort')} {plant.level}</small></div><Button onClick={onDetails} disabled={blocked} className="gs2-details" aria-label={`${t('plantDetail.details')}: ${t(`plant.${def.id}`)}`} data-plant-details-button="true"><Info size={16} /><span>{t('ui.details')}</span></Button></article>;
+    }}><PlantArt plant={plant} deferOffscreen={deferArt} size={Math.min(compact ? 90 : 122, Math.max(44, spotWidth - 28))} /><PlantTapFeedback acknowledgement={tapAcknowledgement} mature={plant.phase >= 3} />{canWater && <span className="gs2-water-ready" aria-label={t('plantDetail.water')}><Art name="water" /></span>}</button><h3>{t(`plant.${def.id}`)}</h3><div className="gs2-plant-state">{plant.phase < 3 ? <span data-testid="garden-growth-timer">{remaining(plant, r2)}</span> : <span>{t('ui.mature')}</span>}<small>{t(r2 ? 'r2.rankShort' : 'label.levelShort')} {plant.level}</small></div><Button onClick={onDetails} disabled={blocked} className="gs2-details" aria-label={`${t('plantDetail.details')}: ${t(`plant.${def.id}`)}`} data-plant-details-button="true"><Info size={16} /><span>{t('ui.details')}</span></Button></article>;
 }
 
 export default function GardenPresentation({
@@ -123,6 +124,8 @@ export default function GardenPresentation({
     previousR2Reward = useRef<any>(null),
     lastResult = useGameHub(s => s.lastResult);
   const busy = actionBusy;
+  useEffect(() => installPresentationMotion(stage.current), []);
+  useEffect(() => { settlePresentationMotion(stage.current); }, [panel, spot, notice]);
   const run = useCallback(async (fn: any) => {
     if (gate.current.isPending()) return false;
     setBusy(true);
@@ -357,7 +360,7 @@ export default function GardenPresentation({
     busy,
     onDismiss: dismissError,
     returnFocusRef: dialogOpener
-  }}><HudRegion id="gardenRoot" ref={stage} applyLayout={false} className="gs2-stage" data-gs2-arrangement={layout.landscape ? 'side' : 'stack'} data-gs2-compact={String(layout.compact)} style={{
+  }}><HudRegion id="gardenRoot" ref={stage} applyLayout={false} className="gs2-stage" data-motion-blocked={blocked ? "true" : "false"} data-gs2-arrangement={layout.landscape ? 'side' : 'stack'} data-gs2-compact={String(layout.compact)} style={{
       '--gs2-padding': `${layout.padding}px`,
       '--gs2-gap': `${layout.gap}px`,
       '--gs2-rail': `${layout.rail}px`,

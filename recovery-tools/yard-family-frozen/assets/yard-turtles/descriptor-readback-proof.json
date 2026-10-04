@@ -1,0 +1,321 @@
+{
+  "passed": true,
+  "runtimeReady": false,
+  "sourceFrameReferencePixelChecks": 13374,
+  "clips": [
+    {
+      "id": "basil-walk-f0",
+      "framesChecked": 40,
+      "passed": true
+    },
+    {
+      "id": "basil-walk-f2",
+      "framesChecked": 40,
+      "passed": true
+    },
+    {
+      "id": "basil-walk-f4",
+      "framesChecked": 40,
+      "passed": true
+    },
+    {
+      "id": "basil-walk-f6",
+      "framesChecked": 40,
+      "passed": true
+    },
+    {
+      "id": "basil-backward-f0",
+      "framesChecked": 41,
+      "passed": true
+    },
+    {
+      "id": "basil-backward-f2",
+      "framesChecked": 41,
+      "passed": true
+    },
+    {
+      "id": "basil-backward-f4",
+      "framesChecked": 41,
+      "passed": true
+    },
+    {
+      "id": "basil-backward-f6",
+      "framesChecked": 41,
+      "passed": true
+    },
+    {
+      "id": "basil-left90-f0",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-left90-f2",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-left90-f4",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-left90-f6",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-right90-f0",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-right90-f2",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-right90-f4",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-right90-f6",
+      "framesChecked": 161,
+      "passed": true
+    },
+    {
+      "id": "basil-left180-f0",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-left180-f2",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-left180-f4",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-left180-f6",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-right180-f0",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-right180-f2",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-right180-f4",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-right180-f6",
+      "framesChecked": 321,
+      "passed": true
+    },
+    {
+      "id": "basil-settle-f0",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "basil-settle-f2",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "basil-settle-f4",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "basil-settle-f6",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "basil-fountain-new",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "basil-fountain-worn",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "basil-fountain-broken",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-walk-f0",
+      "framesChecked": 50,
+      "passed": true
+    },
+    {
+      "id": "sage-walk-f2",
+      "framesChecked": 50,
+      "passed": true
+    },
+    {
+      "id": "sage-walk-f4",
+      "framesChecked": 50,
+      "passed": true
+    },
+    {
+      "id": "sage-walk-f6",
+      "framesChecked": 50,
+      "passed": true
+    },
+    {
+      "id": "sage-backward-f0",
+      "framesChecked": 51,
+      "passed": true
+    },
+    {
+      "id": "sage-backward-f2",
+      "framesChecked": 51,
+      "passed": true
+    },
+    {
+      "id": "sage-backward-f4",
+      "framesChecked": 51,
+      "passed": true
+    },
+    {
+      "id": "sage-backward-f6",
+      "framesChecked": 51,
+      "passed": true
+    },
+    {
+      "id": "sage-left90-f0",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-left90-f2",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-left90-f4",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-left90-f6",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-right90-f0",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-right90-f2",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-right90-f4",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-right90-f6",
+      "framesChecked": 201,
+      "passed": true
+    },
+    {
+      "id": "sage-left180-f0",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-left180-f2",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-left180-f4",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-left180-f6",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-right180-f0",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-right180-f2",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-right180-f4",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-right180-f6",
+      "framesChecked": 401,
+      "passed": true
+    },
+    {
+      "id": "sage-settle-f0",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "sage-settle-f2",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "sage-settle-f4",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "sage-settle-f6",
+      "framesChecked": 181,
+      "passed": true
+    },
+    {
+      "id": "sage-fountain-new",
+      "framesChecked": 441,
+      "passed": true
+    },
+    {
+      "id": "sage-fountain-worn",
+      "framesChecked": 441,
+      "passed": true
+    },
+    {
+      "id": "sage-fountain-broken",
+      "framesChecked": 441,
+      "passed": true
+    }
+  ],
+  "intrinsicProviderPixelChecks": 6,
+  "walkDuplicateEndpointsExcluded": true,
+  "manifestRevision": "77bd226ee8a5f60876995652866a5e314a4f0b05d76e07c423d302054a18e6d2",
+  "completeRasterCoverage": true
+}

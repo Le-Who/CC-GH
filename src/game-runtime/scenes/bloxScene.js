@@ -1,6 +1,7 @@
 /** Recovered game-only source from the owned Blox v2 r2 preview. See recovery manifest. */
 import {Texture,NineSliceSprite,Rectangle} from 'pixi.js';
-import {spriteFit,Container,makeRafScheduler,centeredPieceOrigin,clear,GRID,bloxGhostOrigin,canPlaceBloxPiece,strokedRect,label,AMBER,makeSparkles,MINT,bloxAnchorCellFromDrag,bloxDragVisualPoint,makeRipple,CORAL,createPointerSession,viewWidth,viewHeight,rect,publishCanvasAssetLayout,applyHudAssetRegion,makeInteractive,publishCanvasLayout,PANEL,createBloxDragState,setupStage,tickParticles} from './shared/runtime.js';
+import {createFeedbackTrack} from './feedbackTrack.js';
+import {spriteFit,Container,makeRafScheduler,centeredPieceOrigin,clear,GRID,bloxGhostOrigin,canPlaceBloxPiece,strokedRect,label,AMBER,MINT,bloxAnchorCellFromDrag,bloxDragVisualPoint,CORAL,createPointerSession,viewWidth,viewHeight,rect,publishCanvasAssetLayout,applyHudAssetRegion,makeInteractive,publishCanvasLayout,PANEL,createBloxDragState,setupStage} from './shared/runtime.js';
 import {previewBloxPlacement} from '../../../game-logic/blox-engine.js';
 import {bloxArtUrl,bloxTileAsset,BLOX_NINE_SLICE} from '../../games/blox/bloxArt.js';
 import {composeBlox} from '../../games/blox/bloxComposition.js';
@@ -40,6 +41,15 @@ function buildBloxScene(app, initial={
   let layout=null;
   let drag=null;
   let lastTraySignature="";
+  let destroyed=false, feedbackEpoch=0, background=false;
+  const motionMedia=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const feedback=createFeedbackTrack(effects,{limit:48});
+  const reduced=()=>!!motionMedia?.matches;
+  const animate=(node,options={})=>{
+    if(destroyed||background||document.visibilityState==='hidden'){node.destroy?.({children:true});return;}
+    feedback.add(node,{...options,reduced:reduced()});
+    app.ticker.start?.();
+  };
   const dragVisual=makeRafScheduler(()=>updateDragVisualNow());
   dragLayer.eventMode="none";
   dragLayer.interactiveChildren=false;
@@ -77,7 +87,7 @@ function buildBloxScene(app, initial={
     return T==="mouse"||!_&&T!=="touch"&&T!=="pen"?0:-Math.max(52, Math.min(92, (layout?.cell||24)*2.15))
   }
   function updateDragVisualNow(){
-    if(clear(dragLayer), !drag?.piece)return;
+    if(clear(dragLayer), !drag?.piece){app.render?.();return;}
     const h=data.blox||{
     };
     const T=h.board||h.savedState?.board||Array.from({
@@ -118,141 +128,58 @@ function buildBloxScene(app, initial={
         C||dragLayer.addChild(label("×", R+layout.cell/2, H+layout.cell/2, Math.max(12, layout.cell*.6), 16763603, "800"));
       }
     }
+    app.render?.();
   }
   function g(){
     dragVisual.request()
   }
-  function G(h={
-  }){
+  // Clearing travels along the actual completed lines; it never covers the board
+  // with a centre-screen reward label or blocks the next placement.
+  function G(result={}){
     if(!layout)return;
-    const T=Array.isArray(h.rows)?h.rows:[];
-    const _=Array.isArray(h.cols)?h.cols:[];
-    const f=new Set;
-    for(const x of T)for(let d=0; d<GRID; d+=1)f.add(`${x}:${d}`);
-    for(const x of _)for(let d=0; d<GRID; d+=1)f.add(`${d}:${x}`);
-    for(const x of f){
-      const[d, b]=x.split(":").map(Number);
-      const C=layout.left+(b+.5)*layout.cell;
-      const S=layout.top+(d+.5)*layout.cell;
-      const U=strokedRect(-(layout.cell-4)/2, -(layout.cell-4)/2, layout.cell-4, layout.cell-4, AMBER, 6, 16774343, .78, 2);
-      U.position.set(C, S);
-      U._delay=Math.min(10, (d+b)%5);
-      U._tween={
-        fromX:C,
-        fromY:S,
-        toX:C,
-        toY:S,
-        duration:18,
-        fade:true,
-        scaleFrom:.9,
-        scaleTo:1.08
-      };
-      effects.addChild(U);
+    for(const row of (result.rows||[]).slice(0,GRID)){
+      const beam=spriteFit(bloxArtUrl("energy"),layout.left+layout.size/2,layout.top+(row+.5)*layout.cell,layout.size+8,layout.cell*.85,.65);
+      animate(beam,{duration:300,from:.98,peak:1.02});
     }
-    for(const x of T){
-      const d=layout.top+x*layout.cell+layout.cell/2;
-      const b=spriteFit(bloxArtUrl("energy"), layout.left+layout.size/2, d, layout.size+16, layout.cell*1.35, .74);
-      const C=b.scale.x;
-      b.scale.set(C*.08);
-      b._delay=x%3;
-      b._tween={
-        fromX:b.x,
-        fromY:b.y,
-        toX:b.x,
-        toY:b.y,
-        duration:20,
-        scaleFrom:C*.08,
-        scaleTo:C*1.08,
-        fade:true
-      };
-      effects.addChild(b);
-      for(let S=0; S<GRID; S+=2){
-        const U=effects.children.length;
-        makeSparkles(effects, layout.left+(S+.5)*layout.cell, d, AMBER, 3);
-        for(const B of effects.children.slice(U))B._delay=4+x%3
-      }
-    }
-    for(const x of _){
-      const d=layout.left+x*layout.cell+layout.cell/2;
-      const b=createBloxEnergyLine(d, layout.top+layout.size/2, layout.cell*1.35, layout.size+16, .7);
-      const C=b.scale.x;
-      b.scale.set(C*.08);
-      b._delay=x%3;
-      b._tween={
-        fromX:b.x,
-        fromY:b.y,
-        toX:b.x,
-        toY:b.y,
-        duration:20,
-        scaleFrom:C*.08,
-        scaleTo:C*1.08,
-        fade:true
-      };
-      effects.addChild(b);
-      for(let S=0; S<GRID; S+=2){
-        const U=effects.children.length;
-        makeSparkles(effects, d, layout.top+(S+.5)*layout.cell, MINT, 3);
-        for(const B of effects.children.slice(U))B._delay=6+x%3
-      }
-    }
-    if(f.size){
-      const x=spriteFit(bloxArtUrl("burst"), layout.left+layout.size/2, layout.top+layout.size/2, layout.cell*3.1, layout.cell*3.1, .78);
-      x._tween={
-        fromX:x.x,
-        fromY:x.y,
-        toX:x.x,
-        toY:x.y,
-        duration:24,
-        fade:true,
-        scaleFrom:x.scale.x*.66,
-        scaleTo:x.scale.x*1.22
-      };
-      effects.addChild(x);
-      const d=label(data.bloxClearText||"CLEAR", layout.left+layout.size/2, layout.top+layout.size/2, Math.max(18, layout.cell*.48), AMBER, "1000");
-      d._tween={
-        fromX:d.x,
-        fromY:d.y,
-        toX:d.x,
-        toY:d.y-layout.cell*.7,
-        duration:30,
-        fade:true,
-        scaleFrom:.82,
-        scaleTo:1.18
-      };
-      effects.addChild(d);
+    for(const col of (result.cols||[]).slice(0,GRID)){
+      const beam=createBloxEnergyLine(layout.left+(col+.5)*layout.cell,layout.top+layout.size/2,layout.cell*.85,layout.size+8,.65);
+      animate(beam,{duration:300,from:.98,peak:1.02});
     }
   }
-  function F(h){
-    if(!drag)return;
-    const T=drag;
-    const _=h?.cancelled?null:T.overCell||bloxAnchorCellFromDrag(layout, T);
-    const f=_?{
-      x:layout.left+(_.col+.5)*layout.cell,
-      y:layout.top+(_.row+.5)*layout.cell
-    }:bloxDragVisualPoint(T);
-    drag=null;
-    dragVisual.cancel();
-    clear(dragLayer);
-    _&&data.blox?.gameActive?data.onBloxDrop?.(T.pieceIdx, _.row, _.col)?.then?.(x=>{
-      if(!x?.error){
-        const d=spriteFit(bloxArtUrl("burst"), f.x, f.y, 52, 52, .7);
-        d._tween={
-          fromX:f.x,
-          fromY:f.y,
-          toX:f.x,
-          toY:f.y,
-          duration:18,
-          fade:true,
-          scaleFrom:d.scale.x*.68,
-          scaleTo:d.scale.x*1.12
-        };
-        effects.addChild(d);
-        const b=x.clear?.cleared?AMBER:MINT;
-        makeSparkles(effects, f.x, f.y, b, x.clear?.cleared?18:13);
-        makeRipple(effects, f.x, f.y, b, x.clear?.cleared?42:24);
-        x.clear?.cleared&&G(x.clear);
+  function placementFeedback(piece,cell,result){
+    if(!layout||!cell)return;
+    if(result?.error){
+      for(const [row,col] of piece.cells||[]){
+        const r=cell.row+row,c=cell.col+col;
+        if(r<0||c<0||r>=GRID||c>=GRID)continue;
+        animate(strokedRect(layout.left+c*layout.cell+2,layout.top+r*layout.cell+2,layout.cell-4,layout.cell-4,CORAL,4,CORAL,.12,2),{duration:190});
       }
-    }):T.moved||h?.moved?makeSparkles(effects, T.startX, T.startY, CORAL, 5):data.onBloxTray?.(T.pieceIdx);
+      return;
+    }
+    for(const [row,col] of piece.cells||[]){
+      const x=layout.left+(cell.col+col+.5)*layout.cell,y=layout.top+(cell.row+row+.5)*layout.cell;
+      animate(spriteFit(tileAssetForPiece(piece),x,y,tileVisualSize(layout.cell),tileVisualSize(layout.cell),.8),{duration:220,from:.94,peak:1.045});
+    }
+    if(result?.clear?.cleared)G(result.clear);
+  }
+  function F(done){
+    if(!drag)return;
+    const current=drag;
+    const target=done?.cancelled?null:current.overCell||bloxAnchorCellFromDrag(layout,current);
+    drag=null;dragVisual.cancel();clear(dragLayer);
+    // Cancel is a neutral cleanup, never a selection, rejection, or reward.
+    if(done?.cancelled){k();return;}
+    if(target&&data.blox?.gameActive){
+      const epoch=feedbackEpoch;
+      Promise.resolve(data.onBloxDrop?.(current.pieceIdx,target.row,target.col)).then(result=>{
+        if(!destroyed&&epoch===feedbackEpoch&&result)placementFeedback(current.piece,target,result);
+      }).catch(()=>{});
+    }else if(current.moved||done?.moved){
+      const point=bloxDragVisualPoint(current);
+      const returned=drawPiece(current.piece,0,0,Math.min(layout?.cell||22,28),.7);
+      returned.position.set(point.x,point.y);
+      animate(returned,{duration:180,dx:current.startX-point.x,dy:current.startY-point.y,from:1,peak:.98,to:.94});
+    }else data.onBloxTray?.(current.pieceIdx);
     k();
   }
   const O=createPointerSession({
@@ -261,7 +188,9 @@ function buildBloxScene(app, initial={
     },
     onTap:h=>{
       if(h.data?.kind==="blox-cell"){
-        data.onBloxCell?.(h.data.row, h.data.col);
+        const piece=data.blox?.tray?.[data.selectedBloxPiece]?.piece,epoch=feedbackEpoch;
+        const result=data.onBloxCell?.(h.data.row,h.data.col);
+        if(piece)Promise.resolve(result).then(value=>{if(value&&!destroyed&&epoch===feedbackEpoch)placementFeedback(piece,h.data,value);}).catch(()=>{});
         return
       }
       drag&&(data.onBloxTray?.(drag.pieceIdx), drag=null, dragVisual.cancel(), clear(dragLayer), k())
@@ -270,6 +199,7 @@ function buildBloxScene(app, initial={
     onCancel:h=>F(h)
   });
   function k(){
+    if(destroyed)return;
     clear(root);
     const h=data.blox||{
     };
@@ -369,7 +299,11 @@ function buildBloxScene(app, initial={
       });
       root.addChild(z);
       M?.piece&&drag?.pieceIdx!==u&&root.addChild(drawTrayPiece(M.piece, R, H, P, Y, L, M.placed?.16:1));
-      X&&M?.piece&&!M.placed&&makeRipple(effects, R+P/2, H+Y/2, MINT, 18);
+      if(X&&M?.piece&&!M.placed){
+        const arrival=drawPiece(M.piece,0,0,L,.72);
+        arrival.position.set(N.x,N.y);
+        animate(arrival,{duration:200,from:.94,peak:1.025});
+      }
     }
     if(data.bloxKeyboardCell){
       const{
@@ -387,13 +321,27 @@ function buildBloxScene(app, initial={
     }
     g();
     data.bloxHideStatusText||root.addChild(label(data.bloxStatusText||`Score ${h.score||0} · Lines ${h.linesCleared||0}`, viewWidth(app)/2, U+76, 14, AMBER));
+    app.render?.();
   }
   const A=setupStage(app, O.move, O.end, ()=>O.cancel("stage"));
-  const D=()=>tickParticles(effects);
+  const resetFeedback=()=>{feedbackEpoch++;feedback.clear();};
+  const suspend=()=>{background=true;resetFeedback();app.render?.();app.ticker.stop?.();};
+  const resume=()=>{background=false;};
+  const visibility=()=>{if(document.visibilityState==='hidden')suspend();else resume();};
+  const motionChange=()=>resetFeedback();
+  window.addEventListener('blur',suspend);window.addEventListener('focus',resume);
+  document.addEventListener('visibilitychange',visibility);
+  motionMedia?.addEventListener?.('change',motionChange);
+  const D=ticker=>{
+    if(background||document.visibilityState==='hidden')return;
+    feedback.tick(ticker?.deltaMS??1000/60);
+    if(!drag&&!feedback.size){app.render?.();app.ticker.stop?.();}
+  };
   return app.ticker.add(D),
   k(),
   {
     resize(h){
+      resetFeedback();
       O.cancel("resize");
       data=h||{
       };
@@ -402,9 +350,14 @@ function buildBloxScene(app, initial={
     update(h){
       data=h||{
       };
+      if(!data.blox?.gameActive)resetFeedback();
       drag&&!data.blox?.gameActive?O.cancel("inactive"):drag?g():k();
     },
     destroy(){
+      destroyed=true;resetFeedback();
+      window.removeEventListener('blur',suspend);window.removeEventListener('focus',resume);
+      document.removeEventListener('visibilitychange',visibility);
+      motionMedia?.removeEventListener?.('change',motionChange);
       A();
       app.ticker.remove(D);
       dragVisual.cancel();

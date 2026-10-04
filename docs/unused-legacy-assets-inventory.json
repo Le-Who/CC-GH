@@ -1,0 +1,1415 @@
+{
+  "baseCommit": "67dd04ebcacc46dabefe525614a6eb17dda44d5a",
+  "deletedFiles": 163,
+  "deletedBytes": 14128062,
+  "sourceOnlyMoves": 33,
+  "removedFromPublicFiles": 48,
+  "removedFromPublicBytes": 11227855,
+  "files": [
+    {
+      "path": "assets-source/games/bubbo-bubbo/dist-source/bottom tray.png",
+      "action": "delete-unused",
+      "bytes": 3197,
+      "sha256": "5bb2957a6aca3270d9dadf7cdcf19dbc5cb99a81ee6f6d577d1c427f65e98db4",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/dist-source/btn-flat.png",
+      "action": "delete-unused",
+      "bytes": 3502,
+      "sha256": "d2dc47a23c047d18504eea74360c51bc38047f66d6c4f36b2600bdeaa021506e",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/dist-source/cannon-arrow-3.png",
+      "action": "delete-unused",
+      "bytes": 757,
+      "sha256": "cf204161c9585e2b08d202f16f6bc1c88fb2f581cc17fc0c32585a49aa5f3d06",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/dist-source/cannon-barrell-1.png",
+      "action": "delete-unused",
+      "bytes": 3162,
+      "sha256": "d9da7791b49709d57b2d043922d3270be46a4851f565589bd686f8016b458053",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/dist-source/cannon-main-2.png",
+      "action": "delete-unused",
+      "bytes": 6962,
+      "sha256": "840e1839af5d0af411aee103a6e63e078a79bd43e79bf9e6a2907a4fe5ab9c99",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/dist-source/laser-line-glow.png",
+      "action": "delete-unused",
+      "bytes": 373856,
+      "sha256": "83d9e0d8feb0cbfc5c15785d0a82a9c1379ffec2c164b92732b6148c19372c57",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/dist-source/laser-line.png",
+      "action": "delete-unused",
+      "bytes": 1294,
+      "sha256": "c033cce1d2952ee2fc0aac4aa014e9d3474620e023c9945faad1d33dcf4a0395",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/bubble-land-sfx.wav",
+      "action": "delete-unused",
+      "bytes": 55374,
+      "sha256": "90b4a46e85a7192a8a320c8e53047e5fa97745e0faca2f0af30796127d5dc75f",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/bubbles-falling.wav",
+      "action": "delete-unused",
+      "bytes": 333996,
+      "sha256": "d66ab66da976cd3a8639e3239a8c9b029531ae85625240c2677781fcce06daa3",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/bubbo-bubbo-bg-music.wav",
+      "action": "delete-unused",
+      "bytes": 4608118,
+      "sha256": "c3eb9d2ca8c8c280d194d48b6dde1b160284bc2cb4c03faadccc0226b2aaf11c",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/cannon-move.wav",
+      "action": "delete-unused",
+      "bytes": 11140,
+      "sha256": "0240847e3249cb0f1be78fdae57d58e1ce3e58cebc0355db2b674ba734541253",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/powerup-bomb.wav",
+      "action": "delete-unused",
+      "bytes": 524674,
+      "sha256": "a42069b7f70a8af78824a252dd24224bb8d0c0581dba0e98c87d51a0d2395139",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/powerup-super.wav",
+      "action": "delete-unused",
+      "bytes": 409170,
+      "sha256": "adc6465b237cb414da4e20e489db776faa6d0994e03745a5e54d29ccc30c6bf6",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/powerup-time.wav",
+      "action": "delete-unused",
+      "bytes": 719646,
+      "sha256": "1b42c5b3cd1627baf399eafed238d53c7b2401354866ae6030eddf11c19996bd",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/primary-button-press.wav",
+      "action": "delete-unused",
+      "bytes": 171302,
+      "sha256": "9c038088ec943986b5fc38e6498fa566259fc9baf93e4fed5443d0821fc7792a",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/audio/secondary-button-press.wav",
+      "action": "delete-unused",
+      "bytes": 172680,
+      "sha256": "845617011e352d0f3afafe296b3cd177254478ef5a1547ff45c1d5ea73fd2ccc",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/fonts/Bungee-Regular{wf}.ttf",
+      "action": "delete-unused",
+      "bytes": 125116,
+      "sha256": "4ebf3ee57d28f8b9e85bcf88ce0dd84b06603d52aedd35385c86dfc08c5142e5",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/fonts/OpenSans-SemiBold{wf}.ttf",
+      "action": "delete-unused",
+      "bytes": 129716,
+      "sha256": "89275a1c66640733265b5be89864b6daefef1cc3f275566dd8fd29bd66601a83",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/favicon.png",
+      "action": "delete-unused",
+      "bytes": 1633,
+      "sha256": "b28d7046260c154dd92500d458745f4d698422e5d1afb1074a4427c8d99a9df8",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/bottom-tray.png",
+      "action": "delete-unused",
+      "bytes": 820,
+      "sha256": "8a7f1898d5ebf5fd8284b4ca4113f131e9bed569b7cfcadcc5cde55d7f824f4a",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/bubble-bomb.png",
+      "action": "delete-unused",
+      "bytes": 40438,
+      "sha256": "8367e4e63be213879364e287ed3392289e1a4c0899c35e71b1802bc6858890a9",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/bubble-glow.png",
+      "action": "delete-unused",
+      "bytes": 62827,
+      "sha256": "ee0e9f48b9ba79cecd3b053f6b7d437a83dc519599d27b81cc0da6f9231a9f4f",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/bubble-reserve-base.png",
+      "action": "delete-unused",
+      "bytes": 2494,
+      "sha256": "3918d9a40653f4f3002fab70cfa3afa08b47ea47a6bac0541fad17006a969db7",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/bubble-reserve-ring.png",
+      "action": "delete-unused",
+      "bytes": 2183,
+      "sha256": "aea5556ed5fd7eabab25052fcfe4a3d9eca4ceab91f02f0f810cff6bd73fadbb",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/bubble-super.png",
+      "action": "delete-unused",
+      "bytes": 41520,
+      "sha256": "8401ffe3258bf2af90c01d0de099f689937c72580bc2756c7f096304222d6be4",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/bubble-timer.png",
+      "action": "delete-unused",
+      "bytes": 42483,
+      "sha256": "2afec0d136a4bf2b2757b690054d053c37b0dd3ab65760992044ad09311637eb",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/button-flat-small.png",
+      "action": "delete-unused",
+      "bytes": 916,
+      "sha256": "7b23c4d87094b3a330cf180666e4197e9a7a3aaa6be5a939341faf4908507764",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/button-flat.png",
+      "action": "delete-unused",
+      "bytes": 5648,
+      "sha256": "ad87d9d5e60261c4f544ea1ff1d7ff2a62960885aaa266f4736d6d6e74892ddf",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/game-side-border.png",
+      "action": "delete-unused",
+      "bytes": 147,
+      "sha256": "83d7c2652ffd37372ff5b9a23855f4efe71631a0cd59da49ad787b38bcb11340",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/icon-pause.png",
+      "action": "delete-unused",
+      "bytes": 1403,
+      "sha256": "b8301b6575cdfe55a4fd16630189ebf37fb8d0a81d0648336003ec0bdc13cd46",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/info-bg.png",
+      "action": "delete-unused",
+      "bytes": 1050,
+      "sha256": "d5fbe3bcc4256469c55a2b0303ee0877fe7e4748ba4c3e0064e372d0e8fcda2c",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/laser-line-glow.png",
+      "action": "delete-unused",
+      "bytes": 187408,
+      "sha256": "10500beb359f90e0f363670f54b7d4298abf63a221e581f2113f8a7387d0c43c",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/laser-line.png",
+      "action": "delete-unused",
+      "bytes": 1023,
+      "sha256": "3f387860d05c38020a026dc2c467c01ef08ccfabfa0e543be3d4ffe3bf36759b",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/panel-small-instructions.png",
+      "action": "delete-unused",
+      "bytes": 11120,
+      "sha256": "311366524469f358b658ebd7664f2859f6552fd9638ea90fc84d161250b4fe23",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/rounded-tray.png",
+      "action": "delete-unused",
+      "bytes": 4546,
+      "sha256": "35766e6c7d1a6c214be0617ac58e47228502bd4c3d83b47daeead2ab6f4f74ba",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/satellite.png",
+      "action": "delete-unused",
+      "bytes": 14108,
+      "sha256": "c0fdddefbb5d4b35408e4a9a0f28fee7ef7f5451c44b7942d7181a225e1625f8",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/shot-visualiser.png",
+      "action": "delete-unused",
+      "bytes": 875,
+      "sha256": "47e6f10082369fc2377a11c31d328c4b11131fc15752c08586eae18fd7a9cdc0",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/game-screen{m}{tps}/top-tray.png",
+      "action": "delete-unused",
+      "bytes": 830,
+      "sha256": "84b045a6d61ba8c2f9ca9f6a22aa3dd68121f23e5b2c8bd88eb3e20263d42e21",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/pause-overlay{m}/pause-panel.png",
+      "action": "delete-unused",
+      "bytes": 25899,
+      "sha256": "892fa131d02358724103f7bcf4b25f5bac7f597b11acdae8c5091bbb45e2e2d8",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/background-tile.png",
+      "action": "delete-unused",
+      "bytes": 407,
+      "sha256": "cc6df65332a1536b22b5d7ebffb8a0afee4d99fd829304768194ab9b1ac16427",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/bubble-blue.png",
+      "action": "delete-unused",
+      "bytes": 16920,
+      "sha256": "1f3a50c35bc3b0c425880020b50411499da91242475a54afa922b6d4927265fe",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/bubble-green.png",
+      "action": "delete-unused",
+      "bytes": 14192,
+      "sha256": "9269514a201d1a2eadf3bc7ebe95ef45fd9cb438ad1ff66de86b8fde65a6bfcf",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/bubble-red.png",
+      "action": "delete-unused",
+      "bytes": 16111,
+      "sha256": "1251ba41ebc549417db39045387fd1cc04db161b79c0da68d408d27c6f81ea47",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/bubble-shadow.png",
+      "action": "delete-unused",
+      "bytes": 9752,
+      "sha256": "6613b8b63e8ef209bb14b296cc84157cb0b0febd0aa65daf4972542293c587d1",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/bubble-shine.png",
+      "action": "delete-unused",
+      "bytes": 5759,
+      "sha256": "5ab8b3666be4282722358e5ba14f2a6e79312c1c07b95121b384f91e3a660364",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/bubble-yellow.png",
+      "action": "delete-unused",
+      "bytes": 13203,
+      "sha256": "127e9ed6842db020a21e217cdb372a84067f00c2a6c970d9c773c94d5455bd59",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/cannon-arrow.png",
+      "action": "delete-unused",
+      "bytes": 746,
+      "sha256": "8c1af4c08fc33867e35586cf7563dc149fb1fec723d8c395eac5d66ea810e095",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/cannon-barrel.png",
+      "action": "delete-unused",
+      "bytes": 2354,
+      "sha256": "ae480058e3f825cb5b0f7a7351f03381607ffddc3d0b03fa22cddf545937a770",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/cannon-main.png",
+      "action": "delete-unused",
+      "bytes": 7255,
+      "sha256": "c0deefe2ee02713be2af5a7aa922def7399e7f548ed5908c2c9c942f997182e2",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/cannon-top.png",
+      "action": "delete-unused",
+      "bytes": 2616,
+      "sha256": "971389aa16d378cf63b067329251aeb4c7498a13b9d8f0b6c7ed698813cb4c13",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/loading-circle.png",
+      "action": "delete-unused",
+      "bytes": 5065,
+      "sha256": "febe1bbf446ea2913d17b6ea15a8ff6a9dfba4bcc6d549270bbcce21d8412fed",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/preload{m}{tps}/pixi-logo.png",
+      "action": "delete-unused",
+      "bytes": 5545,
+      "sha256": "dad07b0224444e3b83b7df864ce03999ff8bb4b469d9d497df0b53673efd45a9",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/results-screen{m}{tps}/icon-back.png",
+      "action": "delete-unused",
+      "bytes": 2049,
+      "sha256": "3a9aed6bb9adee8e5cea64dc50db84199fe24fcc8c838d6a9a522145b2900b66",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/results-screen{m}{tps}/panel-end-screen-base.png",
+      "action": "delete-unused",
+      "bytes": 12996,
+      "sha256": "0f09024bcc1a148a0b7a15fb03ba98a90e0d7ce57f5d0165414c810f9f64cf60",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/results-screen{m}{tps}/panel-end-screen-points-breakdown.png",
+      "action": "delete-unused",
+      "bytes": 2537,
+      "sha256": "1877eaa67e3e6da42a60ec025732218ec4dc7eb63d961432ddea0aa73bae780c",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/results-screen{m}{tps}/panel-end-screen-points-total.png",
+      "action": "delete-unused",
+      "bytes": 2380,
+      "sha256": "a5ca25a07bd4369853ed6d2017ec57b68f9d51ee8dd53a527635855d97c8e704",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/title-screen{m}{tps}/background-tile-space.png",
+      "action": "delete-unused",
+      "bytes": 179,
+      "sha256": "8685763792e7f9a2bb104ec7a1da54f082e5df3552c8297ed0609afcaf34b5e2",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/title-screen{m}{tps}/icon-sound-off.png",
+      "action": "delete-unused",
+      "bytes": 3500,
+      "sha256": "05cd00697db9a17d50cf45ad02aa852414c9260375ca24e96f2a213fd49eea9a",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/title-screen{m}{tps}/icon-sound-on.png",
+      "action": "delete-unused",
+      "bytes": 3650,
+      "sha256": "b312f3b12c55964ae9ea30a8dcf6ff077f7f5137e2307de7aff26ef3147ad9a5",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/title-screen{m}{tps}/pixi-btn-down.png",
+      "action": "delete-unused",
+      "bytes": 1753,
+      "sha256": "a049c70300d327e4acbcbdae863b9aa4643041a37e6c02e622364879d9cb6fd4",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/title-screen{m}{tps}/pixi-btn-up.png",
+      "action": "delete-unused",
+      "bytes": 1827,
+      "sha256": "a8fc8482d3fba4dff3735f6e4a18b03cdea6bd96035298906127c75db7ed52c9",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/title-screen{m}{tps}/play-btn-down.png",
+      "action": "delete-unused",
+      "bytes": 7110,
+      "sha256": "4b8075f93111101bd5908757c5107b88102b78c9d1e8bb6f006626c673c44bf7",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/bubbo-bubbo/raw-assets/images/title-screen{m}{tps}/play-btn-up.png",
+      "action": "delete-unused",
+      "bytes": 7201,
+      "sha256": "056a6224be4a1ce3f0f487d8fe7c8822c1969c57c6727a66340ff030640380bb",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Back-pressed.png",
+      "action": "delete-unused",
+      "bytes": 4359,
+      "sha256": "7ad5a14e694daca9687cf471d3f5120772d7717855710f57c0cba45cdf516cff",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Back-static.png",
+      "action": "delete-unused",
+      "bytes": 590,
+      "sha256": "961f4475df6e7f4bd7de27399ef6f8f541898e289939275d8ac6c683dcbd92df",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Github-pressed.png",
+      "action": "delete-unused",
+      "bytes": 2777,
+      "sha256": "780db97bcddceb3cf69519ac401cc51ce2b72c210c59979bd4fd76f5d4f34ea9",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Github.png",
+      "action": "delete-unused",
+      "bytes": 2889,
+      "sha256": "da4c186b3fbc6e1cb679accf8494ead24c3960714ed4644f57cb38b072ecd2d3",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Main-Pressed.png",
+      "action": "delete-unused",
+      "bytes": 9407,
+      "sha256": "a7dd4e0acb38b02a11ffae8f49c64765acdfb16114ab6a0a9c42d38efdefa5f8",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Main-Static.png",
+      "action": "delete-unused",
+      "bytes": 9508,
+      "sha256": "964ae7725f5f4b672380b663ffcd33bd35de59f9fe06a7000aa45b05dff54033",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Saga-Complte.png",
+      "action": "delete-unused",
+      "bytes": 2184,
+      "sha256": "cfba135ac2946c0c9104e52faaac1c8aef45cad45a24683e807d397460455525",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-Saga-Incomplete.png",
+      "action": "delete-unused",
+      "bytes": 2126,
+      "sha256": "8c82b66a3f428c1151c598ceed3ee91c67fbc5a819685f97c6fa352e5830b988",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-pause-pressed.png",
+      "action": "delete-unused",
+      "bytes": 5481,
+      "sha256": "cf1f7ce1e75c717479b5fe909402e0c5149e9eecfa5dff135881a125a56e48f2",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-pause.png",
+      "action": "delete-unused",
+      "bytes": 772,
+      "sha256": "edb9c73e5e917b43a19db83937fa995558d4508c3308c291bd4fa8c61d2325cb",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-saga-current.png",
+      "action": "delete-unused",
+      "bytes": 2161,
+      "sha256": "c92eb3b7ce53570ad26e58511da22e5c7da0f4074c6fc80e3821155ef6d42aea",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/Button-settings-pressed.png",
+      "action": "delete-unused",
+      "bytes": 6321,
+      "sha256": "c75ddd76c16fc4cefc57d684e69374b1178b266371afd2e8a2baa7e8f89c3532",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/button-saga-complete-pressed.png",
+      "action": "delete-unused",
+      "bytes": 2191,
+      "sha256": "8b5ca18fba1791e5721bddfc668103e8a7fb10bee9be2f5500f97e2fda8bbee3",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/button-saga-current-pressed.png",
+      "action": "delete-unused",
+      "bytes": 2178,
+      "sha256": "d8c0e911784d87651aae5217dacdd8eb15ea86dc16fa93d5530588743eca5a29",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/button-saga-incomplete-pressed.png",
+      "action": "delete-unused",
+      "bytes": 2129,
+      "sha256": "01617e44f1f071a18e30c323625b586fa79888a854724b51444b04ce64fd6758",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Buttons/button-settings.png",
+      "action": "delete-unused",
+      "bytes": 957,
+      "sha256": "2b1a3c1e57b04d7ae95a19532e7c6c52ea14334c139215f6d850fd1ae57cddf4",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Results/Check Marker.png",
+      "action": "delete-unused",
+      "bytes": 3520,
+      "sha256": "a8df6d869590e7e0680679e37978c055a533aa8c69b216733e6ac6a39dc8a20a",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Results/Cross Marker.png",
+      "action": "delete-unused",
+      "bytes": 3542,
+      "sha256": "da01e757eb698e8b5d5906bd6536458ec01a09f4e53107783aba373191aa57b7",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Results/Level Indicator.png",
+      "action": "delete-unused",
+      "bytes": 3247,
+      "sha256": "5c64a86101f2adb0c07d714c1f098084b33962a3131a7a0a51038808cde885bf",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Results/Star 4.png",
+      "action": "delete-unused",
+      "bytes": 4877,
+      "sha256": "c7ebbeb50b00689d25919af6039694ea6249ec7aeea362f17cfde6dc993996ce",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/dist-source/Results/Star 7.png",
+      "action": "delete-unused",
+      "bytes": 3504,
+      "sha256": "e7a95ea2ddab1ca993f9a2155a1238f68c66c9581c412d7d9580c64858b6b17e",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/bgm-game.mp3",
+      "action": "delete-unused",
+      "bytes": 972360,
+      "sha256": "c71aa48eb594b00c164c46e4823ff1dab1e1e1942c312bc9bfb6dca56f05ac3e",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/bgm-main.mp3",
+      "action": "delete-unused",
+      "bytes": 746472,
+      "sha256": "f4a129347d61aeabe8150507da973ba26ce11ccfd2bb9a9f401f3ee9ea54e4c1",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/button-large-hover.png",
+      "action": "delete-unused",
+      "bytes": 7320,
+      "sha256": "ff4d6f5c80a277012ee0481971aa8b04479ca572f9081c229e7d7491dfa607f5",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/button-large-press.png",
+      "action": "delete-unused",
+      "bytes": 6776,
+      "sha256": "c23804afb07be1b4cd0f5c8bff73620cf88f403229bb046ae0375e05f51e7216",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/button-large.png",
+      "action": "delete-unused",
+      "bytes": 6454,
+      "sha256": "9e2af9bdc39eedd143cfd3574b18eb72023398421661131f571c7830d2a7e137",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/button-small-hover.png",
+      "action": "delete-unused",
+      "bytes": 2217,
+      "sha256": "4e4fe200bfeeea62936df653c27c759335eab83412d18c2d3e73810c13dca204",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/button-small-press.png",
+      "action": "delete-unused",
+      "bytes": 1941,
+      "sha256": "82fb16114e3256cffade783fcc2eecc786523b7bc00a9d13a6ec46a5dade1ee9",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/button-small.png",
+      "action": "delete-unused",
+      "bytes": 1989,
+      "sha256": "b1dd4785611d547d9154489bc5b7ca8b82134a825f2dda1bb2376e43dfdf9e83",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/character.png",
+      "action": "delete-unused",
+      "bytes": 18914,
+      "sha256": "33eb1d13eff6a9edb7e06d936c47b5ced608d294c4beb84a834cd2171fcd6b91",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-back-stroke.png",
+      "action": "delete-unused",
+      "bytes": 1045,
+      "sha256": "09299c0316b5edaba4766ac07eca8cfcf44039d884598e9173065f2c4297e766",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-back.png",
+      "action": "delete-unused",
+      "bytes": 579,
+      "sha256": "ef0aba09b5802dcb1637db21fb2f4b1d8ced5e692382417f3f203c92ebf0670c",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-info-stroke.png",
+      "action": "delete-unused",
+      "bytes": 1209,
+      "sha256": "f3c634beb5eab5cccb074c4160192adc51752b1fa5ac6c8c8741a181723e558d",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-info.png",
+      "action": "delete-unused",
+      "bytes": 726,
+      "sha256": "9cb00f86768219030525463afd6afaea15645db599ad92111a4d0299eeca1d67",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-pause-stroke.png",
+      "action": "delete-unused",
+      "bytes": 1209,
+      "sha256": "f3c634beb5eab5cccb074c4160192adc51752b1fa5ac6c8c8741a181723e558d",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-pause.png",
+      "action": "delete-unused",
+      "bytes": 778,
+      "sha256": "93585e34307313a4bc4c1eeac703060da67f27ba5023bab4985c0b1712dcbfcc",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-settings-stroke.png",
+      "action": "delete-unused",
+      "bytes": 1734,
+      "sha256": "470bd4aac8a5e485ef289537bab23c731b0a1cfccc83df76dd8dd9901c37e3c0",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/icon-settings.png",
+      "action": "delete-unused",
+      "bytes": 969,
+      "sha256": "303ab750b5ce30550c64709bcb6ebdd2cb54dcd7212d2bba9de00ff979d20c72",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/rounded-rectangle.png",
+      "action": "delete-unused",
+      "bytes": 1559,
+      "sha256": "f62bc0dfdc480f5e8b264d015acfe5f2319c11a6430fdcd20020ae162636dca9",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/star.png",
+      "action": "delete-unused",
+      "bytes": 4677,
+      "sha256": "a7016cf4b0caa7ccf23b9adf57cdc84120086d298d8c858ef282f98e2f705a77",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/common-atlas{tps}/white-cauldron.png",
+      "action": "delete-unused",
+      "bytes": 898,
+      "sha256": "0f830c03b7219a26ef20b28f700bb1175938e8b01f8f260e2493ef0fc99fab37",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/dragon-skeleton.atlas",
+      "action": "delete-unused",
+      "bytes": 770,
+      "sha256": "1be9b5edc3dcda31830b7c1a0d25ded459f1a15a77475d948830d1c35a095f5a",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/dragon-skeleton.json",
+      "action": "delete-unused",
+      "bytes": 30510,
+      "sha256": "aaf5f894d9c5835dee7a5bd3cb3f0252f702cb5aa5a7bf5654bad6a782ca1273",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/dragon-skeleton.png",
+      "action": "delete-unused",
+      "bytes": 91663,
+      "sha256": "707762a300ffafe016d16d22fe15f5689f0cb3841d3b7f7197efb9d836b569fd",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-bubble.wav",
+      "action": "delete-unused",
+      "bytes": 22492,
+      "sha256": "80a87d6de502ebcf2d0cea5f2c40929c9e364243ba062f010287398b174acac3",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-correct.wav",
+      "action": "delete-unused",
+      "bytes": 148136,
+      "sha256": "7a86326896f90422c36c40d62456c2802fbe42773d48b71e9fde1b94377732c1",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-countdown.wav",
+      "action": "delete-unused",
+      "bytes": 171302,
+      "sha256": "9c038088ec943986b5fc38e6498fa566259fc9baf93e4fed5443d0821fc7792a",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-hover.wav",
+      "action": "delete-unused",
+      "bytes": 133502,
+      "sha256": "6b1476807bb96d1ef23e9614ab2c5af52273a471fb28a9bd0717a5c0c5bc99d4",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-incorrect.wav",
+      "action": "delete-unused",
+      "bytes": 123452,
+      "sha256": "5f251ed76954c3a76469b89389d3f98116c8f45c100aef8309b5bb8d9f091eaf",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-match.wav",
+      "action": "delete-unused",
+      "bytes": 842394,
+      "sha256": "50b1580900bc073946b25bacfc283a67e05a00d15545f4e328925f262412950f",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-points.wav",
+      "action": "delete-unused",
+      "bytes": 109230,
+      "sha256": "34c7a0b635879f4aa0954a453ef83f0edc69d0ef1d20451944be26f02cf85a19",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-press.wav",
+      "action": "delete-unused",
+      "bytes": 44342,
+      "sha256": "87e636c8fa5bbedeaa45d35bafe2d7e65704f1f5768eef63760547e77a4696fe",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/common{m}/sfx-special.wav",
+      "action": "delete-unused",
+      "bytes": 1040610,
+      "sha256": "f30423431cb6479852a69aa8763ce0c7b1fb8766074bf5f846c3a985026e7fba",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/books-01.png",
+      "action": "delete-unused",
+      "bytes": 597,
+      "sha256": "80a38311b610d73c697b09755fd3ad43d38824cf2904f0a38b02da6fb2e32714",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/books-02.png",
+      "action": "delete-unused",
+      "bytes": 1506,
+      "sha256": "9b205d71e8b2d3fb86b134126e65462a9dfab0410acde23092e40f1f452e12c4",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/books-03.png",
+      "action": "delete-unused",
+      "bytes": 607,
+      "sha256": "54ab3c70baab8bbeeb9a8544125e94bb0e0c50a43b3e41dd55c190c386574c92",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/books-04.png",
+      "action": "delete-unused",
+      "bytes": 563,
+      "sha256": "2983edf386fd86fc4c3a72fcb6d305ab7b84e71edd0ba3c7922a72cd78178290",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/books-05.png",
+      "action": "delete-unused",
+      "bytes": 1437,
+      "sha256": "961d26d3d2b44657b901bb2c59be4bd3d13faaa7244334bf83d75133df072338",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/game-header.png",
+      "action": "delete-unused",
+      "bytes": 6306,
+      "sha256": "81387d74b6c7e820581b5510225b3510a4d07899b306fc9c1c29799468d68c86",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/highlight.png",
+      "action": "delete-unused",
+      "bytes": 4648,
+      "sha256": "ec6fb8afc23b57195a547258873dbb12d26628af58621e7a267f1c4a342b6913",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/num-stroke-1.png",
+      "action": "delete-unused",
+      "bytes": 2263,
+      "sha256": "ae1cfdd4b3cf239d7404cc9cd420d542263e6b63e89eba3fedca7155b88adc92",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/num-stroke-2.png",
+      "action": "delete-unused",
+      "bytes": 3452,
+      "sha256": "84d353b2040577eca9a18d85de9ef5773c30ae86c608c1aaeb4d720d9e057ec0",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/num-stroke-3.png",
+      "action": "delete-unused",
+      "bytes": 4332,
+      "sha256": "909cc980ab8561d0858c5fcf400168850a65e89d3b147b8f9ef6d71c5642ea37",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/num-stroke-4.png",
+      "action": "delete-unused",
+      "bytes": 2763,
+      "sha256": "b501fade79f776d7bbfe38f7fca6565957f269838b7e3fb488f8bd8d739132c2",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/num-stroke-5.png",
+      "action": "delete-unused",
+      "bytes": 4042,
+      "sha256": "33d690c5b73dc828e4adf8a6122d8c3ea82f089b5c0dd134b484d35ce20ac5a2",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/piece-dragon.png",
+      "action": "delete-unused",
+      "bytes": 14428,
+      "sha256": "b45ae22df48eda9273c4c73cfb83cdc99fc2b8b485871157e8202bbedffc1478",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/piece-frog.png",
+      "action": "delete-unused",
+      "bytes": 18530,
+      "sha256": "793ce83edbbe81e8e6d2555b8a2aceb5fb5d0db536d15ed36131737ec59e70ff",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/piece-newt.png",
+      "action": "delete-unused",
+      "bytes": 15937,
+      "sha256": "22f4926946690a647f5098cc2151e7a52f108e11ddecf0cbf9aedf14eacade87",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/piece-snake.png",
+      "action": "delete-unused",
+      "bytes": 12955,
+      "sha256": "d335d634deb407da4b58660f3cc9efd1619ab6a91716cbb3279b7a2e79081c6d",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/piece-spider.png",
+      "action": "delete-unused",
+      "bytes": 10801,
+      "sha256": "70bcbb18f35bd227124fee44d98b7e2ae4811bdac833924f7398893fbde1cda4",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/piece-yeti.png",
+      "action": "delete-unused",
+      "bytes": 11872,
+      "sha256": "1bccac3f3716c158ad9bea058d7ac2e57ba5343e9b3607f88f48f813a663056d",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/shelf-block.png",
+      "action": "delete-unused",
+      "bytes": 415,
+      "sha256": "9b09443c1ea06a8c172e4c0fbd4e859c11c513227e9a71619b848daa91580391",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/shelf-corner.png",
+      "action": "delete-unused",
+      "bytes": 930,
+      "sha256": "d776f4d9aa624bbefbc1d33b916c503965363cb89d5adee0ad76ddab55e5886c",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/special-blast.png",
+      "action": "delete-unused",
+      "bytes": 29441,
+      "sha256": "701f8e579f6734d00f51c843c4ed1a8ee6340adec8904492262f4ade124b173d",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/special-colour.png",
+      "action": "delete-unused",
+      "bytes": 25934,
+      "sha256": "d306e74f1e3044b4d029971b11ff4ae318a1056e6904ca6b4a04774422616b39",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/special-column.png",
+      "action": "delete-unused",
+      "bytes": 27218,
+      "sha256": "97716759dfb10c8bd63c9ee9712cf497debfc5ef6a3274680d76005c51674fd7",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/game{m}/game-atlas{tps}/special-row.png",
+      "action": "delete-unused",
+      "bytes": 27523,
+      "sha256": "6cc4f64a7ba2fe49cba42a58d38fb67bb163e24e7dd6224ded0618a31a2b680e",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/home{m}/home-atlas{tps}/logo-game.png",
+      "action": "delete-unused",
+      "bytes": 57368,
+      "sha256": "16e453db99644bed4c4ad345fc316fcaae4f96a736809346ddbef001bb08314e",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/preload{m}/cauldron-skeleton.atlas",
+      "action": "delete-unused",
+      "bytes": 144,
+      "sha256": "0122a19161b3f24a48e969da5ba281744f528a5a343ba9c876d0084effc0c995",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/preload{m}/cauldron-skeleton.json",
+      "action": "delete-unused",
+      "bytes": 6598,
+      "sha256": "535f784fbc22816c0fa15718848e02f77a7a63712b7d6aa1a7b1307453ed0322",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/preload{m}/cauldron-skeleton.png",
+      "action": "delete-unused",
+      "bytes": 6465,
+      "sha256": "eb5084fe7df5f30bcc543768e9ad2b257f2f703eb66be6a6bd8db6813363294e",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/preload{m}/preload-atlas{tps}/background.png",
+      "action": "delete-unused",
+      "bytes": 9224,
+      "sha256": "d4deaed3b0af39ed9846679dff598d2b2d20a53bc7d621ce90abff35c89a62b1",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/preload{m}/preload-atlas{tps}/circle.png",
+      "action": "delete-unused",
+      "bytes": 1614,
+      "sha256": "36bdb9060f2c646500e5dd4dc79537c5781e5235fe28a899aa256be02ac45fd7",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/preload{m}/preload-atlas{tps}/logo-pixi.png",
+      "action": "delete-unused",
+      "bytes": 4662,
+      "sha256": "018685242e7aec35465a075302e1f8188f3f4f280c97fb7359ec3965d8a48d3b",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "assets-source/games/puzzling-potions/raw-assets/result{m}/result-atlas{tps}/result-base.png",
+      "action": "delete-unused",
+      "bytes": 4662,
+      "sha256": "4e0b85f5dfd56c0a6e872edb7d438d906f14998e3ac0767fcb473ccdb61a3747",
+      "reason": "Unused upstream sample-game import; current imagegen sources and licenses retained."
+    },
+    {
+      "path": "public/games/ui-surfaces/screen-surface-atlas.png",
+      "action": "delete-unused",
+      "bytes": 201752,
+      "sha256": "f05852a301df1a270180b594bf863debe771bd5d96953a9558b7d12f4bf90599",
+      "reason": "Unreferenced obsolete surface atlas; individual production source files retained."
+    },
+    {
+      "path": "public/games/hud-redesign/garden/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/garden/tool-slot.png",
+      "bytes": 21427,
+      "sha256": "a94f069de44187c229b42c0da6cba84c745bc0ff4fd5e0a2f59538a9a3e3b63d",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/garden/screen-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/garden/screen-panel.png",
+      "bytes": 405209,
+      "sha256": "6706f73f01bae3486c13562468d083a48ab2580e88c9f690212f04cb358e5ca8",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/garden/dialog-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/garden/dialog-panel.png",
+      "bytes": 616467,
+      "sha256": "f79b6fc708069103f4ac09b953c7e07593efac11eb80fef9a6e4d945a512db04",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/blox/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/blox/tool-slot.png",
+      "bytes": 16795,
+      "sha256": "8c0fc29bc739ac3955e3835a7c2ab828e10f0ea4b1ace332299addfe295c814a",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/blox/screen-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/blox/screen-panel.png",
+      "bytes": 383838,
+      "sha256": "a0258619ca577bd1533db945be797414c7ef0ad28d67ca54bfe93f0b18690b45",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/blox/dialog-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/blox/dialog-panel.png",
+      "bytes": 601952,
+      "sha256": "407d70ea297b085878e919b9ba9094866c148f1b6a254b0b53e075b9c2a046fd",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/match3/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/match3/tool-slot.png",
+      "bytes": 18271,
+      "sha256": "5308db558a328cd0d8de7aea2cec98cd38350056ebd791c30eeabdad2e7af6c2",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/match3/screen-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/match3/screen-panel.png",
+      "bytes": 414587,
+      "sha256": "e573cca19ea44bd65ad30a51d7dbe1a85544d099aa3b4646f63f1a0e5553eebb",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/match3/dialog-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/match3/dialog-panel.png",
+      "bytes": 609481,
+      "sha256": "0ba25285de4b8edcb22db3b5403777c77c6c73ef4a962355aa729736318ff3ef",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/merge/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/merge/tool-slot.png",
+      "bytes": 20601,
+      "sha256": "65b99426954ed798f916cdd7e7a51e5cd488ecea688c7f27c9bcb19784ef9eba",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/merge/screen-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/merge/screen-panel.png",
+      "bytes": 467106,
+      "sha256": "472d1eb71d99788fb24cea6769ed4977642cf8327c020b81dd30e6b9670ed7ae",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/bubbo/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/tool-slot.png",
+      "bytes": 18693,
+      "sha256": "6b81b005783ccd5eb7358c4eede67a04329f877fb910fe0f704208bc869e933a",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/bubbo/screen-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/screen-panel.png",
+      "bytes": 281439,
+      "sha256": "da8a97ab49e2c9cd5a3babd2598f3f71c51c8dd143543d6b27850214ecdaa265",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/bubbo/dialog-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/dialog-panel.png",
+      "bytes": 563071,
+      "sha256": "df95f7639fd75da859bae08896b425ec0c325b0701cbf9b08bbe5ad52b8dab74",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/trivia/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/trivia/tool-slot.png",
+      "bytes": 16105,
+      "sha256": "acf0848725c7b8243de7abb4453edd0c50902e9fcd861b75790890a7798a0773",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/trivia/screen-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/trivia/screen-panel.png",
+      "bytes": 355318,
+      "sha256": "1b59d57b9611c16bf68bfff441eab42711672b0c60b57454ad820bf48f6df6ae",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/trivia/dialog-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/trivia/dialog-panel.png",
+      "bytes": 544104,
+      "sha256": "4438a69f3ddd8bfcbdeec94c361bb7d083df8f5f07f6371131672da1c0630ec6",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/room/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/room/tool-slot.png",
+      "bytes": 20205,
+      "sha256": "1626dfb9e55b24fd0e701560add12aae3667ba0dbf59275fa98ac43b5acf11f8",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/room/dialog-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/room/dialog-panel.png",
+      "bytes": 782938,
+      "sha256": "79f50ec68f4717e2769f17c683b95daac04d65007b64ff41affda958d7678fc9",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/settlement/tool-slot.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/settlement/tool-slot.png",
+      "bytes": 18146,
+      "sha256": "ae0fb79d703ba43b38dfcb60c3093c6697c9441f0da721c75761e32b0743cc11",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/hud-redesign/settlement/screen-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/settlement/screen-panel.png",
+      "bytes": 501098,
+      "sha256": "55dc781da09ab0fd757b365f44e5e36c8d6b290e1ebdfa19eaadeff1a3a8e0b6",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/garden-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/garden-panel.png",
+      "bytes": 405209,
+      "sha256": "6706f73f01bae3486c13562468d083a48ab2580e88c9f690212f04cb358e5ca8",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/blox-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/blox-panel.png",
+      "bytes": 383838,
+      "sha256": "a0258619ca577bd1533db945be797414c7ef0ad28d67ca54bfe93f0b18690b45",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/merge-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/merge-panel.png",
+      "bytes": 467106,
+      "sha256": "472d1eb71d99788fb24cea6769ed4977642cf8327c020b81dd30e6b9670ed7ae",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/bubbo-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/bubbo-panel.png",
+      "bytes": 281439,
+      "sha256": "da8a97ab49e2c9cd5a3babd2598f3f71c51c8dd143543d6b27850214ecdaa265",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/trivia-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/trivia-panel.png",
+      "bytes": 355318,
+      "sha256": "1b59d57b9611c16bf68bfff441eab42711672b0c60b57454ad820bf48f6df6ae",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/farm-panel.png",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/farm-panel.png",
+      "bytes": 503700,
+      "sha256": "948e801a909bc06ae7c919ee703662265c2085692af80c486941334eca330db1",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/screen-surface-extract-manifest.json",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json",
+      "bytes": 2626,
+      "sha256": "a5566a0108a69c8825b53e211210a2813a7864a1cecbc1144905f20b39413875",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/ui-surfaces/portrait-panel-extract-manifest.json",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/portrait-panel-extract-manifest.json",
+      "bytes": 1884,
+      "sha256": "aa7558664a1e8c247ec1a785e5e861f8a87a5f62da049e22ff1a2e6bfbd4946a",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/companion-yard/HUD.svg",
+      "action": "move-source-only",
+      "to": "assets-source/games/companion-yard/source-svg/HUD.svg",
+      "bytes": 983934,
+      "sha256": "807d438cd87072f6ab6b32f59d40257e2a1e237bbfeb03877223bc72f0abdfe7",
+      "reason": "Required export QA/provenance or editable source; no runtime caller."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/actionIconBack.png",
+      "bytes": 59865,
+      "sha256": "2b027fc7bea483cd7bf4261639a9140533e05a7bd1dea7d906345a8c28345082",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/actionIconClose.png",
+      "bytes": 59414,
+      "sha256": "65b0aa2449366329306f79f25bf31960087f1646f6fcd270d70179da3c2d180c",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconClose.png",
+      "reason": "Read only by the HUD semantic-icon generator; source input stays outside public."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/actionIconFreeTaps.png",
+      "bytes": 108487,
+      "sha256": "40b206d843845521f7a9651151d4d774aee1293a5f76b2fa2e55c1b5a92e8b65",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFreeTaps.png",
+      "reason": "Read only by the HUD semantic-icon generator; source input stays outside public."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/actionIconFuel.png",
+      "bytes": 50313,
+      "sha256": "3c62fc3a04d7d5d36de52195cf3edc1879d7b6502f7dacd548d6701842a3be91",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFuel.png",
+      "reason": "Read only by the HUD semantic-icon generator; source input stays outside public."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/cellInvalid.png",
+      "bytes": 74478,
+      "sha256": "1ac381e3923482b35520470625e914082acf7e654e4e393eeb6d96b258bbd8f1",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/cellTrashTarget.png",
+      "bytes": 67143,
+      "sha256": "576c44effc2ab6ee6917ad86552caea81d99302df33b846a3a1fe0b43458fbba",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/exchangeIconFuture.png",
+      "bytes": 58194,
+      "sha256": "e3afe533c2e2e02da122d73b13287ea1ca57b4e963ab3173750948f631a0cbf6",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/exchangeIconShinyTreat.png",
+      "bytes": 74343,
+      "sha256": "bff6663ea16fb09fc3d1f0b1696115f1edce41af68ea56dcd909c0fbcb6218e8",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/exchangeIconTreats.png",
+      "bytes": 62070,
+      "sha256": "2923a5280d2018b990b54a02fb9ffb3e38cd3c8e45734ca985a5f121d37f8935",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/itemShadow.png",
+      "bytes": 436,
+      "sha256": "f5a07e1e2ec40bdc0ce6d98b84bbe3b12d36d37ac1da620f9ca91f8463ea280d",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/sourceChipCrop.png",
+      "bytes": 62739,
+      "sha256": "7591c7aab0f2e71392e34cc4a9979800441243a55e1a187ab6d309aaaf1f0b82",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/sourceChipEmpty.png",
+      "bytes": 64917,
+      "sha256": "eaec62af165460aa716844d2f0aaecfb41c1a55cc5743a4a6900b20d9820579c",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/ui/sourceChipFree.png",
+      "bytes": 60440,
+      "sha256": "794d1d4bf0e382fd478e29f71cf290d976619e7da31ac7cd41038c92b0667490",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/fx/discoveryBurst.png",
+      "bytes": 52563,
+      "sha256": "57d49cb64ab2ebee87ab86031d582b2af9fe16da6d31e5bc3a4bc173e2a1b169",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/fx/itemLiftGlow.png",
+      "bytes": 33309,
+      "sha256": "9d3fd3abddbcd03d4d8228c3fbd8884ef6c9c622b8e74294a89d21255898f58b",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/fx/missPuff.png",
+      "bytes": 43266,
+      "sha256": "0d03c0e9e906f2f6a6b7382d9c8c4bda395439d85d6fe5f4b312410b78683892",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    },
+    {
+      "path": "public/games/gacha-merge/fx/perfectReactionBurst.png",
+      "bytes": 32221,
+      "sha256": "973dc6f9cbb42fdf385e29e72c97600e8dddb16949e90bcc76ce2c735037f6cd",
+      "action": "delete-unused",
+      "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
+    }
+  ]
+}

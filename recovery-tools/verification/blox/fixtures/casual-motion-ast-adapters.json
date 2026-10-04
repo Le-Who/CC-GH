@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "baseCommit": "73582b7be248385d087e8640b1a548083f6579f6",
+  "scope": "Approved presentation-only Blox motion rewrite; unchanged statements remain compared against immutable owned preview. Each added or changed statement is pinned exactly.",
+  "sourceOrder": [
+    "declaration:root",
+    "declaration:dragLayer",
+    "declaration:effects",
+    "expression:7839c2f299bf8e82b6df672311005fe8e4ac03a410ab7053e801186f61905762",
+    "declaration:data",
+    "declaration:layout",
+    "declaration:drag",
+    "declaration:lastTraySignature",
+    "declaration:destroyed,feedbackEpoch,background",
+    "declaration:motionMedia",
+    "declaration:feedback",
+    "declaration:reduced",
+    "declaration:animate",
+    "declaration:dragVisual",
+    "expression:dd4965bb4cca4047df996758cc36aecba5b2d2d1c452b20bcf42c12ad8b4bfb3",
+    "expression:235f1adf0e82b3fb03c136fbf0999f326051d07c0ebc96d2fb383b10b28e4773",
+    "expression:9aae84e1ac4ca8e78fe0dad3786b563ee74f1a3774e91e32bfd040c487971556",
+    "expression:fd6412d99a4f26cbe4df5b58f02e89f25a8aeeddebfc6f7c885b4b79930079e4",
+    "function:tileAssetForPiece",
+    "function:tileVisualSize",
+    "function:drawPiece",
+    "function:drawTrayPiece",
+    "function:touchDragLift",
+    "function:updateDragVisualNow",
+    "function:g",
+    "function:G",
+    "function:placementFeedback",
+    "function:F",
+    "declaration:O",
+    "function:k",
+    "declaration:A",
+    "declaration:resetFeedback",
+    "declaration:suspend",
+    "declaration:resume",
+    "declaration:visibility",
+    "declaration:motionChange",
+    "expression:e7b6dcb1540c3feb6c3016ef537f907b2c6444d672fcf6e80f8f4da2a6bae9c7",
+    "expression:65f887db5883c5f75606ae0ce6759d553d194a80c93fe75f5ce90fd9f71a00bd",
+    "expression:df9844a096de31e47ac3c543b7b870e75cf31f0e13fc408d983b3a9534d58e03",
+    "expression:acd12950d5c25472daced15e9e09e8f96a5f69dfcd76e6423519251737f40093",
+    "declaration:D",
+    "return"
+  ],
+  "adapters": {
+    "declaration:destroyed,feedbackEpoch,background": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "48c78ceb6146f0274745a58db022e52dbd6f8d0feff2f1e8aa125763021c0e4a"
+    },
+    "declaration:motionMedia": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "d95c4ac80ab67fe773958118501c7b442607f735947da641ec71a19ff9663039"
+    },
+    "declaration:feedback": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "edacce93fb6d75db207eb7db8eb04345bda77377c623036d813c2a47e7e08480"
+    },
+    "declaration:reduced": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "305b52c5ee8ae2165a0a0f3c524e9633fa80fc0cb9a63fa4dab72d6a3bc72ef8"
+    },
+    "declaration:animate": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "97e00f225986e857ba6ea53b71c40c366a50ef598255362701f66561f9d2dff3"
+    },
+    "function:updateDragVisualNow": {
+      "kind": "replace",
+      "previewSha256": "8a3a89ce46058f6c7f412de71f4e1bc3a3f3e6802259799f3f511ae3c75c39f6",
+      "sourceSha256": "9760bd6832d3d57e4653cfe72e134965ad3537e380b2a630a52802ea387bc33b"
+    },
+    "function:G": {
+      "kind": "replace",
+      "previewSha256": "4b962bcb836e0d8fe615739ebe60fa3419ee50834f3440f3c17382a0623bb8ad",
+      "sourceSha256": "ceab81a6aaed1fb7da2a8a53c1dcef884c7e7b3283bdf93a2f58ba1fd58d9d77"
+    },
+    "function:placementFeedback": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "257d5fc07aa9b1b5bcda3d732c59ccd038b0394ec85d1ec121b6dde6c72c6761"
+    },
+    "function:F": {
+      "kind": "replace",
+      "previewSha256": "5c207cd58d97f7d3580618e4c92ae5bb25c2398396ce1b6abe7c6b918400e923",
+      "sourceSha256": "49c98ab34ad297c9fce9bf1c622b4bfc477810360c09e8f94da26ac2f636d631"
+    },
+    "declaration:O": {
+      "kind": "replace",
+      "previewSha256": "63401577e576d31a624b559db15ba44f80c66b09d4bd670958b618a8086d0874",
+      "sourceSha256": "07442fdabad2dbd529249e8ac3ad3e91d0c587bf20be580f50a4f20a921c03e7"
+    },
+    "function:k": {
+      "kind": "replace",
+      "previewSha256": "50f894e8c9e9894d344f7dc9f6186847e76b83463f5e7862d5380eb29c87ffef",
+      "sourceSha256": "52555d1e186428ac61fcda43f7a4a59ffa38ed07aeb1687a96f817fd9bab470b"
+    },
+    "declaration:resetFeedback": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "bf7440465688e0421d6bbe996c17d59b92410cb20baf86f871e299bf5f5669b1"
+    },
+    "declaration:suspend": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "4c4d0aaf10a7c2195ba8e07cd97a38b6e0c356c2d22757c8e3b065b5b87cd31c"
+    },
+    "declaration:resume": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "c2c31efff7ab97b7eb6d7010a85e1a165a63c1b97e9b8a55bce82a685bfc8509"
+    },
+    "declaration:visibility": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "b43ac74c17bb5714d36cf91213ed4e94cfb7998e744479aad3c276f16e1472eb"
+    },
+    "declaration:motionChange": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "17faa79af1fa1cb78ce07ffdcf2ec854936819a790af37460f57e3b094d6c9d6"
+    },
+    "expression:e7b6dcb1540c3feb6c3016ef537f907b2c6444d672fcf6e80f8f4da2a6bae9c7": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "e7b6dcb1540c3feb6c3016ef537f907b2c6444d672fcf6e80f8f4da2a6bae9c7"
+    },
+    "expression:65f887db5883c5f75606ae0ce6759d553d194a80c93fe75f5ce90fd9f71a00bd": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "65f887db5883c5f75606ae0ce6759d553d194a80c93fe75f5ce90fd9f71a00bd"
+    },
+    "expression:df9844a096de31e47ac3c543b7b870e75cf31f0e13fc408d983b3a9534d58e03": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "df9844a096de31e47ac3c543b7b870e75cf31f0e13fc408d983b3a9534d58e03"
+    },
+    "expression:acd12950d5c25472daced15e9e09e8f96a5f69dfcd76e6423519251737f40093": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "acd12950d5c25472daced15e9e09e8f96a5f69dfcd76e6423519251737f40093"
+    },
+    "declaration:D": {
+      "kind": "replace",
+      "previewSha256": "d9a54f5683f3862d9aef86516243101653dbc06804e331fb129ef18ba4818dae",
+      "sourceSha256": "6e559fe1a7c8f29001670e952b5e8d614f2e9c15504358741a9a7d36e93068ad"
+    },
+    "return": {
+      "kind": "replace",
+      "previewSha256": "d8f1d88806bad0aae9f86ecdee640b2d9389f45a6d165e7698f1b583b558976c",
+      "sourceSha256": "bd893f342b01af6bf9bb8b9bf4903c17732b2e0553d1ff6614ddfac0ae468559"
+    }
+  }
+}

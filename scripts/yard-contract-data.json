@@ -1,0 +1,121 @@
+{
+  "format": "yard-immutable-contract-chunks/v1",
+  "files": [
+    {
+      "path": "game-logic/yard-v2/media/clip-contracts.json",
+      "sha256": "45eac48b0ffd93a338e2b33d1b57d1adeeb33087e9cdb1cd21cd217e3f5f336c"
+    },
+    {
+      "path": "game-logic/yard-v2/media/family-actor-profiles.json",
+      "sha256": "6a1bcd9b79891243e86cd2dc47e0af5e2d6f05a4798dfd99391db8184f052bd8"
+    },
+    {
+      "path": "game-logic/yard-v2/media/family-runtime-roots.json",
+      "sha256": "fad8996d733ef5d14b4cf2d9b02443557d9bd88248daa1b0fa46624836bf091e"
+    },
+    {
+      "path": "game-logic/yard-v2/media/foxes-r2/starlit-combined.json",
+      "sha256": "f607002ce54d2868373dfc37bc30d6d7c9516bb7e43164824811b9f293411021"
+    },
+    {
+      "path": "game-logic/yard-v2/media/foxes-r2/starlit-ground.json",
+      "sha256": "b3e7c7e388cf81364d4d8c53611e2e34b28d811c083ae2e9d396db0f7c612a7b"
+    },
+    {
+      "path": "game-logic/yard-v2/media/foxes-r2/starlit-stride.json",
+      "sha256": "ea126369826ab8248453413dce18978582337430b9451abfe3fd45c7ffc8ff0f"
+    },
+    {
+      "path": "game-logic/yard-v2/media/foxes-r2/willow-combined.json",
+      "sha256": "0c7ac804a02b044d825c2b3ad8d02a7010b9cc79d0a315d85b7370917868a1fe"
+    },
+    {
+      "path": "game-logic/yard-v2/media/foxes-r2/willow-ground.json",
+      "sha256": "14373eb7707b0564e5256a52d6936fd998c167d91d71fc59abca130c8293421a"
+    },
+    {
+      "path": "game-logic/yard-v2/media/foxes-r2/willow-stride.json",
+      "sha256": "1f13a9f3bf13ffc0464c172d6312fbb2dd1df75603ee275d52cce30ce7ff53e0"
+    },
+    {
+      "path": "game-logic/yard-v2/media/ground-footprints.json",
+      "sha256": "b8ea668b73ae90441442af4d4bfe90115d01b4d694add7f0b2e26c690802dcc6"
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi/authored-stride.json",
+      "sha256": "5d78d77970c4defa63e478f8aa3e9559edddc4b6f623989aeda8889c314c02a8"
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi/combined-binding.json",
+      "sha256": "902b35236a65b2284a050147ec744f26bbc48383570fc4ce8f1608ce7bebb58d"
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi/ground-motion.json",
+      "sha256": "eea4a3043c0e7f1e9ca0e6f25970f89f9362d322a22c04a1819829d5b10d65ed"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pebble/authored-stride.json",
+      "sha256": "7d0f2d054a797f64f648063a40df4598d23abd82c34dbcd15c2ac1b093675b3e"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pebble/combined-binding.json",
+      "sha256": "f35b09fc2c130cfc06a55fdb80091b0beb8f53dadf704b792bd9d8b4dfed55c0"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pebble/ground-motion.json",
+      "sha256": "71545554a2f855ee94f6fdc378d5ecbbe5e77d236aba16c7e2c66f918915a701"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip/authored-stride.json",
+      "sha256": "781344a1797bbb3974b342ab3be222dbb71e1191df5f8e60e6fcca528500b26c"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip/ground-motion.json",
+      "sha256": "81df13fce6a5a3c0438cafb2d5c063c589ad81b0cf99b0f6b46216987dd9e2aa"
+    },
+    {
+      "path": "game-logic/yard-v2/media/pip/snack-combined-binding.json",
+      "sha256": "f6072b7bc8b2351cf68fb5ae13dd06286a83278432580296157d2e0783179d62"
+    },
+    {
+      "path": "game-logic/yard-v2/media/shared-props/r2-evidence/fountain-source-contract.json",
+      "sha256": "59f3ee077fefd939cd5e2c459dbc5eeab2a8b1e441966ee16e7ff0477c245285"
+    },
+    {
+      "path": "game-logic/yard-v2/media/shared-props/r2-evidence/moon-source-identities.json",
+      "sha256": "b35ea0922c41cd97a50fc7322f06132462cddac9598678998d77e5adbfd12f25"
+    },
+    {
+      "path": "game-logic/yard-v2/media/shared-props/source-identities.json",
+      "sha256": "254409d3eede8eb5abeb467d34d72bcb7c0815f81df00a60263ed5c73d4df5fc"
+    },
+    {
+      "path": "game-logic/yard-v2/media/turn-contracts.json",
+      "sha256": "65c2195952142d60a9adcf9a7d5f9c3a865bed8153d8b5835418c86350a6d802"
+    },
+    {
+      "path": "game-logic/yard-v2/media/turtles-r2/basil-conditions.json",
+      "sha256": "957205da3597eb87508cf93570fd817bba0816b8630f3c87cc122616567db832"
+    },
+    {
+      "path": "game-logic/yard-v2/media/turtles-r2/basil-ground.json",
+      "sha256": "559359ab1831bfeafc5f7c8238ccae3768f32da63ee4322879196445580e6a90"
+    },
+    {
+      "path": "game-logic/yard-v2/media/turtles-r2/basil-stride.json",
+      "sha256": "edbdbecbf9e11e4e1e0dd94d1090e592525870d513d4469f20b09be3d3670f8a"
+    },
+    {
+      "path": "game-logic/yard-v2/media/turtles-r2/sage-conditions.json",
+      "sha256": "cf7853c7a53dc6a124bbdc6fcb089e29869fbf9b5469c79854c6e683209e7553"
+    },
+    {
+      "path": "game-logic/yard-v2/media/turtles-r2/sage-ground.json",
+      "sha256": "e4f519650ef9caa3dad0ed950d38c3c4353c2fdda72e5df8a99fa72180104ab4"
+    },
+    {
+      "path": "game-logic/yard-v2/media/turtles-r2/sage-stride.json",
+      "sha256": "38934d44c49dcf26b68b3ce10020764c7f8c55f45962ecb4a63ddfaec1929c75"
+    }
+  ]
+}

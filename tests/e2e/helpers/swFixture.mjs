@@ -1,4 +1,5 @@
 import {createServer} from 'node:http';
+import {createResourceGate} from './resourceGate.mjs';
 import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
 import {readFileSync,existsSync} from 'node:fs';
 import {tmpdir} from 'node:os';
@@ -42,6 +43,7 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
   }}]});
   let apiFailure=false,delayA=0,delayB=0,httpFresh=false;
   const requests=[],delayedResponses=[],timers=new Set(),players=new Map();
+  const resourceGate=createResourceGate(),artRequests=[];
   function currentPlayer(account){
     if(gameActions&&players.has(account))return players.get(account);
     let player=createDefaultPlayer(account,account==='account-a'?'Fixture A':'Fixture B');
@@ -59,6 +61,8 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
   }
   const server=createServer(async(req,res)=>{
     const url=new URL(req.url,'http://fixture.invalid');
+    if (/^\/(?:games|assets-runtime)\//.test(url.pathname)) artRequests.push(url.pathname);
+    await resourceGate.wait(url.pathname);
     if(url.pathname.startsWith('/api/')){
       const auth=req.headers.authorization||'',account=auth.endsWith('fixture-b')?'account-b':'account-a';
       const record={path:url.pathname,query:url.search,auth,account};requests.push(record);
@@ -110,10 +114,11 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
   const realtime=new SocketServer(server,{serveClient:false});
   await new Promise(done=>server.listen(0,'127.0.0.1',done));
   return {
-    origin:`http://127.0.0.1:${server.address().port}`,productionWorker,dist,requests,delayedResponses,
+    origin:`http://127.0.0.1:${server.address().port}`,productionWorker,dist,requests,delayedResponses,artRequests,
+    holdResources:resourceGate.hold,holdArtResources:resourceGate.holdArt,releaseResources:resourceGate.release,pendingResources:resourceGate.pending,
     player:currentPlayer,
     failApi(value=true){apiFailure=value;},delayAccountA(ms){delayA=ms;},delayAccountB(ms){delayB=ms;},freshHttpCache(value=true){httpFresh=value;},
-    async close(){for(const timer of timers)clearTimeout(timer);await new Promise(done=>realtime.close(done));server.closeAllConnections();if(server.listening)await new Promise(done=>server.close(done));const base=resolve(tmpdir());if(!temporary.startsWith(base+sep)||!basename(temporary).startsWith('ccgh-sw-proof-'))throw Error('Unsafe fixture cleanup path');await rm(temporary,{recursive:true,force:true});},
+    async close(){resourceGate.release();for(const timer of timers)clearTimeout(timer);await new Promise(done=>realtime.close(done));server.closeAllConnections();if(server.listening)await new Promise(done=>server.close(done));const base=resolve(tmpdir());if(!temporary.startsWith(base+sep)||!basename(temporary).startsWith('ccgh-sw-proof-'))throw Error('Unsafe fixture cleanup path');await rm(temporary,{recursive:true,force:true});},
   };
 }
 

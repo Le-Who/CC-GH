@@ -3,15 +3,23 @@
 export function atlasPageFor(clip,index){index=Math.max(0,Math.min(clip.frameCount-1,index));const page=clip.pages.find(p=>index>=p.first&&index<p.first+p.count);if(!page)throw Error('No atlas page for frame');return{page,index};}
 const pixelBytes=(width,height)=>Number.isSafeInteger(width)&&Number.isSafeInteger(height)&&width>0&&height>0?width*height*4:0;
 export class AtlasCache {
- constructor(base=new URL('./assets/',import.meta.url),limit=3,{now=()=>performance.now(),onEvent=()=>{},maxDecodedBytes=64*1024*1024,maxConcurrentDecodes=1}={}) {
+ constructor(base=new URL('./assets/',import.meta.url),limit=3,{now=()=>performance.now(),onEvent=()=>{},maxDecodedBytes=64*1024*1024,maxConcurrentDecodes=1,externalBytes=()=>0}={}) {
   if(!Number.isInteger(limit)||limit<1||!Number.isInteger(maxConcurrentDecodes)||maxConcurrentDecodes<1||!Number.isSafeInteger(maxDecodedBytes)||maxDecodedBytes<1)throw Error('Invalid atlas budget');
-  Object.assign(this,{base,limit,now,onEvent,maxDecodedBytes,maxConcurrentDecodes});
+  Object.assign(this,{base,limit,now,onEvent,maxDecodedBytes,maxConcurrentDecodes,externalBytes});
   this.entries=new Map();this.pending=new Map();this.controllers=new Map();this.jobs=new Map();this.queue=[];
   this.pinned=new Set();this.desired=new Set();this.managed=false;this.active=0;this.reservedBytes=0;this.disposed=false;this.error=null;
  }
  key(src,base=this.base){return new URL(src,base).href;}
  sourceFor(clip,page){const url=new URL(page.src,clip.assetBaseURL||this.base);if(clip.assetRevision)url.searchParams.set('yard-media',clip.assetRevision);return url.href;}
  get decodedBytes(){return [...this.entries.values()].reduce((n,e)=>n+e.bytes,0);}
+ get outsideBytes(){const n=this.externalBytes();if(!Number.isSafeInteger(n)||n<0)throw Error('Invalid external decoded-image ledger');return n;}
+ /** Reserve a larger canvas/still allocation before creating it. Existing
+  * visible pages and in-flight decode reservations retain priority. */
+ reserveExternal(bytes){
+  if(!Number.isSafeInteger(bytes)||bytes<0||bytes>this.maxDecodedBytes)throw Error('Invalid external decoded-image allocation');
+  const candidates=[...this.entries].filter(([key])=>!this.pinned.has(key)).sort((a,b)=>Number(this.desired.has(a[0]))-Number(this.desired.has(b[0]))||a[1].used-b[1].used);
+  while(this.decodedBytes+this.reservedBytes+bytes>this.maxDecodedBytes){const next=candidates.shift();if(!next)return false;this.evict(next[0],'external-allocation');}return true;
+ }
  request(clip,index){const {page}=atlasPageFor(clip,index);return{src:this.sourceFor(clip,page),width:page.width,height:page.height};}
  /** Explicit complete working set for this presentation. Lookahead priority is
   * caller order; selecting only spare slots prevents alternating prefetch eviction. */
@@ -23,11 +31,12 @@ export class AtlasCache {
   for(const r of current.values()){
    const bytes=pixelBytes(r.width,r.height);if(!bytes)throw Error('Visible atlas dimensions are required');expected+=bytes;
   }
-  if(current.size>this.limit||expected>this.maxDecodedBytes)throw Error('Visible atlas working set exceeds the configured budget');
+  const outside=this.outsideBytes;
+  if(current.size>this.limit||expected+outside>this.maxDecodedBytes)throw Error('Visible atlas working set exceeds the configured budget');
   this.managed=true;this.pinned=new Set(current.keys());const selected=new Map(current);
   for(const [key,r]of future){
    if(selected.has(key))continue;const bytes=pixelBytes(r.width,r.height);
-   if(!bytes||selected.size>=this.limit||expected+bytes>this.maxDecodedBytes)continue;
+   if(!bytes||selected.size>=this.limit||expected+bytes+outside>this.maxDecodedBytes)continue;
    selected.set(key,r);expected+=bytes;
   }
   this.desired=new Set(selected.keys());
@@ -52,7 +61,7 @@ export class AtlasCache {
  }
  makeRoom(bytes) {
   const candidates=[...this.entries].filter(([key])=>!this.pinned.has(key)).sort((a,b)=>Number(this.desired.has(a[0]))-Number(this.desired.has(b[0]))||a[1].used-b[1].used);
-  while(this.entries.size+this.active>=this.limit||this.decodedBytes+this.reservedBytes+bytes>this.maxDecodedBytes){
+  while(this.entries.size+this.active>=this.limit||this.decodedBytes+this.reservedBytes+bytes+this.outsideBytes>this.maxDecodedBytes){
    const next=candidates.shift();if(!next)return false;this.evict(next[0]);
   }
   return true;
@@ -65,10 +74,11 @@ export class AtlasCache {
    if(this.managed&&!this.desired.has(job.key)){this.cancelQueued(job);continue;}
    if(job.expectedBytes>this.maxDecodedBytes){this.queue.shift();this.fail(job,Error('Atlas page exceeds decoded pixel budget'));continue;}
    if(!this.makeRoom(job.expectedBytes))break;
-   this.queue.shift();this.active++;this.reservedBytes+=job.expectedBytes;this.decode(job);
+   this.queue.shift();this.active++;this.reservedBytes+=job.expectedBytes;job.budgetReserved=true;this.decode(job);
   }
  }
  fail(job,error){this.jobs.delete(job.key);this.pending.delete(job.key);if(!this.disposed){this.error=error;this.onEvent({type:'atlas-error',src:job.key,message:String(error)});}job.reject(error);}
+ releaseDecodeBudget(job){if(job.budgetReserved){job.budgetReserved=false;this.active--;this.reservedBytes-=job.expectedBytes;}}
  async decode(job) {
   const begin=this.now(),controller=new AbortController();this.controllers.set(job.key,controller);
   this.onEvent({type:'atlas-load-start',src:job.key,reason:job.reason,pendingDecodes:this.active,estimatedReservedBytes:this.reservedBytes});
@@ -85,13 +95,17 @@ export class AtlasCache {
    // Unknown dimensions are permitted only for direct callers. Runtime prepare()
    // always reserves the declared image dimensions before a decode begins.
    const extra=Math.max(0,bytes-job.expectedBytes);
-   if(this.decodedBytes+this.reservedBytes+extra>this.maxDecodedBytes)throw Error('Decoded atlas exceeds the reserved pixel budget');
+   if(this.decodedBytes+this.reservedBytes+extra+this.outsideBytes>this.maxDecodedBytes)throw Error('Decoded atlas exceeds the reserved pixel budget');
+   // Transfer the reservation to the retained image atomically, before observers
+   // sample the ledger. The same decoded pixels must never be counted twice.
+   this.releaseDecodeBudget(job);
    this.entries.set(job.key,{image,bytes,used:decoded});
    this.onEvent({type:'atlas-ready',src:job.key,reason:job.reason,fetchMs:fetched-begin,decodeMs:decoded-fetched,totalMs:decoded-begin,
-    compressedBytes:blob.size,width:image.width,height:image.height,retainedPages:this.entries.size,decodedBytes:this.decodedBytes});
+    compressedBytes:blob.size,width:image.width,height:image.height,retainedPages:this.entries.size,decodedBytes:this.decodedBytes,
+    pendingDecodes:this.active,estimatedReservedBytes:this.reservedBytes});
    job.resolve(image);
   }catch(error){image?.close?.();if(this.disposed)job.resolve(null);else this.fail(job,error);}
-  finally{this.controllers.delete(job.key);this.jobs.delete(job.key);this.pending.delete(job.key);this.active--;this.reservedBytes-=job.expectedBytes;this.pump();}
+  finally{this.controllers.delete(job.key);this.jobs.delete(job.key);this.pending.delete(job.key);this.releaseDecodeBudget(job);this.pump();}
  }
  /** Legacy single-request prefetch API. Managed scenes use prepare() exclusively. */
  prefetch(clip,index,reason='route-lookahead') {

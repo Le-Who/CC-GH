@@ -6,8 +6,8 @@ import {ensurePersistentPlayerYard,publicPersistentYard} from '../game-logic/yar
 import {createMochiAcceptanceOptions} from '../tests/fixtures/yard-mochi-canonical/acceptance.mjs';
 import {getYardServerOptions} from '../game-logic/yard-v2/yard-media.mjs';
 import {YARD_GOODIES} from '../game-logic/yard-v2/catalog.mjs';
-import {mkdir,readFile,writeFile,cp} from 'node:fs/promises';
-import {resolve,dirname,relative,extname} from 'node:path';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {resolve,dirname,relative,extname,sep,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 const root=resolve(fileURLToPath(new URL('..',import.meta.url))),out=resolve(root,'recovery-tools/yard-canonical-mochi-qa'),NOW=Date.UTC(2026,9,3,12),H=3600000;
@@ -32,8 +32,8 @@ const data={snapshot,closedSnapshot,finishedSnapshot:{yard:finished.yard,yardRun
 await writeFile(resolve(out,'fixture.json'),JSON.stringify(data)+'\n');
 const visited=new Set(),files=[];
 async function collect(path){path=resolve(path);if(visited.has(path))return;visited.add(path);
- if(!path.startsWith(root+'/'))throw Error('Source closure escaped project');
- const bytes=await readFile(path),name=relative(root,path);await mkdir(dirname(resolve(out,'source',name)),{recursive:true});await writeFile(resolve(out,'source',name),bytes);
+ const local=relative(root,path);if(local==='..'||local.startsWith('..'+sep)||isAbsolute(local))throw Error('Source closure escaped project');
+ const bytes=await readFile(path),name=local.split(sep).join('/');
  files.push({path:name,sha256:createHash('sha256').update(bytes).digest('hex')});
  if(!['.mjs','.js'].includes(extname(path)))return;
  for(const match of bytes.toString().matchAll(/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?)['"]([^'"]+)['"]/g)){
@@ -43,5 +43,4 @@ async function collect(path){path=resolve(path);if(visited.has(path))return;visi
 await collect(resolve(root,'src/games/companion-yard-v2/scene.mjs'));
 await collect(resolve(root,'src/games/companion-yard-v2/courtyard.css'));
 await writeFile(resolve(out,'SOURCE-CLOSURE.json'),JSON.stringify({runtimeActivated:false,files:files.sort((a,b)=>a.path.localeCompare(b.path))},null,2)+'\n');
-for(const id of ['yard-mika','yard-mochi'])await cp(resolve(root,'public/assets',id),resolve(out,'public/assets',id),{recursive:true});
 console.log(JSON.stringify({modules:files.length,visit:visit.visitId,durationMinutes:(visit.leavesAt-visit.arrivedAt)/60000,releaseAccepted:false}));

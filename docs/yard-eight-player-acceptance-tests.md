@@ -1,0 +1,56 @@
+# Isolated eight-actor player acceptance lane
+
+This is test infrastructure on the closed player-wiring candidate. It is not an activation, deployment artifact, completed browser run, or release approval. Normal production files and gates remain unchanged. The previously approved 17-case closed/Mika-only API lane remains separate and mandatory.
+
+## Exact candidate boundary
+
+`tests/helpers/yard-eight-player-candidate.mjs` pins six source modules by SHA-256. Only their `enabled`, `accepted` and `playbackReady` false values are changed in memory: player policy, Mochi, Pebble, Pip, family gate, and four family profile readiness values. The server uses explicit `node --import ./tests/helpers/yard-eight-player-loader.mjs`; the browser uses the same pure transformation in `vite.yard-eight-player-candidate.config.js`. Changed source hashes fail instead of silently refreshing acceptance. No request, query, save, production environment switch, or inherited `NODE_OPTIONS` can enable this fixture.
+
+The test build lives in `dist-yard-eight-player-candidate`, has a marker with exact source pins, and is never uploaded as a client/deploy artifact. Two separately pinned metadata files are promoted only in that output: Mochi top-level `playbackReady` and `runtimeActivated` become true (matching its packer); Pebble top-level `playbackReady` becomes true while `runtimeActivated` stays false. Mochi nested source manifests stay false. These promotions are required by the unchanged production adapters, which compare Mochi/Pebble manifest readiness to server binding readiness. Pip/family frozen manifests remain false, as their unchanged adapters require. Every atlas, still, nested source descriptor, calibration, revision and validator remains unchanged. The marker records both metadata hashes before/after; this is a new candidate media identity and does not reuse an old media-closure proof.
+
+The Node loader redirects only the production server's three static `dist` references to that directory. Real Express, dev authentication, routes, player lock/CAS, PostgreSQL15, Socket.IO, React, Zustand, IndexedDB and renderer are retained. Server startup uses the exported production app and Socket.IO initialization, as in the earlier lane; it does not validate the production executable's scheduled background startup.
+
+The suite requires the existing disposable database identity (`ccgh_merge_ci` on loopback port5432), explicit test opt-ins, no Redis and no inherited loader. HTTP listens only at127.0.0.1:3220. Each generated UUID fixture is checked against its actual dev identity mapping before reads/deletion; cleanup deletes only those fixture players/accounts. There is no production database access or HTTP authentication bypass.
+
+## Native inputs and transparent time
+
+The native fixture generator runs before the server starts. It searches seeds, then requires the actual source registry and persistent service to admit the expected actors. It never edits visits, native draws, plan times, route geometry, food/wear policy, reservations or reward rules. All source profiles come through `getYardServerOptions()` and the actual released registry.
+
+Single-actor fixtures contain a migrated historical Yard before its first opportunity. The actual authenticated snapshot must perform native admission and persist the result. Positive pair fixtures contain one already-admitted native guest and an ordinary native food-refill history before the second hourly opportunity; the actual HTTP snapshot must admit the second guest. Only Yard and its historical storage/archive are copied into a fresh canonical fixture account. The saved deterministic seed remains a historical fixture input; the account's identity, Merge, Garden and shared resources come from its real default player.
+
+Each independent viewport runner's test-only authoritative `Date.now` starts at2026-10-03T14:02:00Z and increases with real monotonic elapsed time at1×. Browser clocks and requestAnimationFrame are unchanged. This puts actual source-authored visits into a visible rest interval without speeding them up or rewriting a schedule. The 14-minute browser bound leaves every expected guest present; the shortest first guest (Pip in the80/81-minute pair) has18 minutes remaining at the clock origin. Fixture setup has its own10-minute limit; each runner retains the server startup/browser14-minute limit,90-second per-case limit and overall CI30-minute limit. This is bounded live integration, not a complete visit-duration observation or the earlier frozen110-minute proof.
+
+Representative positive mixed layouts:
+
+- Mika→Willow: `yard-native-mika-supported-mika-willow-16683`, Mouse(45,45), Moon(60,65),110/45 minutes. This is the continuation package's existing Mouse/chase interaction, including the original endpoint commit.
+- Pip→Starlit: `yard-native-pair-pip-starlit-27`, Snack(50,65), Moon(60,40),80/81 minutes, from the prior pair package.
+- Willow→Starlit: `yard-native-pair-willow-starlit-5`, Moon(30,44)/(70,44),97/104 minutes, from the prior pair package.
+
+These are new integration runs of three finite positive fixtures. They do not relabel old evidence, establish a global maximum, or accept all layouts/arrival orders.
+
+## Coverage and evidence
+
+The59 cases comprise:
+
+- All eight actors and three positive pairs across320×568 DPR1 touch,390×844 DPR2 touch,844×390 DPR2 touch, and1280×800 DPR1 desktop:44 cases. They check native HTTP admission against independently generated expected records, persisted food/wear/balance/adjacent-state preservation, actual source media, reload, reservations enforced by controls/API, Home→Garden→Yard unmount/re-entry, and one live phone rotation.
+- Four UI flows, one per viewport, exercise12 available intent types: buy food, fill, buy/place/move/store/repair items, collect, daily letter, photo, favorite and companion configuration. Helper preferred food and auto-refill controls also use the real configure action. Expansion and non-Meadow remodel complete the14-contract coverage as disabled affordances plus actual409 responses. A replayed collect nonce is checked for no extra credit. Actual keyboard placement, pointer cancellation and Escape dialog close are exercised.
+- Eight family wear cases (four actors × worn/broken) verify persisted condition-compatible clips and actual pixels on a DPR2 phone. Each requires a changed-pixel draw from the exact saved condition clip's page/crop; another condition of the same actor cannot satisfy it. New Starlit uses glow; worn/broken use supported watch. The exact native catalog excludes glow in worn/broken states.
+- Three real negative admissions: Pip worn, Pip broken, and Starlit glow at the new→worn use boundary. Each verifies no visit, no serving/wear/currency loss, and no actor atlas draw. Additional native contracts retain required-food and unsupported-activity rejection.
+
+The browser observer only wraps standard Response.blob, createImageBitmap and canvas drawImage, forwarding their original arguments/results. For actual nine-argument atlas draws it records source page/crop and the count of opaque destination pixels changed by that draw. Actor attribution comes from exact manifest pages and crop ranges, including family shared-root resolution; a shared URL prefix cannot count one fox as another. Attribution resets per canvas, so re-entry requires fresh rendered output. Stills alone cannot satisfy the actor witness. Requested media responses are compared byte-for-byte with the isolated build and hashed; screenshots, draw witnesses, native inputs, test JSON and failures are preserved with the existing bounded evidence collector. The observer's readbacks are instrumentation and do not constitute decoded-memory or performance-budget measurements.
+
+## CI and remaining limits
+
+The required `yard-eight-player` matrix uses locked dependencies, Node24, PostgreSQL15 and Chromium. Four runners execute in parallel with fail-fast disabled: small-phone12 cases, phone23 cases, landscape12 cases, desktop12 cases. Each retains exactly one browser worker, zero retries, its own disposable service and authored clock. The phone runner owns all11 extra wear/rejection checks. There are still exactly59 cases; none are skipped or selected by an unreviewed grep. Each runner builds the separate candidate and generates its required native inputs (11 per ordinary group,22 on phone). Actual Playwright discovery must match that group's complete exact title set before execution. Artifact names include the viewport group, so independent evidence cannot overwrite another group.
+
+Run with `YARD_EIGHT_PLAYER_GROUP` explicitly set to `small-phone`, `phone`, `landscape` or `desktop` and the existing guarded test/database environment:
+
+`pnpm exec playwright test --config playwright.yard-eight-player.config.js`
+
+The first integrated run (37178002141, job111364578359, source02c40142377c5e472e50c1c105cbda39fc65ba85) produced39 passes,9 failures and11 cases not run at the unchanged global deadline. Six failures were real cold-snapshot timeouts before canvas creation: every corresponding trace shows an aborted snapshot and the error screenshot shows the timeout/loading screen. A fresh native benchmark took12.165s for admission plus12.469s for public presentation, exceeding the unchanged8s client request deadline. The phone repair trace records three aborted attempts with identical request bytes, followed by a200 duplicate response roughly57s after the first attempt and the expected single80-treat repair debit. The normal UI assertion remains `duplicate:false` while source latency is repaired independently; no request was intentionally dropped in this case.
+
+Two other failures exposed the Hub Escape fallback opening Home behind the native Yard dialog; screenshots and accessibility snapshots show both dialogs simultaneously. Courtyard now registers its open panel with the existing Escape layer, preserving the real browser close assertion and native cancel/close handling. The browser also requires Home to remain absent after that Escape. Parallel grouping addresses scheduling only; it does not prewarm snapshots, raise deadlines or turn those runtime failures into passes. Evidence identities: review artifact11294122303 SHA256 `96c8b6bf4dd7afbc7981197adae97e1315853ef028d73d176fcb2e2f2b3a0f6b`; trace artifact11294536192 SHA256 `158af6e41c54bb634ef9ed2214668fce997b0b0db131aa0cc6576043219f297a`.
+
+The normal build's independently owned Workbox fix is a prerequisite. No image/transfer/cache budget is raised or disabled here. The full real lane cannot run in the current incomplete local dependency tree; native contracts and fixture generation are distinct from CI execution. An empty or failed evidence upload never means a pass.
+
+This lane does not complete source work for Pip worn/broken, expansion, bowl2 or other remodels; does not replace source pixel/art review, full-duration observation, measured global decoded-memory/performance proofs, unavailable network-recovery/account-switch scenarios, or real deployment health/rollback checks. The current PREVIEW/Mika-only copy and candidate chrome are preserved and still need product review. Production gates and prior frozen long-run identities remain closed/unchanged.

@@ -381,7 +381,7 @@ Runtime folders:
 - `public/games/companion-yard/goodies/`
 - `public/games/companion-yard/visitors/`
 - `public/games/companion-yard/HUD.png` direct CSS sprite, not generated runtime manifest today.
-- `public/games/companion-yard/HUD.svg` editable/source reference for the HUD sprite.
+- `assets-source/games/companion-yard/source-svg/HUD.svg` editable/source reference for the HUD sprite.
 
 Runtime generated key pattern:
 
@@ -867,10 +867,9 @@ Current runtime keys:
 Additional source/reference assets exist in:
 
 - `assets-source/imagegen/match3/`
-- `assets-source/games/puzzling-potions/dist-source/`
-- `assets-source/games/puzzling-potions/raw-assets/`
+- Obsolete upstream Puzzling Potions source imports were removed; their license remains in `public/games/puzzling-potions/LICENSE`.
 
-Not all upstream Puzzling Potions assets are currently used by CC-GH runtime.
+Only the eight semantic overlays remain in the current Match-3 runtime; their active source art is in `assets-source/imagegen/match3/`.
 
 ### Asset sheet materials needed
 
@@ -1000,8 +999,7 @@ Additional public files exist but are not all current bundle keys:
 
 Source/reference assets:
 
-- `assets-source/games/bubbo-bubbo/dist-source/`
-- `assets-source/games/bubbo-bubbo/raw-assets/`
+- Current Bubbo art: `public/games/bubbo-v2/`. Obsolete upstream source imports were removed; the original license remains in `public/games/bubbo-bubbo/LICENSE`.
 
 ### Asset sheet materials needed
 

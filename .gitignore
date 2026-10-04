@@ -32,3 +32,8 @@ package-lock.json
 skills-lock.json
 implementation_plan.md
 walkthrough.md
+
+# Byte-identical generated copies from scripts/yard-public-media.mjs
+/public/assets/yard-family/
+/public/assets/yard-fox/
+/public/assets/yard-turtles/

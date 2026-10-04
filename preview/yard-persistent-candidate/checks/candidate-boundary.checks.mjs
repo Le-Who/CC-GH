@@ -8,11 +8,14 @@ import {requireCandidateMode} from '../guard.mjs';
 import {repositoryRoot,candidateRoot,readCandidateSource} from '../source.mjs';
 import {verifyProductionUntouched} from '../verify-production.mjs';
 requireCandidateMode();
-test('production files keep legacy Yard while explicit static inspection sees the candidate override',async()=>{
-  assert.equal(verifyProductionUntouched().productionYard,'legacy-active');
+test('closed production wrapper keeps legacy defaults while explicit inspection sees the candidate override',async()=>{
+  const verified=verifyProductionUntouched();
+  assert.equal(verified.productionYard,'closed-rollout-legacy-default');
+  assert.equal(verified.rolloutEnabled,false);assert.equal(verified.migratedYard,'read-only');
+  assert.deepEqual(verified.releasedActors,['mika']);
   const path=resolve(repositoryRoot,'src/app/gameChunks.jsx');
   const original=readFileSync(path,'utf8'),candidate=await readCandidateSource(path);
-  assert.match(original,/companion-yard\/CompanionYardGame/);assert.doesNotMatch(original,/companion-yard-v2/);
+  assert.match(original,/companion-yard-v2\/YardReleaseGame/);
   assert.match(candidate,/companion-yard-v2\/CourtyardGame/);assert.notEqual(candidate,original);
 });
 test('served canonical runtime metadata equals the explicitly mapped candidate fixture',async()=>{
