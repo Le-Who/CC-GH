@@ -66,6 +66,18 @@ if(process.env.YARD_FAMILY_PG_TEST!=='1'){
      const conflict=await processes.separate(id,{...command,payload:{unexpected:true},now:visit.leavesAt+10*86400000});assert.equal(conflict.outcome.status,409);assert.equal(conflict.outcome.error,'ACTION_ID_PAYLOAD_CONFLICT');const afterConflict=await load(id);assert.deepEqual(afterConflict.yard,claimed.yard);assert.deepEqual(afterConflict._yardV2,claimed._yardV2);assert.deepEqual(adjacent(afterConflict),beforeAdjacent);
     });
    }
+   await t.test('first family collect response is lost after commit and replay never credits twice',async()=>{
+    const {id}=await seed('sage',0);success(await processes.separate(id,advance(NOW+H)));
+    const visit=Object.values((await load(id))._yardV2.runtime.visits)[0];success(await processes.separate(id,advance(visit.leavesAt)));
+    const before=await load(id),gift=copy(before.yard.pendingGifts[0]),balance=copy(before.yard.currencies),neighbors=copy(adjacent(before)),command=collect(visit.leavesAt+1);
+    assert.equal(before._yardV2.runtime.commandReceipts[command.clientActionId],undefined);
+    const first=await processes.separate(id,command,{loseResponse:true});assert.equal(first.outcome,undefined);
+    await closeDb();assert.ok(initDb());await ensureDbSchema();const committed=await load(id);
+    assert.equal(committed.yard.pendingGifts.length,0);for(const key of ['treats','shinyTreats'])assert.equal(committed.yard.currencies[key],balance[key]+gift[key]);
+    assert.equal(committed._yardV2.runtime.giftLedger[gift.id].status,'claimed');const receipt=copy(committed._yardV2.runtime.commandReceipts[command.clientActionId]);assert.ok(receipt);assert.deepEqual(adjacent(committed),neighbors);
+    const retry=await processes.separate(id,command);success(retry);assert.equal(retry.outcome.replayed,true);const replayed=await load(id);assert.deepEqual(replayed.yard,committed.yard);assert.deepEqual(replayed._yardV2,committed._yardV2);
+    const late=await processes.separate(id,{...command,now:visit.leavesAt+10*86400000});success(late);assert.equal(late.outcome.replayed,true);const after=await load(id);assert.deepEqual(after.yard,committed.yard);assert.deepEqual(after._yardV2,committed._yardV2);assert.deepEqual(after._yardV2.runtime.commandReceipts[command.clientActionId],receipt);assert.deepEqual(adjacent(after),neighbors);
+   });
    await t.test('actual Garden purchase and family gift collect survive a shared PostgreSQL CAS loss',async()=>{
     const {id}=await seed('sage',0);success(await processes.separate(id,advance(NOW+H)));let player=await load(id);
     const adopt=gardenCommand(player,NOW+H,'adopt',{legacyRevision:player.gardenAccounting.revision,acknowledgedTotal:player.gardenAccounting.creditedTotal});success(await processes.separate(id,{...adopt,operation:'garden.command'}));

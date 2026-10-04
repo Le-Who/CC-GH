@@ -375,7 +375,7 @@
     },
     {
       "path": "src/games/companion-yard-v2/scene.mjs",
-      "sha256": "d9d3934bec9c6fae88d85aa42fcc589afa4c1c0efed1e30fc901eb818ffb9999"
+      "sha256": "a74329b28d155060906b736cc9ef93b4633f0bc09789ce2cb5ad471283dd9714"
     },
     {
       "path": "src/games/companion-yard-v2/telemetry.mjs",

@@ -74,3 +74,10 @@ local browser, esbuild/Vite or real PostgreSQL result; those remain CI gates.
 For frozen Yard v3 tree `5c976992b1fdda1cc9adfb6735c3c1137b51cecc`, the historical statements above about unchanged package scripts are superseded by a deliberate scripts-only change: nine canonical Yard tests join the default test command, and `test:yard-current-four`, `test:yard-family`, and `test:yard-family:pg` are added. Dependencies and lockfile are unchanged.
 
 The production guard rebases only package.json to 8,441 bytes / SHA-256 `e977e5215281baa922fe5de44c792ccb854682e9bced46b203352e0410784bfe`. All other 23 protected fingerprints and the guard implementation remain unchanged. This preserves all checks and does not activate Yard or open player/media/release gates. Full CI, PostgreSQL/OCC and temporal acceptance remain required.
+
+
+## Native v4 QA test-wiring rebase (2026-10-04)
+
+The reviewed v4 delta on frozen v3 adds `tests/yard-native-duration.test.mjs` to the default and family test commands. Only the package fingerprint advances to 8,513 bytes / SHA-256 `90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445`; dependencies, lockfile, the other 23 fingerprints and the guard implementation remain unchanged. Parent commit `737ef882af8723dc792b1c3e34227c22ed5e56a5` remains intact, including exact Garden replay-clock assertions. The new first-lost-collect case is additive.
+
+The opt-in `yard-native-gameplay-qa` workflow runs eight independent actual-media scenes against owned loopback memory fixtures with native wall-clock progression. Their durations range from 49 to 110 minutes; this is not eight simultaneous visitors in one scene, PostgreSQL proof, production URL readiness or release activation. The interrupted 46.76-minute HP run remains incomplete. A fresh uninterrupted cloud run and the separate remaining acceptance gates are required.

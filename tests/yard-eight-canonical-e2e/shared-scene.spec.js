@@ -44,3 +44,13 @@ for(const[actor,width,height,dpr]of [['willow',390,844,2],['starlit',768,1024,1]
   start=a.times.wake;await page.evaluate(at=>window.yardQA.seek(at),start);check(await painted(page,start));await page.evaluate(()=>window.yardQA.play());await expect.poll(async()=>{const d=await page.evaluate(()=>window.yardQA.diagnostics());check(d);return d.presentationTime;},{timeout:exitDeadline,intervals:[1000]}).toBeGreaterThanOrEqual(a.times.leaving);await page.evaluate(()=>window.yardQA.pause());const d=await page.evaluate(()=>window.yardQA.diagnostics());check(d);await save(`1x-${actor}.json`,JSON.stringify({nativeSeed:a.seed,scope:'Actual 1x browser segments; authoritative rest hold was skipped between segments.',sourceSegmentSeconds:{approach:(rest-a.times.approach)/1000,exit:(a.times.leaving-a.times.wake)/1000},frames,diagnostics:d},null,2));
  }finally{await context.close();if(video)await video.saveAs(path.join(out,`1x-${actor}.webm`));}
 });
+
+test('RAF telemetry starts from its own origin and preserves subsequent real gaps',async({page},info)=>{
+ await page.addInitScript(()=>{let next=0;const queued=new Map();window.requestAnimationFrame=callback=>{queued.set(++next,callback);return next;};window.cancelAnimationFrame=id=>queued.delete(id);window.stepYardRaf=stamp=>{const frame=[...queued.values()];queued.clear();for(const callback of frame)callback(stamp);};});
+ await page.goto(`${info.project.use.baseURL}/__yard_qa__/index.html?actor=willow`);await page.waitForFunction(()=>window.yardQA?.ready,null,{polling:50});
+ const initial=await page.evaluate(()=>{window.stepYardRaf(123456);return window.yardQA.diagnostics();});
+ expect(initial.timing.stats.visibleRafCount).toBe(1);expect(initial.timing.stats.maxRafDeltaMs).toBe(0);expect(initial.timing.stats.rafOver100Ms).toBe(0);
+ const next=await page.evaluate(()=>{window.stepYardRaf(123772);return window.yardQA.diagnostics();});
+ expect(next.timing.stats.visibleRafCount).toBe(2);expect(next.timing.stats.maxRafDeltaMs).toBe(316);expect(next.timing.stats.rafOver100Ms).toBe(1);expect(next.timing.events.filter(e=>e.type==='raf-gap').map(e=>e.deltaMs)).toEqual([316]);
+ expect(next.presentationTime).toBe(initial.presentationTime);expect(next.errors).toEqual([]);expect(next.globalDecodedBudget.peakBytes).toBeLessThanOrEqual(64*1048576);
+});

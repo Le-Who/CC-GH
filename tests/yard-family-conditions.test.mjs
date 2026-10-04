@@ -22,6 +22,15 @@ test('family readiness reuses geometry across slot identities/opaque fields, rea
  const corrupt=copy(b);corrupt.placedGoodies[0].condition='broken';assert.notEqual(source.sourcePlacementReadiness(corrupt)[0].status,'ready');
  assert.equal(source.sourcePlacementReadiness(b,{untrusted:true})[0].reason,'UNTRUSTED_PROP_OBSTACLE_CONTEXT');
 });
+test('family readiness invalidates geometry, expansion and duplicate slot classes',()=>{
+ const source=createFamilySourceMedia('sage',{scene:copy(MIKA_SCENE)}),baseline=candidate('sage').yard;source.sourcePlacementReadiness(baseline);
+ const cold=yard=>{let reads=0;for(const p of yard.placedGoodies){const uses=p.uses;Object.defineProperty(p,'uses',{enumerable:true,get(){reads++;return uses;}});}const rows=source.sourcePlacementReadiness(yard);assert.ok(reads>yard.placedGoodies.length,'changed semantic input must run source validation');return rows;};
+ const moved=copy(baseline);moved.placedGoodies[0].x=-1000;assert.notEqual(cold(moved)[0].status,'ready');
+ const expanded=copy(baseline);expanded.expansion.level=2;assert.equal(cold(expanded)[0].status,'ready');
+ const two=copy(baseline);two.placedGoodies=[{...two.placedGoodies[0],slotId:'left',x:35,y:42},{...two.placedGoodies[0],slotId:'right',x:55,y:48}];assert.ok(source.sourcePlacementReadiness(two).every(r=>r.status==='ready'));
+ const duplicate=copy(two);duplicate.placedGoodies[1].slotId='left';assert.ok(cold(duplicate).every(r=>r.status!=='ready'&&r.reason==='TARGET_PLACEMENT_MISMATCH'));
+ assert.ok(source.sourcePlacementReadiness(two).every(r=>r.status==='ready'));
+});
 for(const actorId of ['willow','starlit','basil','sage'])test(`${actorId}: every wear boundary selects exact post-admission pixels and consumes exactly once`,()=>{
  const g=YARD_GOODIES[EIGHT_FIXTURE_SPECS[actorId].goodieId],d=g.durability;
  for(const uses of [0,d-2,d-1,d,2*d-2,2*d-1,2*d]){

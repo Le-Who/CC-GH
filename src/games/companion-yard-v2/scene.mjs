@@ -40,7 +40,7 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     {...atlasPolicy,externalBytes:outside,onEvent:e=>{timing.atlas(e);budgetSample(e.type);}});
   const clock=new PresentationClock(now);
   let snapshot=null,view=null,projection=null,media=null,stills=null,actorEntries={},propBindings={},sceneGeometry=MIKA_SCENE;
-  let ghost=null,disposed=false,raf=0,lastNow=now(),lastStatusAt=0,ready=false,pendingSize=null,resizeFailure=null;
+  let ghost=null,disposed=false,raf=0,lastRafStamp=null,lastStatusAt=0,ready=false,pendingSize=null,resizeFailure=null;
   const images=new Map();
   const poseFor=pet=>{const actor=actorEntryForPet(pet,actorEntries);return selectPetPose(actor.manifest,pet,{actorProfile:actor.profile});};
   function time(){return clock.read();}
@@ -91,7 +91,9 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     if(ghost){const poly=footprintPolygon(footprint(ghost,sceneGeometry),projection);ctx.beginPath();poly.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fillStyle=ghost.valid?'#86ae7190':'#c3696590';ctx.fill();ctx.strokeStyle=ghost.valid?'#416c35':'#9d3c36';ctx.stroke();sprite(propBindings[ghost.goodieId]?.stillId||(ghost.goodieId==='sun_cushion'?'sun-cushion-clean':'yarn-mouse-clean'),projection.project(ghost),.65);}
   }
   function tick(stamp){if(disposed)return;try{
-    const delta=stamp-lastNow;lastNow=stamp;timing.raf(delta,!document.hidden);
+    // RAF owns a browser monotonic origin; the injected presentation clock may
+    // be virtual. Bootstrap from the first RAF instead of mixing those origins.
+    const delta=lastRafStamp===null?0:stamp-lastRafStamp;lastRafStamp=stamp;timing.raf(delta,!document.hidden);
     if(snapshot&&media&&projection&&!document.hidden){const at=time(),next=courtyardPresentation(snapshot,at,clips,{actorEntries,actorProfiles});
       const later=courtyardPresentation(snapshot,at+1100,clips,{actorEntries,actorProfiles});
       const lookahead=[];
@@ -161,7 +163,7 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     }
     propBindings=Object.assign({},...Object.values(actorEntries).map(e=>e.propBindings||{}));
     sceneGeometry={...MIKA_SCENE,footprints:{...MIKA_SCENE.footprints,...Object.fromEntries(Object.entries(propBindings).map(([id,p])=>[id,p.footprint]))}};
-    if(disposed)return;resize();ready=true;lastNow=now();raf=requestAnimationFrame(tick);
+    if(disposed)return;resize();ready=true;raf=requestAnimationFrame(tick);
   })().catch(e=>{if(!disposed)onError(e);});
   return {ready:readyPromise,update,setGhost(value){ghost=value;},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
     hit(event){if(!view||!projection)return null;const r=canvas.getBoundingClientRect(),point={x:event.clientX-r.left,y:event.clientY-r.top};return view.props.filter(p=>p.supported).map(prop=>{const q=projection.project(prop.transform);return{prop,p:{x:q.x*r.width/projection.width,y:q.y*r.height/projection.height}};}).filter(v=>Math.hypot(v.p.x-point.x,v.p.y-point.y)<28).sort((a,b)=>Math.hypot(a.p.x-point.x,a.p.y-point.y)-Math.hypot(b.p.x-point.x,b.p.y-point.y))[0]?.prop;},

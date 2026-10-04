@@ -1,0 +1,65 @@
+name: Yard native gameplay QA
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [opened, reopened, synchronize, labeled]
+
+permissions:
+  contents: read
+
+jobs:
+  native-gameplay:
+    if: github.event_name == 'workflow_dispatch' || contains(github.event.pull_request.labels.*.name, 'yard-native-gameplay-qa')
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    env:
+      NODE_ENV: test
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      YARD_CANDIDATE_CI: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Preserve production isolation and native QA contracts
+        run: |
+          node preview/yard-persistent-candidate/verify-production.mjs
+          node --test --test-concurrency=1 tests/yard-native-duration.test.mjs tests/yard-native-ci-contract.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Build exact native fixtures and source/media closures
+        run: |
+          node scripts/yard-mochi-native110-witness.mjs
+          node scripts/yard-eight-canonical-fixture.mjs
+          git diff --exit-code -- recovery-tools/yard-canonical-eight-qa/mochi110-witness.json recovery-tools/yard-canonical-eight-qa/fixture.json recovery-tools/yard-canonical-eight-qa/SOURCE-CLOSURE.json recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json
+          mkdir -p test-results-yard-native-gameplay
+          node scripts/yard-native-ci-preflight.mjs > test-results-yard-native-gameplay/preflight.json
+      - name: Run uninterrupted actual-media native visits
+        env:
+          CI: 'true'
+          GITHUB_ACTIONS: 'true'
+          YARD_NATIVE_GAMEPLAY_TEST: '1'
+          PLAYWRIGHT_YARD_EIGHT_PORT: '3204'
+        run: |
+          set -euo pipefail
+          mkdir -p test-results-yard-native-gameplay
+          node scripts/yard-eight-canonical-ci-server.mjs > test-results-yard-native-gameplay/server.log 2>&1 &
+          yard_qa_server_pid=$!
+          trap 'kill "$yard_qa_server_pid" 2>/dev/null || true' EXIT
+          node scripts/yard-native-full-gameplay.cjs 2>&1 | tee test-results-yard-native-gameplay/runner.log
+      - name: Stage complete and incomplete native evidence without deleting originals
+        if: always()
+        run: |
+          mkdir -p test-results
+          if [ -d test-results-yard-native-gameplay ]; then cp -a test-results-yard-native-gameplay test-results/yard-native-gameplay; fi
+      - name: Preserve bounded native evidence with source hashes and run identity
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: yard-native-gameplay
