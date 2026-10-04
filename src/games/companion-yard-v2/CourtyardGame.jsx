@@ -12,6 +12,7 @@ import {catalogPreview, photoPreview, canAffordCatalogCost, placementMessageKey,
 import {formatYardCurrencyBalance} from '../companion-yard/currencyDisplay.js';
 import {openHome} from '../../app/homeNavigation.js';
 import {useEscapeDismiss} from '../../app/useDismissableLayer.js';
+import {LOCAL_PLACEMENT_ERRORS,ownsPlacement,placementCommand,pendingPlacement,retryablePlacement,recoverPlacement} from './placement-recovery.mjs';
 import './courtyard.css';
 import './i18n.js';
 
@@ -41,18 +42,19 @@ export default function CourtyardGame() {
     return (Object.hasOwn(YARD_VISITORS,id)?YARD_VISITORS[id].name:null) || t('yard.persistent.unknownItem');
   };
   const cost=value=>[value?.treats?t('yard.cost.treats',{count:value.treats}):'',value?.shinyTreats?t('yard.cost.shiny',{count:value.shinyTreats}):''].filter(Boolean).join(' + ')||t('yard.cost.free');
-  const snapshot=useGameHub(s=>s.snapshot),message=useGameHub(s=>s.message),pending=useGameHub(s=>s.pendingActions);
+  const snapshot=useGameHub(s=>s.snapshot),message=useGameHub(s=>s.message),pending=useGameHub(s=>s.pendingActions),storageError=useGameHub(s=>s.outboxStorageError);
   const canvas=useRef(null),scene=useRef(null),latest=useRef(snapshot),dialog=useRef(null),drag=useRef(null),ghostRef=useRef(null);
   const [view,setView]=useState(null),[panel,setPanel]=useState(null),[ghost,setGhost]=useState(null),[error,setError]=useState('');
   const [companionName,setCompanionName]=useState('');
   const [bowlFood,setBowlFood]=useState({});
   const [decorTab,setDecorTab]=useState('placed'),[selectedDecor,setSelectedDecor]=useState(null),[guestTab,setGuestTab]=useState('visits');
+  const placementSubmission=useRef(false),[submittingPlacement,setSubmittingPlacement]=useState(false);
   latest.current=snapshot;
   const yard=snapshot?.yard || {},busy=pending.some(p=>p.action.startsWith('yard.') && p.status!=='failed');
   const current=view || courtyardPresentation(snapshot,snapshot?.yardRuntime?.serverNow||0,clips);
   const closePanel=useCallback(()=>setPanel(null),[]);
   useEscapeDismiss(!!panel,closePanel);
-  const cancel=useCallback(()=>{drag.current=null;ghostRef.current=null;setGhost(null);scene.current?.setGhost(null);},[]);
+  const cancel=useCallback((accepted=false)=>{if(accepted!==true&&pendingPlacement(useGameHub.getState(),ghostRef.current))return;drag.current=null;ghostRef.current=null;setGhost(null);scene.current?.setGhost(null);},[]);
   useEffect(()=>{
     useGameHub.getState().setActiveGameShell({id:'room',openPanel:!!panel,closePanel});
     return ()=>{const s=useGameHub.getState();if(s.activeGameShell?.id==='room')s.setActiveGameShell(null);};
@@ -65,28 +67,62 @@ export default function CourtyardGame() {
     return ()=>{clearInterval(interval);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);renderer.dispose();scene.current=null;};
   },[cancel]);
   useEffect(()=>{scene.current?.update(snapshot);if(ghostRef.current){const g=ghostRef.current;const result=checkPlacement(snapshot,g,{placing:g.placing});const next={...g,valid:result.ok,placementError:result.errors?.[0]?.code};ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);}},[snapshot]);
+  useEffect(()=>{
+    const g=ghostRef.current,state=useGameHub.getState();
+    if(g){
+      if(g.recoveryNonce&&ownsPlacement(state,g)&&!state.pendingActions.some(item=>item.clientActionId===g.recoveryNonce)){setError('');cancel(true);}
+      return;
+    }
+    const recovered=recoverPlacement(state);if(!recovered||!current.mutable)return;
+    const result=checkPlacement(latest.current,recovered,{placing:recovered.placing}),next={...recovered,valid:result.ok,placementError:result.errors?.[0]?.code};
+    ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);setError('OUTBOX_STORAGE_UNAVAILABLE');
+  },[pending,storageError,snapshot,current.mutable,ghost?.recoveryNonce,cancel]);
   useEffect(()=>{if(panel && !dialog.current.open)dialog.current.showModal();else if(!panel && dialog.current.open){dialog.current.close();if(ghostRef.current)canvas.current.focus();}},[panel]);
   useEffect(()=>{if(panel==='guests')setCompanionName(yard.companion?.name || '');},[panel,yard.companion?.name]);
   const act=async(action,payload={})=>{
     if(busy || !current.mutable)return;
     const result=await useGameHub.getState().performReliableAction(action,payload,{clientActionId:`yard-v2:${uuid()}`,durability:'outbox'});
-    if(result.error)setError(result.error);
+    if(result.error)setError(result.error);else if(result.success&&result.pending)setError('');
     return result;
   };
   const startPlacement=(prop,placing=false)=>{
     if(prop.reserved || !current.mutable || busy)return;
     const coords=prop.transform || prop.anchor || defaultAnchor(prop.goodieId);
-    const candidate={...coords,slotId:prop.slotId || `free_v2_${uuid()}`,goodieId:prop.goodieId,placing};
+    const owner=useGameHub.getState();
+    const candidate={...coords,slotId:prop.slotId || `free_v2_${uuid()}`,goodieId:prop.goodieId,placing,ownerAccountId:owner.snapshot?.player?.id,ownerSession:owner.accountSession};
     const result=checkPlacement(latest.current,candidate,{placing});const next={...candidate,valid:result.ok,placementError:result.errors?.[0]?.code};
     ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);setPanel(null);canvas.current.focus();
   };
-  const moveGhost=point=>{if(!point || !ghostRef.current)return;const next={...ghostRef.current,...point};const result=checkPlacement(latest.current,next,{placing:next.placing});next.valid=result.ok;next.placementError=result.errors?.[0]?.code;ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);};
-  const confirm=async()=>{const g=ghostRef.current;if(!g?.valid)return;await act(g.placing?'yard.placeGoodie':'yard.moveGoodie',{slotId:g.slotId,goodieId:g.goodieId,x:g.x,y:g.y});cancel();};
+  const moveGhost=point=>{const state=useGameHub.getState();if(!point||!ownsPlacement(state,ghostRef.current)||pendingPlacement(state,ghostRef.current))return;const next={...ghostRef.current,...point};const result=checkPlacement(latest.current,next,{placing:next.placing});next.valid=result.ok;next.placementError=result.errors?.[0]?.code;ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);};
+  const confirm=async()=>{
+    const g=ghostRef.current;if(!g?.valid||placementSubmission.current||!ownsPlacement(useGameHub.getState(),g))return;
+    placementSubmission.current=true;setSubmittingPlacement(true);
+    try{
+      const {action,payload}=placementCommand(g),result=await act(action,payload);
+      if(result?.success&&result.pending){cancel(true);return;}
+      if(result?.error&&LOCAL_PLACEMENT_ERRORS.has(result.error)){
+        const state=useGameHub.getState(),currentGhost=ghostRef.current,intent=pendingPlacement(state,currentGhost);
+        if(intent&&ownsPlacement(state,g)&&currentGhost.slotId===g.slotId){const next={...currentGhost,recoveryNonce:intent.clientActionId};ghostRef.current=next;setGhost(next);}
+      }else if(result)cancel(true);
+    }finally{placementSubmission.current=false;setSubmittingPlacement(false);}
+  };
+  const retryPlacement=async()=>{
+    const g=ghostRef.current,state=useGameHub.getState();
+    if(!g?.valid||!current.mutable||placementSubmission.current||!retryablePlacement(state,g))return;
+    placementSubmission.current=true;setSubmittingPlacement(true);
+    try{
+      const result=await state.drainOutbox(),next=useGameHub.getState();
+      if(!ownsPlacement(next,g)){setError('ACCOUNT_CHANGED');return;}
+      if(result?.error&&LOCAL_PLACEMENT_ERRORS.has(result.error)){setError(result.error);return;}
+      if(result&&!next.outboxStorageError){setError('');cancel(true);}
+    }finally{placementSubmission.current=false;setSubmittingPlacement(false);}
+  };
   const pointerDown=e=>{if(ghostRef.current){drag.current=e.pointerId;e.currentTarget.setPointerCapture(e.pointerId);moveGhost(scene.current?.point(e));}else{const prop=scene.current?.hit(e);if(prop)startPlacement(prop);}};
   const keyDown=e=>{if(!ghostRef.current || e.repeat)return;if(e.key==='Escape'){e.preventDefault();cancel();}else if(e.key==='Enter'){e.preventDefault();confirm();}else{const d={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,-8],ArrowDown:[0,8]}[e.key];if(d){e.preventDefault();moveGhost(scene.current?.offsetPoint(ghostRef.current,{x:d[0],y:d[1]}));}}};
   const blocked=busy || !current.mutable;
   const bindings=current.runtime?.supportedBindings || {};
-  const feedback=yardFeedbackText(playerFeedbackText(language,error || message),t);
+  const feedback=(error||message)==='OUTBOX_STORAGE_UNAVAILABLE'?t('yard.persistent.error.storage'):yardFeedbackText(playerFeedbackText(language,error || message),t);
+  const placementState=useGameHub.getState(),placementPending=pendingPlacement(placementState,ghost),placementRetry=storageError&&retryablePlacement(placementState,ghost);
   const status=!snapshot?.yard?t('yard.persistent.loading'):feedback || (busy?t('yard.persistent.saving'):ghost?(ghost.valid?t('yard.persistent.spaceFree'):t(placementMessageKey(ghost.placementError))):visibleStatus(current,t));
   const decorRows=decorTab==='placed'?(yard.placedGoodies||[]).map(raw=>({key:raw.slotId,id:raw.goodieId,raw})):decorTab==='inventory'?Object.entries(yard.goodieInventory||{}).filter(([,n])=>n>0).map(([id,count])=>({key:id,id,count})):SUPPORTED_PROPS.map(id=>({key:id,id}));
   const selected=decorRows.find(item=>item.key===selectedDecor)||decorRows[0];
@@ -111,7 +147,7 @@ export default function CourtyardGame() {
       <canvas ref={canvas} tabIndex={0} aria-label={t('yard.persistent.canvas')} onPointerDown={pointerDown} onPointerMove={e=>{if(drag.current===e.pointerId)moveGhost(scene.current?.point(e));}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={cancel} onKeyDown={keyDown}/>
     </HudRegion>
     <HudRegion id="yardVisitStatus" className="cy-status" applyLayout={false} role="status">{status}</HudRegion>
-    {ghost && <div className="cy-placement"><strong>{name(ghost.goodieId)}</strong><div><button onClick={cancel}>{t('yard.persistent.cancel')}</button><button onClick={confirm} disabled={!ghost.valid || blocked}>{t('yard.place')}</button></div></div>}
+    {ghost && <div className="cy-placement"><strong>{name(ghost.goodieId)}</strong><div><button onClick={cancel} disabled={!!placementPending||submittingPlacement}>{t('yard.persistent.cancel')}</button>{placementRetry?<button onClick={retryPlacement} disabled={!ghost.valid||!current.mutable||submittingPlacement}>{t('yard.persistent.retrySaving')}</button>:<button onClick={confirm} disabled={!ghost.valid||blocked||submittingPlacement||!ownsPlacement(placementState,ghost)}>{t('yard.place')}</button>}</div></div>}
     <HudRegion id="yardBottomDock" as="nav" className="cy-actions" applyLayout={false} aria-label={t('yard.persistent.actions')}>
       {[['food',t('yard.nav.food'),current.bowls.some(b=>b.servings>0)?t('yard.persistent.bowlFull'):t('yard.persistent.addFood')],['decor',t('yard.persistent.decor'),t('yard.persistent.placedCount',{count:(yard.placedGoodies||[]).length})],['guests',t('yard.persistent.guests'),current.pendingGifts.length?t('yard.persistent.giftCount',{count:current.pendingGifts.length}):t('yard.persistent.memories')]].map(([id,title,detail])=><button key={id} onClick={()=>setPanel(id)} aria-label={`${title}. ${detail}`}><img src={YARD_UI_ART[id]} alt=""/><strong>{title}</strong></button>)}
     </HudRegion>

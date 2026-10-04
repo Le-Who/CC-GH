@@ -3,6 +3,8 @@ import "../companion-yard/i18n.js";
 
 export const PERSISTENT_YARD_TRANSLATIONS = {
   en: {
+    "yard.persistent.error.storage": "The action could not be saved on this device. Please try again.",
+    "yard.persistent.retrySaving": "Retry saving",
     "yard.persistent.placement.outside": "Keep the whole item inside the courtyard.",
     "yard.persistent.placement.overlap": "There is another item here. Choose a free spot.",
     "yard.persistent.placement.exclusion": "Keep the gate and food bowl clear.",
@@ -123,6 +125,8 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.persistent.error.letter": "Today’s letter has already been opened.",
   },
   ru: {
+    "yard.persistent.error.storage": "Не удалось сохранить действие на устройстве. Попробуйте ещё раз.",
+    "yard.persistent.retrySaving": "Повторить",
     "yard.persistent.placement.outside": "Весь предмет должен быть внутри двора.",
     "yard.persistent.placement.overlap": "Здесь уже стоит другой предмет. Выберите свободное место.",
     "yard.persistent.placement.exclusion": "Оставьте свободное место у ворот и миски.",

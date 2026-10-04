@@ -32,6 +32,7 @@ jobs:
             /src/games/companion-yard-v2/courtyard.css
             /src/games/companion-yard-v2/i18n.js
             /src/games/companion-yard-v2/catalog-ui.mjs
+            /src/games/companion-yard-v2/placement-recovery.mjs
             /src/games/companion-yard-v2/catalog-preview-paths.mjs
             /public/assets/yard-ui/
             /src/games/companion-yard-v2/feedback.mjs
@@ -73,7 +74,7 @@ jobs:
           mkdir -p test-results-yard-redesign-preview
           cp tests/yard-redesign-preview/README.md test-results-yard-redesign-preview/FIXTURE-SCOPE.md
           git rev-parse HEAD > test-results-yard-redesign-preview/COMMIT.txt
-          sha256sum src/games/companion-yard-v2/CourtyardGame.jsx src/games/companion-yard-v2/courtyard.css src/games/companion-yard-v2/i18n.js src/games/companion-yard-v2/catalog-ui.mjs src/games/companion-yard-v2/catalog-preview-paths.mjs public/assets/yard-ui/preview-manifest.json public/assets/yard-ui/surfaces/ui-surfaces-manifest.json > test-results-yard-redesign-preview/UI-SOURCE-SHA256.txt
+          sha256sum src/games/companion-yard-v2/CourtyardGame.jsx src/games/companion-yard-v2/courtyard.css src/games/companion-yard-v2/i18n.js src/games/companion-yard-v2/catalog-ui.mjs src/games/companion-yard-v2/placement-recovery.mjs src/games/companion-yard-v2/catalog-preview-paths.mjs public/assets/yard-ui/preview-manifest.json public/assets/yard-ui/surfaces/ui-surfaces-manifest.json > test-results-yard-redesign-preview/UI-SOURCE-SHA256.txt
       - name: Preserve labelled UI-only review evidence
         if: always()
         uses: actions/upload-artifact@v7

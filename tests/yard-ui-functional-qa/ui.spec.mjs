@@ -56,7 +56,7 @@ test.afterEach(async({},info)=>{
   let persisted,readError;
   if(currentFixture)try{const p=await h.saved(currentFixture);persisted={accountId:p.id,yard:p.yard,resources:p.resources,commandReceipts:p._yardV2?.runtime?.commandReceipts,giftLedger:p._yardV2?.runtime?.giftLedger,migrationReceipt:p._yardV2?.migration?.receipt};}catch(error){readError=String(error.message);}
   const consoleErrors=observed.consoleErrors.map(row=>({...row,expected:info.title==='lost-response-reload'&&new URL(row.url||h.origin,h.origin).pathname==='/api/player/mutate'&&/^Failed to load resource: net::ERR_(EMPTY_RESPONSE|FAILED|CONNECTION_RESET)$/.test(row.text)}));
-  await writeFile(info.outputPath('ordinary-C-requests-and-ledger.json'),JSON.stringify({scope,commit:h.commit,runId:h.runId,mutations:observed.mutations.map(({request,...row})=>row),directApiMutations:currentFixture?h.requestsFor(currentFixture):[],pageErrors:observed.pageErrors,consoleErrors,persisted,reloadClockEvidence:observed.reloadClockEvidence,readError},null,2));
+  await writeFile(info.outputPath('ordinary-C-requests-and-ledger.json'),JSON.stringify({scope,commit:h.commit,runId:h.runId,mutations:observed.mutations.map(({request,...row})=>row),directApiMutations:currentFixture?h.requestsFor(currentFixture):[],pageErrors:observed.pageErrors,consoleErrors,persisted,reloadClockEvidence:observed.reloadClockEvidence,storageWriteEvidence:observed.storageWriteEvidence,readError},null,2));
   expect(readError).toBeUndefined();expect(observed.pageErrors).toEqual([]);expect(consoleErrors.filter(row=>!row.expected)).toEqual([]);
 });
 
@@ -233,20 +233,82 @@ test('lost-response-reload',async({page},info)=>{
 
 test('storage-write-no-send',async({page},info)=>{
   const f=await fixture('storage');await boot(page,h,f);const before=await h.saved(f),requests=[];
-  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/player/mutate')requests.push(r.postDataJSON());});
-  await page.evaluate(()=>{
-    const put=IDBObjectStore.prototype.put,setItem=Storage.prototype.setItem;
-    IDBObjectStore.prototype.put=function(value,key){if(String(key).startsWith('game_hub_yard_outbox_v2:'))throw new DOMException('Owned QA storage fault','QuotaExceededError');return put.call(this,value,key);};
-    Storage.prototype.setItem=function(key,value){if(String(key).startsWith('game_hub_yard_outbox_v2:'))throw new DOMException('Owned QA storage fault','QuotaExceededError');return setItem.call(this,key,value);};
+  const clockWindow={startedAt:Date.now()},snapshotReads=[],snapshotJobs=[];
+  page.on('response',response=>{
+    if(response.request().method()!=='GET'||new URL(response.url()).pathname!=='/api/player/snapshot')return;
+    snapshotJobs.push(response.json().then(body=>{snapshotReads.push({status:response.status(),accountId:body.player?.id,lastSimulatedAt:body.yard?.lastSimulatedAt,cursorMs:body.yardRuntime?.cursorMs,visits:body.yardRuntime?.visits,reservations:body.yardRuntime?.reservations,receivedAt:Date.now()});}).catch(error=>{snapshotReads.push({readError:String(error.message)});}));
   });
+  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/player/mutate')requests.push(r.postDataJSON());});
+  await page.evaluate(accountId=>{
+    const ownedKey=`game_hub_yard_outbox_v2:${encodeURIComponent(accountId)}`;
+    const put=IDBObjectStore.prototype.put,setItem=Storage.prototype.setItem;
+    window.__ownedYardStorageFaultAttempts=[];
+    const failOwnedWrite=(storage,key,value)=>{
+      if(String(key)!==ownedKey)return;
+      const envelope=storage==='idb'?structuredClone(value):JSON.parse(value);
+      window.__ownedYardStorageFaultAttempts.push({storage,key:String(key),envelope});
+      throw new DOMException('Owned QA storage fault','QuotaExceededError');
+    };
+    const failedPut=function(value,key){failOwnedWrite('idb',key,value);return put.call(this,value,key);};
+    const failedSetItem=function(key,value){failOwnedWrite('local',key,value);return setItem.call(this,key,value);};
+    IDBObjectStore.prototype.put=failedPut;Storage.prototype.setItem=failedSetItem;
+    window.__restoreOwnedYardStorageFault=()=>{
+      if(IDBObjectStore.prototype.put===failedPut)IDBObjectStore.prototype.put=put;
+      if(Storage.prototype.setItem===failedSetItem)Storage.prototype.setItem=setItem;
+      delete window.__restoreOwnedYardStorageFault;
+    };
+  },f.id);
   // The per-test page/context is closed in finally; failed-storage overrides and
   // the unsaved in-memory intent cannot leak into another test or later retry.
   try{
     await openPanel(page,'Items');await chooseItem(page,'Inventory','Sun Cushion');await dialog(page).getByRole('button',{name:'Place',exact:true}).click();
     const place=page.locator('.cy-placement').getByRole('button',{name:'Place',exact:true});await expect(place).toBeEnabled();await place.click();
-    await expect(page.locator('.cy-status')).toContainText('OUTBOX_STORAGE_UNAVAILABLE');
-    const after=await h.saved(f);expect(requests).toEqual([]);expect(after.yard).toEqual(before.yard);expect(after._yardV2.runtime.commandReceipts).toEqual(before._yardV2.runtime.commandReceipts);expectAdjacent(after,before);
+    const friendly='The action could not be saved on this device. Please try again.';
+    await expect(page.locator('.cy-status')).toContainText(friendly);await expect(page.locator('.cy-status')).not.toContainText('OUTBOX_STORAGE_UNAVAILABLE');
+    await expect(page.locator('.cy-placement')).toHaveCount(1);await expect(page.locator('.cy-placement').getByRole('button',{name:'Cancel',exact:true})).toBeDisabled();
+    const retry=page.locator('.cy-placement').getByRole('button',{name:'Retry saving',exact:true});await expect(retry).toBeEnabled();
+    const firstAttempts=await page.evaluate(()=>window.__ownedYardStorageFaultAttempts);
+    expect(firstAttempts.length).toBeGreaterThan(0);
+    const firstEnvelope=firstAttempts[0].envelope;expect(firstEnvelope).toMatchObject({version:2,accountId:f.id});expect(firstEnvelope.items).toHaveLength(1);
+    const wireCommand=item=>({accountId:item.accountId,action:item.action,payload:item.payload,clientActionId:item.clientActionId,intentServerTime:item.intentServerTime});
+    const originalCommand=wireCommand(firstEnvelope.items[0]);
+    expect(originalCommand).toMatchObject({accountId:f.id,action:'yard.placeGoodie',payload:{goodieId:'sun_cushion',x:54,y:66}});
+    expect(originalCommand.clientActionId).toMatch(/^yard-v2:/);expect(Number.isSafeInteger(originalCommand.intentServerTime)).toBe(true);expect(originalCommand.intentServerTime).toBeGreaterThan(0);
+    observed.storageWriteEvidence={attempts:firstAttempts,originalCommand};
+    const canvas=page.locator('.cy-scene canvas');await canvas.press('ArrowLeft');await pointAt(page,{x:56,y:67});await canvas.press('Escape');
+    await expect(page.locator('.cy-placement')).toHaveCount(1);
+    // Home overlays the still-mounted ActiveGame; this proves retention, not unmount reconstruction.
+    await page.getByRole('button',{name:'Back to games',exact:true}).click();await expect(page.getByTestId('home-catalogue')).toBeVisible();await selectHomeGame(page,'room');
+    await expect(page.locator('.cy-placement')).toHaveCount(1);await expect(retry).toBeEnabled();await expect(page.locator('.cy-status')).toContainText(friendly);
+    const after=await h.saved(f);await Promise.all(snapshotJobs);clockWindow.finishedAt=Date.now();
+    observed.reloadClockEvidence={phase:'storage-failure-home-overlay',window:clockWindow,snapshotReads,before:{yard:before.yard,persistent:before._yardV2},after:{yard:after.yard,persistent:after._yardV2}};
+    expect(snapshotReads.filter(row=>row.readError)).toEqual([]);expect(requests).toEqual([]);assertReloadClockOnly(after,before,snapshotReads,clockWindow);expectAdjacent(after,before);
+    const attemptedWrites=await page.evaluate(()=>window.__ownedYardStorageFaultAttempts);
+    observed.storageWriteEvidence={attempts:attemptedWrites,originalCommand};
+    for(const attempt of attemptedWrites){
+      expect(attempt.key).toBe(`game_hub_yard_outbox_v2:${encodeURIComponent(f.id)}`);expect(attempt.envelope).toMatchObject({version:2,accountId:f.id});expect(attempt.envelope.items).toHaveLength(1);
+      expect(wireCommand(attempt.envelope.items[0])).toEqual(originalCommand);
+    }
     const stored=await outbox(page,f.id);expect(stored?.items||[]).toEqual([]);
-    await evidence(page,info,'storage-write-no-send',{requests,currencies:after.yard.currencies,inventory:after.yard.goodieInventory,ghostStillVisible:await page.locator('.cy-placement').count(),visibleError:await page.locator('.cy-status').innerText()});
-  }finally{await page.close();}
+    await evidence(page,info,'storage-write-no-send',{attemptedWrites,originalCommand,requests:[...requests],currencies:after.yard.currencies,inventory:after.yard.goodieInventory,ghostStillVisible:await page.locator('.cy-placement').count(),visibleError:await page.locator('.cy-status').innerText()});
+    // Restore on the genuine click before React handles Retry, so an ordinary
+    // background refresh cannot drain between restoration and the user gesture.
+    await retry.evaluate(button=>button.addEventListener('click',()=>window.__restoreOwnedYardStorageFault(),{capture:true,once:true}));
+    const resumed=await uiAction(page,f,'yard.placeGoodie',()=>retry.click());
+    expect(await page.evaluate(()=>typeof window.__restoreOwnedYardStorageFault)).toBe('undefined');
+    expect(resumed.command).toEqual(originalCommand);
+    expect(new Set(requests.map(command=>command.clientActionId)).size).toBe(1);
+    for(const command of requests)expect(command).toEqual(resumed.command);
+    expect(Object.keys(resumed.saved._yardV2.runtime.commandReceipts)).toEqual([resumed.command.clientActionId]);
+    expect(resumed.saved.yard.goodieInventory.sun_cushion||0).toBe(0);expect(resumed.saved.yard.placedGoodies).toHaveLength(1);
+    expect(resumed.saved.yard.placedGoodies[0]).toMatchObject(resumed.command.payload);expect(resumed.saved.yard.currencies).toEqual(before.yard.currencies);expectAdjacent(resumed.saved,before);
+    await expect(page.locator('.cy-placement')).toHaveCount(0);await expect(page.locator('.cy-status')).not.toContainText(friendly);await expect(page.locator('.cy-status')).not.toContainText('OUTBOX_STORAGE_UNAVAILABLE');
+    await evidence(page,info,'storage-write-resumed',{originalCommand,requests,currencies:resumed.saved.yard.currencies,inventory:resumed.saved.yard.goodieInventory,placement:resumed.saved.yard.placedGoodies[0],nonce:resumed.command.clientActionId,visibleStatus:await page.locator('.cy-status').innerText()});
+  }finally{
+    if(!page.isClosed()){
+      const attempts=await page.evaluate(()=>window.__ownedYardStorageFaultAttempts).catch(error=>[{readError:String(error.message)}]);
+      observed.storageWriteEvidence={...observed.storageWriteEvidence,attempts};
+      await page.close();
+    }
+  }
 });

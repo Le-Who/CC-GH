@@ -34,7 +34,7 @@ const yardRuntime={
   visits:mode==='empty'?[]:[{visitId:'fixture-visit-1',visitorId:'mika_cat',slotId:'fixture-item-0',reserved:true,source:'v2'}],
 };
 const state={
-  snapshot:mode==='loading'?null:{yard,yardRuntime,serverTime:now},
+  snapshot:mode==='loading'?null:{player:{id:'ui-only-fixed-fixture'},yard,yardRuntime,serverTime:now},accountSession:{},
   message:mode==='error'?'Не удалось связаться с сервером. Пример ошибки интерфейса.':'',pendingActions:[],
   setActiveGameShell(value){this.activeGameShell=value;},loadSnapshot(){return Promise.resolve();},
   performReliableAction(){
