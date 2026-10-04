@@ -73,7 +73,6 @@ export function verifyBoundaryTransfer({rootDir=root}={}) {
       coldEscapeGuard:{reviewedFiles:presentation.cold.reviewedFiles,generatedFiles:presentation.cold.generatedFiles,reviewedPinTransitions:presentation.cold.reviewedPinTransitions,newNativeDurationEvidenceRequired:presentation.cold.newNativeDurationEvidenceRequired},
       roomHudGuard:{reviewedFiles:presentation.cold.roomHud.reviewedFiles,reviewedPinTransitions:presentation.cold.roomHud.reviewedPinTransitions,retiredFiles:presentation.cold.roomHud.retiredFiles,canonicalSourceClosureChanged:false},
       releasePreparationGuard:{reviewedFiles:presentation.cold.roomHud.preparation.reviewedFiles,reviewedPinTransitions:presentation.cold.roomHud.preparation.reviewedPinTransitions,workflowTransitions:2,canonicalSourceClosureChanged:false},
-      receiptLifecycleGuard:{reviewedFiles:presentation.cold.roomHud.preparation.receipt.reviewedFiles,reviewedPinTransitions:0,workflowTransitions:2,canonicalSourceClosureChanged:false},
       historicalStoreMismatch:'preserved and disclosed; not a current integration test'};
   } finally {rmSync(temporary,{recursive:true,force:true});}
 }

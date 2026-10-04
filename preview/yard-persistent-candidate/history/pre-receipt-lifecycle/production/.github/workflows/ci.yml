@@ -5,9 +5,6 @@ on:
   pull_request:
     branches: [codex/telegram-pixi-vps-migration]
 
-permissions:
-  contents: read
-
 jobs:
   yard-release-mode:
     name: Resolve exact CLOSED and ACTIVE source identities
@@ -18,7 +15,6 @@ jobs:
       active_ref: ${{ steps.release.outputs.active_ref }}
       closed_digest: ${{ steps.release.outputs.closed_digest }}
       contract_hash: ${{ steps.release.outputs.contract_hash }}
-      reuse_closed: ${{ steps.release.outputs.reuse_closed }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -31,10 +27,9 @@ jobs:
         id: release
         run: node scripts/yard-ci-dispatch.mjs --plan
       - name: Test dispatch negative controls
-        run: node --test tests/yard-active-dispatch.test.mjs tests/yard-closed-ci-receipt.test.mjs
+        run: node --test tests/yard-active-dispatch.test.mjs
 
   test:
-    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
     needs: [yard-release-mode]
     runs-on: ubuntu-latest
     strategy:
@@ -193,7 +188,6 @@ jobs:
           retention-days: 14
 
   yard-player:
-    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
     needs: [yard-release-mode]
     runs-on: ubuntu-latest
     timeout-minutes: 30
@@ -266,7 +260,6 @@ jobs:
           group: yard-player-integration
 
   yard-eight-player:
-    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
     needs: [yard-release-mode]
     name: Yard eight-player / ${{ matrix.group }}
     runs-on: ubuntu-latest
@@ -361,7 +354,6 @@ jobs:
           group: yard-eight-player-${{ matrix.group }}
 
   browser-plan:
-    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
     needs: [yard-release-mode]
     runs-on: ubuntu-latest
     outputs:
@@ -402,7 +394,6 @@ jobs:
           group: inventory
 
   browser:
-    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
     name: Browser / ${{ matrix.group }}
     needs: [yard-release-mode, browser-plan]
     runs-on: ubuntu-latest
@@ -454,7 +445,6 @@ jobs:
           group: ${{ matrix.group }}
 
   touch:
-    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
     needs: [yard-release-mode]
     runs-on: ubuntu-latest
     steps:
@@ -502,7 +492,6 @@ jobs:
           retention-days: 14
 
   mochi:
-    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
     needs: [yard-release-mode]
     runs-on: ubuntu-latest
     steps:
@@ -689,48 +678,6 @@ jobs:
       - name: Verify final container Yard HTTP delivery
         run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-public-media-http.mjs
 
-  yard-closed-receipt:
-    name: Verify reused CLOSED acceptance
-    needs: [yard-release-mode]
-    if: needs.yard-release-mode.outputs.reuse_closed == 'true'
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
-    permissions:
-      contents: read
-      actions: read
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
-          fetch-depth: 0
-          persist-credentials: false
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24.x
-      - name: Verify unchanged ACTIVE promotion boundary
-        run: node scripts/yard-ci-dispatch.mjs --verify-active
-      - uses: actions/checkout@v6
-        with:
-          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
-          path: closed-proof
-          persist-credentials: false
-      - name: Verify full CLOSED contract on exact A
-        working-directory: closed-proof
-        env:
-          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
-        run: node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
-      - name: Verify authoritative GitHub run and every required CLOSED job
-        working-directory: closed-proof
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/yard-closed-ci-receipt.mjs --verify ../game-logic/yard-v2/active-release-contract.json
-      - uses: actions/upload-artifact@v7
-        with:
-          name: reused-closed-${{ needs.yard-release-mode.outputs.closed_ref }}-for-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
-          path: closed-proof/artifacts/yard-closed-ci-receipt.json
-          if-no-files-found: error
-          retention-days: 14
-
   yard-active:
     name: ACTIVE ordinary imports
     needs: [yard-release-mode]
@@ -839,24 +786,19 @@ jobs:
 
   release-ready:
     name: Exact source release acceptance
-    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-closed-receipt, yard-active, yard-active-production]
+    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-active, yard-active-production]
     if: always()
     runs-on: ubuntu-latest
     steps:
       - name: Require the complete mode-specific result set
         env:
           RELEASE_MODE: ${{ needs.yard-release-mode.outputs.mode }}
-          REUSE_CLOSED: ${{ needs.yard-release-mode.outputs.reuse_closed }}
           RELEASE_RESULTS: ${{ toJSON(needs) }}
         run: |
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           const needs=JSON.parse(process.env.RELEASE_RESULTS),mode=process.env.RELEASE_MODE;
           assert.ok(['CLOSED','ACTIVE'].includes(mode));
-          assert.equal(needs['yard-release-mode'].result,'success');
-          assert.ok(['true','false'].includes(process.env.REUSE_CLOSED));
-          const reuse=process.env.REUSE_CLOSED==='true';assert.ok(!reuse||mode==='ACTIVE');
-          for(const job of ['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,reuse?'skipped':'success',job);
-          assert.equal(needs['yard-closed-receipt'].result,reuse?'success':'skipped');
+          for(const job of ['yard-release-mode','test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,'success',job);
           for(const job of ['yard-active','yard-active-production'])assert.equal(needs[job].result,mode==='ACTIVE'?'success':'skipped',job);
           JS

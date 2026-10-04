@@ -446,39 +446,6 @@ test.describe("Cozy Yard movement and assets", () => {
     });
   }
 
-  for (const [width, height] of [[320, 568], [390, 844], [568, 320]]) {
-    test.describe(`legacy Yard Home return ${width}x${height}`, () => {
-      test.use({ viewport: { width, height }, isMobile: true, hasTouch: true });
-      for (const exit of ["same-game", "Escape", "history"]) test(`dismisses Settings after ${exit} return without remounting the Yard`, async ({ page }) => {
-        const snapshot = buildFreePlacementSnapshot();
-        snapshot.yard.currencies = { treats: 5000, shinyTreats: 3 };
-        await page.addInitScript(() => localStorage.setItem("garden_shelf_language", "en"));
-        await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify(snapshot) }));
-        await page.goto("/?tab=room");
-        await expectAppReady(page);
-        const stage = page.locator('.companion-yard-stage');
-        await expect(stage).toBeVisible();
-        await stage.evaluate(node => node.dataset.homeRetention = 'same-yard');
-        await page.getByRole('button', { name: 'Settings', exact: true }).click();
-        await expect(page.locator('[data-yard-screen="settings"]')).toBeVisible();
-        await page.getByRole('button', { name: 'All games', exact: true }).click();
-        await expect(page.getByTestId('home-catalogue')).toBeVisible();
-        await expect(page.locator('[data-yard-screen="settings"]')).toHaveCount(1);
-        if (exit === 'same-game') await selectHomeGame(page, 'room');
-        else if (exit === 'Escape') await page.keyboard.press('Escape');
-        else await page.goBack();
-        await expect(page.getByTestId('home-catalogue')).toHaveCount(0);
-        await expect(stage).toHaveAttribute('data-home-retention', 'same-yard');
-        await expect(page.locator('[data-yard-screen="settings"]')).toHaveCount(0);
-        await expectLegacyYardToolbarReachable(page);
-        await page.getByRole('button', { name: 'Settings', exact: true }).click();
-        await expect(page.getByRole('dialog', { name: 'Settings', exact: true })).toBeVisible();
-        await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
-        await expectLegacyYardToolbarReachable(page);
-      });
-    });
-  }
-
   test("renders manifest-backed backgrounds, layered visitors, and selected visitor capture", async ({ page }) => {
     const snapshot = buildYardMovementSnapshot();
     const mutateBodies = [];

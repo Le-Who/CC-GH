@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
-import {verifyReceiptLifecycleTransfer,readBeforeReceiptLifecycle} from './verify-receipt-lifecycle-transfer.mjs';
 const fingerprint=bytes=>({bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
 const APPROVED={
   "id": "release-preparation-workflows-toolbar-20261004",
@@ -532,12 +531,10 @@ const APPROVED={
     }
   ]
 };
-export function verifyReleasePreparationTransfer({rootDir,contract,receipt=verifyReceiptLifecycleTransfer({rootDir,contract})}) {
-  const proofContract=receipt.priorContract;
-  const production=path=>readBeforeReceiptLifecycle({rootDir,receipt,path});
+export function verifyReleasePreparationTransfer({rootDir,contract}) {
   const candidate=resolve(rootDir,'preview/yard-persistent-candidate');
   const read=path=>readFileSync(resolve(candidate,path));
-  const reviewed=proofContract.reviewedReleasePreparationChangeSet;
+  const reviewed=contract.reviewedReleasePreparationChangeSet;
   assert.deepEqual(reviewed,APPROVED,'Release preparation transfer must retain independently reviewed identities');
   for(const row of APPROVED.archiveFiles)assert.deepEqual(fingerprint(read(row.path)),{bytes:row.bytes,sha256:row.sha256},row.path);
   for(const input of APPROVED.inputs)assert.equal(fingerprint(read(input.archive)).sha256,input.patchSha256);
@@ -560,17 +557,17 @@ export function verifyReleasePreparationTransfer({rootDir,contract,receipt=verif
     }
   }
   expected.reviewedReleasePreparationChangeSet=reviewed;
-  assert.deepEqual(proofContract,expected,'Release preparation transfer must preserve all prior histories, sourceInputs and unrelated pins');
-  for(const row of APPROVED.files)assert.deepEqual(fingerprint(production(row.path)),{bytes:row.bytes,sha256:row.sha256},`Reviewed release preparation file: ${row.path}`);
+  assert.deepEqual(contract,expected,'Release preparation transfer must preserve all prior histories, sourceInputs and unrelated pins');
+  for(const row of APPROVED.files)assert.deepEqual(fingerprint(readFileSync(resolve(rootDir,row.path))),{bytes:row.bytes,sha256:row.sha256},`Reviewed release preparation file: ${row.path}`);
   // Re-prove the caller permission change separately from fixed file hashes.
   const deploy=APPROVED.transitions.find(row=>row.path==='.github/workflows/deploy.yml');
   const before=read(deploy.before.archive).toString('utf8');
   const validate='  validate:\n    uses: ./.github/workflows/ci.yml\n    permissions:\n      contents: read\n';
   assert.equal(before.split(validate).length,2,'Exact previous reusable caller required');
-  assert.equal(production(deploy.path).toString('utf8'),before.replace(validate,validate+'      packages: read\n'),'Deploy may only add read-only GHCR access to validate; publishing permissions stay exact');
-  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,reviewedPinTransitions:productionTransitions.length,workflowTransitions:2,canonicalSourceClosureChanged:false,receipt};
+  assert.equal(readFileSync(resolve(rootDir,deploy.path),'utf8'),before.replace(validate,validate+'      packages: read\n'),'Deploy may only add read-only GHCR access to validate; publishing permissions stay exact');
+  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,reviewedPinTransitions:productionTransitions.length,workflowTransitions:2,canonicalSourceClosureChanged:false};
 }
 export function readBeforeReleasePreparation({rootDir,preparation,path}) {
   const transition=preparation.transitions.find(row=>row.path===path);
-  return transition?readFileSync(resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive)):readBeforeReceiptLifecycle({rootDir,receipt:preparation.receipt,path});
+  return readFileSync(transition?resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive):resolve(rootDir,path));
 }

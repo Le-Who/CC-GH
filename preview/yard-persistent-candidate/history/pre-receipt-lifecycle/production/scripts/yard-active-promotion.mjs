@@ -11,7 +11,7 @@ const CLOSURES=['mochi','pebble','pip','eight'].map(id=>`recovery-tools/yard-can
 function git(root,args){const r=spawnSync('git',args,{cwd:root,encoding:'utf8',maxBuffer:4*1024*1024});assert.equal(r.status,0,r.stderr||r.error?.message);return r.stdout.trim();}
 function boundedInputs(input){
  validateActivationInputs(input);const c=input.closed,cap=c.compatibility;
- return {format:input.format,repository:input.repository,closed:{buildId:c.buildId,imageDigest:c.imageDigest,...(Object.hasOwn(c,'ciReceipt')?{ciReceipt:structuredClone(c.ciReceipt)}:{}),
+ return {format:input.format,repository:input.repository,closed:{buildId:c.buildId,imageDigest:c.imageDigest,
   image:{Id:c.image.Id,RepoDigests:[`ghcr.io/${input.repository}@${c.imageDigest}`],Config:{Labels:{'org.opencontainers.image.revision':c.buildId}}},
   compatibility:{format:cap.format,buildId:cap.buildId,policyRevision:cap.policyRevision,playerRolloutEnabled:false,readableStorageFormats:['yard-persistent/v1'],closedQuarantineVerified:true,requiredClosedPredecessor:null}},
   acceptance:{reviewReference:input.acceptance.reviewReference,...Object.fromEntries(['nativeDuration','eightPlayer','geometryEquivalence'].map(kind=>{const r=input.acceptance[kind];return[kind,{reference:r.reference,artifactSha256:r.artifactSha256,sourceCommit:r.sourceCommit,...(kind==='eightPlayer'?{runId:r.runId}:{})}];}))}};

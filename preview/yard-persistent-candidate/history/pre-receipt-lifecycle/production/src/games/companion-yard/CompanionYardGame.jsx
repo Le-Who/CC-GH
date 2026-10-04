@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   YARD_FOODS,
   YARD_GOODIES,
@@ -15,8 +15,6 @@ import { useAppI18n } from "../../app/i18n.jsx";
 import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
 import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
 import { openHome } from "../../app/homeNavigation.js";
-import { HomeVisibilityContext } from "../../app/homeContext.js";
-import { shouldDismissYardSettingsAfterHome } from "./homeReturn.js";
 import { usePressTooltip } from "../../app/usePressTooltip.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
@@ -337,8 +335,6 @@ export default function CompanionYardGame() {
   const performAction = useGameHub((state) => state.performAction);
   const pendingActions = useGameHub((state) => state.pendingActions);
   const { t, language } = useAppI18n();
-  const homeOpen = useContext(HomeVisibilityContext);
-  const previousHome = useRef({ open: homeOpen, accountSession: useGameHub.getState().accountSession, accountId: snapshot?.player?.id });
   const yard = snapshot?.yard || {};
   const catalog = snapshot?.meta?.yardCatalog || {};
   const foods = catalog.foods || YARD_FOODS;
@@ -500,12 +496,6 @@ export default function CompanionYardGame() {
     setActiveScreen(null);
     setYardToolsOpen(false);
   }, []);
-  useEffect(() => {
-    const state = useGameHub.getState();
-    const dismissSettings = shouldDismissYardSettingsAfterHome({ previous: previousHome.current, homeOpen, activeScreen, state });
-    previousHome.current = { open: homeOpen, accountSession: state.accountSession, accountId: state.snapshot?.player?.id };
-    if (dismissSettings) closeScreen();
-  }, [activeScreen, closeScreen, homeOpen]);
   const closePlacement = useCallback(() => {
     setPlacementDraft(null);
   }, []);

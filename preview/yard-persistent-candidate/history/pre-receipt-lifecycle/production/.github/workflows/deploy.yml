@@ -19,7 +19,6 @@ jobs:
     permissions:
       contents: read
       packages: read
-      actions: read
 
   build-and-push:
     needs: validate

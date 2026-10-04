@@ -32,18 +32,10 @@ export function safePath(root,path){
  assert.equal(typeof path,'string');assert.ok(path&&!isAbsolute(path)&&!path.split('/').some(p=>!p||p==='.'||p==='..'),'Relative owned file required');
  const target=resolve(root,path),local=relative(root,target);assert.ok(local&&!local.startsWith('..')&&!isAbsolute(local));return target;
 }
-export function validateClosedCiReceipt(receipt){
- assert.ok(receipt&&typeof receipt==='object'&&!Array.isArray(receipt),'Explicit CLOSED CI receipt identity required');
- assert.deepEqual(Object.keys(receipt).sort(),['runAttempt','runId','workflowPath']);
- assert.ok(Number.isSafeInteger(receipt.runId)&&receipt.runId>0);assert.ok(Number.isSafeInteger(receipt.runAttempt)&&receipt.runAttempt>0);
- assert.ok(['.github/workflows/ci.yml','.github/workflows/deploy.yml'].includes(receipt.workflowPath),'Only the reviewed CI or deploy workflow can supply CLOSED evidence');
- return {...receipt};
-}
 export function validateActivationInputs(input){
  assert.equal(input?.format,'yard-active-inputs/v1','Explicit reviewed activation inputs required');
  assert.equal(input.repository,'le-who/cc-gh','Exact reviewed repository required');
  const closed=input.closed,image=closed?.image,cap=closed?.compatibility;
- if(closed&&Object.hasOwn(closed,'ciReceipt'))validateClosedCiReceipt(closed.ciReceipt);
  assert.ok(commit(closed?.buildId)&&digest(closed?.imageDigest),'Verified closed build and registry digest required');
  assert.ok(digest(image?.Id));assert.ok(Array.isArray(image.RepoDigests)&&image.RepoDigests.includes(`ghcr.io/${input.repository}@${closed.imageDigest}`),'Immutable repository image identity array required');
  assert.equal(image.Config?.Labels?.['org.opencontainers.image.revision'],closed.buildId);

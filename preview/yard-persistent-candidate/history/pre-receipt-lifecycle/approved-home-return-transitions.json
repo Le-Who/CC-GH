@@ -1,0 +1,54 @@
+[
+  {
+    "path": "src/games/companion-yard/CompanionYardGame.jsx",
+    "before": {
+      "bytes": 58020,
+      "sha256": "50d7a2b37f9ff44fbb19781f8ff2a7125c3f92b854e4567351d2d33e11cb3d4c"
+    },
+    "after": {
+      "bytes": 58761,
+      "sha256": "cf45a4215c288c0044446ad3588ee84359fe81e4c1036e3c6c983e08122f0083"
+    }
+  },
+  {
+    "path": "src/games/companion-yard/homeReturn.js",
+    "before": null,
+    "after": {
+      "bytes": 601,
+      "sha256": "96f1b5b49dab27ce01a010ce99099b4ec674fa9860c4403be95f843b3a3bd8c1"
+    }
+  },
+  {
+    "path": "tests/home-navigation.test.js",
+    "before": {
+      "bytes": 8750,
+      "sha256": "561f68a3a1bbc39887a14d3d6918f894c6f46aed271c60cda505d5ab264ff1c0"
+    },
+    "after": {
+      "bytes": 11839,
+      "sha256": "bd6104383e89d7128a66979044672f3bbdb8b435ee3fb7593be10dcf800ef668"
+    }
+  },
+  {
+    "path": "tests/e2e/companion-yard.spec.js",
+    "before": {
+      "bytes": 54271,
+      "sha256": "263c1de3aeccc09d018702b7cbdfb620659a81bb484a93e2413ee12a13be015f"
+    },
+    "after": {
+      "bytes": 56519,
+      "sha256": "9afd53aa25216ac0fa62cfb27293614c83ef75966e3b48a8b9df11fb5d195ab1"
+    }
+  },
+  {
+    "path": "tests/yard-player-integration-e2e/player.spec.js",
+    "before": {
+      "bytes": 15845,
+      "sha256": "75ca5f7b822306d2e2f3493b57e336d90fe51dc06e9ca32393f30b67b468114b"
+    },
+    "after": {
+      "bytes": 15920,
+      "sha256": "318632fdae58f8ad2c44af7dde62291f8858b0d063471f90c5b0da2b4cc0f21a"
+    }
+  }
+]

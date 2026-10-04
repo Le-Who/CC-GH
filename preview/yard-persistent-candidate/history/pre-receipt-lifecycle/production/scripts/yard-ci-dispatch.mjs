@@ -59,18 +59,18 @@ export function verifyClosedSource(rootDir,expectedCommit){
 export async function planYardRelease(rootDir){
  assert.ok(!process.env.NODE_OPTIONS&&!process.env.YARD_PLAYER_WIRING_TEST&&!process.env.YARD_EIGHT_PLAYER_CANDIDATE_TEST&&!process.env.YARD_CANDIDATE_CI,'No inherited policy loader allowed');
  assertCleanReleaseCheckout(rootDir);const head=git(rootDir,['rev-parse','HEAD']).trim(),tree=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree','HEAD']));
- if(!tree.has(ACTIVE_CONTRACT_PATH)){const closed=verifyClosedSource(rootDir,head);return {mode:'CLOSED',closed_ref:head,active_ref:head,closed_digest:'',contract_hash:'',reuse_closed:'false',closed};}
+ if(!tree.has(ACTIVE_CONTRACT_PATH)){const closed=verifyClosedSource(rootDir,head);return {mode:'CLOSED',closed_ref:head,active_ref:head,closed_digest:'',contract_hash:'',closed};}
  const contract=JSON.parse(readFileSync(resolve(rootDir,ACTIVE_CONTRACT_PATH),'utf8')),closed=contract.inputs?.closed;
  const boundary=verifyGitPromotionBoundary({rootDir,closedCommit:closed?.buildId,activeCommit:head,closedTree:contract.closedTree});
  const promotion=verifyPromotionContract({rootDir}),runtime=await verifyActiveRuntime(rootDir);
- return {mode:'ACTIVE',closed_ref:closed.buildId,active_ref:head,closed_digest:closed.imageDigest,contract_hash:runtime.contractSha256,reuse_closed:Object.hasOwn(closed,'ciReceipt')?'true':'false',boundary,promotion,runtime};
+ return {mode:'ACTIVE',closed_ref:closed.buildId,active_ref:head,closed_digest:closed.imageDigest,contract_hash:runtime.contractSha256,boundary,promotion,runtime};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
  try{
   const [command,argument]=process.argv.slice(2),root=process.cwd();assert.ok(['--plan','--verify-active','--assert-closed-ref'].includes(command));
   if(command==='--assert-closed-ref')console.log(JSON.stringify(verifyClosedSource(root,argument)));
   else{assert.equal(argument,undefined);const result=await planYardRelease(root);if(command==='--verify-active')assert.equal(result.mode,'ACTIVE');
-   if(command==='--plan'&&process.env.GITHUB_OUTPUT)for(const key of ['mode','closed_ref','active_ref','closed_digest','contract_hash','reuse_closed'])appendFileSync(process.env.GITHUB_OUTPUT,`${key}=${result[key]}\n`);
+   if(command==='--plan'&&process.env.GITHUB_OUTPUT)for(const key of ['mode','closed_ref','active_ref','closed_digest','contract_hash'])appendFileSync(process.env.GITHUB_OUTPUT,`${key}=${result[key]}\n`);
    console.log(JSON.stringify(result));
   }
  }catch(e){console.error(`Yard CI dispatch blocked: ${e.message}`);process.exitCode=1;}

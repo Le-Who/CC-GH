@@ -76,7 +76,7 @@ for(const [width,height,dpr] of [[320,568,1],[390,844,2],[568,320,1]])test.descr
     // Untrusted options are real HTTP input, never process policy.
     const reply=await request.post(`${origin('closed')}/api/player/mutate`,{headers:{Authorization:`dev ${f.externalId}`},data:{accountId:f.id,action:'yard.buyFood',payload:{foodId:'kibble'},clientActionId:`legacy:${randomUUID()}`,enabled:true,yardPlayerReleasePolicy:{enabled:true},serverNow:0}});
     expect(reply.status()).toBe(200);expect((await saved(f))._yardV2).toBeUndefined();
-    await openHome(page);await selectHomeGame(page,'room');await expect(page.locator('.companion-yard-stage')).toBeVisible();await expect(page.locator('[data-yard-screen="settings"]')).toHaveCount(0);await expectLegacyYardToolbarReachable(page);
+    await openHome(page);await selectHomeGame(page,'room');await expect(page.locator('.companion-yard-stage')).toBeVisible();await expectLegacyYardToolbarReachable(page);
     expect(media.some(p=>/^\/assets\/yard-(mika|mochi|pebble|pip|family|fox|turtles)\//.test(p))).toBe(false);await capture(page,info,'closed-legacy-entry');
   });
   for(const [mode,kind] of [['closed','paused'],['closed','malformed'],['active','malformed']])test(`${mode} ${kind} save is preserved in a read-only shell with Home exit`,async({page,request},info)=>{

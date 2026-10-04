@@ -1,0 +1,158 @@
+diff --git a/src/games/companion-yard/CompanionYardGame.jsx b/src/games/companion-yard/CompanionYardGame.jsx
+--- a/src/games/companion-yard/CompanionYardGame.jsx
++++ b/src/games/companion-yard/CompanionYardGame.jsx
+@@ -1,4 +1,4 @@
+-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
++import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+ import {
+   YARD_FOODS,
+   YARD_GOODIES,
+@@ -15,6 +15,8 @@
+ import { HudEditableRegion, HudRegion } from "../../app/hud-layout/index.js";
+ import { useEscapeDismiss } from "../../app/useDismissableLayer.js";
+ import { openHome } from "../../app/homeNavigation.js";
++import { HomeVisibilityContext } from "../../app/homeContext.js";
++import { shouldDismissYardSettingsAfterHome } from "./homeReturn.js";
+ import { usePressTooltip } from "../../app/usePressTooltip.js";
+ import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
+ import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
+@@ -335,6 +337,8 @@
+   const performAction = useGameHub((state) => state.performAction);
+   const pendingActions = useGameHub((state) => state.pendingActions);
+   const { t, language } = useAppI18n();
++  const homeOpen = useContext(HomeVisibilityContext);
++  const previousHome = useRef({ open: homeOpen, accountSession: useGameHub.getState().accountSession, accountId: snapshot?.player?.id });
+   const yard = snapshot?.yard || {};
+   const catalog = snapshot?.meta?.yardCatalog || {};
+   const foods = catalog.foods || YARD_FOODS;
+@@ -496,6 +500,12 @@
+     setActiveScreen(null);
+     setYardToolsOpen(false);
+   }, []);
++  useEffect(() => {
++    const state = useGameHub.getState();
++    const dismissSettings = shouldDismissYardSettingsAfterHome({ previous: previousHome.current, homeOpen, activeScreen, state });
++    previousHome.current = { open: homeOpen, accountSession: state.accountSession, accountId: state.snapshot?.player?.id };
++    if (dismissSettings) closeScreen();
++  }, [activeScreen, closeScreen, homeOpen]);
+   const closePlacement = useCallback(() => {
+     setPlacementDraft(null);
+   }, []);
+diff --git a/src/games/companion-yard/homeReturn.js b/src/games/companion-yard/homeReturn.js
+new file mode 100644
+--- /dev/null
++++ b/src/games/companion-yard/homeReturn.js
+@@ -0,0 +1,12 @@
++import { isHomeLeaveReady } from "../../app/homeNavigation.js";
++
++// Home retains this game. Dismiss only the Settings launcher after an owned,
++// settled return; a failed switch, pending command or account change keeps it.
++export function shouldDismissYardSettingsAfterHome({ previous, homeOpen, activeScreen, state }) {
++  return previous.open && !homeOpen
++    && activeScreen === "settings"
++    && state.activeTab === "room"
++    && previous.accountSession === state.accountSession
++    && previous.accountId === state.snapshot?.player?.id
++    && isHomeLeaveReady(state, state.snapshot?.player?.id);
++}
+diff --git a/tests/home-navigation.test.js b/tests/home-navigation.test.js
+--- a/tests/home-navigation.test.js
++++ b/tests/home-navigation.test.js
+@@ -84,3 +84,42 @@
+  for(let i=0;i<5;i++){const next=createHomeHistoryLayer(target,()=>backs++);target.history.back();await tick();assert.equal(target.listeners.length,1);next.dispose();}
+  const last=createHomeHistoryLayer(target,()=>backs++);const pending=last.close();last.dispose();await pending;await tick();assert.equal(target.listeners.length,1);stop();assert.equal(target.listeners.length,0);
+ });
++
++
++import { shouldDismissYardSettingsAfterHome } from '../src/games/companion-yard/homeReturn.js';
++const readyYard = () => ({ ...state, activeTab: 'room', accountSession: {}, busy: {}, pendingActions: [] });
++const yardReturn = (current, patch = {}) => ({ previous: { open: true, accountSession: current.accountSession, accountId: current.snapshot?.player?.id }, homeOpen: false, activeScreen: 'settings', state: current, ...patch });
++test('settled same-account Home return dismisses only the retained Yard Settings launcher', () => {
++ const current = readyYard(), input = yardReturn(current);
++ assert.equal(shouldDismissYardSettingsAfterHome(input), true);
++ for (const activeScreen of [null, 'food', 'goodies', 'companion']) assert.equal(shouldDismissYardSettingsAfterHome({ ...input, activeScreen }), false);
++ assert.equal(shouldDismissYardSettingsAfterHome({ ...input, previous: { ...input.previous, open: false } }), false);
++ assert.equal(shouldDismissYardSettingsAfterHome({ ...input, homeOpen: true }), false);
++ assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: { ...current, activeTab: 'garden' } }), false);
++});
++test('failed switches, pending actions, failed storage and account changes preserve Yard Settings', () => {
++ const current = readyYard(), input = yardReturn(current);
++ for (const patch of [
++  { busy: { mutate: true } }, { pendingActions: [{ status: 'sending' }] }, { pendingActions: [{ status: 'failed' }] },
++  { outboxLoaded: false }, { outboxAccountId: 'B' }, { outboxStorageError: 'READ_FAILED' },
++  { retainedLegacyOutbox: [{ action: 'yard.buyFood' }] }, { accountSession: {} }, { snapshot: { player: { id: 'B' } } }, { snapshot: { player: { id: 'B' } }, outboxAccountId: 'B' },
++ ]) assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: { ...current, ...patch } }), false);
++ const before = structuredClone(current);
++ assert.equal(shouldDismissYardSettingsAfterHome({ ...input, homeOpen: true }), false);
++ assert.deepEqual(current, before);
++});
++test('dismissed pending return is not reinterpreted as a new Home return after acknowledgement', () => {
++ const current = readyYard();
++ assert.equal(shouldDismissYardSettingsAfterHome(yardReturn({ ...current, pendingActions: [{ status: 'sending' }] })), false);
++ assert.equal(shouldDismissYardSettingsAfterHome(yardReturn(current, { previous: { open: false, accountSession: current.accountSession, accountId: current.snapshot.player.id } })), false);
++ assert.equal(shouldDismissYardSettingsAfterHome(yardReturn(current)), true);
++});
++
++test('A-to-B-to-A Home return cannot reuse the first account session intent', () => {
++ const first = readyYard(), input = yardReturn(first);
++ const second = { ...first, snapshot: { player: { id: 'B' } }, outboxAccountId: 'B', accountSession: {} };
++ const restored = { ...first, accountSession: {} };
++ assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: second }), false);
++ assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: restored }), false);
++ assert.equal(shouldDismissYardSettingsAfterHome(yardReturn(restored)), true);
++});
+diff --git a/tests/e2e/companion-yard.spec.js b/tests/e2e/companion-yard.spec.js
+--- a/tests/e2e/companion-yard.spec.js
++++ b/tests/e2e/companion-yard.spec.js
+@@ -446,6 +446,39 @@
+     });
+   }
+ 
++  for (const [width, height] of [[320, 568], [390, 844], [568, 320]]) {
++    test.describe(`legacy Yard Home return ${width}x${height}`, () => {
++      test.use({ viewport: { width, height }, isMobile: true, hasTouch: true });
++      for (const exit of ["same-game", "Escape", "history"]) test(`dismisses Settings after ${exit} return without remounting the Yard`, async ({ page }) => {
++        const snapshot = buildFreePlacementSnapshot();
++        snapshot.yard.currencies = { treats: 5000, shinyTreats: 3 };
++        await page.addInitScript(() => localStorage.setItem("garden_shelf_language", "en"));
++        await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify(snapshot) }));
++        await page.goto("/?tab=room");
++        await expectAppReady(page);
++        const stage = page.locator('.companion-yard-stage');
++        await expect(stage).toBeVisible();
++        await stage.evaluate(node => node.dataset.homeRetention = 'same-yard');
++        await page.getByRole('button', { name: 'Settings', exact: true }).click();
++        await expect(page.locator('[data-yard-screen="settings"]')).toBeVisible();
++        await page.getByRole('button', { name: 'All games', exact: true }).click();
++        await expect(page.getByTestId('home-catalogue')).toBeVisible();
++        await expect(page.locator('[data-yard-screen="settings"]')).toHaveCount(1);
++        if (exit === 'same-game') await selectHomeGame(page, 'room');
++        else if (exit === 'Escape') await page.keyboard.press('Escape');
++        else await page.goBack();
++        await expect(page.getByTestId('home-catalogue')).toHaveCount(0);
++        await expect(stage).toHaveAttribute('data-home-retention', 'same-yard');
++        await expect(page.locator('[data-yard-screen="settings"]')).toHaveCount(0);
++        await expectLegacyYardToolbarReachable(page);
++        await page.getByRole('button', { name: 'Settings', exact: true }).click();
++        await expect(page.getByRole('dialog', { name: 'Settings', exact: true })).toBeVisible();
++        await page.getByRole('dialog').getByRole('button', { name: 'Close', exact: true }).click();
++        await expectLegacyYardToolbarReachable(page);
++      });
++    });
++  }
++
+   test("renders manifest-backed backgrounds, layered visitors, and selected visitor capture", async ({ page }) => {
+     const snapshot = buildYardMovementSnapshot();
+     const mutateBodies = [];
+diff --git a/tests/yard-player-integration-e2e/player.spec.js b/tests/yard-player-integration-e2e/player.spec.js
+--- a/tests/yard-player-integration-e2e/player.spec.js
++++ b/tests/yard-player-integration-e2e/player.spec.js
+@@ -76,7 +76,7 @@
+     // Untrusted options are real HTTP input, never process policy.
+     const reply=await request.post(`${origin('closed')}/api/player/mutate`,{headers:{Authorization:`dev ${f.externalId}`},data:{accountId:f.id,action:'yard.buyFood',payload:{foodId:'kibble'},clientActionId:`legacy:${randomUUID()}`,enabled:true,yardPlayerReleasePolicy:{enabled:true},serverNow:0}});
+     expect(reply.status()).toBe(200);expect((await saved(f))._yardV2).toBeUndefined();
+-    await openHome(page);await selectHomeGame(page,'room');await expect(page.locator('.companion-yard-stage')).toBeVisible();await expectLegacyYardToolbarReachable(page);
++    await openHome(page);await selectHomeGame(page,'room');await expect(page.locator('.companion-yard-stage')).toBeVisible();await expect(page.locator('[data-yard-screen="settings"]')).toHaveCount(0);await expectLegacyYardToolbarReachable(page);
+     expect(media.some(p=>/^\/assets\/yard-(mika|mochi|pebble|pip|family|fox|turtles)\//.test(p))).toBe(false);await capture(page,info,'closed-legacy-entry');
+   });
+   for(const [mode,kind] of [['closed','paused'],['closed','malformed'],['active','malformed']])test(`${mode} ${kind} save is preserved in a read-only shell with Home exit`,async({page,request},info)=>{

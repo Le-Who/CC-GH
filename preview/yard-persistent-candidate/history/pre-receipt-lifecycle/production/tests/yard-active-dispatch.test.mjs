@@ -102,9 +102,9 @@ test('parsed job identities stay stable and every upload name is filename-safe',
 });
 test('reusable deploy caller grants only the same read permissions required for exact GHCR A',()=>{
  const caller=metadata(readFileSync(resolve(ownRoot,'.github/workflows/deploy.yml'),'utf8')).validate,callee=metadata(workflow)['yard-active-production'];
- assert.equal(caller.uses,'./.github/workflows/ci.yml');assert.deepEqual(caller.permissions,{contents:'read',packages:'read',actions:'read'});assert.deepEqual(callee.permissions,{contents:'read',packages:'read'});assert.deepEqual(metadata(workflow)['yard-closed-receipt'].permissions,{contents:'read',actions:'read'});
+ assert.equal(caller.uses,'./.github/workflows/ci.yml');assert.deepEqual(caller.permissions,{contents:'read',packages:'read'});assert.deepEqual(callee.permissions,caller.permissions);
  const production=block('yard-active-production');assert.match(production,/YARD_IMAGE_REPOSITORY: ghcr.io\/le-who\/cc-gh/);assert.match(production,/docker pull "\$\{YARD_IMAGE_REPOSITORY\}@\$\{YARD_CLOSED_DIGEST\}"/);assert.doesNotMatch(production,/packages: write|docker push/);
- assert.equal(caller.permissions.packages,callee.permissions.packages);assert.equal(caller.permissions.actions,metadata(workflow)['yard-closed-receipt'].permissions.actions);
+ const withoutRead=structuredClone(caller);delete withoutRead.permissions.packages;assert.notDeepEqual(withoutRead.permissions,callee.permissions);
 });
 test('ACTIVE build and production image lanes consume B and are mandatory only in ACTIVE mode',()=>{
  const ordinary=block('yard-active'),production=block('yard-active-production'),aggregate=block('release-ready');

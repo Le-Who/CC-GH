@@ -1,0 +1,551 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index e800bb6..a194e2d 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -5,6 +5,9 @@ on:
+   pull_request:
+     branches: [codex/telegram-pixi-vps-migration]
+ 
++permissions:
++  contents: read
++
+ jobs:
+   yard-release-mode:
+     name: Resolve exact CLOSED and ACTIVE source identities
+@@ -15,6 +18,7 @@ jobs:
+       active_ref: ${{ steps.release.outputs.active_ref }}
+       closed_digest: ${{ steps.release.outputs.closed_digest }}
+       contract_hash: ${{ steps.release.outputs.contract_hash }}
++      reuse_closed: ${{ steps.release.outputs.reuse_closed }}
+     steps:
+       - uses: actions/checkout@v6
+         with:
+@@ -27,9 +31,10 @@ jobs:
+         id: release
+         run: node scripts/yard-ci-dispatch.mjs --plan
+       - name: Test dispatch negative controls
+-        run: node --test tests/yard-active-dispatch.test.mjs
++        run: node --test tests/yard-active-dispatch.test.mjs tests/yard-closed-ci-receipt.test.mjs
+ 
+   test:
++    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
+     needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     strategy:
+@@ -188,6 +193,7 @@ jobs:
+           retention-days: 14
+ 
+   yard-player:
++    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
+     needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     timeout-minutes: 30
+@@ -260,6 +266,7 @@ jobs:
+           group: yard-player-integration
+ 
+   yard-eight-player:
++    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
+     needs: [yard-release-mode]
+     name: Yard eight-player / ${{ matrix.group }}
+     runs-on: ubuntu-latest
+@@ -354,6 +361,7 @@ jobs:
+           group: yard-eight-player-${{ matrix.group }}
+ 
+   browser-plan:
++    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
+     needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     outputs:
+@@ -394,6 +402,7 @@ jobs:
+           group: inventory
+ 
+   browser:
++    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
+     name: Browser / ${{ matrix.group }}
+     needs: [yard-release-mode, browser-plan]
+     runs-on: ubuntu-latest
+@@ -445,6 +454,7 @@ jobs:
+           group: ${{ matrix.group }}
+ 
+   touch:
++    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
+     needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     steps:
+@@ -492,6 +502,7 @@ jobs:
+           retention-days: 14
+ 
+   mochi:
++    if: needs.yard-release-mode.outputs.reuse_closed != 'true'
+     needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     steps:
+@@ -678,6 +689,48 @@ jobs:
+       - name: Verify final container Yard HTTP delivery
+         run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-public-media-http.mjs
+ 
++  yard-closed-receipt:
++    name: Verify reused CLOSED acceptance
++    needs: [yard-release-mode]
++    if: needs.yard-release-mode.outputs.reuse_closed == 'true'
++    runs-on: ubuntu-latest
++    timeout-minutes: 5
++    permissions:
++      contents: read
++      actions: read
++    steps:
++      - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
++          fetch-depth: 0
++          persist-credentials: false
++      - uses: actions/setup-node@v6
++        with:
++          node-version: 24.x
++      - name: Verify unchanged ACTIVE promotion boundary
++        run: node scripts/yard-ci-dispatch.mjs --verify-active
++      - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          path: closed-proof
++          persist-credentials: false
++      - name: Verify full CLOSED contract on exact A
++        working-directory: closed-proof
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++      - name: Verify authoritative GitHub run and every required CLOSED job
++        working-directory: closed-proof
++        env:
++          GITHUB_TOKEN: ${{ github.token }}
++        run: node scripts/yard-closed-ci-receipt.mjs --verify ../game-logic/yard-v2/active-release-contract.json
++      - uses: actions/upload-artifact@v7
++        with:
++          name: reused-closed-${{ needs.yard-release-mode.outputs.closed_ref }}-for-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
++          path: closed-proof/artifacts/yard-closed-ci-receipt.json
++          if-no-files-found: error
++          retention-days: 14
++
+   yard-active:
+     name: ACTIVE ordinary imports
+     needs: [yard-release-mode]
+@@ -786,19 +839,24 @@ jobs:
+ 
+   release-ready:
+     name: Exact source release acceptance
+-    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-active, yard-active-production]
++    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-closed-receipt, yard-active, yard-active-production]
+     if: always()
+     runs-on: ubuntu-latest
+     steps:
+       - name: Require the complete mode-specific result set
+         env:
+           RELEASE_MODE: ${{ needs.yard-release-mode.outputs.mode }}
++          REUSE_CLOSED: ${{ needs.yard-release-mode.outputs.reuse_closed }}
+           RELEASE_RESULTS: ${{ toJSON(needs) }}
+         run: |
+           node --input-type=module <<'JS'
+           import assert from 'node:assert/strict';
+           const needs=JSON.parse(process.env.RELEASE_RESULTS),mode=process.env.RELEASE_MODE;
+           assert.ok(['CLOSED','ACTIVE'].includes(mode));
+-          for(const job of ['yard-release-mode','test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,'success',job);
++          assert.equal(needs['yard-release-mode'].result,'success');
++          assert.ok(['true','false'].includes(process.env.REUSE_CLOSED));
++          const reuse=process.env.REUSE_CLOSED==='true';assert.ok(!reuse||mode==='ACTIVE');
++          for(const job of ['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,reuse?'skipped':'success',job);
++          assert.equal(needs['yard-closed-receipt'].result,reuse?'success':'skipped');
+           for(const job of ['yard-active','yard-active-production'])assert.equal(needs[job].result,mode==='ACTIVE'?'success':'skipped',job);
+           JS
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index 5444124..7993864 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -19,6 +19,7 @@ jobs:
+     permissions:
+       contents: read
+       packages: read
++      actions: read
+ 
+   build-and-push:
+     needs: validate
+diff --git a/docs/yard-active-ci-dispatch.md b/docs/yard-active-ci-dispatch.md
+index 8ca44fe..e460c7d 100644
+--- a/docs/yard-active-ci-dispatch.md
++++ b/docs/yard-active-ci-dispatch.md
+@@ -13,7 +13,7 @@ named new contract/archive files, every Git object, path, type and mode must be
+ identical. Existing file modes are preserved; new proof files must be regular
+ 100644 files. A history-directory prefix is never an allowlist.
+ 
+-The workflow keeps all existing CLOSED commands and suites. For ACTIVE B those
++The workflow keeps all existing CLOSED commands and suites. By default, ACTIVE B
+ jobs explicitly check out A, verify its full contract again, and report A's SHA
+ in verified step summaries and artifact metadata. Existing check names stay stable
+ so repository required-check settings need no change. Their green status is CLOSED-source evidence,
+@@ -49,3 +49,54 @@ readable complete closed source checkout. In the tiny author workspace use
+ The override selects read-only test inputs, never release mode or runtime policy.
+ Real B build/image/browser execution awaits a reviewed promotion and exact A
+ identity; local synthetic Git-tree tests are not that release proof.
++
++
++## Reusing exact CLOSED acceptance
++
++An optional `closed.ciReceipt` in the verified promotion inputs contains only
++`runId`, `runAttempt`, and `workflowPath` (`.github/workflows/ci.yml` or
++`.github/workflows/deploy.yml`). It is preserved in the existing ACTIVE contract;
++there is no extra production path or new promotion allowance. Do not supply it
++until that exact closed A run has completed successfully.
++
++Without this field, the original CLOSED suites run on A again. With it, B runs a
++read-only receipt job instead. A supplied invalid or unavailable receipt blocks
++acceptance; it never silently converts a failed proof into a skip. The job uses
++only its existing ephemeral GitHub job token with `actions: read`; the reusable
++deploy caller grants the same read permission. The reusable workflow defaults
++to contents:read, so ordinary jobs do not inherit Actions reads from that caller.
++The production image job retains its explicit packages:read. No token creation
++or write API is involved.
++
++The verifier accepts only a same-repository `push` or `workflow_dispatch` run
++whose exact `head_sha` is A. Those events make the reviewed default checkout and
++CLOSED dispatch select that exact commit. A pull-request head SHA is insufficient
++because its merge checkout can differ; PR receipts are refused in this bounded
++implementation. Workflow path and ID must match the known CI or deploy workflow.
++The complete run must be successful, including a deploy run when selected.
++
++The verifier reads the run, the pinned attempt, workflow identity and every job
++page from GitHub, then checks the run has not changed. The required inventory is
++the CLOSED plan, main tests, player integration, four eight-player viewport jobs,
++actual browser discovery and every source-owned browser group, touch, Mochi,
++Docker, and the CLOSED aggregate. The actual test and source-verification steps
++must also have succeeded. ACTIVE lanes and the receipt lane must have been
++skipped in A, preventing circular reuse. Deploy validation uses the exact
++`validate / ` job prefix; unrelated deployment jobs cannot satisfy a check.
++
++For a targeted rerun, each job's latest attempt at or before the pinned run
++attempt is authoritative. A later successful replacement may supersede an older
++failure without rerunning successful siblings. Missing/duplicate jobs, a newer
++failed replacement, incomplete pages or a changed run fail closed. The output
++records every accepted job ID/attempt/link and workflow byte hashes.
++
++B still freshly verifies the 21-path tree boundary, checks out exact A to run its
++full original CLOSED contract, and runs its ordinary ACTIVE build, runtime,
++metadata, loading/budget and production image/API/PostgreSQL/warm-cache tests.
++The image lane still independently binds A's immutable digest, build identity
++and quarantine capability. Source CI evidence does not certify the image.
++
++The aggregate accepts exactly three states: CLOSED with fresh CLOSED suites;
++ACTIVE with fresh CLOSED suites; or ACTIVE with skipped CLOSED suites and a
++successful authoritative receipt. Both ACTIVE jobs must succeed in either
++ACTIVE state. Existing check names and Docker dependencies remain unchanged.
+diff --git a/scripts/yard-active-contract.mjs b/scripts/yard-active-contract.mjs
+index f275713..e52533b 100644
+--- a/scripts/yard-active-contract.mjs
++++ b/scripts/yard-active-contract.mjs
+@@ -32,10 +32,18 @@ export function safePath(root,path){
+  assert.equal(typeof path,'string');assert.ok(path&&!isAbsolute(path)&&!path.split('/').some(p=>!p||p==='.'||p==='..'),'Relative owned file required');
+  const target=resolve(root,path),local=relative(root,target);assert.ok(local&&!local.startsWith('..')&&!isAbsolute(local));return target;
+ }
++export function validateClosedCiReceipt(receipt){
++ assert.ok(receipt&&typeof receipt==='object'&&!Array.isArray(receipt),'Explicit CLOSED CI receipt identity required');
++ assert.deepEqual(Object.keys(receipt).sort(),['runAttempt','runId','workflowPath']);
++ assert.ok(Number.isSafeInteger(receipt.runId)&&receipt.runId>0);assert.ok(Number.isSafeInteger(receipt.runAttempt)&&receipt.runAttempt>0);
++ assert.ok(['.github/workflows/ci.yml','.github/workflows/deploy.yml'].includes(receipt.workflowPath),'Only the reviewed CI or deploy workflow can supply CLOSED evidence');
++ return {...receipt};
++}
+ export function validateActivationInputs(input){
+  assert.equal(input?.format,'yard-active-inputs/v1','Explicit reviewed activation inputs required');
+  assert.equal(input.repository,'le-who/cc-gh','Exact reviewed repository required');
+  const closed=input.closed,image=closed?.image,cap=closed?.compatibility;
++ if(closed&&Object.hasOwn(closed,'ciReceipt'))validateClosedCiReceipt(closed.ciReceipt);
+  assert.ok(commit(closed?.buildId)&&digest(closed?.imageDigest),'Verified closed build and registry digest required');
+  assert.ok(digest(image?.Id));assert.ok(Array.isArray(image.RepoDigests)&&image.RepoDigests.includes(`ghcr.io/${input.repository}@${closed.imageDigest}`),'Immutable repository image identity array required');
+  assert.equal(image.Config?.Labels?.['org.opencontainers.image.revision'],closed.buildId);
+diff --git a/scripts/yard-active-promotion.mjs b/scripts/yard-active-promotion.mjs
+index 3fe96b9..af9909a 100644
+--- a/scripts/yard-active-promotion.mjs
++++ b/scripts/yard-active-promotion.mjs
+@@ -11,7 +11,7 @@ const CLOSURES=['mochi','pebble','pip','eight'].map(id=>`recovery-tools/yard-can
+ function git(root,args){const r=spawnSync('git',args,{cwd:root,encoding:'utf8',maxBuffer:4*1024*1024});assert.equal(r.status,0,r.stderr||r.error?.message);return r.stdout.trim();}
+ function boundedInputs(input){
+  validateActivationInputs(input);const c=input.closed,cap=c.compatibility;
+- return {format:input.format,repository:input.repository,closed:{buildId:c.buildId,imageDigest:c.imageDigest,
++ return {format:input.format,repository:input.repository,closed:{buildId:c.buildId,imageDigest:c.imageDigest,...(Object.hasOwn(c,'ciReceipt')?{ciReceipt:structuredClone(c.ciReceipt)}:{}),
+   image:{Id:c.image.Id,RepoDigests:[`ghcr.io/${input.repository}@${c.imageDigest}`],Config:{Labels:{'org.opencontainers.image.revision':c.buildId}}},
+   compatibility:{format:cap.format,buildId:cap.buildId,policyRevision:cap.policyRevision,playerRolloutEnabled:false,readableStorageFormats:['yard-persistent/v1'],closedQuarantineVerified:true,requiredClosedPredecessor:null}},
+   acceptance:{reviewReference:input.acceptance.reviewReference,...Object.fromEntries(['nativeDuration','eightPlayer','geometryEquivalence'].map(kind=>{const r=input.acceptance[kind];return[kind,{reference:r.reference,artifactSha256:r.artifactSha256,sourceCommit:r.sourceCommit,...(kind==='eightPlayer'?{runId:r.runId}:{})}];}))}};
+diff --git a/scripts/yard-ci-dispatch.mjs b/scripts/yard-ci-dispatch.mjs
+index 15172b2..32705ab 100644
+--- a/scripts/yard-ci-dispatch.mjs
++++ b/scripts/yard-ci-dispatch.mjs
+@@ -59,18 +59,18 @@ export function verifyClosedSource(rootDir,expectedCommit){
+ export async function planYardRelease(rootDir){
+  assert.ok(!process.env.NODE_OPTIONS&&!process.env.YARD_PLAYER_WIRING_TEST&&!process.env.YARD_EIGHT_PLAYER_CANDIDATE_TEST&&!process.env.YARD_CANDIDATE_CI,'No inherited policy loader allowed');
+  assertCleanReleaseCheckout(rootDir);const head=git(rootDir,['rev-parse','HEAD']).trim(),tree=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree','HEAD']));
+- if(!tree.has(ACTIVE_CONTRACT_PATH)){const closed=verifyClosedSource(rootDir,head);return {mode:'CLOSED',closed_ref:head,active_ref:head,closed_digest:'',contract_hash:'',closed};}
++ if(!tree.has(ACTIVE_CONTRACT_PATH)){const closed=verifyClosedSource(rootDir,head);return {mode:'CLOSED',closed_ref:head,active_ref:head,closed_digest:'',contract_hash:'',reuse_closed:'false',closed};}
+  const contract=JSON.parse(readFileSync(resolve(rootDir,ACTIVE_CONTRACT_PATH),'utf8')),closed=contract.inputs?.closed;
+  const boundary=verifyGitPromotionBoundary({rootDir,closedCommit:closed?.buildId,activeCommit:head,closedTree:contract.closedTree});
+  const promotion=verifyPromotionContract({rootDir}),runtime=await verifyActiveRuntime(rootDir);
+- return {mode:'ACTIVE',closed_ref:closed.buildId,active_ref:head,closed_digest:closed.imageDigest,contract_hash:runtime.contractSha256,boundary,promotion,runtime};
++ return {mode:'ACTIVE',closed_ref:closed.buildId,active_ref:head,closed_digest:closed.imageDigest,contract_hash:runtime.contractSha256,reuse_closed:Object.hasOwn(closed,'ciReceipt')?'true':'false',boundary,promotion,runtime};
+ }
+ if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
+  try{
+   const [command,argument]=process.argv.slice(2),root=process.cwd();assert.ok(['--plan','--verify-active','--assert-closed-ref'].includes(command));
+   if(command==='--assert-closed-ref')console.log(JSON.stringify(verifyClosedSource(root,argument)));
+   else{assert.equal(argument,undefined);const result=await planYardRelease(root);if(command==='--verify-active')assert.equal(result.mode,'ACTIVE');
+-   if(command==='--plan'&&process.env.GITHUB_OUTPUT)for(const key of ['mode','closed_ref','active_ref','closed_digest','contract_hash'])appendFileSync(process.env.GITHUB_OUTPUT,`${key}=${result[key]}\n`);
++   if(command==='--plan'&&process.env.GITHUB_OUTPUT)for(const key of ['mode','closed_ref','active_ref','closed_digest','contract_hash','reuse_closed'])appendFileSync(process.env.GITHUB_OUTPUT,`${key}=${result[key]}\n`);
+    console.log(JSON.stringify(result));
+   }
+  }catch(e){console.error(`Yard CI dispatch blocked: ${e.message}`);process.exitCode=1;}
+diff --git a/scripts/yard-closed-ci-receipt.mjs b/scripts/yard-closed-ci-receipt.mjs
+new file mode 100644
+index 0000000..0a64e53
+--- /dev/null
++++ b/scripts/yard-closed-ci-receipt.mjs
+@@ -0,0 +1,112 @@
++/** Read-only reuse of exact CLOSED A acceptance. Never substitutes for B checks. */
++import assert from 'node:assert/strict';
++import {readFileSync,writeFileSync,mkdirSync,appendFileSync} from 'node:fs';
++import {resolve} from 'node:path';
++import {pathToFileURL} from 'node:url';
++import {spawnSync} from 'node:child_process';
++import {createHash} from 'node:crypto';
++import {validateClosedCiReceipt,validateActivationInputs} from './yard-active-contract.mjs';
++export const REPOSITORY='le-who/cc-gh';
++export const REPOSITORY_ID=1162268629;
++const sourceStep='Verify and report exact CLOSED acceptance source';
++const successful=(item,label)=>{assert.equal(item?.status,'completed',`${label} incomplete`);assert.equal(item.conclusion,'success',`${label} did not succeed`);};
++const integer=n=>Number.isSafeInteger(n)&&n>0;
++export function closedJobInventory(browserGroups){
++ assert.ok(Array.isArray(browserGroups)&&browserGroups.length&&new Set(browserGroups).size===browserGroups.length);
++ assert.ok(browserGroups.every(group=>/^[a-z][a-z0-9-]*$/.test(group)));
++ const rows=[
++  ['Resolve exact CLOSED and ACTIVE source identities',['Verify committed release mode and full promotion boundary','Test dispatch negative controls']],
++  ['test (24.x)',[sourceStep,'Run tests','Build Telegram Mini App client']],
++  ['yard-player',[sourceStep,'Genuine Yard API, store, browser and PostgreSQL15 integration']],
++  ...['small-phone','phone','landscape','desktop'].map(group=>[`Yard eight-player / ${group}`,[sourceStep,'Genuine eight-actor API store browser PostgreSQL15 acceptance']]),
++  ['browser-plan',[sourceStep,'Discover every Chromium test before dispatching browser runners','Produce independent game and functional groups']],
++  ...browserGroups.map(group=>[`Browser / ${group}`,[sourceStep,'Run assigned browser specs with original config and retries']]),
++  ['touch',[sourceStep,'Run touch-specific and gesture regression tests']],
++  ['mochi',[sourceStep,'Validate closed eight-species native witnesses and actual family media']],
++  ['docker',['Verify Docker build','Verify final container Yard HTTP delivery']],
++  ['Exact source release acceptance',['Require the complete mode-specific result set']],
++ ];
++ return {required:rows.map(([name,steps])=>({name,steps})),skipped:['ACTIVE ordinary imports','ACTIVE production image and rollback','Verify reused CLOSED acceptance']};
++}
++export function validateClosedRun({run,workflow,receipt,closedCommit}){
++ validateClosedCiReceipt(receipt);assert.match(closedCommit,/^[a-f0-9]{40}$/);
++ assert.equal(run?.id,receipt.runId);assert.equal(run.run_attempt,receipt.runAttempt,'Pinned attempt changed');
++ assert.equal(typeof run.repository?.full_name,'string');assert.equal(run.repository.full_name.toLowerCase(),REPOSITORY);
++ assert.equal(typeof run.head_repository?.full_name,'string');assert.equal(run.head_repository.full_name.toLowerCase(),REPOSITORY,'Fork evidence is not reusable');
++ assert.equal(run.repository.id,REPOSITORY_ID,'Repository identity differs');assert.equal(run.head_repository.id,REPOSITORY_ID);
++ assert.equal(run.head_sha,closedCommit,'Run did not test exact A');
++ // With these events the reviewed default checkout and CLOSED ref both equal
++ // head_sha. PR head_sha does not prove its merge checkout and is refused.
++ assert.ok(['push','workflow_dispatch'].includes(run.event),'Exact-A push/dispatch evidence required; PR checkout is ambiguous');
++ assert.equal(run.path,receipt.workflowPath);assert.ok(integer(run.workflow_id));
++ assert.equal(workflow?.id,run.workflow_id);assert.equal(workflow.path,receipt.workflowPath);
++ successful(run,'CLOSED workflow run');
++ assert.equal(run.name,receipt.workflowPath.endsWith('/deploy.yml')?'VPS Deploy':'Game Hub CI');
++ return receipt.workflowPath.endsWith('/deploy.yml')?'validate / ':'';
++}
++export function validateClosedJobs({jobs,run,workflow,receipt,closedCommit,browserGroups}){
++ const prefix=validateClosedRun({run,workflow,receipt,closedCommit}),inventory=closedJobInventory(browserGroups),latest=new Map(),ids=new Set();
++ assert.ok(Array.isArray(jobs)&&jobs.length,'No authoritative job inventory');
++ for(const job of jobs){
++  assert.ok(integer(job.id)&&!ids.has(job.id),'Duplicate/invalid job identity');ids.add(job.id);
++  assert.equal(job.run_id,receipt.runId);assert.equal(job.head_sha,closedCommit,'Job source differs from A');
++  assert.ok(integer(job.run_attempt)&&job.run_attempt<=receipt.runAttempt,'Job attempt outside pinned run');assert.equal(typeof job.name,'string');
++  if(prefix&&!job.name.startsWith(prefix))continue;
++  const name=prefix?job.name.slice(prefix.length):job.name,previous=latest.get(name);
++  assert.ok(!previous||previous.run_attempt!==job.run_attempt,'Duplicate named job within one attempt');
++  if(!previous||job.run_attempt>previous.run_attempt)latest.set(name,job);
++ }
++ const expected=new Set([...inventory.required.map(row=>row.name),...inventory.skipped]);
++ assert.deepEqual([...latest.keys()].sort(),[...expected].sort(),'Complete exact CLOSED job/matrix inventory required');
++ const accepted=[];
++ for(const row of inventory.required){
++  const job=latest.get(row.name);successful(job,row.name);assert.ok(Array.isArray(job.steps),'Missing job steps');
++  for(const stepName of row.steps){const steps=job.steps.filter(step=>step.name===stepName);assert.equal(steps.length,1,`Missing/duplicate proof step ${row.name}: ${stepName}`);successful(steps[0],stepName);}
++  accepted.push({name:row.name,id:job.id,attempt:job.run_attempt,url:`https://github.com/${REPOSITORY}/actions/runs/${receipt.runId}/job/${job.id}`});
++ }
++ for(const name of inventory.skipped){const job=latest.get(name);assert.equal(job.status,'completed');assert.equal(job.conclusion,'skipped',`${name} must be skipped in CLOSED A`);}
++ return {status:'verified',repository:REPOSITORY,closedCommit,runId:receipt.runId,runAttempt:receipt.runAttempt,workflowPath:receipt.workflowPath,
++  runUrl:`https://github.com/${REPOSITORY}/actions/runs/${receipt.runId}`,jobs:accepted};
++}
++export async function verifyGithubClosedReceipt({receipt,closedCommit,browserGroups,token,fetchImpl=fetch}){
++ validateClosedCiReceipt(receipt);assert.equal(typeof token,'string');assert.ok(token.length,'Read-only GitHub job token required');
++ const request=async path=>{
++  assert.ok(path.startsWith(`/repos/${REPOSITORY}/actions/`));
++  const response=await fetchImpl(`https://api.github.com${path}`,{method:'GET',redirect:'error',signal:AbortSignal.timeout(15000),headers:{Accept:'application/vnd.github+json',Authorization:`Bearer ${token}`,'X-GitHub-Api-Version':'2022-11-28'}});
++  assert.equal(response.status,200,`GitHub receipt read failed (${response.status})`);
++  const text=await response.text();assert.ok(Buffer.byteLength(text)<=4*1024*1024,'Oversized GitHub metadata');return JSON.parse(text);
++ };
++ const runPath=`/repos/${REPOSITORY}/actions/runs/${receipt.runId}`,run=await request(runPath);
++ const workflow=await request(`/repos/${REPOSITORY}/actions/workflows/${run.workflow_id}`);
++ validateClosedRun({run,workflow,receipt,closedCommit});
++ const attempt=await request(`${runPath}/attempts/${receipt.runAttempt}`);validateClosedRun({run:attempt,workflow,receipt,closedCommit});
++ const jobs=[];let count;
++ for(let page=1;page<=10;page++){
++  const result=await request(`${runPath}/jobs?filter=all&per_page=100&page=${page}`);
++  assert.ok(Number.isSafeInteger(result.total_count)&&result.total_count>0&&result.total_count<=1000);assert.ok(Array.isArray(result.jobs)&&result.jobs.length<=100);
++  if(count===undefined)count=result.total_count;assert.equal(result.total_count,count,'Job inventory changed during read');jobs.push(...result.jobs);
++  if(jobs.length===count)break;assert.ok(jobs.length<count&&result.jobs.length===100,'Incomplete job pagination');
++ }
++ assert.equal(jobs.length,count,'Incomplete job inventory');
++ const result=validateClosedJobs({jobs,run,workflow,receipt,closedCommit,browserGroups});
++ const finalRun=await request(runPath);validateClosedRun({run:finalRun,workflow,receipt,closedCommit});
++ assert.equal(finalRun.updated_at,run.updated_at,'Run changed while evidence was read');return result;
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
++ try{
++  assert.equal(process.argv[2],'--verify');assert.equal(process.argv.length,4);
++  assert.ok(!process.env.NODE_OPTIONS&&!process.env.YARD_CANDIDATE_CI&&!process.env.YARD_PLAYER_WIRING_TEST&&!process.env.YARD_EIGHT_PLAYER_CANDIDATE_TEST,'No inherited policy substitution');
++  const contract=JSON.parse(readFileSync(resolve(process.argv[3]),'utf8'));validateActivationInputs(contract.inputs);
++  assert.equal(contract.mode,'ACTIVE');const closed=contract.inputs.closed;validateClosedCiReceipt(closed.ciReceipt);
++  const git=args=>{const r=spawnSync('git',args,{encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
++  assert.equal(git(['rev-parse','HEAD']),closed.buildId,'Receipt verifier must run from exact A');assert.equal(git(['rev-parse','HEAD^{tree}']),contract.closedTree);
++  const {BROWSER_GROUPS}=await import('./browser-ci-groups.mjs');
++  const result=await verifyGithubClosedReceipt({receipt:closed.ciReceipt,closedCommit:closed.buildId,browserGroups:Object.keys(BROWSER_GROUPS),token:process.env.GITHUB_TOKEN});
++  result.closedTree=contract.closedTree;result.closedImageDigest=closed.imageDigest;
++  result.workflowSha256=createHash('sha256').update(readFileSync(closed.ciReceipt.workflowPath)).digest('hex');
++  result.reusableCiSha256=createHash('sha256').update(readFileSync('.github/workflows/ci.yml')).digest('hex');
++  mkdirSync('artifacts',{recursive:true});writeFileSync('artifacts/yard-closed-ci-receipt.json',JSON.stringify(result,null,2)+'\n');
++  if(process.env.GITHUB_STEP_SUMMARY)appendFileSync(process.env.GITHUB_STEP_SUMMARY,`Reused successful CLOSED source ${closed.buildId}, tree ${contract.closedTree}, run ${result.runUrl} (attempt ${result.runAttempt}); ${result.jobs.length} required jobs verified. ACTIVE B has separate build/runtime/image/API/PG/cache checks.\n`);
++  console.log(JSON.stringify(result));
++ }catch(error){console.error(`CLOSED receipt reuse blocked: ${error.message}`);process.exitCode=1;}
++}
+diff --git a/tests/yard-active-dispatch.test.mjs b/tests/yard-active-dispatch.test.mjs
+index a1e116e..b29d5ce 100644
+--- a/tests/yard-active-dispatch.test.mjs
++++ b/tests/yard-active-dispatch.test.mjs
+@@ -102,9 +102,9 @@ test('parsed job identities stay stable and every upload name is filename-safe',
+ });
+ test('reusable deploy caller grants only the same read permissions required for exact GHCR A',()=>{
+  const caller=metadata(readFileSync(resolve(ownRoot,'.github/workflows/deploy.yml'),'utf8')).validate,callee=metadata(workflow)['yard-active-production'];
+- assert.equal(caller.uses,'./.github/workflows/ci.yml');assert.deepEqual(caller.permissions,{contents:'read',packages:'read'});assert.deepEqual(callee.permissions,caller.permissions);
++ assert.equal(caller.uses,'./.github/workflows/ci.yml');assert.deepEqual(caller.permissions,{contents:'read',packages:'read',actions:'read'});assert.deepEqual(callee.permissions,{contents:'read',packages:'read'});assert.deepEqual(metadata(workflow)['yard-closed-receipt'].permissions,{contents:'read',actions:'read'});
+  const production=block('yard-active-production');assert.match(production,/YARD_IMAGE_REPOSITORY: ghcr.io\/le-who\/cc-gh/);assert.match(production,/docker pull "\$\{YARD_IMAGE_REPOSITORY\}@\$\{YARD_CLOSED_DIGEST\}"/);assert.doesNotMatch(production,/packages: write|docker push/);
+- const withoutRead=structuredClone(caller);delete withoutRead.permissions.packages;assert.notDeepEqual(withoutRead.permissions,callee.permissions);
++ assert.equal(caller.permissions.packages,callee.permissions.packages);assert.equal(caller.permissions.actions,metadata(workflow)['yard-closed-receipt'].permissions.actions);
+ });
+ test('ACTIVE build and production image lanes consume B and are mandatory only in ACTIVE mode',()=>{
+  const ordinary=block('yard-active'),production=block('yard-active-production'),aggregate=block('release-ready');
+diff --git a/tests/yard-closed-ci-receipt.test.mjs b/tests/yard-closed-ci-receipt.test.mjs
+new file mode 100644
+index 0000000..d11e105
+--- /dev/null
++++ b/tests/yard-closed-ci-receipt.test.mjs
+@@ -0,0 +1,111 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFileSync,existsSync} from 'node:fs';
++import {resolve} from 'node:path';
++import {assemblePromotion} from '../scripts/yard-active-promotion.mjs';
++import {spawnSync} from 'node:child_process';
++import {closedJobInventory,validateClosedRun,validateClosedJobs,verifyGithubClosedReceipt} from '../scripts/yard-closed-ci-receipt.mjs';
++import {validateClosedCiReceipt} from '../scripts/yard-active-contract.mjs';
++const commit='a'.repeat(40),groups=['match3','bubbo','garden','merge','yard','cross-game-motion','hud-layout','mobile-ui','navigation-input','assets-performance','auth-cache-smoke'];
++function fixture(deploy=false){
++ const receipt={runId:9001,runAttempt:2,workflowPath:deploy?'.github/workflows/deploy.yml':'.github/workflows/ci.yml'};
++ const run={id:9001,run_attempt:2,repository:{id:1162268629,full_name:'Le-Who/CC-GH'},head_repository:{id:1162268629,full_name:'Le-Who/CC-GH'},head_sha:commit,event:'push',path:receipt.workflowPath,workflow_id:8,status:'completed',conclusion:'success',name:deploy?'VPS Deploy':'Game Hub CI',updated_at:'2026-10-04T07:00:00Z'};
++ const workflow={id:8,path:receipt.workflowPath},inventory=closedJobInventory(groups),prefix=deploy?'validate / ':'';
++ const jobs=[...inventory.required.map(row=>({name:row.name,conclusion:'success',steps:row.steps.map(name=>({name,status:'completed',conclusion:'success'}))})),...inventory.skipped.map(name=>({name,conclusion:'skipped',steps:[]}))].map((row,i)=>({...row,name:prefix+row.name,id:100+i,run_id:9001,run_attempt:1,head_sha:commit,status:'completed'}));
++ jobs.find(job=>job.name.endsWith('Exact source release acceptance')).run_attempt=2;
++ return {receipt,run,workflow,jobs,closedCommit:commit,browserGroups:groups};
++}
++const check=f=>validateClosedJobs(f);
++test('complete exact A inventory includes every source and matrix job and separate skipped ACTIVE lanes',()=>{
++ const f=fixture();assert.equal(check(f).jobs.length,23);const lowercase=structuredClone(f);lowercase.run.repository.full_name='le-who/cc-gh';lowercase.run.head_repository.full_name='le-who/cc-gh';assert.equal(check(lowercase).jobs.length,23);assert.equal(closedJobInventory(groups).skipped.length,3);
++ assert.deepEqual(check(f).jobs.filter(row=>row.name.startsWith('Yard eight-player')).map(row=>row.name),['Yard eight-player / small-phone','Yard eight-player / phone','Yard eight-player / landscape','Yard eight-player / desktop']);
++ const d=fixture(true);d.jobs.push({...d.jobs[0],id:999,name:'build-and-push'});assert.equal(check(d).jobs.length,23);
++});
++test('run and attempt identity require exact repository, workflow, commit and successful status',()=>{
++ for(const change of [f=>f.run.repository.full_name='other/cc-gh',f=>{f.run.repository.id=99;f.run.head_repository.id=99;},f=>f.run.head_repository.id=99,f=>f.run.head_repository.full_name='fork/cc-gh',f=>f.run.id++,f=>f.run.run_attempt++,f=>f.run.head_sha='b'.repeat(40),f=>f.run.path='.github/workflows/other.yml',f=>f.workflow.id++,f=>f.workflow.path='.github/workflows/other.yml',f=>f.run.name='Other CI',f=>f.run.event='pull_request',f=>f.run.status='in_progress',f=>f.run.conclusion='failure']){const f=fixture();change(f);assert.throws(()=>check(f));}
++});
++test('receipt identities do not accept guessed paths, omitted attempts or arbitrary fields',()=>{
++ for(const value of [null,{},[],{runId:1,runAttempt:0,workflowPath:'.github/workflows/ci.yml'},{runId:'1',runAttempt:1,workflowPath:'.github/workflows/ci.yml'},{runId:1,runAttempt:1,workflowPath:'https://example.invalid/ci'},{...fixture().receipt,accepted:true}])assert.throws(()=>validateClosedCiReceipt(value));
++});
++test('every required job must have succeeded; skipped, neutral, failed and missing matrix shards block',()=>{
++ for(let i=0;i<23;i++)for(const outcome of ['skipped','neutral','failure','cancelled','timed_out']){const f=fixture();f.jobs[i].conclusion=outcome;assert.throws(()=>check(f));}
++ for(const name of ['Browser / assets-performance','Yard eight-player / desktop','Exact source release acceptance']){const f=fixture();f.jobs=f.jobs.filter(j=>j.name!==name);assert.throws(()=>check(f),/inventory/);}
++});
++test('wrong job run, source, attempts, duplicates and unknown validation jobs fail',()=>{
++ for(const change of [f=>f.jobs[0].run_id++,f=>f.jobs[0].head_sha='b'.repeat(40),f=>f.jobs[0].run_attempt=3,f=>f.jobs[0].run_attempt='1',f=>f.jobs.push({...f.jobs[0]}),f=>f.jobs.push({...f.jobs[0],id:999}),f=>f.jobs.push({...f.jobs[0],name:'Unknown validation',id:999})]){const f=fixture();change(f);assert.throws(()=>check(f));}
++});
++test('successful targeted retry replaces its failed earlier job without rerunning successful jobs',()=>{
++ const f=fixture(),job=f.jobs.find(j=>j.name==='mochi');job.conclusion='failure';f.jobs.push({...structuredClone(job),id:998,run_attempt:2,conclusion:'success'});
++ const result=check(f);assert.equal(result.jobs.find(j=>j.name==='mochi').attempt,2);assert.equal(result.jobs.find(j=>j.name==='touch').attempt,1);
++ f.jobs.reverse();assert.equal(check(f).jobs.find(j=>j.name==='mochi').id,998);
++ f.jobs.find(j=>j.id===998).conclusion='failure';assert.throws(()=>check(f));
++});
++test('skipped actual test or source verification steps cannot hide inside a green job',()=>{
++ for(const name of ['Run tests','Verify and report exact CLOSED acceptance source','Genuine eight-actor API store browser PostgreSQL15 acceptance']){const f=fixture(),job=f.jobs.find(j=>j.steps.some(s=>s.name===name));job.steps.find(s=>s.name===name).conclusion='skipped';assert.throws(()=>check(f));}
++ const f=fixture();f.jobs[0].steps=[];assert.throws(()=>check(f),/proof step/);
++});
++test('CLOSED receipt cannot come from a run that exercised ACTIVE or itself reused acceptance',()=>{
++ for(const name of closedJobInventory(groups).skipped){const f=fixture();f.jobs.find(j=>j.name===name).conclusion='success';assert.throws(()=>check(f));}
++});
++function fakeApi(f,change=()=>{}){
++ let final=0;const calls=[];
++ const fetchImpl=async(url,options)=>{
++  calls.push({url,options});let data;
++  if(url.endsWith('/workflows/8'))data=f.workflow;
++  else if(url.includes('/jobs?'))data={total_count:f.jobs.length,jobs:f.jobs};
++  else{data=structuredClone(f.run);if(url.endsWith('/runs/9001'))final++;}
++  const response={status:200,data:structuredClone(data)};change({url,response,final});return {status:response.status,text:async()=>JSON.stringify(response.data)};
++ };return {fetchImpl,calls};
++}
++test('read-only authoritative API sequence pins attempts, all job pages and a stable final run',async()=>{
++ const f=fixture(),api=fakeApi(f),result=await verifyGithubClosedReceipt({...f,token:'ephemeral-test-token',...api});assert.equal(result.jobs.length,23);assert.equal(api.calls.length,5);
++ assert.ok(api.calls.every(c=>c.options.method==='GET'&&c.options.redirect==='error'&&c.url.startsWith('https://api.github.com/repos/le-who/cc-gh/actions/')));
++ assert.ok(api.calls.some(c=>c.url.includes('/attempts/2')));assert.ok(api.calls.some(c=>c.url.includes('filter=all')));
++});
++test('all job pages are verified while retaining successful targeted replacements',async()=>{
++ const f=fixture();f.receipt.runAttempt=5;f.run.run_attempt=5;
++ const latest=f.jobs.map(job=>({...job,run_attempt:5}));
++ f.jobs=[...Array.from({length:4},(_,i)=>latest.map(job=>({...job,id:1000+(i*100)+job.id,run_attempt:i+1,conclusion:job.conclusion==='skipped'?'skipped':'failure'}))).flat(),...latest];
++ const api=fakeApi(f,({url,response})=>{if(url.includes('/jobs?')){const page=Number(new URL(url).searchParams.get('page'));response.data.jobs=f.jobs.slice((page-1)*100,page*100);}});
++ const result=await verifyGithubClosedReceipt({...f,token:'test',...api});assert.equal(result.jobs.length,23);assert.ok(result.jobs.every(row=>row.attempt===5));assert.equal(api.calls.filter(row=>row.url.includes('/jobs?')).length,2);
++});
++test('API unavailability, missing page data and concurrent reruns all fail closed',async()=>{
++ for(const change of [({response})=>response.status=403,({url,response})=>{if(url.includes('/jobs?'))response.data.total_count++;},({url,response,final})=>{if(url.endsWith('/runs/9001')&&final===2)response.data.run_attempt++;},({url,response,final})=>{if(url.endsWith('/runs/9001')&&final===2)response.data.updated_at='later';}]){const f=fixture(),api=fakeApi(f,change);await assert.rejects(()=>verifyGithubClosedReceipt({...f,token:'test',...api}));}
++ await assert.rejects(()=>verifyGithubClosedReceipt({...fixture(),token:''}),/token/);
++});
++const workflow=readFileSync(new URL('../.github/workflows/ci.yml',import.meta.url),'utf8');
++test('aggregate allows only CLOSED, ACTIVE fresh suites, or ACTIVE verified receipt; each required failure blocks',()=>{
++ const code=workflow.slice(workflow.indexOf('  release-ready:')).match(/node --input-type=module <<'JS'\n([\s\S]*?)          JS/)[1].split('\n').map(line=>line.slice(10)).join('\n');
++ const closed=['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'],active=['yard-active','yard-active-production'];
++ const execute=(mode,reuse,needs)=>spawnSync(process.execPath,['--input-type=module','-e',code],{env:{...process.env,RELEASE_MODE:mode,REUSE_CLOSED:reuse,RELEASE_RESULTS:JSON.stringify(needs)},encoding:'utf8'}).status;
++ for(const [mode,reuse]of [['CLOSED','false'],['ACTIVE','false'],['ACTIVE','true']]){
++  const needs=Object.fromEntries([['yard-release-mode','success'],...closed.map(id=>[id,reuse==='true'?'skipped':'success']),['yard-closed-receipt',reuse==='true'?'success':'skipped'],...active.map(id=>[id,mode==='ACTIVE'?'success':'skipped'])].map(([id,result])=>[id,{result}]));
++  assert.equal(execute(mode,reuse,needs),0);
++  for(const [id,{result}]of Object.entries(needs))for(const wrong of ['failure','cancelled',result==='success'?'skipped':'success'])assert.notEqual(execute(mode,reuse,{...needs,[id]:{result:wrong}}),0,`${mode}/${reuse}/${id}/${wrong}`);
++  if(mode==='CLOSED')assert.notEqual(execute(mode,'true',needs),0);
++ }
++});
++
++test('optional receipt survives exact promotion assembly; absence preserves original fallback inputs',()=>{
++ const root=resolve(process.env.YARD_DISPATCH_TEST_SOURCE_ROOT||process.cwd());
++ const git=args=>{const r=spawnSync('git',args,{cwd:root,maxBuffer:4*1024*1024});assert.equal(r.status,0,r.stderr?.toString());return r.stdout;};
++ const contractPath=resolve(root,'game-logic/yard-v2/active-release-contract.json');
++ const buildId=existsSync(contractPath)?JSON.parse(readFileSync(contractPath)).inputs.closed.buildId:git(['rev-parse','HEAD']).toString().trim();
++ const imageDigest='sha256:'+'1'.repeat(64),inputs={format:'yard-active-inputs/v1',repository:'le-who/cc-gh',closed:{buildId,imageDigest,
++  image:{Id:'sha256:'+'2'.repeat(64),RepoDigests:['ghcr.io/le-who/cc-gh@'+imageDigest],Config:{Labels:{'org.opencontainers.image.revision':buildId}}},
++  compatibility:{format:'cc-gh-yard-release-compatibility/v1',buildId,policyRevision:'yard-player-rollout/closed-r1',playerRolloutEnabled:false,readableStorageFormats:['yard-persistent/v1'],closedQuarantineVerified:true,requiredClosedPredecessor:null}},
++  acceptance:{reviewReference:'test-only:review',...Object.fromEntries(['nativeDuration','eightPlayer','geometryEquivalence'].map(kind=>[kind,{reference:'test-only:'+kind,artifactSha256:'3'.repeat(64),sourceCommit:kind==='nativeDuration'?'b92c84d685a1221cf6fdbde41624c901bc8b2f8f':buildId,...(kind==='eightPlayer'?{runId:37181170572}:{})}]))}};
++ const assemble=()=>assemblePromotion({inputs,closedTree:git(['rev-parse',buildId+'^{tree}']).toString().trim(),read:path=>git(['cat-file','blob',buildId+':'+path])});
++ assert.equal(Object.hasOwn(assemble().contract.inputs.closed,'ciReceipt'),false);
++ inputs.closed.ciReceipt=fixture().receipt;const result=assemble();assert.equal(result.files.size,21);assert.deepEqual(result.contract.inputs.closed.ciReceipt,inputs.closed.ciReceipt);
++ inputs.closed.ciReceipt=null;assert.throws(assemble,/receipt identity/);
++});
++test('workflow keeps fresh-suite fallback and scopes Actions reads to the authoritative receipt job',()=>{
++ const block=job=>workflow.match(new RegExp(`^  ${job}:\\n([\\s\\S]*?)(?=^  [a-z][a-z0-9_-]*:|$(?![\\s\\S]))`,'m'))?.[1];
++ for(const job of ['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi'])assert.match(block(job),/^    if: needs\.yard-release-mode\.outputs\.reuse_closed != 'true'$/m);
++ assert.match(block('yard-closed-receipt'),/^    if: needs\.yard-release-mode\.outputs\.reuse_closed == 'true'$/m);
++ assert.match(block('yard-closed-receipt'),/yard-ci-dispatch\.mjs --verify-active[\s\S]*ref: \$\{\{ needs.yard-release-mode.outputs.closed_ref \}\}[\s\S]*yard-ci-dispatch\.mjs --assert-closed-ref/);
++ assert.match(workflow,/^permissions:\n  contents: read\n\njobs:/m);assert.equal((workflow.match(/^      actions: read$/gm)||[]).length,1);assert.match(block('yard-closed-receipt'),/^      actions: read$/m);
++ for(const job of ['yard-active','yard-active-production']){assert.match(block(job),/^    if: needs\.yard-release-mode\.outputs\.mode == 'ACTIVE'$/m);assert.doesNotMatch(block(job),/reuse_closed/);}
++ const dispatch=readFileSync(new URL('../scripts/yard-ci-dispatch.mjs',import.meta.url),'utf8');assert.match(dispatch,/reuse_closed:'false'/);assert.match(dispatch,/Object\.hasOwn\(closed,'ciReceipt'\)\?'true':'false'/);
++});
