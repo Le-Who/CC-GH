@@ -19,7 +19,6 @@ async function capture(page,testInfo,name){
   await settleImages(page);
   const filename=`fixed-fixture-ui-only-${testInfo.project.name}-${name}.png`;
   await page.screenshot({path:testInfo.outputPath(filename),fullPage:false});
-  await testInfo.attach(filename,{path:testInfo.outputPath(filename),contentType:'image/png'});
   const metrics=await page.evaluate(()=>{
     const faults=[],viewport={width:innerWidth,height:innerHeight};
     for(const element of [document.documentElement,document.body,...document.querySelectorAll('.cy-panel')]){
@@ -37,7 +36,6 @@ async function capture(page,testInfo,name){
   });
   const metricsPath=testInfo.outputPath(`fixed-fixture-ui-only-${name}-metrics.json`);
   await writeFile(metricsPath,JSON.stringify(metrics,null,2));
-  await testInfo.attach(`${name}-layout-metrics`,{path:metricsPath,contentType:'application/json'});
   expect(metrics.scope).toBe(scope);expect(metrics.faults).toEqual([]);
 }
 

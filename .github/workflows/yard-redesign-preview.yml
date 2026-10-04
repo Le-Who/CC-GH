@@ -25,10 +25,15 @@ jobs:
             /package.json
             /pnpm-lock.yaml
             /tests/yard-redesign-preview/
+            /tests/yard-catalog-ui.test.mjs
+            /tests/yard-ui-thumbnails.test.mjs
+            /scripts/yard-ui-thumbnails.mjs
             /src/games/companion-yard-v2/CourtyardGame.jsx
             /src/games/companion-yard-v2/courtyard.css
             /src/games/companion-yard-v2/i18n.js
             /src/games/companion-yard-v2/catalog-ui.mjs
+            /src/games/companion-yard-v2/catalog-preview-paths.mjs
+            /public/assets/yard-ui/
             /src/games/companion-yard-v2/feedback.mjs
             /src/games/companion-yard/i18n.js
             /src/games/companion-yard/currencyDisplay.js
@@ -45,6 +50,8 @@ jobs:
             /public/assets/yard-mika/bonito-bowl-clean.webp
             /public/assets/yard-pebble/leaf-pot-still.webp
             /public/assets/yard-pip/snack-table-new.webp
+            /recovery-tools/yard-family-frozen/assets/yard-fox/shared-props/moon/stills/
+            /recovery-tools/yard-family-frozen/assets/yard-turtles/shared-fountain/
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
@@ -53,6 +60,10 @@ jobs:
       - name: Verify locked React
         run: |
           node --input-type=module -e "import assert from 'node:assert/strict'; import React from 'react'; import ReactDOM from 'react-dom'; assert.equal(React.version, '19.2.4'); assert.equal(ReactDOM.version, '19.2.4');"
+      - name: Verify source-identical thumbnail pixels and wooden surfaces
+        env:
+          YARD_UI_ASSET_ROOT: ${{ github.workspace }}
+        run: node --test tests/yard-catalog-ui.test.mjs tests/yard-ui-thumbnails.test.mjs
       - run: pnpm exec playwright install --with-deps chromium
       - name: Capture actual component with fixed UI fixtures
         run: pnpm exec playwright test --config tests/yard-redesign-preview/playwright.config.mjs
@@ -62,7 +73,7 @@ jobs:
           mkdir -p test-results-yard-redesign-preview
           cp tests/yard-redesign-preview/README.md test-results-yard-redesign-preview/FIXTURE-SCOPE.md
           git rev-parse HEAD > test-results-yard-redesign-preview/COMMIT.txt
-          sha256sum src/games/companion-yard-v2/CourtyardGame.jsx src/games/companion-yard-v2/courtyard.css src/games/companion-yard-v2/i18n.js src/games/companion-yard-v2/catalog-ui.mjs > test-results-yard-redesign-preview/UI-SOURCE-SHA256.txt
+          sha256sum src/games/companion-yard-v2/CourtyardGame.jsx src/games/companion-yard-v2/courtyard.css src/games/companion-yard-v2/i18n.js src/games/companion-yard-v2/catalog-ui.mjs src/games/companion-yard-v2/catalog-preview-paths.mjs public/assets/yard-ui/preview-manifest.json public/assets/yard-ui/surfaces/ui-surfaces-manifest.json > test-results-yard-redesign-preview/UI-SOURCE-SHA256.txt
       - name: Preserve labelled UI-only review evidence
         if: always()
         uses: actions/upload-artifact@v7
@@ -70,6 +81,6 @@ jobs:
           name: yard-ui-only-fixed-fixture-${{ github.sha }}
           path: |
             test-results-yard-redesign-preview/
-            playwright-report-yard-redesign-preview/
+            !test-results-yard-redesign-preview/**/attachments/**
           if-no-files-found: error
           retention-days: 7

@@ -1,3 +1,5 @@
+import {CATALOG_PREVIEW_PATHS} from './catalog-preview-paths.mjs';
+
 /** Presentation assets only. Prices, ownership and action gates remain server/catalog owned. */
 const root = '/games/companion-yard';
 const goodieIds = ['yarn_mouse', 'sun_cushion', 'cardboard_cottage', 'fountain_bowl', 'cozy_chair', 'snack_table', 'leaf_pot', 'moss_rug', 'cloud_bed', 'moon_lamp', 'book_nook'];
@@ -26,10 +28,14 @@ export const YARD_UI_ART = Object.freeze({
   gift: `${root}/ui/gift_box.png`, letter: `${root}/ui/daily_letter.png`,
   album: '/games/hud-redesign/room/semantic-icons/dock-album.png',
 });
-export function catalogPreview(kind, id, {condition = 'new', pose = ''} = {}) {
+export function catalogPreviewSource(kind, id, {condition = 'new', pose = ''} = {}) {
   if (kind === 'food') return Object.hasOwn(foodAssets, id) ? foodAssets[id] : null;
   if (kind === 'goodie' && goodieIds.includes(id)) {
-    if (condition === 'new' && Object.hasOwn(stillAssets, id)) return stillAssets[id];
+    // The released scene reuses these exact still pixels for its condition display.
+    if (Object.hasOwn(stillAssets, id)) return stillAssets[id];
+    const state=['worn','broken'].includes(condition)?condition:'new';
+    if (id === 'moon_lamp') return `/assets/yard-fox/shared-props/moon/stills/moon-${state}.webp`;
+    if (id === 'fountain_bowl') return `/assets/yard-turtles/shared-fountain/fountain-${state}.webp`;
     const variant = ['worn', 'broken'].includes(condition) ? `_${condition}` : '';
     return `${root}/goodies/${id}${variant}.png`;
   }
@@ -40,6 +46,10 @@ export function catalogPreview(kind, id, {condition = 'new', pose = ''} = {}) {
   if (kind === 'companion' && ['cat', 'dog', 'bunny', 'fox', 'hamster', 'turtle'].includes(id)) return `${root}/companions/${id}.png`;
   if (kind === 'remodel' && ['meadow', 'tea_house', 'moon_garden'].includes(id)) return `${root}/backgrounds/${id}.png`;
   return null;
+}
+export function catalogPreview(kind,id,options) {
+  const source=catalogPreviewSource(kind,id,options);
+  return source && (CATALOG_PREVIEW_PATHS[source] || source);
 }
 export function photoPreview(photo = {}) {
   return { visitor: catalogPreview('visitor', photo.visitorId, {pose: photo.pose}), background: catalogPreview('remodel', photo.remodel), goodie: catalogPreview('goodie', photo.goodieId) };

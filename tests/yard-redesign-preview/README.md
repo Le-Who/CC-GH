@@ -26,7 +26,7 @@ Every attempted mutation returns an explicit blocked error; none returns success
 ## Evidence
 
 Artifacts and every screenshot filename identify `UI-only fixed fixture`.
-The artifact includes the tested commit, source hashes and this scope document.
+The artifact keeps each original screenshot, metric, failure trace, tested commit, source hashes and this scope document once. Duplicate attachment copies and a separate HTML report are excluded.
 320×568, 390×844 at DPR2, and 844×390 cover:
 
 - Both large balances and accessible exact values
@@ -41,8 +41,7 @@ Checks require loaded visible preview images, no horizontal scrolling or clipped
 fixed controls, labels fitting their containers, and controls at least 44×44 CSS
 pixels. Scrollable panel contents may naturally extend below the scrollport.
 Screenshots are captured before layout assertions so failures remain reviewable.
-Human comparison with the approved design reference is still necessary: existing
-scene/item art and panel skins have not been replaced by a new production UI kit.
+Human comparison with the design reference is still necessary. The wooden UI surfaces are separate generated data-free assets. Item thumbnails are transparent-padding crops of the same runtime stills; existing authored visitor portraits are preserved. No replacement item or character art is introduced.
 A green diagnostic does not change the active production fence or approve release.
 
 ## Run with the repository's installed dependencies

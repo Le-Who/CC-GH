@@ -94,7 +94,7 @@ export default function CourtyardGame() {
     const supported=SUPPORTED_PROPS.includes(item.id),raw=item.raw;
     const prop=raw && current.props.find(p=>p.slotId===raw.slotId);
     const reserved=raw && current.runtime?.visits?.some(v=>v.slotId===raw.slotId && v.reserved);
-    const detail=decorTab==='shop'?cost(YARD_GOODIES[item.id].cost):decorTab==='inventory'?t('yard.persistent.stock',{count:item.count}):!supported?t('yard.persistent.savedScenePending'):reserved?t('yard.persistent.occupied'):prop?.readiness?.status==='reposition-needed'?t('yard.persistent.safeApproach'):raw.condition!=='new'?t('yard.persistent.repairNeeded'):prop?t('yard.persistent.inYard'):t('yard.persistent.chooseSpot');
+    const detail=decorTab==='shop'?cost(YARD_GOODIES[item.id].cost):decorTab==='inventory'?t('yard.persistent.stock',{count:item.count})+(supported?'':` · ${t('yard.persistent.savedUnsupported')}`):!supported?t('yard.persistent.savedScenePending'):reserved?t('yard.persistent.occupied'):prop?.readiness?.status==='reposition-needed'?t('yard.persistent.safeApproach'):raw.condition!=='new'?t('yard.persistent.repairNeeded'):prop?t('yard.persistent.inYard'):t('yard.persistent.chooseSpot');
     return {supported,prop,reserved,detail};
   };
   const chosen=selected && itemState(selected);
@@ -155,7 +155,7 @@ export default function CourtyardGame() {
       </>}
       {feedback && <p className="cy-feedback" role="alert">{feedback}</p>}
       </div>
-      {panel==='decor' && selected && <footer className="cy-selected-actions"><div><strong>{name(selected.id)}</strong><small>{chosen.detail}{decorTab==='inventory' && !chosen.supported?` · ${t('yard.persistent.savedUnsupported')}`:''}{decorTab==='shop'?purchaseNote(YARD_GOODIES[selected.id]?.cost,bindings.goodies?.[selected.id]?.buy):''}{decorTab==='placed' && selected.raw.condition!=='new' && chosen.supported && !affordable(YARD_GOODIES[selected.id]?.fixCost)?` · ${t('yard.persistent.insufficientFunds')}`:''}</small></div><div className="cy-row-actions">
+      {panel==='decor' && selected && <footer className="cy-selected-actions"><div><strong>{name(selected.id)}</strong><small>{chosen.detail}{decorTab==='shop'?purchaseNote(YARD_GOODIES[selected.id]?.cost,bindings.goodies?.[selected.id]?.buy):''}{decorTab==='placed' && selected.raw.condition!=='new' && chosen.supported && !affordable(YARD_GOODIES[selected.id]?.fixCost)?` · ${t('yard.persistent.insufficientFunds')}`:''}</small></div><div className="cy-row-actions">
         {decorTab==='placed' && <><button disabled={blocked || chosen.reserved || !chosen.supported} onClick={()=>startPlacement(chosen.prop || selected.raw)}>{t('yard.move')}</button><button disabled={blocked || chosen.reserved} onClick={()=>act('yard.pickupGoodie',{slotId:selected.raw.slotId})}>{t('yard.store')}</button>{selected.raw.condition!=='new' && <button disabled={blocked || chosen.reserved || !chosen.supported || !affordable(YARD_GOODIES[selected.id]?.fixCost)} onClick={()=>act('yard.fixGoodie',{slotId:selected.raw.slotId})}>{t('yard.persistent.repairCost',{cost:cost(YARD_GOODIES[selected.id]?.fixCost)})}</button>}</>}
         {decorTab==='inventory' && <button disabled={blocked || !chosen.supported || !bindings.goodies?.[selected.id]?.place} onClick={()=>startPlacement({goodieId:selected.id},true)}>{t('yard.place')}</button>}
         {decorTab==='shop' && <button disabled={blocked || !bindings.goodies?.[selected.id]?.buy || !affordable(YARD_GOODIES[selected.id]?.cost)} onClick={()=>act('yard.buyGoodie',{goodieId:selected.id})}>{t('yard.buy')}</button>}

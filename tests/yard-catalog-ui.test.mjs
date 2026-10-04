@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {access} from 'node:fs/promises';
 import {resolve} from 'node:path';
-import {catalogPreview,photoPreview,canAffordCatalogCost,placementMessageKey,YARD_UI_ART} from '../src/games/companion-yard-v2/catalog-ui.mjs';
+import {catalogPreview,catalogPreviewSource,photoPreview,canAffordCatalogCost,placementMessageKey,YARD_UI_ART} from '../src/games/companion-yard-v2/catalog-ui.mjs';
 import {YARD_FOODS,YARD_GOODIES,YARD_VISITORS,YARD_REMODELS} from '../game-logic/yard-catalog.js';
 import {formatYardCurrencyBalance} from '../src/games/companion-yard/currencyDisplay.js';
 
@@ -20,9 +20,11 @@ test('all catalog items, food, remodels and all eight visitors have authored pre
 test('album metadata selects the saved visitor pose, goodie and remodel without mutating the photo',()=>{
   const photo={visitorId:'mika_cat',pose:'nap',goodieId:'sun_cushion',remodel:'moon_garden',favorite:true};
   const before=JSON.stringify(photo),art=photoPreview(photo);
-  assert.equal(art.visitor,'/games/companion-yard/visitors/mika_cat_nap.png');
+  assert.equal(catalogPreviewSource('visitor',photo.visitorId,{pose:photo.pose}),'/games/companion-yard/visitors/mika_cat_nap.png');
+  assert.match(art.visitor,/^\/assets\/yard-ui\/previews\/[a-f0-9]+\.webp$/);
   assert.equal(art.background,'/games/companion-yard/backgrounds/moon_garden.png');
-  assert.equal(art.goodie,'/assets/yard-mika/sun-cushion-clean.webp');
+  assert.equal(catalogPreviewSource('goodie',photo.goodieId),'/assets/yard-mika/sun-cushion-clean.webp');
+  assert.match(art.goodie,/^\/assets\/yard-ui\/previews\/[a-f0-9]+\.webp$/);
   assert.equal(JSON.stringify(photo),before);
 });
 test('unknown saved IDs never become arbitrary paths; unsupported poses use the real visitor portrait',()=>{
@@ -53,7 +55,7 @@ test('both currency balances retain their exact accessible values even when comp
 test('every selected preview is a real checked-in asset',{skip:!process.env.YARD_UI_ASSET_ROOT},async()=>{
   assets.add(catalogPreview('food','empty_bowl'));
   for(const id of ['cat','dog','bunny','fox','hamster','turtle']) assets.add(catalogPreview('companion',id));
-  for(const path of assets) await access(resolve(process.env.YARD_UI_ASSET_ROOT,`public${path}`));
+  for(const path of assets) await access(path.startsWith('/assets/yard-ui/')?new URL(`../public${path}`,import.meta.url):resolve(process.env.YARD_UI_ASSET_ROOT,`public${path}`));
 });
 
 test('placement failures retain their specific explanation and unknown errors fail closed',()=>{
