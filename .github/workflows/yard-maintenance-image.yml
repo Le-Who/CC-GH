@@ -1,0 +1,71 @@
+name: Build reviewed ACTIVE maintenance image
+on:
+  workflow_dispatch:
+    inputs:
+      build_request_json:
+        description: Independently reviewed source-only request; no candidate digest is invented
+        required: true
+        type: string
+      build_request_sha256:
+        description: Exact approved SHA256 of build_request_json bytes
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  packages: write
+jobs:
+  build:
+    name: Build immutable maintenance candidate only
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify exact source, bootstrap and authoritative predecessor before image publication
+        env:
+          CI: 'true'
+          YARD_MAINTENANCE_ACCEPTANCE: '1'
+          YARD_MAINTENANCE_REQUEST_JSON: ${{ inputs.build_request_json }}
+          YARD_MAINTENANCE_REQUEST_SHA256: ${{ inputs.build_request_sha256 }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_OPTIONS: ''
+        run: node scripts/yard-maintenance-cli.mjs --build-plan "$PWD" "$RUNNER_TEMP/maintenance-build-plan"
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish only the reviewed candidate tag
+        id: image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          build-args: BUILD_ID=${{ github.sha }}
+          tags: ghcr.io/le-who/cc-gh:maintenance-${{ github.sha }}
+          labels: org.opencontainers.image.revision=${{ github.sha }}
+      - name: Record actual registry output without claiming runtime acceptance
+        env:
+          PUBLISHED_DIGEST: ${{ steps.image.outputs.digest }}
+          SOURCE_COMMIT: ${{ github.sha }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync} from 'node:fs';
+          const plan=JSON.parse(readFileSync(process.env.RUNNER_TEMP+'/maintenance-build-plan/plan.json'));
+          assert.equal(plan.status,'source-build-only');assert.equal(plan.source.candidateCommit,process.env.SOURCE_COMMIT);
+          assert.match(process.env.PUBLISHED_DIGEST,/^sha256:[a-f0-9]{64}$/);assert.equal(process.env.PUBLISHED_DIGEST.length,71);
+          writeFileSync(process.env.RUNNER_TEMP+'/maintenance-build-receipt.json',JSON.stringify({format:'cc-gh-yard-maintenance-build/v1',status:'built-not-runtime-accepted',sourceCommit:process.env.SOURCE_COMMIT,sourceTree:plan.source.candidateTree,recordSha256:plan.recordSha256,requestSha256:plan.requestSha256,imageDigest:process.env.PUBLISHED_DIGEST}));
+          JS
+      - uses: actions/upload-artifact@v7
+        with:
+          name: yard-maintenance-build-${{ github.sha }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/maintenance-build-receipt.json
+          if-no-files-found: error
+          retention-days: 14

@@ -59,7 +59,7 @@ export const GAME_REGISTRY = {
     id: "settlement",
     labelKey: "tabs.settlement",
     icon: "Home",
-    visible: true,
+    visible: false,
     pixiScene: true,
     shell: "game",
   },
