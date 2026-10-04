@@ -47,6 +47,13 @@ jobs:
       - name: Build Telegram Mini App client
         run: pnpm run build
 
+      - name: Verify exact frozen Yard runtime delivery
+        env:
+          NODE_ENV: test
+        run: |
+          node --test tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
+          pnpm run perf:guard:build
+
       - name: Run platform cleanup guard
         run: pnpm run test:cleanup
 
@@ -119,6 +126,15 @@ jobs:
           REDIS_URL: ''
           NODE_OPTIONS: ''
         run: pnpm run test:yard-family:pg
+
+      - name: Preserve measured shipped-media budget report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/perf/perf-build-report.json
+          if-no-files-found: ignore
+          retention-days: 14
 
       - name: Preserve verified client build
         uses: actions/upload-artifact@v7
@@ -245,6 +261,8 @@ jobs:
         run: pnpm run test:yard-current-four
       - name: Check closed family conditions, native persistence and frozen media budgets
         run: pnpm run test:yard-family
+      - name: Check required native pair activity eligibility
+        run: node --test tests/yard-native-pair-eligibility.test.mjs
       - name: Validate inactive Mochi media
         run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
       - name: Validate canonical Yard scene
@@ -399,3 +417,6 @@ jobs:
 
       - name: Verify Docker build
         run: docker build -t game-hub-ci .
+
+      - name: Verify final container Yard HTTP delivery
+        run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-public-media-http.mjs

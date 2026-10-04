@@ -12,6 +12,11 @@ export function pairSeedSearch({yard,first,second,firstSlot,secondSlot},options,
  const secondContext=nativeDrawContext({yard,placement:placement(secondSlot),foodId:spec(second).foodId,scene:options.scene,at:NOW+2*H});
  const otherFirst=nativeDrawContext({yard,placement:placement(secondSlot),foodId:spec(first).foodId,scene:options.scene,at:NOW+H});
  assert.equal(firstContext.ok,true,JSON.stringify(firstContext.errors));assert.equal(secondContext.ok,true,JSON.stringify(secondContext.errors));
+ // Source media readiness does not make a native activity socket reachable.
+ // Reject an impossible draw before trying seeds or alternate slot IDs.
+ for(const [role,id,context]of [['first',first,firstContext],['second',second,secondContext]]){
+  if(!context.activities.some(a=>a.id===spec(id).activityId))throw Error(`Native pair activity unavailable: ${role} ${id}/${spec(id).activityId} (available: ${context.activities.map(a=>a.id).join(',')})`);
+ }
  for(let i=0;i<limit;i++){
   const seed=`${prefix}-${first}-${second}-${i}`,a=drawNativeSeed(seed,firstContext),b=drawNativeSeed(seed,secondContext);
   if(a?.visitorId!==spec(first).visitorId||a.activityId!==spec(first).activityId||a.minutes<75||b?.visitorId!==spec(second).visitorId||b.activityId!==spec(second).activityId)continue;

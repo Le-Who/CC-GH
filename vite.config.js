@@ -5,10 +5,13 @@ import path from "path";
 import { createShellPrecache } from "./scripts/sw-shell-precache.mjs";
 import { gameLoadingGraph } from "./scripts/game-loading-graph.mjs";
 
+import { yardPublicMedia } from "./scripts/yard-public-media.mjs";
+
 const shellPrecache = createShellPrecache();
 
 export default defineConfig({
   plugins: [
+    yardPublicMedia(),
     react(),
     gameLoadingGraph(),
     shellPrecache.plugin,

@@ -180,7 +180,7 @@ for (const [width,height] of [[390,844],[568,320]]) test.describe(`Blox real lin
     const placed=page.waitForResponse(response=>response.url().endsWith('/api/player/mutate')&&response.request().postDataJSON()?.action==='blox.place');
     await page.touchscreen.tap(layout.left+8.5*layout.cell,layout.top+4.5*layout.cell);
     const reply=await placed;expect(reply.ok()).toBe(true);const receipt=await reply.json();
-    await png('blox-line-clear-response-native');
+    // Keep the response-to-feedback interval free of screenshot-induced rendering stalls.
     expect(receipt.success).toBe(true);
     expect(receipt.clear).toEqual({rows:[4],cols:[],cleared:1,points:10});
     expect(receipt.savedState.score).toBe(20);expect(receipt.savedState.linesCleared).toBe(1);
