@@ -1,0 +1,238 @@
+--- a/routes/player.js
++++ b/routes/player.js
+@@ -1155,6 +1155,7 @@
+       return ok(action, p, { savedState });
+     }
+     case "blox.rotate": {
++      if (!p.blox.activeGame) return fail(403, "No active Blox session");
+       const saved = normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p);
+       if (!saved.gameActive) return fail(400, "No active Blox session");
+       if (saved.rotateCharges <= 0) return fail(400, "rotate unavailable", { savedState: saved });
+@@ -1167,6 +1168,7 @@
+       return ok(action, p, { savedState: saved, pieceIdx });
+     }
+     case "blox.place": {
++      if (!p.blox.activeGame) return fail(403, "No active Blox session");
+       let saved = normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p);
+       if (!saved.gameActive) return fail(400, "No active Blox session");
+       const pieceIdx = Number(payload.pieceIdx);
+@@ -1194,7 +1196,9 @@
+       p.blox.savedState = JSON.stringify(saved);
+       return ok(action, p, { savedState: saved, clear });
+     }
++    // Only start opens a session. Delayed saves must not resurrect settled runs.
+     case "blox.sync": {
++      if (!p.blox.activeGame) return fail(403, "No active Blox session");
+       const savedState = normalizeBloxSaved(payload.savedState, p);
+       p.blox.savedState = JSON.stringify(savedState);
+       p.blox.activeGame = !!savedState.gameActive;
+@@ -1203,7 +1207,7 @@
+     }
+     case "blox.end": {
+       const score = Number(payload.score) || normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p).score || 0;
+-      if (!p.blox.activeGame && score > 0) return fail(403, "No active Blox session");
++      if (!p.blox.activeGame) return fail(403, "No active Blox session");
+       const goldReward = score > 10000 ? 0 : calcBloxReward(score);
+       const tokenReward = score > 10000 ? 0 : calcTokenReward(score);
+       p.resources.gold += goldReward;
+@@ -1223,13 +1227,15 @@
+       return ok(action, p, { mode });
+     }
+     case "match3.syncMode": {
++      if (payload.game && !p.match3.currentGame) return fail(403, "Invalid session");
+       if (payload.savedModes && typeof payload.savedModes === "object") p.match3.savedModes = JSON.stringify(payload.savedModes);
+       if (payload.game && typeof payload.game === "object") p.match3.currentGame = payload.game;
+       return ok(action, p);
+     }
++    // Quitting settles an active run; it is not permission to reward a missing run.
+     case "match3.end": {
+       const score = Number(payload.score) || 0;
+-      if (!p.match3.currentGame && score > 0 && !payload.fromQuit) return fail(403, "Invalid session");
++      if (!p.match3.currentGame) return fail(403, "Invalid session");
+       let goldReward = 0;
+       let tokenReward = 0;
+       if (score > 0 && score <= 30000) {
+@@ -1250,6 +1256,7 @@
+       return ok(action, p, { game: p.bubbo.currentGame });
+     }
+     case "bubbo.sync": {
++      if (!p.bubbo?.currentGame) return fail(403, "Invalid Bubbo session");
+       if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
+       if (payload.game && typeof payload.game === "object") {
+         p.bubbo.currentGame = normalizeBubboCurrentGame(payload.game, p.bubbo.currentGame || {});
+@@ -1259,7 +1266,7 @@
+     case "bubbo.end": {
+       if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
+       const score = Number(payload.score) || p.bubbo.currentGame?.score || 0;
+-      if (!p.bubbo.currentGame && score > 0 && !payload.fromQuit) return fail(403, "Invalid Bubbo session");
++      if (!p.bubbo.currentGame) return fail(403, "Invalid Bubbo session");
+       let goldReward = 0;
+       let tokenReward = 0;
+       if (score > 0 && score <= 25000) {
+--- a/routes/match3.js
++++ b/routes/match3.js
+@@ -52,6 +52,7 @@
+     if (!userId) return res.status(400).json({ error: "userId required" });
+     const result = await withPlayerLock(userId, async (p) => {
+       const { savedModes, game } = req.body;
++      if (game && !p.match3.currentGame) return routeFail(403, { error: "Invalid session" });
+       let changed = false;
+ 
+       if (savedModes && typeof savedModes === "object") {
+@@ -107,15 +108,10 @@
+     const { userId, username } = resolveUser(req);
+     if (!userId) return res.status(400).json({ error: "userId required" });
+     const result = await withPlayerLock(userId, async (p) => {
+-      const { score, fromQuit } = req.body;
++      const { score } = req.body;
+ 
+       // Prevent awarding gold if there was no active session logged
+-      if (
+-        !p.match3.currentGame &&
+-        typeof score === "number" &&
+-        score > 0 &&
+-        !fromQuit
+-      ) {
++      if (!p.match3.currentGame) {
+         console.warn(
+           `⚠️ User ${userId} tried to end Match-3 without starting a session.`,
+         );
+--- a/routes/blox.js
++++ b/routes/blox.js
+@@ -104,6 +104,7 @@
+     if (!userId) return res.status(400).json({ error: "userId required" });
+     const result = await withPlayerLock(userId, async (p) => {
+       const { savedState } = req.body;
++      if (!p.blox.activeGame) return routeFail(403, { error: "No active Blox session" });
+       // v5.0.1: Store as JSON string — Postgres boundary for nested arrays (board is 2D array)
+       p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
+       return routeOk({ success: true });
+--- a/package.json
++++ b/package.json
+@@ -21,7 +21,7 @@
+     "start": "node server.js",
+     "dev:server": "node server.js",
+     "dev": "vite",
+-    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/game-entry-presentation.test.mjs tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-ground-coverage-index.test.mjs tests/yard-player-rollout.test.mjs tests/yard-rollback-guard.test.mjs",
++    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/arcade-reward-once.test.mjs tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/game-entry-presentation.test.mjs tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-ground-coverage-index.test.mjs tests/yard-player-rollout.test.mjs tests/yard-rollback-guard.test.mjs",
+     "test:perf": "node --test tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js",
+     "perf:guard": "node scripts/perf-guard.mjs",
+     "perf:guard:build": "node scripts/perf-build-guard.mjs",
+--- /dev/null
++++ b/tests/arcade-reward-once.test.mjs
+@@ -0,0 +1,115 @@
++import './yard-inventory-only-loader.mjs';
++import test from 'node:test';
++import assert from 'node:assert/strict';
++const {createDefaultPlayer}=await import('../game-logic.js');
++const {applyActionWithReceipt}=await import('../routes/player.js');
++
++const walletOf=p=>({gold:p.resources.gold,gachaTokens:p.resources.gachaTokens});
++
++// Route-domain regression only: no browser, socket, database, or genuine score-earning claim.
++for (const game of ['blox', 'match3', 'bubbo']) {
++  test(`${game}: identical reward command replays once after persisted reload`, async () => {
++    let player=createDefaultPlayer(`once-${game}`, 'Audit', Date.now());
++    const run=(action,payload,id)=>applyActionWithReceipt(player,action,payload,{clientActionId:`audit-${id}`});
++    assert.equal((await run(`${game}.start`,{},`${game}-start`)).status,200);
++    const payload={score:3500,fromQuit:true};
++    assert.equal((await run(`${game}.end`,payload,`${game}-end`)).status,200);
++    const wallet=walletOf(player);
++    player=JSON.parse(JSON.stringify(player));
++    const replay=await run(`${game}.end`,payload,`${game}-end`);
++    assert.equal(replay.status,200);assert.equal(replay.body.duplicate,true);
++    assert.deepEqual(walletOf(player),wallet);
++  });
++  test(`${game}: completed run cannot reward again under a new command ID`, async () => {
++    let player=createDefaultPlayer(`new-id-${game}`, 'Audit', Date.now());
++    const run=(action,payload,id)=>applyActionWithReceipt(player,action,payload,{clientActionId:`audit-${id}`});
++    assert.equal((await run(`${game}.start`,{},`${game}-start`)).status,200);
++    const payload={score:3500,fromQuit:true};
++    assert.equal((await run(`${game}.end`,payload,`${game}-end`)).status,200);
++    const wallet=walletOf(player);
++    player=JSON.parse(JSON.stringify(player));
++    await run(`${game}.end`,payload,`${game}-new-id`);
++    assert.deepEqual(walletOf(player),wallet,'A finished run must not grant a second wallet reward');
++  });
++}
++
++for (const game of ['blox', 'match3', 'bubbo']) {
++  test(`${game}: zero-score end settles once and a new started session can settle`,async()=>{
++    const p=createDefaultPlayer(`zero-${game}`,'Audit',Date.now());
++    const run=(action,payload,id)=>applyActionWithReceipt(p,action,payload,{clientActionId:`audit-${id}`});
++    assert.equal((await run(`${game}.end`,{score:0,fromQuit:true},'orphan')).status,403);
++    await run(`${game}.start`,{},'start');
++    assert.equal((await run(`${game}.end`,{score:0,fromQuit:true},'zero')).status,200);
++    const wallet=walletOf(p);
++    assert.equal((await run(`${game}.end`,{score:0,fromQuit:true},'zero-again')).status,403);
++    assert.deepEqual(walletOf(p),wallet);
++    await run(`${game}.start`,{},'next-start');
++    assert.equal((await run(`${game}.end`,{score:3500,fromQuit:true},'next-end')).status,200);
++    assert.equal(p.resources.gachaTokens,wallet.gachaTokens+4);
++  });
++  test(`${game}: late fresh-ID save cannot reopen a completed run after reload`,async()=>{
++    let p=createDefaultPlayer(`late-${game}`,'Audit',Date.now());
++    const run=(action,payload,id)=>applyActionWithReceipt(p,action,payload,{clientActionId:`audit-${id}`});
++    await run(`${game}.start`,{},'start');
++    const sync=game==='blox'?'blox.sync':game==='match3'?'match3.syncMode':'bubbo.sync';
++    const payload=game==='blox'?{savedState:JSON.parse(p.blox.savedState)}:{game:structuredClone(p[game].currentGame)};
++    assert.equal((await run(sync,payload,'save')).status,200);
++    await run(`${game}.end`,{score:3500,fromQuit:true},'finish');
++    const wallet=walletOf(p);p=JSON.parse(JSON.stringify(p));
++    const sameSave=await run(sync,payload,'save');assert.equal(sameSave.body.duplicate,true);
++    assert.equal((await run(sync,payload,'late-save')).status,403);
++    assert.equal((await run(`${game}.end`,{score:3500,fromQuit:true},'late-finish')).status,403);
++    assert.deepEqual(walletOf(p),wallet);
++    assert.equal(game==='blox'?p.blox.activeGame:!!p[game].currentGame,false);
++  });
++}
++
++const {default:match3Routes}=await import('../routes/match3.js');
++const {withPlayerLock}=await import('../playerManager.js');
++for(const path of ['/api/game/end','/api/game/sync-modes'])test(`legacy ${path} cannot bypass inactive-session fence`,async()=>{
++  const id=`legacy-fence-${path}`;
++  await withPlayerLock(id,async p=>{p.match3.currentGame=null;});
++  const router=match3Routes((_req,_res,next)=>next(),()=>({userId:id,username:'Audit'}));
++  const route=router.stack.find(row=>row.path===path);
++  let status=200,body;
++  const res={status(value){status=value;return this;},json(value){body=value;return this;}};
++  await route.handlers.at(-1)({body:{score:3500,fromQuit:true,game:{score:3500,movesLeft:0}}},res);
++  assert.equal(status,403);assert.equal(body.error,'Invalid session');
++});
++
++const {default:bloxRoutes}=await import('../routes/blox.js');
++function terminalBloxFixture(){
++ const board=Array.from({length:10},(_,r)=>Array.from({length:10},(_,c)=>r===c?null:'#60a5fa'));board[0][1]=null;
++ return {board,tray:[{piece:{id:'single',cells:[[0,0]],color:'#60a5fa'},placed:false},{piece:{id:'h3',cells:[[0,0],[0,1],[0,2]],color:'#60a5fa'},placed:false}],score:3500,gameActive:true,rotateCharges:3};
++}
++test('legacy Blox late sync cannot enable a second natural-end reward; stale active savedState cannot authorize place or rotate',async()=>{
++ const id='arcade-regression-legacy-blox';let before;
++ await withPlayerLock(id,async p=>{await applyActionWithReceipt(p,'blox.start');await applyActionWithReceipt(p,'blox.end',{score:3500});before=walletOf(p);});
++ const router=bloxRoutes((_q,_s,next)=>next(),()=>({userId:id,username:'Audit'}));let status=200;
++ const res={status(value){status=value;return this;},json(){return this;}};
++ await router.stack.find(row=>row.path==='/api/blox/sync').handlers.at(-1)({body:{savedState:terminalBloxFixture()}},res);assert.equal(status,403);
++ await withPlayerLock(id,async p=>{
++  assert.equal(p.blox.activeGame,false);assert.equal(p.blox.savedState,null);
++  // Represents old persisted stale input: neither endpoint may trust its active flag.
++  p.blox.savedState=JSON.stringify(terminalBloxFixture());
++  assert.equal((await applyActionWithReceipt(p,'blox.rotate',{pieceIdx:0})).status,403);
++  assert.equal((await applyActionWithReceipt(p,'blox.place',{pieceIdx:0,row:0,col:1})).status,403);
++  assert.deepEqual(walletOf(p),before);
++ });
++});
++test('valid Blox natural gameover still grants once, closes its session, and rejects subsequent placement',async()=>{
++ const p=createDefaultPlayer('arcade-regression-natural-blox','Audit',Date.now());
++ await applyActionWithReceipt(p,'blox.start');await applyActionWithReceipt(p,'blox.sync',{savedState:terminalBloxFixture()});
++ const before=walletOf(p),payload={pieceIdx:0,row:0,col:1},meta={clientActionId:'natural-gameover-placement'};
++ const placed=await applyActionWithReceipt(p,'blox.place',payload,meta);assert.equal(placed.status,200);assert.equal(placed.body.savedState.gameActive,false);assert.equal(p.blox.activeGame,false);
++ assert.equal(p.resources.gachaTokens,before.gachaTokens+4);assert.ok(p.resources.gold>before.gold);const once=walletOf(p);
++ assert.equal((await applyActionWithReceipt(p,'blox.place',payload,meta)).body.duplicate,true);
++ assert.equal((await applyActionWithReceipt(p,'blox.place',payload,{clientActionId:'natural-gameover-new-id'})).status,403);assert.deepEqual(walletOf(p),once);
++});
++test('legacy Blox active sync, quit and fresh session remain valid',async()=>{
++ const id='arcade-regression-active-legacy-blox',router=bloxRoutes((_q,_s,next)=>next(),()=>({userId:id,username:'Audit'}));
++ async function call(path,body){let status=200,result;const res={status(value){status=value;return this;},json(value){result=value;return this;}};await router.stack.find(row=>row.path===path).handlers.at(-1)({body},res);return {status,result};}
++ assert.equal((await call('/api/blox/start',{})).status,200);assert.equal((await call('/api/blox/sync',{savedState:terminalBloxFixture()})).status,200);
++ const first=await call('/api/blox/end',{score:3500});assert.equal(first.status,200);assert.equal(first.result.tokenReward,4);
++ assert.equal((await call('/api/blox/end',{score:3500})).status,403);assert.equal((await call('/api/blox/start',{})).status,200);assert.equal((await call('/api/blox/end',{score:0})).status,200);
++});

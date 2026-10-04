@@ -74,6 +74,7 @@ export function verifyBoundaryTransfer({rootDir=root}={}) {
       roomHudGuard:{reviewedFiles:presentation.cold.roomHud.reviewedFiles,reviewedPinTransitions:presentation.cold.roomHud.reviewedPinTransitions,retiredFiles:presentation.cold.roomHud.retiredFiles,canonicalSourceClosureChanged:false},
       releasePreparationGuard:{reviewedFiles:presentation.cold.roomHud.preparation.reviewedFiles,reviewedPinTransitions:presentation.cold.roomHud.preparation.reviewedPinTransitions,workflowTransitions:2,canonicalSourceClosureChanged:false},
       receiptLifecycleGuard:{reviewedFiles:presentation.cold.roomHud.preparation.receipt.reviewedFiles,reviewedPinTransitions:0,workflowTransitions:2,canonicalSourceClosureChanged:false},
+      arcadeRewardGuard:{reviewedCommit:presentation.cold.roomHud.preparation.receipt.arcade.reviewedCommit,approvedPatchSha256:presentation.cold.roomHud.preparation.receipt.arcade.approvedPatchSha256,reviewedFiles:5,reviewedPinTransitions:2,canonicalSourceClosureChanged:false},
       historicalStoreMismatch:'preserved and disclosed; not a current integration test'};
   } finally {rmSync(temporary,{recursive:true,force:true});}
 }
