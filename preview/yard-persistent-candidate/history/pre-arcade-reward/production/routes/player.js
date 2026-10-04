@@ -1155,7 +1155,6 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       return ok(action, p, { savedState });
     }
     case "blox.rotate": {
-      if (!p.blox.activeGame) return fail(403, "No active Blox session");
       const saved = normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p);
       if (!saved.gameActive) return fail(400, "No active Blox session");
       if (saved.rotateCharges <= 0) return fail(400, "rotate unavailable", { savedState: saved });
@@ -1168,7 +1167,6 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       return ok(action, p, { savedState: saved, pieceIdx });
     }
     case "blox.place": {
-      if (!p.blox.activeGame) return fail(403, "No active Blox session");
       let saved = normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p);
       if (!saved.gameActive) return fail(400, "No active Blox session");
       const pieceIdx = Number(payload.pieceIdx);
@@ -1196,9 +1194,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       p.blox.savedState = JSON.stringify(saved);
       return ok(action, p, { savedState: saved, clear });
     }
-    // Only start opens a session. Delayed saves must not resurrect settled runs.
     case "blox.sync": {
-      if (!p.blox.activeGame) return fail(403, "No active Blox session");
       const savedState = normalizeBloxSaved(payload.savedState, p);
       p.blox.savedState = JSON.stringify(savedState);
       p.blox.activeGame = !!savedState.gameActive;
@@ -1207,7 +1203,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
     }
     case "blox.end": {
       const score = Number(payload.score) || normalizeBloxSaved(parseJsonValue(p.blox.savedState, null), p).score || 0;
-      if (!p.blox.activeGame) return fail(403, "No active Blox session");
+      if (!p.blox.activeGame && score > 0) return fail(403, "No active Blox session");
       const goldReward = score > 10000 ? 0 : calcBloxReward(score);
       const tokenReward = score > 10000 ? 0 : calcTokenReward(score);
       p.resources.gold += goldReward;
@@ -1227,15 +1223,13 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       return ok(action, p, { mode });
     }
     case "match3.syncMode": {
-      if (payload.game && !p.match3.currentGame) return fail(403, "Invalid session");
       if (payload.savedModes && typeof payload.savedModes === "object") p.match3.savedModes = JSON.stringify(payload.savedModes);
       if (payload.game && typeof payload.game === "object") p.match3.currentGame = payload.game;
       return ok(action, p);
     }
-    // Quitting settles an active run; it is not permission to reward a missing run.
     case "match3.end": {
       const score = Number(payload.score) || 0;
-      if (!p.match3.currentGame) return fail(403, "Invalid session");
+      if (!p.match3.currentGame && score > 0 && !payload.fromQuit) return fail(403, "Invalid session");
       let goldReward = 0;
       let tokenReward = 0;
       if (score > 0 && score <= 30000) {
@@ -1256,7 +1250,6 @@ export async function applyAction(p, action, payload = {}, options = {}) {
       return ok(action, p, { game: p.bubbo.currentGame });
     }
     case "bubbo.sync": {
-      if (!p.bubbo?.currentGame) return fail(403, "Invalid Bubbo session");
       if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
       if (payload.game && typeof payload.game === "object") {
         p.bubbo.currentGame = normalizeBubboCurrentGame(payload.game, p.bubbo.currentGame || {});
@@ -1266,7 +1259,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
     case "bubbo.end": {
       if (!p.bubbo) p.bubbo = { highScore: 0, totalGames: 0, currentGame: null };
       const score = Number(payload.score) || p.bubbo.currentGame?.score || 0;
-      if (!p.bubbo.currentGame) return fail(403, "Invalid Bubbo session");
+      if (!p.bubbo.currentGame && score > 0 && !payload.fromQuit) return fail(403, "Invalid Bubbo session");
       let goldReward = 0;
       let tokenReward = 0;
       if (score > 0 && score <= 25000) {

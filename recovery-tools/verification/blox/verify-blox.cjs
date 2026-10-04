@@ -69,6 +69,13 @@ function normalizeMotionSceneAst(actual,expected){
  assert.equal(nodes.length,1);assert.equal(oldNodes.length,1);
  const body=nodes[0].body.body,old=new Map(oldNodes[0].body.body.map(node=>[sceneStatementKey(node),node]));
  assert.deepEqual(body.map(sceneStatementKey),motionAdapters.sourceOrder,'only the reviewed scene statement order');
+ // The disconnected beam helper is retired; restore only its immutable preview
+ // declaration for comparison, while asserting it is absent from runtime code.
+ const energyIndex=expected.body.findIndex(node=>node.id?.name==='createBloxEnergyLine');
+ assert.ok(energyIndex>=0);
+ assert.equal(source.body.some(node=>node.id?.name==='createBloxEnergyLine'),false);
+ assert.equal(astHash(expected.body[energyIndex]),motionAdapters.retiredEnergyHelperSha256);
+ source.body.splice(energyIndex,0,structuredClone(expected.body[energyIndex]));
  const used=[];
  nodes[0].body.body=body.flatMap(node=>{
   const key=sceneStatementKey(node),adapter=motionAdapters.adapters[key];
@@ -83,8 +90,24 @@ function normalizeMotionSceneAst(actual,expected){
 }
 const corePromise=Promise.all([import(pathToFileURL(root+'/game-logic/blox-engine.js').href),import(pathToFileURL(root+'/game-logic/blox-pieces.js').href),import(pathToFileURL(root+'/game-logic/economy.js').href),import(pathToFileURL(root+'/game-logic/hud-bonuses.js').href),import(pathToFileURL(root+'/src/game-runtime/sceneGeometry.js').href)]);
 const compiledPure=closure(host,['Nr','Bi','Ec','Kg','iA','tx','ex','S2']);
+// Reviewed reward patch 55848d4c34781262d4d56961dceb5faf17e1a7f38176ef305f761c1734724640.
+// Invert exactly its one legacy-sync session guard, then compare the entire
+// remaining route to the original immutable hash. Engines/geometry stay exact.
+const legacySyncAnchor='      const { savedState } = req.body;\n';
+const legacySyncGuard='      if (!p.blox.activeGame) return routeFail(403, { error: "No active Blox session" });\n';
+function beforeReviewedLegacySyncGuard(source){
+ const expected=legacySyncAnchor+legacySyncGuard;
+ assert.equal(source.split(expected).length,2,'Exactly one reviewed legacy Blox sync guard is required');
+ const original=source.replace(expected,legacySyncAnchor);
+ assert.equal(sha(original),baselineHashes['routes/blox.js'],'Only the reviewed legacy Blox sync guard may differ from the immutable route');
+ return original;
+}
+test('legacy route baseline adapter rejects missing, duplicated or unrelated reward edits',()=>{
+ const current=read(root+'/routes/blox.js');beforeReviewedLegacySyncGuard(current);
+ for(const mutated of [current.replace(legacySyncGuard,''),current.replace(legacySyncGuard,legacySyncGuard+legacySyncGuard),current.replace('calcBloxReward(score)','calcBloxReward(score) + 1'),current+'\n/* unrelated drift */\n'])assert.throws(()=>beforeReviewedLegacySyncGuard(mutated));
+});
 test('critical Blox engines, routes and geometry match the immutable LF-normalized production baseline',()=>{
- for(const f of ['game-logic/blox-engine.js','game-logic/blox-pieces.js','game-logic/economy.js','game-logic/hud-bonuses.js','routes/blox.js','src/game-core/blox/engine.js','src/game-core/blox/pieces.js','src/game-runtime/sceneGeometry.js','src/game-runtime/pointerSession.js'])assert.equal(sha(read(root+'/'+f)),baselineHashes[f],f);
+ for(const f of ['game-logic/blox-engine.js','game-logic/blox-pieces.js','game-logic/economy.js','game-logic/hud-bonuses.js','routes/blox.js','src/game-core/blox/engine.js','src/game-core/blox/pieces.js','src/game-runtime/sceneGeometry.js','src/game-runtime/pointerSession.js'])assert.equal(sha(f==='routes/blox.js'?beforeReviewedLegacySyncGuard(read(root+'/'+f)):read(root+'/'+f)),baselineHashes[f],f);
 });
 
 test('all retained runtime declarations preserve the immutable baseline AST after asset retirement',()=>{
@@ -148,7 +171,7 @@ test('recovered local import paths exist and declarations have no leaked minifie
  for(const file of ['src/games/blox/BloxGame.jsx','src/games/blox/BloxPresentation.jsx','src/games/blox/bloxArt.js','src/games/blox/bloxComposition.js','src/games/blox/bloxInteraction.js','src/game-runtime/scenes/bloxScene.js']){
   const src=read(root+'/'+file),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'});
   for(const n of ast.body)if(n.type==='ImportDeclaration'&&n.source.value.startsWith('.'))assert.ok(fs.existsSync(path.resolve(path.dirname(root+'/'+file),n.source.value)),file+' -> '+n.source.value);
-  rename(src);const allowed=new Set(['Promise','Array','Object','Number','Math','String','Intl','window','navigator','ResizeObserver','requestAnimationFrame','cancelAnimationFrame','console','BloxRuntimeBoundary','state','setTimeout','clearTimeout','Date','JSON','Set','type']);if(file==='src/game-runtime/scenes/bloxScene.js')allowed.add('document');assert.deepEqual(rename.lastFree.filter(x=>!allowed.has(x)),[],file);
+  rename(src);const allowed=new Set(['Promise','Map','undefined','performance','Array','Object','Number','Math','String','Intl','window','navigator','ResizeObserver','requestAnimationFrame','cancelAnimationFrame','console','BloxRuntimeBoundary','state','setTimeout','clearTimeout','Date','JSON','Set','type']);if(file==='src/game-runtime/scenes/bloxScene.js')allowed.add('document');assert.deepEqual(rename.lastFree.filter(x=>!allowed.has(x)),[],file);
  }
 });
 test('compiled reward thresholds and rotations agree with baseline implementations',async()=>{

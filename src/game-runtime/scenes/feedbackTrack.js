@@ -1,11 +1,11 @@
 /** Bounded, presentation-only tracks. Never schedule gameplay or await animation. */
-export function createFeedbackTrack(layer, { limit = 64 } = {}) {
+export function createFeedbackTrack(layer, { limit = 64, now = null } = {}) {
   const tracks = new Map();
   const remove = node => { tracks.delete(node); node.parent?.removeChild(node); node.destroy?.({ children: true }); };
   return {
     add(node, { duration = 240, delay = 0, dx = 0, dy = 0, from = 1, peak = 1, to = 1, reduced = false, fade = true } = {}) {
       while (tracks.size >= limit) remove(tracks.keys().next().value);
-      const track = { age: 0, duration: Math.max(1, duration), delay: Math.max(0, delay), x: node.x, y: node.y, sx: node.scale.x, sy: node.scale.y, alpha: node.alpha, dx: reduced ? 0 : dx, dy: reduced ? 0 : dy, from: reduced ? 1 : from, peak: reduced ? 1 : peak, to: reduced ? 1 : to, fade };
+      const track = { age: 0, startedAt: now?.(), duration: Math.max(1, duration), delay: Math.max(0, delay), x: node.x, y: node.y, sx: node.scale.x, sy: node.scale.y, alpha: node.alpha, dx: reduced ? 0 : dx, dy: reduced ? 0 : dy, from: reduced ? 1 : from, peak: reduced ? 1 : peak, to: reduced ? 1 : to, fade };
       node.eventMode = 'none'; node.interactiveChildren = false;
       node.scale.set(track.sx * track.from, track.sy * track.from);
       if (track.delay) node.alpha = 0;
@@ -15,7 +15,9 @@ export function createFeedbackTrack(layer, { limit = 64 } = {}) {
       const delta = Math.min(50, Math.max(0, Number.isFinite(deltaMS) ? deltaMS : 1000 / 60));
       for (const [node, t] of tracks) {
         if (node.destroyed) { tracks.delete(node); continue; }
-        t.age += delta;
+        // Opt-in monotonic time for scenes that cancel tracks on suspension.
+        // Other games retain their existing capped-delta presentation contract.
+        t.age = now ? Math.max(t.age, now() - t.startedAt) : t.age + delta;
         const elapsed = t.age - t.delay;
         if (elapsed < 0) continue;
         const p = Math.min(1, elapsed / t.duration), ease = 1 - (1 - p) ** 3;

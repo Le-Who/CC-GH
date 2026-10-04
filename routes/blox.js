@@ -104,6 +104,7 @@ export default function bloxRoutes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
       const { savedState } = req.body;
+      if (!p.blox.activeGame) return routeFail(403, { error: "No active Blox session" });
       // v5.0.1: Store as JSON string — Postgres boundary for nested arrays (board is 2D array)
       p.blox.savedState = savedState ? JSON.stringify(savedState) : null;
       return routeOk({ success: true });
