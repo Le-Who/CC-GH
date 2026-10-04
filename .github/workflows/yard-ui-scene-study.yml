@@ -1,0 +1,106 @@
+name: Yard actual DOM and static Canvas art study
+
+on:
+  push:
+    branches: [qa/yard-ui-scene-study]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: yard-ui-scene-study-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-art-study:
+    if: github.ref == 'refs/heads/qa/yard-ui-scene-study'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # This manifest is populated only after the separate art choice and review.
+      YARD_SCENE_STUDY_INPUTS: /yard-static-study/inputs-elevation45-original-azimuth.json
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /.github/workflows/yard-ui-scene-study.yml
+            /package.json
+            /pnpm-lock.yaml
+            /tests/yard-ui-scene-study/
+            /tests/yard-redesign-preview/adapters.jsx
+            /preview/yard-coherent-frame/static-scene-adapter.mjs
+            /preview/yard-coherent-frame/composition-study.mjs
+            /preview/yard-coherent-frame/model.mjs
+            /preview/yard-coherent-frame/environment-perimeter.mjs
+            /src/games/companion-yard-v2/CourtyardGame.jsx
+            /src/games/companion-yard-v2/courtyard.css
+            /src/games/companion-yard-v2/i18n.js
+            /src/games/companion-yard-v2/catalog-ui.mjs
+            /src/games/companion-yard-v2/catalog-preview-paths.mjs
+            /src/games/companion-yard-v2/placement-recovery.mjs
+            /src/games/companion-yard-v2/feedback.mjs
+            /src/games/companion-yard-v2/scene-layout.mjs
+            /src/games/companion-yard/i18n.js
+            /src/games/companion-yard/currencyDisplay.js
+            /src/app/useDismissableLayer.js
+            /src/fonts.css
+            /game-logic/yard-catalog.js
+            /game-logic/yard-playzones.js
+            /public/yard-static-study/
+            /public/assets/yard-ui/
+            /public/games/companion-yard/
+            /public/games/hud-redesign/room/
+            /public/assets/yard-mika/background.webp
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - run: pnpm install --frozen-lockfile
+      - name: Verify locked React
+        run: |
+          node --input-type=module -e "import assert from 'node:assert/strict'; import React from 'react'; import ReactDOM from 'react-dom'; assert.equal(React.version, '19.2.4'); assert.equal(ReactDOM.version, '19.2.4');"
+      - name: Record selected input and verify source media
+        run: |
+          mkdir -p test-results-yard-ui-scene-study
+          git rev-parse HEAD > test-results-yard-ui-scene-study/COMMIT.txt
+          git rev-parse 'HEAD^{tree}' > test-results-yard-ui-scene-study/TREE.txt
+          cp tests/yard-ui-scene-study/README.md test-results-yard-ui-scene-study/ART-STUDY-SCOPE.md
+          node --input-type=module <<'NODE'
+          import assert from 'node:assert/strict';
+          import {readFileSync,writeFileSync,readdirSync,statSync} from 'node:fs';
+          import path from 'node:path';
+          import {createHash} from 'node:crypto';
+          const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
+          const inputPath=path.join('public',process.env.YARD_SCENE_STUDY_INPUTS),bytes=readFileSync(inputPath),input=JSON.parse(bytes);
+          assert.deepEqual(input.study.frame.cameraDirection,[5.66,-8,9.799775507632814]);
+          assert.deepEqual(input.layout.calibration.cameraDirection,input.study.frame.cameraDirection);
+          assert.equal(hash(bytes),'8916da3249a78b7b5b6f5371276f93a1cd99c48997214f3df07c136b3c840e85');
+          const media=input.media.map(row=>{
+            assert.equal(path.basename(row.src),row.src);
+            const file=path.join(path.dirname(inputPath),row.src),data=readFileSync(file);
+            assert.equal(data.length,row.encodedBytes);assert.equal(hash(data),row.sha256);
+            return{path:file,sha256:hash(data),bytes:data.length};
+          });
+          const sourceFiles=[];
+          for(const root of ['tests/yard-ui-scene-study','tests/yard-redesign-preview','preview/yard-coherent-frame','src/games/companion-yard-v2','src/games/companion-yard','src/app','game-logic','public/assets/yard-ui','public/games/companion-yard','public/games/hud-redesign/room']){
+            const visit=directory=>{for(const name of readdirSync(directory)){const file=path.join(directory,name);if(statSync(file).isDirectory())visit(file);else sourceFiles.push({path:file,sha256:hash(readFileSync(file))});}};
+            visit(root);
+          }
+          for(const file of ['.github/workflows/yard-ui-scene-study.yml','src/fonts.css','package.json','pnpm-lock.yaml'])sourceFiles.push({path:file,sha256:hash(readFileSync(file))});
+          writeFileSync('test-results-yard-ui-scene-study/SOURCE-AND-INPUT.json',JSON.stringify({scope:'actual DOM and static Canvas art/layout study; no API, animation or release acceptance',input:{path:inputPath,sha256:hash(bytes),cameraDirection:input.study.frame.cameraDirection,sourceFrame:input.study.frame.sourceFrame,sourceTimeMs:input.study.frame.sourceTimeMs,placements:input.study.props.map(p=>({goodieId:p.goodieId,worldXY:p.placementWorldXY})),fountainWorldXY:input.study.frame.placementWorldXY},media,sourceFiles},null,2));
+          NODE
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Capture actual DOM and static scene together
+        run: pnpm exec playwright test --config tests/yard-ui-scene-study/playwright.config.mjs
+      - name: Preserve art study evidence once
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: yard-actual-dom-static-canvas-art-study-${{ github.sha }}
+          path: |
+            test-results-yard-ui-scene-study/
+            !test-results-yard-ui-scene-study/**/attachments/**
+          if-no-files-found: error
+          retention-days: 7
