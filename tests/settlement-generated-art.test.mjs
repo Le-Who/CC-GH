@@ -20,6 +20,12 @@ test('cold-entry no-World-art check uses actual request observation even without
  assert.match(source, /artDelivery.requestedPaths.every\(path => !\/world-map-\|expedition-thumb-\//);
  assert.match(source, /entry.status >= 200 && entry.status < 300 && entry.bodyBytes > 0/);
 });
+test('landscape research keeps non-button effects and costs in readable single-column flow', () => {
+ const css = read('src/games/settlement/settlementIllustratedKit.css');
+ assert.match(css, /\.research-detail-card-v2,\s*\.settlement-game-root \.right-panel-fancy \.research-action-row\s*\{\s*grid-template-columns: minmax\(0, 1fr\) !important/);
+ assert.match(css, /\.research-cost-list\s*\{\s*flex-wrap: wrap;\s*overflow: visible/);
+ assert.match(css, /-webkit-line-clamp: unset;/);
+});
 test('flex drawer footer returns to flow instead of covering upgrade controls', () => {
  const css = read('src/games/settlement/settlementIllustratedKit.css');
  assert.match(css, /> \.panel-footer\s*\{\s*position: static !important;\s*inset: auto !important/);
