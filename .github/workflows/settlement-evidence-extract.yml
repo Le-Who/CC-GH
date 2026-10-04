@@ -1,0 +1,61 @@
+name: Extract bounded Settlement evidence
+
+on:
+  push:
+    branches: ['codex/settlement-evidence-extract-20261004']
+    paths: ['.github/workflows/settlement-evidence-extract.yml']
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  extract-evidence:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Download the exact authorized artifact on the runner
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api /repos/Le-Who/CC-GH/actions/artifacts/11302050572/zip > "$RUNNER_TEMP/settlement-source.zip"
+          echo "8dd4f76fd8ae4ff552c6305679fa1ae5c8308994cec22e26800d825c687a4d2a  $RUNNER_TEMP/settlement-source.zip" | sha256sum --check
+      - name: Extract reports and a bounded set of original frames
+        env:
+          SOURCE_ARCHIVE: ${{ runner.temp }}/settlement-source.zip
+          OUTPUT_DIR: ${{ runner.temp }}/settlement-compact
+        run: |
+          python3 - <<'PY'
+          import os, json, zipfile, hashlib
+          from pathlib import Path
+          archive=Path(os.environ['SOURCE_ARCHIVE'])
+          out=Path(os.environ['OUTPUT_DIR']); out.mkdir()
+          budget=20*1024*1024; total=0; copied=[]
+          with zipfile.ZipFile(archive) as z:
+              infos={i.filename:i for i in z.infolist()}
+              for name in ['source-sha.txt','report.json','assertion-failures.json']:
+                  if name not in infos: raise RuntimeError('Missing report: '+name)
+                  data=z.read(name)
+                  if total+len(data)>budget: raise RuntimeError('Reports exceed budget')
+                  (out/name).write_bytes(data); total+=len(data); copied.append(name)
+              if (out/'source-sha.txt').read_text().strip()!='3dc0347677a203d9e181ab3958433f06fd2be545': raise RuntimeError('Wrong candidate source')
+              failures=json.loads((out/'assertion-failures.json').read_text())
+              preferred=['ru-320x568-city-production.png','ru-320x568-building.png','ru-320x568-inventory.png','ru-320x568-construction.png','ru-320x568-goals.png','ru-320x568-world.png','en-390x844-city-production.png','en-390x844-construction.png','ru-568x320-construction.png']
+              for failure in failures:
+                  preferred.append(str(failure.get('language'))+'-'+str(failure.get('width'))+'x'+str(failure.get('height'))+'-'+str(failure.get('name'))+'.png')
+              for name in dict.fromkeys(preferred):
+                  if name not in infos or Path(name).name!=name or not name.endswith('.png'): continue
+                  if total+infos[name].file_size>budget-512000: continue
+                  data=z.read(name); (out/name).write_bytes(data); total+=len(data); copied.append(name)
+              index={'original_artifact_id':11302050572,'original_run':37196884163,'candidate_sha':'3dc0347677a203d9e181ab3958433f06fd2be545','archive_sha256':hashlib.sha256(archive.read_bytes()).hexdigest(),'selected_bytes':total,'copied':copied,'original_entries':[{'name':i.filename,'bytes':i.file_size} for i in infos.values()]}
+              (out/'selection-index.json').write_text(json.dumps(index,indent=2))
+          assert sum(p.stat().st_size for p in out.iterdir())<=budget
+          print(json.dumps({'bytes':total,'files':copied}))
+          PY
+      - name: Upload compact original evidence without rerunning the browser
+        uses: actions/upload-artifact@v7
+        with:
+          name: settlement-evidence-3dc0347-compact-${{ github.run_id }}
+          path: ${{ runner.temp }}/settlement-compact/
+          if-no-files-found: error
+          retention-days: 14
