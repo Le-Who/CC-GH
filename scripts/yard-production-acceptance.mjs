@@ -60,8 +60,8 @@ const ready=async(mode)=>{const deadline=Date.now()+90000;while(Date.now()<deadl
  await runBoundedCommand('pnpm',['exec','playwright','test','--config','playwright.yard-production.config.js'],{inherit:true,env,signal:controller.signal,timeoutMs:13*60*1000});
  const report=JSON.parse(await readFile(resolve(out,'results.json'),'utf8'));
  for(const [key,value]of Object.entries({runId,activeCommit:inputs.activeCommit,closedCommit:inputs.closedCommit,closedDigest:inputs.closedDigest}))assert.equal(report.config.metadata?.[key],value,'Report must belong to this exact run and image pair');
- assert.equal(report.stats.unexpected,0);assert.equal(report.stats.flaky,0);assert.equal(report.stats.skipped,0);assert.equal(report.stats.expected,6,'Exact bounded six-test lane required');
- completedProof={format:'cc-gh-yard-production-acceptance/v1',runId,...inputs,activeImageId:ids.B,closedImageId:ids.A,tests:6,retries:0,completedAt:new Date().toISOString()};
+ assert.equal(report.stats.unexpected,0);assert.equal(report.stats.flaky,0);assert.equal(report.stats.skipped,0);assert.equal(report.stats.expected,9,'Exact bounded nine-test lane required');
+ completedProof={format:'cc-gh-yard-production-acceptance/v1',runId,...inputs,activeImageId:ids.B,closedImageId:ids.A,tests:9,retries:0,completedAt:new Date().toISOString()};
 }finally{
  // The awaited command has already terminated its entire process group on abort.
  clearTimeout(deadline);const cleanupErrors=[];

@@ -25,9 +25,9 @@ test('missing opt-in fails before Docker, PostgreSQL or Playwright starts',()=>{
  const result=spawnSync(process.execPath,['scripts/yard-production-acceptance.mjs'],{cwd:new URL('..',import.meta.url),env:{...process.env,NODE_OPTIONS:'',YARD_PRODUCTION_ACCEPTANCE:''},encoding:'utf8',timeout:5000});
  assert.notEqual(result.status,0);assert.match(result.stderr,/Explicit production acceptance opt-in required/);assert.doesNotMatch(result.stderr,/ERR_MODULE_NOT_FOUND|spawnSync docker/);
 });
-test('new six-case lane leaves the 59-case evidence intact and runs real production boundaries',()=>{
+test('nine-case lane leaves the 59-case evidence intact and runs real production boundaries',()=>{
  const script=read('scripts/yard-production-acceptance.mjs'),config=read('playwright.yard-production.config.js'),spec=read('tests/yard-production-e2e/production.spec.js'),fixtures=read('tests/helpers/yard-production-fixtures.mjs'),workflow=read('.github/workflows/yard-production-acceptance.yml');
- assert.match(script,/verifyActiveRuntime\('\/app'\)/);assert.match(script,/yard-release-compatibility\.mjs/);assert.match(script,/postgres:15/);assert.match(script,/report\.stats\.expected,6/);
+ assert.match(script,/verifyActiveRuntime\('\/app'\)/);assert.match(script,/yard-release-compatibility\.mjs/);assert.match(script,/postgres:15/);assert.match(script,/report\.stats\.expected,9/);
  assert.match(config,/workers:1,retries:0/);assert.match(config,/serviceWorkers:'allow'/);assert.match(config,/globalTimeout:12\*60\*1000/);
  assert.doesNotMatch(config,/webServer|vite/);assert.doesNotMatch(script+spec+fixtures,/--import|registerHooks|Date\.now\s*=|page\.clock|AUTHORED_CLOCK|createEightAcceptanceOptions|ensurePersistentPlayerYard|route\.fulfill|route\.abort|setSnapshot|useGameHub\.getState|dist-yard-eight/);
  assert.match(fixtures,/const now=Date\.now\(\),opportunity=Math\.floor\(now\/HOUR\)\*HOUR/);assert.match(fixtures,/drawNativeSeed\(candidate,context\)/);assert.match(fixtures,/No authored runtime\/plan fixture allowed/);
@@ -117,4 +117,15 @@ test('a nonzero wrapper exit cannot leave an inherited-stdio process group runni
   const pid=JSON.parse(await readFile(path,'utf8'));await new Promise(resolve=>setTimeout(resolve,20));
   try{const status=await readFile(`/proc/${pid}/status`,'utf8');assert.match(status,/State:\s+Z/,'Failed wrapper descendant must be terminated');}catch(error){if(error.code!=='ENOENT')throw error;}
  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+// Keep the additional cross-game lane honest about source, persistence and scope.
+test('cross-game production coverage uses owned signed fixtures and real UI results',()=>{
+ const spec=read('tests/yard-production-e2e/production.spec.js');
+ assert.match(spec,/authentic Merge Moon Lamp enters Yard/);
+ assert.match(spec,/fixture-assisted real Blox finishes fund one Merge pack/);
+ assert.match(spec,/all eight real routes survive rapid Home/);
+ assert.match(spec,/await saved\(f\)/);assert.match(spec,/mergeLab\.replayed/);
+ assert.match(spec,/fixtureAssisted:true/);assert.match(spec,/seededScore:3498/);
+ assert.doesNotMatch(spec,/route\.fulfill\s*\(|window\.__.*setState\s*\(|test\.skip\s*\(/);
 });

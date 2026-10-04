@@ -1,3 +1,8 @@
+import {openHome,selectHomeGame} from '../e2e/helpers/home.js';
+import {mergePanel,closeMergePanel,confirmedMergeClick,confirmMergeQuote} from '../e2e/helpers/mergeV3.js';
+import {readBloxLayout} from '../e2e/helpers/blox-v2.js';
+import {createBloxLineClearFixture} from '../e2e/helpers/bloxMotionFixture.js';
+import {MERGE_LAB_CATALOG as catalog} from '../../game-logic/merge-lab-catalog.js';
 import {test,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {randomUUID,createHash} from 'node:crypto';
@@ -167,4 +172,110 @@ test('frozen closed A quarantines every marker class and keeps untouched account
  const legacy=await seed(),s=await snapshot(request,legacy,'A');expect(s.yardRuntime).toBeUndefined();expect((await saved(legacy))._yardV2).toBeUndefined();
  const result=await mutation(request,legacy,{accountId:legacy.id,action:'yard.buyFood',payload:{foodId:'kibble',qty:1},clientActionId:`legacy:${randomUUID()}`},'A');expect(result.status).toBe(200);expect((await saved(legacy))._yardV2).toBeUndefined();
  await info.attach('closed-all-marker-classes',{body:Buffer.from(JSON.stringify(rows,null,2)),contentType:'application/json'});
+});
+
+// Cross-game acceptance uses the same signed, owned PostgreSQL fixtures and
+// ordinary B image as the production gate. No mocked HTTP replies or private-store writes.
+async function crossSceneReady(page){
+ await expect.poll(()=>page.locator('.cy-background').evaluate(image=>image.complete&&image.naturalWidth>0)).toBe(true);
+ await expect.poll(()=>page.locator('.cy-scene canvas').evaluate(canvas=>{
+  if(!canvas.width||!canvas.height)return false;const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
+  let pixels=0;for(let i=3;i<data.length;i+=4)if(data[i]>0&&++pixels>=32)return true;return false;
+ })).toBe(true);
+ await expect(page.locator('.cy-status')).not.toContainText('The courtyard could not load.');
+}
+async function crossHome(page){
+ if(await page.getByTestId('home-catalogue').count())return;
+ if(await page.locator('.cy-app').count())await page.getByRole('button',{name:'Back to games',exact:true}).click();
+ else await openHome(page);
+}
+async function crossSelect(page,id){await crossHome(page);await selectHomeGame(page,id);}
+const researchPath=['cloud_ember_spark','glass_spark_lens','v3_lens_spark_light','v3_light_vial_glow_lantern','v3_sprout_dew_herb','vial_herb_elixir','v3_glass_elixir_crystal'];
+const craftPath=['glass_spark_lens','v3_lens_spark_light','v3_light_vial_glow_lantern','vial_herb_elixir','v3_glass_elixir_crystal'];
+
+test('cross-game actual B: authentic Merge Moon Lamp enters Yard, places once and persists in PostgreSQL',async({page,request},info)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await setProxyState(statePath,{target:'B'});const f=await seed();await boot(page,f);await crossSelect(page,'merge');
+ await expect(page.getByTestId('ml-laboratory')).toBeVisible();const before=await snapshot(request,f);
+ expect(before.merge.stock).toEqual({});expect(before.yard.goodieInventory.moon_lamp||0).toBe(0);
+ for(const id of researchPath){
+  if(await page.getByTestId('ml-research-again').count())await page.getByTestId('ml-research-again').click();
+  const recipe=catalog.recipes.find(r=>r.id===id);
+  for(const [slot,item] of recipe.ingredients.entries()){await page.getByTestId(`ml-well-${slot}`).click();await page.getByTestId(`ml-sample-pick-${item}`).click();}
+  const result=await confirmedMergeClick(page,page.getByTestId('ml-mix'),'researchPair');expect(result.body.mergeLab.result.recipeId).toBe(id);
+ }
+ await mergePanel(page,'supplies');await page.getByTestId('ml-starter-kit').click();await confirmMergeQuote(page,'claimStarterKit');
+ await confirmedMergeClick(page,page.getByTestId('ml-claim-charges'),'claimFreeCharges');
+ for(const [item,n] of Object.entries({glass:2,vial:1,spark:2,herb:1})){await page.getByTestId('ml-supply-material').selectOption(item);await page.getByTestId('ml-claim-material').click();await confirmMergeQuote(page,'claimSupply',n);}
+ await page.getByTestId('ml-distill-glass').click();await confirmMergeQuote(page,'distillStock');await closeMergePanel(page);
+ await mergePanel(page,'journal');
+ for(const id of craftPath){const recipe=catalog.recipes.find(r=>r.id===id);await page.getByTestId('ml-journal').locator('select').selectOption(recipe.result);await page.getByTestId(`ml-recipe-quote-${id}`).click();await confirmMergeQuote(page,'craft');}
+ await closeMergePanel(page);await mergePanel(page,'projects');await page.getByTestId('ml-project-quote-night_beacon').click();
+ const craft=await confirmMergeQuote(page,'craftProject');expect(craft.body.mergeLab.replayed).toBe(false);
+ const granted=await saved(f);expect(granted.yard.goodieInventory.moon_lamp).toBe(1);expect(granted.merge.projects.crafted.night_beacon).toBe(1);
+ await closeMergePanel(page);await crossSelect(page,'room');await expect(page.locator('.cy-app')).toBeVisible();await crossSceneReady(page);
+ await page.locator('.cy-actions button').nth(1).click();
+ const lamp=page.locator('.cy-row').filter({has:page.locator('strong',{hasText:/^Moon Lamp × 1$/})});await expect(lamp).toBeVisible();
+ await lamp.getByRole('button',{name:'Place',exact:true}).click();
+ // Source-authored moon-lamp anchor from the same ordinary B production fixtures.
+ const field=page.locator('.cy-scene canvas');await expect(field).toBeFocused();
+ for(let i=0;i<10;i++)await page.keyboard.press('ArrowRight');for(let i=0;i<10;i++)await page.keyboard.press('ArrowDown');
+ const place=page.locator('.cy-placement').getByRole('button',{name:'Place',exact:true});await expect(place).toBeEnabled();
+ const placedReply=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action==='yard.placeGoodie');
+ await place.click();const reply=await placedReply;expect(reply.status()).toBe(200);const placeCommand=reply.request().postDataJSON();
+ const placed=await saved(f);expect(placed.yard.goodieInventory.moon_lamp||0).toBe(0);expect(placed.yard.placedGoodies.filter(p=>p.goodieId==='moon_lamp')).toHaveLength(1);
+ expect(placed.merge).toEqual(granted.merge);expect(placed.resources.gachaTokens).toBe(before.resources.gachaTokens);
+ await crossSelect(page,'settlement');await expect(page.locator('.settlement-canvas')).toBeVisible();await crossSelect(page,'room');await page.reload();
+ await expect(page.locator('.cy-app')).toBeVisible();await crossSceneReady(page);
+ const reloaded=await saved(f);expect(reloaded.yard.placedGoodies).toEqual(placed.yard.placedGoodies);expect(reloaded.yard.goodieInventory).toEqual(placed.yard.goodieInventory);
+ const craftReplay=await mutation(request,f,craft.request);expect(craftReplay.status).toBe(200);expect(craftReplay.body.mergeLab.replayed).toBe(true);
+ const placeReplay=await mutation(request,f,placeCommand);expect(placeReplay.status).toBe(200);expect(placeReplay.body.duplicate).toBe(true);
+ const final=await saved(f);expect(final.yard.goodieInventory).toEqual(placed.yard.goodieInventory);expect(final.yard.placedGoodies).toEqual(placed.yard.placedGoodies);expect(final.merge).toEqual(granted.merge);
+ await info.attach('cross-game-moon-lamp',{body:Buffer.from(JSON.stringify({account:f.id,craft:craft.request,place:placeCommand,placed:final.yard.placedGoodies,source:'ordinary B signed API + PostgreSQL + real UI'})),contentType:'application/json'});
+ await info.attach('cross-game-moon-lamp-reloaded',{body:await page.screenshot(),contentType:'image/png'});expect(errors).toEqual([]);
+});
+
+test('cross-game actual B: three fixture-assisted real Blox finishes fund one Merge pack exactly once',async({page,request},info)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await setProxyState(statePath,{target:'B'});const f=await seed();await boot(page,f);
+ expect((await snapshot(request,f)).resources.gachaTokens).toBe(0);const earns=[];
+ for(let run=0;run<3;run++){
+  await crossSelect(page,'blox');const started=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action==='blox.start');
+  await page.getByRole('button',{name:'Start',exact:true}).click();expect((await started).status()).toBe(200);
+  // Setup is explicitly a near-threshold saved-run fixture, never a token grant.
+  // The final row clear and finish are actual UI/controller/server actions.
+  const fixture=createBloxLineClearFixture();fixture.savedState.score=3498;
+  const setup=await mutation(request,f,{accountId:f.id,action:'blox.sync',payload:{savedState:fixture.savedState},clientActionId:`cross-setup:${randomUUID()}`});expect(setup.status).toBe(200);
+  await page.reload();await expect(page.locator('.bx-stage')).toHaveAttribute('data-bx-phase','playing');const layout=await readBloxLayout(page),slot=layout.slots[2];
+  await page.touchscreen.tap(slot.left+slot.width/2,slot.top+slot.height/2);
+  const clear=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action==='blox.place');
+  await page.touchscreen.tap(layout.left+8.5*layout.cell,layout.top+4.5*layout.cell);const response=await clear;expect(response.status()).toBe(200);
+  const result=await response.json();expect(result.clear.cleared).toBe(1);expect(result.savedState.score).toBe(3510);
+  const finish=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action==='blox.end');await crossSelect(page,'merge');
+  const finished=await finish;expect(finished.status()).toBe(200);const earned=await finished.json();expect(earned.tokenReward).toBe(4);
+  const savedOnce=await saved(f);expect(savedOnce.resources.gachaTokens).toBe(4*(run+1));
+  const replay=await mutation(request,f,finished.request().postDataJSON());expect(replay.status).toBe(200);expect(replay.body.duplicate).toBe(true);expect((await saved(f)).resources.gachaTokens).toBe(savedOnce.resources.gachaTokens);
+  earns.push({seededScore:3498,realFinalScore:3510,tokenReward:earned.tokenReward,command:finished.request().postDataJSON()});
+ }
+ const funded=await saved(f);expect(funded.resources.gachaTokens).toBe(12);await mergePanel(page,'supplies');
+ await page.getByTestId('ml-pack-workshop').click();const purchase=await confirmMergeQuote(page,'buySupply');expect(purchase.body.mergeLab.replayed).toBe(false);
+ const bought=await saved(f),pack=catalog.tokenPacks.find(p=>p.id==='workshop');expect(bought.resources.gachaTokens).toBe(12-pack.cost);
+ for(const [id,n] of Object.entries(pack.items))expect(bought.merge.stock[id]).toBe((funded.merge.stock[id]||0)+n);
+ expect(bought.resources.gold).toBe(funded.resources.gold);expect(bought.yard.goodieInventory).toEqual(funded.yard.goodieInventory);
+ await page.reload();await expect(page.getByTestId('ml-laboratory')).toBeVisible();
+ const repeated=await mutation(request,f,purchase.request);expect(repeated.status).toBe(200);expect(repeated.body.mergeLab.replayed).toBe(true);
+ const final=await saved(f);expect(final.resources.gachaTokens).toBe(bought.resources.gachaTokens);expect(final.merge.stock).toEqual(bought.merge.stock);expect(final.merge.actionLedger).toEqual(bought.merge.actionLedger);
+ await info.attach('cross-game-earned-token-pack',{body:Buffer.from(JSON.stringify({account:f.id,fixtureAssisted:true,earns,purchase:purchase.request,tokensBefore:12,tokensAfter:final.resources.gachaTokens,stock:final.merge.stock})),contentType:'application/json'});expect(errors).toEqual([]);
+});
+
+test('cross-game actual B: all eight real routes survive rapid Home ownership and reload',async({page,request},info)=>{
+ const errors=[];page.on('pageerror',e=>errors.push(e.message));await setProxyState(statePath,{target:'B'});const f=await seed();await boot(page,f);
+ const roots={garden:'.gs2-stage',blox:'.bx-stage',match3:'.m3-stage',merge:'.ml-root',bubbo:'.bb-stage',trivia:'.trv2-root',room:'.cy-app',settlement:'.settlement-game-root'};
+ for(const id of ['garden','blox','match3','merge','bubbo','trivia','room','settlement']){await crossSelect(page,id);await expect(page.locator(roots[id])).toBeVisible();expect((await snapshot(request,f)).player.id).toBe(f.id);}
+ await page.reload();await expect(page.locator(roots.settlement)).toBeVisible();await crossHome(page);
+ // Synchronous clicks are an actual DOM event race, not a navigation/store hook.
+ await page.locator('[data-home-game="merge"]').evaluate(node=>{node.click();document.querySelector('[data-home-game="room"]')?.click();document.querySelector('[data-home-game="settlement"]')?.click();});
+ await expect(page.getByTestId('home-catalogue')).toHaveCount(0);await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab','merge');await expect(page.locator(roots.merge)).toBeVisible();
+ await page.reload();await expect(page.locator(roots.merge)).toBeVisible();expect(new URL(page.url()).searchParams.get('tab')).toBe('merge');
+ await crossSelect(page,'room');await expect(page.locator(roots.merge)).toHaveCount(0);await crossSelect(page,'settlement');await expect(page.locator(roots.room)).toHaveCount(0);
+ await info.attach('all-eight-real-routes',{body:await page.screenshot(),contentType:'image/png'});expect(errors).toEqual([]);
 });
