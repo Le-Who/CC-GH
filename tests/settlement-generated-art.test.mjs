@@ -13,6 +13,13 @@ test('decorative material never overrides positioned HUD region anchors', () => 
  assert.doesNotMatch(common, /position\s*:/);
  assert.match(css, /\.settlement-illustrated-frame:not\(\.hud-region\)\s*\{\s*position: relative/);
 });
+test('cold-entry no-World-art check uses actual request observation even without ResourceTiming', () => {
+ const source = read('scripts/verify-settlement-illustrated-ui.mjs');
+ assert.match(source, /page.on\('request', request =>/);
+ assert.match(source, /observedArtRequests.add\(url.pathname\)/);
+ assert.match(source, /artDelivery.requestedPaths.every\(path => !\/world-map-\|expedition-thumb-\//);
+ assert.match(source, /entry.status >= 200 && entry.status < 300 && entry.bodyBytes > 0/);
+});
 test('flex drawer footer returns to flow instead of covering upgrade controls', () => {
  const css = read('src/games/settlement/settlementIllustratedKit.css');
  assert.match(css, /> \.panel-footer\s*\{\s*position: static !important;\s*inset: auto !important/);
@@ -21,7 +28,7 @@ test('narrow council copy has a full column and landscape card grids stay compac
  const css = read('src/games/settlement/settlementIllustratedKit.css');
  assert.match(css, /\.council-bottom-grid\s*\{\s*grid-template-columns: minmax\(0, 1fr\) !important/);
  assert.match(css, /\.construction-card-v2\s*\{\s*min-height: 88px !important;\s*grid-template-rows: auto 32px auto/);
- assert.match(css, /\.research-tech-node\s*\{\s*min-height: 88px !important;\s*grid-template-columns: 32px minmax\(0, 1fr\)/);
+ assert.match(css, /\.research-tech-node\s*\{\s*min-height: 88px !important;\s*grid-column: auto !important;\s*grid-row: auto !important;\s*grid-template-columns: 32px minmax\(0, 1fr\)/);
  assert.match(css, /span:not\(\.research-node-icon-slot\):not\(\.settlement-frame-art\)/);
 });
 test('all eight runtime derivatives match their recorded hashes and byte budget', () => {

@@ -62,6 +62,16 @@
 }
 .settlement-game-root .world-map-base-v2 { object-fit: contain; }
 .settlement-game-root .world-compass { object-fit: contain; }
+/* Actual integrated screenshots exposed these light-on-parchment labels. */
+.settlement-game-root .right-panel .settlement-illustrated-frame .construction-card-name,
+.settlement-game-root .right-panel .settlement-illustrated-frame .inventory-selected-values-v2 b,
+.settlement-game-root .right-panel .settlement-illustrated-frame .research-detail-effects :is(span, b),
+.settlement-game-root .right-panel-fancy .settlement-goal-disclosure,
+.settlement-game-root .right-panel-fancy .world-expedition-heading-v2,
+.settlement-game-root .settlement-illustrated-life .settlement-compact-detail-open {
+  color: #332719 !important;
+  text-shadow: none;
+}
 .settlement-game-root .right-panel .settlement-illustrated-frame :is(
   .goals-summary-copy > span,
   .goal-card-copy > span,

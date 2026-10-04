@@ -295,6 +295,8 @@
   }
   .settlement-game-root .right-panel-fancy .research-tech-node {
     min-height: 88px !important;
+    grid-column: auto !important;
+    grid-row: auto !important;
     grid-template-columns: 32px minmax(0, 1fr) !important;
     grid-template-rows: auto auto auto !important;
     gap: 3px 8px !important;

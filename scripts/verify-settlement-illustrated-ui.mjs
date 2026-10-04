@@ -1,6 +1,7 @@
 // Capture actual integrated UI on a local test server; never a production URL.
 // No resource injection, API stubs, economy mutations or asset generation.
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { chromium } from '@playwright/test';
 const baseURL = process.env.SETTLEMENT_QA_URL || 'http://127.0.0.1:3287';
@@ -27,6 +28,27 @@ try {
   context.setDefaultTimeout(ACTION_TIMEOUT);
   context.setDefaultNavigationTimeout(20000);
   const page = await context.newPage();
+  const observedArtResponses = new Map();
+  const observedArtRequests = new Set();
+  const pendingArtResponses = new Set();
+  page.on('request', request => {
+   const url = new URL(request.url());
+   if (url.origin === new URL(baseURL).origin && url.pathname.includes('/games/settlement/ui/illustrated-v2/')) observedArtRequests.add(url.pathname);
+  });
+  page.on('response', response => {
+   const url = new URL(response.url());
+   if (url.origin !== new URL(baseURL).origin || !url.pathname.includes('/games/settlement/ui/illustrated-v2/')) return;
+   const pending = (async () => {
+    try {
+     const body = await response.body();
+     observedArtResponses.set(url.pathname, { path: url.pathname, status: response.status(), bodyBytes: body.length, sha256: createHash('sha256').update(body).digest('hex'), source: 'observed browser response body; not wire bytes' });
+    } catch (error) {
+     observedArtResponses.set(url.pathname, { path: url.pathname, status: response.status(), bodyBytes: 0, measurementError: error.message });
+    }
+   })();
+   pendingArtResponses.add(pending);
+   void pending.then(() => pendingArtResponses.delete(pending));
+  });
   let stateId = 'setup';
   let crashed = false;
   let authFailure = false;
@@ -75,6 +97,12 @@ try {
     for (const entry of resources) uniqueEncodedSizes.set(entry.path, Math.max(uniqueEncodedSizes.get(entry.path) || 0, entry.encodedBodySize));
     return { measurementNotes: 'decodeProbeMs is a separate cached Image.decode probe, not first-paint decode duration; estimatedRgbaBytes is width*height*4, not GPU allocation; screenshots require independent review', decoded, resources, encodedBytes: [...uniqueEncodedSizes.values()].reduce((sum, bytes) => sum + bytes, 0), transferBytes: resources.reduce((sum, entry) => sum + entry.transferSize, 0), estimatedDecodedRgbaBytes: decoded.reduce((sum, image) => sum + image.estimatedRgbaBytes, 0) };
    }), ACTION_TIMEOUT, `Illustrated source decode failed: ${name}`);
+   await bounded(Promise.all([...pendingArtResponses]), ACTION_TIMEOUT, `Resource response measurement timed out: ${name}`);
+   artDelivery.responsePayloads = [...observedArtResponses.values()];
+   artDelivery.requestedPaths = [...observedArtRequests];
+   artDelivery.observedPayloadBytes = artDelivery.responsePayloads.reduce((sum, item) => sum + item.bodyBytes, 0);
+   artDelivery.resourceTimingAvailable = artDelivery.resources.length > 0;
+   artDelivery.measurementNotes += '; observedPayloadBytes is actual decoded resource-response payload observed by Playwright, not encoded/transfer wire bytes; unavailable ResourceTiming stays separate';
    const geometry = await page.evaluate(() => {
     const root = document.querySelector('.settlement-game-root');
     const broken = [...root.querySelectorAll('img')].filter(img => { const r = img.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth && (!img.complete || !img.naturalWidth); }).map(img => img.src);
@@ -117,12 +145,13 @@ try {
     () => assert.ok(!geometry.controls.some(control => control.inView && (control.width < 43.5 || control.height < 43.5)), `Small control: ${name}`)
    ];
    if (name === 'city-production') {
-    checks.push(() => assert.ok(artDelivery.resources.every(item => !/world-map-|expedition-thumb-/.test(item.path)), 'World art eagerly requested on City entry'));
-    checks.push(() => assert.ok(['compact-parchment-card.webp', 'navigation-tile.webp'].every(file => artDelivery.resources.some(entry => entry.path.endsWith(file) && entry.encodedBodySize > 0)), 'City transfer measurements unavailable or zero'));
-    checks.push(() => assert.ok(artDelivery.encodedBytes <= 64000, 'Illustrated City entry exceeds 64KB'));
+    checks.push(() => assert.ok(artDelivery.requestedPaths.every(path => !/world-map-|expedition-thumb-/.test(path)) && artDelivery.resources.every(item => !/world-map-|expedition-thumb-/.test(item.path)), 'World art eagerly requested on City entry'));
+    checks.push(() => assert.ok(['compact-parchment-card.webp', 'navigation-tile.webp'].every(file => artDelivery.responsePayloads.some(entry => entry.path.endsWith(file) && entry.status >= 200 && entry.status < 300 && entry.bodyBytes > 0)), 'City response payload measurements unavailable or zero'));
+    checks.push(() => assert.ok(artDelivery.observedPayloadBytes <= 64000, 'Illustrated City response payload exceeds 64KB'));
     checks.push(() => assert.ok(['compact-parchment-card.webp', 'navigation-tile.webp'].every(file => artDelivery.decoded.some(image => image.path.endsWith(file))), 'City material is not actually rendered'));
    }
-   checks.push(() => assert.ok(artDelivery.encodedBytes <= 400000, 'Illustrated delivery exceeds 400KB'));
+   checks.push(() => assert.ok(artDelivery.observedPayloadBytes <= 400000, 'Illustrated response payload exceeds 400KB'));
+   checks.push(() => assert.ok(artDelivery.decoded.every(image => artDelivery.responsePayloads.some(entry => entry.path === image.path && entry.status >= 200 && entry.status < 300 && entry.bodyBytes > 0)), 'Visible art response payload measurements unavailable or zero'));
    for (const verify of checks) {
     try { verify(); }
     catch (error) {
