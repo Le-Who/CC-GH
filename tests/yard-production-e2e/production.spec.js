@@ -50,6 +50,14 @@ async function outbox(page,id){return page.evaluate(async accountId=>{
  const key=`game_hub_yard_outbox_v2:${encodeURIComponent(accountId)}`,local=localStorage.getItem(key);if(local)return JSON.parse(local);
  return new Promise((resolve,reject)=>{const r=indexedDB.open('keyval-store');r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result;if(!db.objectStoreNames.contains('keyval')){db.close();resolve(null);return;}const q=db.transaction('keyval','readonly').objectStore('keyval').get(key);q.onsuccess=()=>{db.close();resolve(q.result??null);};q.onerror=()=>{db.close();reject(q.error);};};});
 },id);}
+async function outboxForPoll(page,id){
+ try{return await outbox(page,id);}catch(error){
+  // The real updater may replace this document while IndexedDB is being read.
+  // Let the existing bounded poll read the new document; other failures are real.
+  if(/^(?:Error: )?page\.evaluate: Execution context was destroyed, most likely because of a navigation(?:\n|$)/.test(error?.message||''))return null;
+  throw error;
+ }
+}
 async function inspectPixels(page,request,info,actor){
  await expect(page.locator('.cy-app')).toBeVisible();
  const manifest=JSON.parse(metadata.B[actorPath(actor).slice(1)+'runtime-media.json']);
@@ -139,7 +147,7 @@ test('same-origin warm SW A to B to A: real updater, metadata, durable lost-repl
  await page.locator('.cy-actions button').nth(2).click();await page.getByRole('button',{name:'Collect',exact:true}).click();
  await expect.poll(async()=>{try{return JSON.parse(await readFile(faultPath,'utf8')).status;}catch{return 0;}},{timeout:30000}).toBe(200);
  const lost=JSON.parse(await readFile(faultPath,'utf8'));expect(lost.captureError).toBeUndefined();expect(lost.body.duplicate).toBe(false);expect(lost.command.clientActionId).toMatch(/^yard-v2:/);
- await expect.poll(async()=>(await outbox(page,f.id))?.items?.some(row=>row.clientActionId===lost.command.clientActionId)).toBe(true);
+ await expect.poll(async()=>(await outboxForPoll(page,f.id))?.items?.some(row=>row.clientActionId===lost.command.clientActionId)).toBe(true);
  const committed=await saved(f);expect(committed.yard.currencies.treats).toBe(before.yard.currencies.treats+17);
  expect(Object.hasOwn(committed._yardV2.runtime.commandReceipts,lost.command.clientActionId)).toBe(true);
  const browserPausedReply=page.waitForResponse(async response=>{
@@ -150,10 +158,10 @@ test('same-origin warm SW A to B to A: real updater, metadata, durable lost-repl
  // Restore ordinary A responses; its genuine 409 must retain the pending intent.
  await setProxyState(statePath,{target:'A'});const pausedResponse=await browserPausedReply;
  expect(pausedResponse.request().postDataJSON()).toMatchObject({accountId:f.id,clientActionId:lost.command.clientActionId,action:lost.command.action,payload:lost.command.payload});
- await expect.poll(async()=>(await outbox(page,f.id))?.items?.find(row=>row.clientActionId===lost.command.clientActionId)?.status,{timeout:15000}).toBe('rollout-paused');
+ await expect.poll(async()=>(await outboxForPoll(page,f.id))?.items?.find(row=>row.clientActionId===lost.command.clientActionId)?.status,{timeout:15000}).toBe('rollout-paused');
  await waitUpdated(page,inputs.closedCommit);await expect(page.locator('[data-yard-read-only=true]')).toBeVisible();
  const warmAgain=await browserMetadata(page,'A');expect(warmAgain.map(row=>row.sha256)).toEqual(warmA.map(row=>row.sha256));
- await expect.poll(async()=>(await outbox(page,f.id))?.items?.find(row=>row.clientActionId===lost.command.clientActionId)?.status,{timeout:15000}).toBe('rollout-paused');
+ await expect.poll(async()=>(await outboxForPoll(page,f.id))?.items?.find(row=>row.clientActionId===lost.command.clientActionId)?.status,{timeout:15000}).toBe('rollout-paused');
  const pending=await outbox(page,f.id),retained=pending?.items?.find(row=>row.clientActionId===lost.command.clientActionId);expect(retained).toMatchObject({accountId:f.id,clientActionId:lost.command.clientActionId,action:lost.command.action,payload:lost.command.payload});
  const paused=await mutation(request,f,lost.command,'A');expect(paused.status).toBe(409);expect(paused.body.error).toBe('YARD_ROLLOUT_PAUSED');
  const after=await saved(f);expect(after.yard).toEqual(committed.yard);expect(after._yardV2).toEqual(committed._yardV2);expect(after._yardV2.migration).toEqual(before._yardV2.migration);
@@ -186,7 +194,10 @@ async function crossSceneReady(page){
 }
 async function crossHome(page){
  if(await page.getByTestId('home-catalogue').count())return;
- if(await page.locator('.cy-app').count())await page.getByRole('button',{name:'Back to games',exact:true}).click();
+ // Route ownership precedes lazy controller mount; choose the mounted route's Home control.
+ await expect(page.locator('.game-entry-status')).toHaveCount(0);
+ const route=await page.locator('.telegram-app').getAttribute('data-active-tab');
+ if(route==='room')await page.getByRole('button',{name:'Back to games',exact:true}).click();
  else await openHome(page);
 }
 async function crossSelect(page,id){await crossHome(page);await selectHomeGame(page,id);}
@@ -241,6 +252,7 @@ test('cross-game actual B: three fixture-assisted real Blox finishes fund one Me
  for(let run=0;run<3;run++){
   await crossSelect(page,'blox');const started=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action==='blox.start');
   await page.getByRole('button',{name:'Start',exact:true}).click();expect((await started).status()).toBe(200);
+  expect((await saved(f)).blox.activeGame).toBe(true);
   // Setup is explicitly a near-threshold saved-run fixture, never a token grant.
   // The final row clear and finish are actual UI/controller/server actions.
   const fixture=createBloxLineClearFixture();fixture.savedState.score=3498;
@@ -253,7 +265,15 @@ test('cross-game actual B: three fixture-assisted real Blox finishes fund one Me
   const finish=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action==='blox.end');await crossSelect(page,'merge');
   const finished=await finish;expect(finished.status()).toBe(200);const earned=await finished.json();expect(earned.tokenReward).toBe(4);
   const savedOnce=await saved(f);expect(savedOnce.resources.gachaTokens).toBe(4*(run+1));
-  const replay=await mutation(request,f,finished.request().postDataJSON());expect(replay.status).toBe(200);expect(replay.body.duplicate).toBe(true);expect((await saved(f)).resources.gachaTokens).toBe(savedOnce.resources.gachaTokens);
+  // The ordinary Blox UI does not assign an action ID to finish. Its repeat must
+  // hit the terminal-session fence, not claim a nonexistent same-ID receipt.
+  const finishCommand=finished.request().postDataJSON();expect(finishCommand.clientActionId).toBeUndefined();
+  expect(savedOnce.blox.activeGame).toBe(false);
+  const replay=await mutation(request,f,finishCommand);expect(replay.status).toBe(403);expect(replay.body.error).toBe('No active Blox session');
+  const afterReplay=await saved(f);expect(afterReplay.resources).toEqual(savedOnce.resources);expect(afterReplay.blox).toEqual(savedOnce.blox);
+  const clearCommand=response.request().postDataJSON();expect(clearCommand.clientActionId).toEqual(expect.any(String));
+  const clearReplay=await mutation(request,f,clearCommand);expect(clearReplay.status).toBe(200);expect(clearReplay.body.duplicate).toBe(true);
+  expect((await saved(f)).resources).toEqual(savedOnce.resources);
   earns.push({seededScore:3498,realFinalScore:3510,tokenReward:earned.tokenReward,command:finished.request().postDataJSON()});
  }
  const funded=await saved(f);expect(funded.resources.gachaTokens).toBe(12);await mergePanel(page,'supplies');

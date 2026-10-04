@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 const buildExtensionUrl=new URL('./yard-active-build-transition.mjs',import.meta.url);
-assert.equal(createHash('sha256').update(readFileSync(buildExtensionUrl)).digest('hex'),'6c4de86959eecf6f99f9307e01bd7eac93ab53b62d1d92370ebe754a2feda0ee','Reviewed build extension bytes changed');
+assert.equal(createHash('sha256').update(readFileSync(buildExtensionUrl)).digest('hex'),'d74258b6daa01959ea5f39327e857140b67b3f471c23c068af2db21002910ec1','Reviewed build extension bytes changed');
 const buildExtension=await import(buildExtensionUrl.href);
 import {ACTIVE_CONTRACT_PATH,PROMOTED_PATHS,verifyPromotionContract,verifyActiveRuntime} from './yard-active-contract.mjs';
 export const CLOSED_VERIFIERS=Object.freeze(['preview/yard-persistent-candidate/base-contract.json','preview/yard-persistent-candidate/verify-production.mjs','preview/yard-persistent-candidate/verify-closed-rollout.mjs','preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs']);
@@ -36,7 +36,7 @@ export function assertExactPromotionTree(before,after){
   }
  }
  assert.deepEqual(changed.sort(),[...FULL_PROMOTION_PATHS].sort(),'Every exact promotion file must change, with no extra path');
- return {changedFiles:21,reviewedBuildToolingFiles:build.buildChanged,reviewedAcceptanceToolingFiles:build.acceptanceChanged,totalChangedFiles:21+build.changed,unchangedFiles:before.size-PROMOTED_PATHS.length-build.existingChanged};
+ return {changedFiles:21,reviewedBuildToolingFiles:build.buildChanged,reviewedAcceptanceToolingFiles:build.acceptanceChanged,reviewedPlayerUiFiles:build.playerUiChanged,totalChangedFiles:21+build.changed,unchangedFiles:before.size-PROMOTED_PATHS.length-build.existingChanged};
 }
 export function assertCleanReleaseCheckout(root){
  assert.equal(git(root,['status','--porcelain=v1','--untracked-files=all']),'','Committed release boundary rejects dirty or untracked files');
