@@ -1,3 +1,5 @@
+import { SettlementFrameArt } from './SettlementFrameArt.jsx';
+import { SETTLEMENT_CARD_MATERIAL } from './settlementIllustratedMaterials.js';
 import { useEffect, useRef, useState } from 'react';
 import { useAppI18n } from '../../app/i18n.jsx';
 import { HudEditableRegion } from '../../app/hud-layout/HudRegion.jsx';
@@ -55,7 +57,8 @@ export default function SettlementPlayPanel() {
   };
   if (state.rightPanelOpen) return null;
 
-  return <HudEditableRegion id="settlementCompactDetail" as="section" applyLayout={false} className="settlement-compact-detail settlement-play-panel settlement-illustrated-life" style={{ backgroundImage: `url(${UI_ASSETS.smallPanel})`, ...(besideMap ? { left: 'auto', right: 10, transform: 'none' } : {}) }} aria-label={language === 'ru' ? 'Жизнь поселения' : 'Village life'} data-cycle-development={cycle.development}>
+  return <HudEditableRegion id="settlementCompactDetail" as="section" applyLayout={false} className="settlement-compact-detail settlement-play-panel settlement-illustrated-life settlement-illustrated-frame" style={{ backgroundImage: `url(${UI_ASSETS.smallPanel})`, ...(besideMap ? { left: 'auto', right: 10, transform: 'none' } : {}) }} aria-label={language === 'ru' ? 'Жизнь поселения' : 'Village life'} data-cycle-development={cycle.development}>
+    <SettlementFrameArt material={SETTLEMENT_CARD_MATERIAL} />
     <nav className="settlement-cycle-tabs" aria-label={language === 'ru' ? 'Дела поселения' : 'Village tasks'}>
       {['production', 'orders', 'growth'].map(id => <button key={id} type="button" aria-pressed={tab === id} onClick={() => { setTab(id); setFeedback(''); }} data-testid={`settlement-tab-${id}`}>{c[id]}</button>)}
       <button className="settlement-compact-detail-open" type="button" aria-label={c.details} onClick={() => state.selectBuilding(state.selectedBuildingId)}>{c.details}</button>
@@ -76,3 +79,4 @@ export default function SettlementPlayPanel() {
     <div className="settlement-cycle-feedback" role="status" aria-live="polite">{state.persistenceError ? language === 'ru' ? 'Не удалось сохранить. Повторите действие.' : 'Could not save. Try again.' : feedback || (tab === 'orders' && !canPay(state.resources, order.cost) ? c.missing : '')}</div>
   </HudEditableRegion>;
 }
+

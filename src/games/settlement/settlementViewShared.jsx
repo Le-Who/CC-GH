@@ -1,3 +1,5 @@
+import { SettlementFrameArt } from './SettlementFrameArt.jsx';
+import { settlementFrameMaterial } from './settlementIllustratedMaterials.js';
 import { useSettlementText } from './useSettlementText.js';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA, getSettlementPlacementSlotLayout } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
@@ -68,9 +70,13 @@ function ResourceIcon({ type, size = 16, className = '' }) {
   return src ? <AssetIcon src={src} alt="" className={className} size={size} /> : null;
 }
 
-function HudFrame({ children, className = '', frame = UI_ASSETS.panel, ...props }) {
+function HudFrame({ children, className = '', frame = UI_ASSETS.panel, as: Tag = 'div', style, ...props }) {
   const t = useSettlementText();
-  return <div className={className} style={frameStyle(frame)} {...props}>{t(children)}</div>;
+  const material = settlementFrameMaterial(frame);
+  return <Tag {...props} className={`${className}${material ? ' settlement-illustrated-frame' : ''}`} style={{ ...(material ? {} : frameStyle(frame)), ...style }}>
+    {material ? <SettlementFrameArt material={material} /> : null}
+    {t(children)}
+  </Tag>;
 }
 
 function ProgressBar({ value = 0, max = 100, fill = 'green', label, className = '' }) {

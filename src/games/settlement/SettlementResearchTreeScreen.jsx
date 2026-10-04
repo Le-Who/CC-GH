@@ -101,11 +101,12 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
           const nodeIcon = RESEARCH_ICON_SOURCES[node.icon] ?? ICONS.research;
           const nodeFrame = isSelected ? UI_ASSETS.researchNodeSelected : (RESEARCH_NODE_FRAMES[state] ?? UI_ASSETS.researchNodeAvailable);
           return (
-            <button
+            <HudFrame as="button"
               key={node.id}
               type="button"
               className={`research-tech-node ${state} ${isSelected ? 'selected' : ''} ${node.connectors?.right ? 'connect-right' : ''} ${node.connectors?.down ? 'connect-down' : ''}`.trim()}
-              style={{ ...frameStyle(nodeFrame), gridColumn: node.position.col, gridRow: node.position.row }}
+              frame={nodeFrame}
+              style={{ gridColumn: node.position.col, gridRow: node.position.row }}
               onClick={() => onSelectNode(node.id)}
               aria-pressed={isSelected}
             >
@@ -125,7 +126,7 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
                 </div>
               ) : null}
               {state === 'locked' ? <em>{t(node.requiredLabel ?? 'Требования не выполнены')}</em> : null}
-            </button>
+            </HudFrame>
           );
         })}
       </div>
@@ -167,3 +168,4 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
 export default ResearchTreeScreen;
 
 export { ResearchTreeScreen };
+

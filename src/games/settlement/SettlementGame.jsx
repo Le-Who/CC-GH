@@ -15,6 +15,7 @@ import { AssetIcon, CONSTRUCTION_ITEMS_BY_ID_UI, CONSTRUCTION_SLOTS_BY_ID_UI, Pr
 import { lazy, Suspense } from 'react';
 import './settlement.css';
 import './settlementIllustratedKit.css';
+import './settlementFrameArt.css';
 const SceneCanvas=lazy(()=>import('./SettlementSceneCanvas.jsx'));
 const OverviewPanel=lazy(()=>import('./SettlementOverviewPanel.jsx'));
 const BuildingPanel=lazy(()=>import('./SettlementBuildingPanel.jsx'));
@@ -947,3 +948,4 @@ export default function SettlementGame() {
     </HudRegion>
   );
 }
+

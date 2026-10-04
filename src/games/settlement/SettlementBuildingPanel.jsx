@@ -2,7 +2,7 @@ import { useSettlementText } from './useSettlementText.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
 import { DEVELOPMENTS, batchYield } from './settlementCycle.js';
 import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, useSettlementStore } from './useSettlementStore.js';
-import { AssetIcon, ProgressBar, ResourceIcon, formatDurationMs, formatNumber, frameStyle, resourceLabel } from './settlementViewShared.jsx';
+import { AssetIcon, HudFrame, ProgressBar, ResourceIcon, formatDurationMs, formatNumber, frameStyle, resourceLabel } from './settlementViewShared.jsx';
 
 function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, onDemolish }) {
   const t = useSettlementText();
@@ -33,13 +33,13 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
 
   return (
     <div className="building-screen">
-      <section className="settlement-building-hero">
+      <HudFrame as="section" className="settlement-building-hero" frame={UI_ASSETS.buildingStatsCard}>
         <img src={illustration} alt="" draggable={false} />
         <div>
           <strong>{t(building.name)}</strong>
           <p>{t(detail.body ?? building.description)}</p>
         </div>
-      </section>
+      </HudFrame>
 
       <div className="building-level-row" style={frameStyle(UI_ASSETS.buildingLevelRow)}>
         <span>{t("Уровень ")}{t(level)}</span>
@@ -54,7 +54,7 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
       </div>
 
       <div className="building-data-grid">
-        <section className="building-data-card" style={frameStyle(UI_ASSETS.buildingStatsCard)}>
+        <HudFrame as="section" className="building-data-card" frame={UI_ASSETS.buildingStatsCard}>
           <div className="building-card-title">
             <span>{t("Выпуск поселения")}</span>
           </div>
@@ -73,9 +73,9 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
               </div>
             )}
           </div>
-        </section>
+        </HudFrame>
 
-        <section className="building-data-card" style={frameStyle(UI_ASSETS.buildingStatsCard)}>
+        <HudFrame as="section" className="building-data-card" frame={UI_ASSETS.buildingStatsCard}>
           <div className="building-card-title">
             <span>{t("Стоимость улучшения")}</span>
           </div>
@@ -97,7 +97,7 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
               );
             })}
           </div>
-        </section>
+        </HudFrame>
       </div>
 
       <div className="building-action-zone">

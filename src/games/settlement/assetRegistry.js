@@ -31,13 +31,13 @@ export const UI_ASSETS = {
   plus: sprite('ui-resource-plus-button'),
   iconButton: sprite('ui-small-icon-button-9slice'),
   leftDock: sprite('ui-left-dock-frame'),
-  dockButton: sprite('ui/hud/leftdock-button-idle'),
-  dockButtonActive: sprite('ui/hud/leftdock-button-active'),
+  dockButton: sprite('ui/illustrated-v2/navigation-tile'),
+  dockButtonActive: sprite('ui/illustrated-v2/navigation-tile'),
   badge: sprite('ui/hud/notification-badge'),
   bottomFrame: sprite('ui/hud/bottom-nav-frame'),
-  bottomButton: sprite('ui/hud/bottom-nav-button-idle'),
-  bottomButtonActive: sprite('ui/hud/bottom-nav-button-active'),
-  bottomButtonPressed: sprite('ui/hud/bottom-nav-button-active'),
+  bottomButton: sprite('ui/illustrated-v2/navigation-tile'),
+  bottomButtonActive: sprite('ui/illustrated-v2/navigation-tile'),
+  bottomButtonPressed: sprite('ui/illustrated-v2/navigation-tile'),
   primaryBuildButton: sprite('ui/hud/primary-build-button-idle'),
   primaryBuildButtonActive: sprite('ui/hud/primary-build-button-active'),
   collectButton: sprite('ui/hud/collect-button-idle'),
@@ -91,8 +91,8 @@ export const UI_ASSETS = {
   goalsClaimCountBadge: sprite('ui/status/goals-claim-count-badge'),
   goalsRefreshChip: sprite('ui/status/goals-refresh-chip'),
   goalsProgressRow: sprite('ui/status/goals-progress-row'),
-  bottomGoalsButton: sprite('ui/hud/bottom-nav-button-goals-idle'),
-  bottomGoalsButtonActive: sprite('ui/hud/bottom-nav-button-goals-active'),
+  bottomGoalsButton: sprite('ui/illustrated-v2/navigation-tile'),
+  bottomGoalsButtonActive: sprite('ui/illustrated-v2/navigation-tile'),
   inventoryTitleStrip: sprite('ui/panel/right-panel-inventory-title-strip'),
   inventorySummaryCard: sprite('ui/panel/inventory-summary-card'),
   inventoryRowIdle: sprite('ui/panel/inventory-resource-row-idle'),
@@ -180,8 +180,8 @@ export const UI_ASSETS = {
   researchCompleteToast: sprite('ui/toast/research-complete-toast'),
   worldMapTitleStrip: sprite('ui/panel/right-panel-world-map-title-strip'),
   worldMapParchmentFrame: sprite('ui/panel/world-map-parchment-frame'),
-  worldMapBase: sprite('ui/map/world-map-archipelago-base'),
-  worldMapCompass: sprite('ui/map/world-map-compass'),
+  worldMapBase: sprite('ui/illustrated-v2/world-map-archipelago-base'),
+  worldMapCompass: sprite('ui/illustrated-v2/world-map-compass'),
   worldMapMarkerHome: sprite('ui/map/world-map-marker-home'),
   worldMapMarkerAvailable: sprite('ui/map/world-map-marker-available'),
   worldMapMarkerSelected: sprite('ui/map/world-map-marker-selected'),
@@ -193,10 +193,10 @@ export const UI_ASSETS = {
   worldExpeditionCardSelected: sprite('ui/panel/world-expedition-card-selected'),
   worldExpeditionCardActive: sprite('ui/panel/world-expedition-card-active'),
   worldExpeditionCardLocked: sprite('ui/panel/world-expedition-card-locked'),
-  worldThumbForest: sprite('ui/map/expedition-thumb-ancient-forest'),
-  worldThumbRuins: sprite('ui/map/expedition-thumb-drowned-ruins'),
-  worldThumbVolcano: sprite('ui/map/expedition-thumb-volcanic-mountains'),
-  worldThumbIce: sprite('ui/map/expedition-thumb-ice-wastes'),
+  worldThumbForest: sprite('ui/illustrated-v2/expedition-thumb-ancient-forest'),
+  worldThumbRuins: sprite('ui/illustrated-v2/expedition-thumb-drowned-ruins'),
+  worldThumbVolcano: sprite('ui/illustrated-v2/expedition-thumb-volcanic-mountains'),
+  worldThumbIce: sprite('ui/illustrated-v2/expedition-thumb-ice-wastes'),
   worldDifficultyEasy: sprite('ui/status/world-difficulty-easy'),
   worldDifficultyMedium: sprite('ui/status/world-difficulty-medium'),
   worldDifficultyHard: sprite('ui/status/world-difficulty-hard'),
@@ -208,8 +208,8 @@ export const UI_ASSETS = {
   worldTimerIcon: sprite('ui/status/world-expedition-hourglass'),
   worldStartedToast: sprite('ui/toast/world-expedition-started-toast'),
   worldCompleteToast: sprite('ui/toast/world-expedition-complete-toast'),
-  bottomWorldButton: sprite('ui/hud/bottom-nav-button-world-idle'),
-  bottomWorldButtonActive: sprite('ui/hud/bottom-nav-button-world-active')
+  bottomWorldButton: sprite('ui/illustrated-v2/navigation-tile'),
+  bottomWorldButtonActive: sprite('ui/illustrated-v2/navigation-tile')
 };
 
 export const ICONS = {
@@ -342,3 +342,4 @@ export const ALL_PIXI_ASSETS = [
   ...Object.values(VILLAGER_ASSETS),
   ...Object.values(VFX_ASSETS)
 ];
+

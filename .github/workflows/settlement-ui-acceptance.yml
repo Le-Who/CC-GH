@@ -4,6 +4,8 @@ on:
   pull_request:
     paths:
       - 'src/games/settlement/**'
+      - 'public/games/settlement/ui/illustrated-v2/**'
+      - 'assets-source/imagegen/settlement/illustrated-v2/**'
       - 'src/app/hud-layout/**'
       - 'src/app/hud-redesign.css'
       - 'tests/settlement-*.test.*'
@@ -51,7 +53,7 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Run new source and sequencing regressions
         run: |
-          node --test tests/settlement-secondary-truthfulness.test.mjs tests/settlement-illustrated-kit.test.mjs tests/settlement-goal-presentation.test.mjs tests/settlement-expedition-ui.test.mjs
+          node --test tests/settlement-secondary-truthfulness.test.mjs tests/settlement-illustrated-kit.test.mjs tests/settlement-goal-presentation.test.mjs tests/settlement-expedition-ui.test.mjs tests/settlement-nine-slice.test.mjs tests/settlement-generated-art.test.mjs
           node scripts/hud-layout-validate.mjs
       - name: Build actual production client
         env:

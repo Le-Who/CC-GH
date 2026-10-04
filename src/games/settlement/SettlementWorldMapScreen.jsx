@@ -91,8 +91,8 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
       <div className="world-map-scroll-v2">
         <HudFrame className="world-map-card world-map-card-v2" frame={UI_ASSETS.worldMapParchmentFrame}>
           <div className="world-map-visual world-map-visual-v2" aria-label={t("Карта архипелага")}>
-            <img className="world-map-base-v2" src={UI_ASSETS.worldMapBase} alt="" draggable={false} />
-            <img className="world-compass" src={UI_ASSETS.worldMapCompass} alt="" draggable={false} />
+            <img className="world-map-base-v2" src={UI_ASSETS.worldMapBase} width={1024} height={512} decoding="async" alt="" draggable={false} />
+            <img className="world-compass" src={UI_ASSETS.worldMapCompass} width={192} height={192} decoding="async" alt="" draggable={false} />
             {WORLD_MAP_PANEL_DATA.mapMarkers.map((marker) => {
               const expedition = WORLD_MAP_PANEL_DATA.expeditions.find((item) => item.id === marker.expeditionId);
               const locked = !worldExpeditionUnlocked(expedition, stage);
@@ -169,8 +169,8 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                 onClick={() => { if (!sending.current) onSelectExpedition(expedition.id); }}
                 onKeyDown={(event) => handleCardKeyDown(event, expedition.id)}
               >
-                <div className="world-expedition-thumb-v2" style={frameStyle(thumb)}>
-                  <AssetIcon src={WORLD_MAP_ICON_SOURCES[expedition.icon] ?? ICONS.world} alt="" size={36} />
+                <div className="world-expedition-thumb-v2">
+                  <img src={thumb} alt="" width={128} height={96} loading="lazy" decoding="async" draggable={false} />
                 </div>
                 <div className="world-expedition-copy-v2">
                   <div className="world-expedition-title-row-v2">
@@ -218,3 +218,4 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
 export default WorldMapScreen;
 
 export { WorldMapScreen };
+

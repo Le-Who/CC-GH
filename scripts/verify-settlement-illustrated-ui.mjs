@@ -43,7 +43,7 @@ try {
   try {
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
-  await page.addInitScript(language => { localStorage.setItem('gh_dev_user_id', `settlement_visual_${Date.now()}_${Math.random()}`); localStorage.setItem('garden_shelf_language', language); }, language);
+  await page.addInitScript(language => { performance.setResourceTimingBufferSize(2000); localStorage.setItem('gh_dev_user_id', `settlement_visual_${Date.now()}_${Math.random()}`); localStorage.setItem('garden_shelf_language', language); }, language);
   await page.goto(`${baseURL}/?tab=settlement`);
   await page.locator('.settlement-play-panel').waitFor({ timeout: 30000 });
   await page.locator('.settlement-canvas').waitFor({ timeout: 30000 });
@@ -52,10 +52,31 @@ try {
   const click = async locator => touch ? locator.tap() : locator.click();
   async function capture(name) {
    console.log(JSON.stringify({ event: 'capture-start', language, width, height, state: name }));
-   await bounded(page.locator('.settlement-game-root img').evaluateAll(async images => { await Promise.all(images.filter(img => img.getBoundingClientRect().width).map(img => img.decode().catch(() => {}))); }), ACTION_TIMEOUT, `Image decode timed out: ${name}`);
+   await bounded(page.locator('.settlement-game-root img').evaluateAll(async images => { await Promise.all(images.filter(img => { const r = img.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth; }).map(img => img.decode().catch(() => {}))); }), ACTION_TIMEOUT, `Image decode timed out: ${name}`);
+   const artDelivery = await bounded(page.evaluate(async () => {
+    const paths = new Set();
+    for (const el of document.querySelectorAll('.settlement-game-root *')) {
+     const rect = el.getBoundingClientRect();
+     if (!rect.width || !rect.height || rect.bottom <= 0 || rect.top >= innerHeight || rect.right <= 0 || rect.left >= innerWidth) continue;
+     if (el instanceof HTMLImageElement && el.currentSrc.includes('/ui/illustrated-v2/')) paths.add(el.currentSrc);
+     const background = getComputedStyle(el).backgroundImage;
+     for (const match of background.matchAll(/url\(["']?([^"')]+)["']?\)/g)) if (match[1].includes('/ui/illustrated-v2/')) paths.add(new URL(match[1], location.href).href);
+    }
+    const decoded = await Promise.all([...paths].map(async url => {
+     const image = new Image();
+     const start = performance.now();
+     image.src = url;
+     await image.decode();
+     return { path: new URL(url).pathname, width: image.naturalWidth, height: image.naturalHeight, estimatedRgbaBytes: image.naturalWidth * image.naturalHeight * 4, decodeProbeMs: performance.now() - start };
+    }));
+    const resources = performance.getEntriesByType('resource').filter(entry => entry.name.includes('/ui/illustrated-v2/')).map(entry => ({ path: new URL(entry.name).pathname, encodedBodySize: entry.encodedBodySize, transferSize: entry.transferSize, durationMs: entry.duration }));
+    const uniqueEncodedSizes = new Map();
+    for (const entry of resources) uniqueEncodedSizes.set(entry.path, Math.max(uniqueEncodedSizes.get(entry.path) || 0, entry.encodedBodySize));
+    return { measurementNotes: 'decodeProbeMs is a separate cached Image.decode probe, not first-paint decode duration; estimatedRgbaBytes is width*height*4, not GPU allocation; screenshots require independent review', decoded, resources, encodedBytes: [...uniqueEncodedSizes.values()].reduce((sum, bytes) => sum + bytes, 0), transferBytes: resources.reduce((sum, entry) => sum + entry.transferSize, 0), estimatedDecodedRgbaBytes: decoded.reduce((sum, image) => sum + image.estimatedRgbaBytes, 0) };
+   }), ACTION_TIMEOUT, `Illustrated source decode failed: ${name}`);
    const geometry = await page.evaluate(() => {
     const root = document.querySelector('.settlement-game-root');
-    const broken = [...root.querySelectorAll('img')].filter(img => img.getBoundingClientRect().width && (!img.complete || !img.naturalWidth)).map(img => img.src);
+    const broken = [...root.querySelectorAll('img')].filter(img => { const r = img.getBoundingClientRect(); return r.width && r.bottom > 0 && r.top < innerHeight && r.right > 0 && r.left < innerWidth && (!img.complete || !img.naturalWidth); }).map(img => img.src);
     const panel = root.querySelector('.right-panel') || root.querySelector('.settlement-play-panel');
     const rect = panel.getBoundingClientRect();
     const controls = [...panel.querySelectorAll('button')].filter(button => { const r = button.getBoundingClientRect(); return r.width && r.height; }).map(button => {
@@ -83,7 +104,7 @@ try {
    await page.screenshot({ path: `${screenshotBase}.jpg`, type: 'jpeg', quality: 90 });
    if (width === 390 && language === 'ru' && ['city-production','building','world'].includes(name)) await page.screenshot({ path: `${screenshotBase}.png` });
    const failuresBefore = assertionFailures.length;
-   report.push({ language, width, height, name, ...geometry });
+   report.push({ language, width, height, name, artDelivery, ...geometry });
    await writeFile(`${output}/report.json`, JSON.stringify(report, null, 2));
    // Independent geometry/image assertions all run. A failure is retained,
    // never converted into a pass; setup/auth/browser errors still stop the run.
@@ -94,6 +115,13 @@ try {
     () => assert.ok(!geometry.controls.some(control => control.covered), `Covered control: ${name}`),
     () => assert.ok(!geometry.controls.some(control => control.inView && (control.width < 43.5 || control.height < 43.5)), `Small control: ${name}`)
    ];
+   if (name === 'city-production') {
+    checks.push(() => assert.ok(artDelivery.resources.every(item => !/world-map-|expedition-thumb-/.test(item.path)), 'World art eagerly requested on City entry'));
+    checks.push(() => assert.ok(['compact-parchment-card.webp', 'navigation-tile.webp'].every(file => artDelivery.resources.some(entry => entry.path.endsWith(file) && entry.encodedBodySize > 0)), 'City transfer measurements unavailable or zero'));
+    checks.push(() => assert.ok(artDelivery.encodedBytes <= 64000, 'Illustrated City entry exceeds 64KB'));
+    checks.push(() => assert.ok(['compact-parchment-card.webp', 'navigation-tile.webp'].every(file => artDelivery.decoded.some(image => image.path.endsWith(file))), 'City material is not actually rendered'));
+   }
+   checks.push(() => assert.ok(artDelivery.encodedBytes <= 400000, 'Illustrated delivery exceeds 400KB'));
    for (const verify of checks) {
     try { verify(); }
     catch (error) {
