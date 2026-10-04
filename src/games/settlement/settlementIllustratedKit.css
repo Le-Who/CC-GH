@@ -321,4 +321,27 @@
     grid-column: 2;
     grid-row: 3;
   }
+  /* The same short landscape drawer also needs readable detail and cost rows. */
+  .settlement-game-root .right-panel-fancy .research-detail-card-v2,
+  .settlement-game-root .right-panel-fancy .research-action-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+  .settlement-game-root .right-panel-fancy .research-detail-effects {
+    border-left: 0;
+    padding-left: 0;
+    overflow-wrap: anywhere;
+  }
+  .settlement-game-root .right-panel-fancy .research-detail-copy strong,
+  .settlement-game-root .right-panel-fancy .research-detail-copy p {
+    white-space: normal;
+    overflow: visible;
+    display: block;
+    -webkit-line-clamp: unset;
+    overflow-wrap: anywhere;
+  }
+  .settlement-game-root .right-panel-fancy .research-cost-list {
+    flex-wrap: wrap;
+    overflow: visible;
+    row-gap: 6px;
+  }
 }
