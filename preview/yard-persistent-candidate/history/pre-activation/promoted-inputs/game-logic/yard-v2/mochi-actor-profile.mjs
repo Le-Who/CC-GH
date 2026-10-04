@@ -2,7 +2,7 @@
 import {deepFreeze} from './util.mjs';
 export const MOCHI_ACTOR_REFERENCE=Object.freeze({id:'mochi',revision:'mochi-actor/r1'});
 export const MOCHI_RUNTIME_MEDIA_REVISION='mochi-canonical-source/r1';
-export const MOCHI_RELEASE_GATE=deepFreeze({accepted:true,
+export const MOCHI_RELEASE_GATE=deepFreeze({accepted:false,
  completed:['own-source-rig','own-stride-root-rows','cardinal-turns','ground-contact-and-clearance','combined-prop-rest-cycle','standalone-browser-fixture'],
  standaloneBrowserEvidence:{commit:'b6e0d70e85b527c02577e9254a1f95ac0cdbb3fa',run:37091634591,job:111113032492,passed:10,retries:0,screenshotsReviewed:40},
  pending:['canonical-server-and-shared-scene-browser-QA','multi-actor-cache-and-depth-QA','release-review']});
