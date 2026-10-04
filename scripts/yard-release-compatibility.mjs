@@ -3,6 +3,7 @@
 import {pathToFileURL} from 'node:url';
 import {YARD_PLAYER_RELEASE_POLICY} from '../game-logic/yard-v2/release-policy.mjs';
 import {initializeReleasedPlayerYard,executeReleasedYardAction,releasedYardSnapshot} from '../game-logic/yard-v2/player-release.mjs';
+import {maintenanceCapability} from './yard-maintenance-capability.mjs';
 export function yardReleaseCompatibility(buildId){
  if(typeof buildId!=='string'||!/^[a-f0-9]{40}$/.test(buildId))throw Error('Exact image build identity required');
  let closedQuarantineVerified=false;
@@ -15,9 +16,9 @@ export function yardReleaseCompatibility(buildId){
   }
   closedQuarantineVerified=true;
  }
- return {format:'cc-gh-yard-release-compatibility/v1',buildId,policyRevision:YARD_PLAYER_RELEASE_POLICY.revision,
+ return maintenanceCapability({format:'cc-gh-yard-release-compatibility/v1',buildId,policyRevision:YARD_PLAYER_RELEASE_POLICY.revision,
   playerRolloutEnabled:YARD_PLAYER_RELEASE_POLICY.enabled,readableStorageFormats:['yard-persistent/v1'],
-  closedQuarantineVerified,requiredClosedPredecessor:YARD_PLAYER_RELEASE_POLICY.requiredClosedPredecessor,requiredLegacyPredecessor:YARD_PLAYER_RELEASE_POLICY.requiredLegacyPredecessor};
+  closedQuarantineVerified,requiredClosedPredecessor:YARD_PLAYER_RELEASE_POLICY.requiredClosedPredecessor,requiredLegacyPredecessor:YARD_PLAYER_RELEASE_POLICY.requiredLegacyPredecessor});
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{process.stdout.write(JSON.stringify(yardReleaseCompatibility(process.env.APP_BUILD_ID))+'\n');}

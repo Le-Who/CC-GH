@@ -1,8 +1,9 @@
 /** Read-only pre-switch verification. Inputs are local image metadata, image-owned
  * capability commands, health, and an aggregate marker count. No player rows. */
-import {readFileSync} from 'node:fs';
+import {readFileSync,existsSync} from 'node:fs';
 import {join} from 'node:path';
 import {pathToFileURL} from 'node:url';
+import {verifyMaintenanceRollback} from './yard-active-maintenance.mjs';
 // Audited prior release: its live routes/playerManager do not write _yardV2.
 export const KNOWN_LEGACY_YARD_BUILD='84d252d4bee6ed75fe8d32c07ebdef4c9270c629';
 const fullSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
@@ -18,6 +19,11 @@ function identity(image,repository,digest,buildId){
  if(image.Config?.Labels?.['org.opencontainers.image.revision']!==buildId)fail('Image source revision does not match the release build');
 }
 export function verifyYardRollbackTarget(input){
+ if(input?.candidate?.format==='cc-gh-yard-release-compatibility/v2'){
+  if(!input.maintenance)fail('Maintenance requires independently approved preflight evidence');
+  const {recordBytes,approvedRecordSha256,previousCompatibilityBytes,acceptedPredecessorReceiptBytes}=input.maintenance;
+  return verifyMaintenanceRollback({...input,recordBytes,approvedRecordSha256,previousCompatibilityBytes,acceptedPredecessorReceiptBytes});
+ }
  const {candidate,previous,previousHealth,candidateImage,previousImage,repository,candidateDigest,candidateBuildId,previousImageId,previousBuildId,persistentYardRows}=input||{};
  if(typeof repository!=='string'||!/^[a-z0-9_.-]+\/[a-z0-9_.-]+$/.test(repository)||!fullSha(candidateBuildId)||!fullSha(previousBuildId)||!imageDigest(previousImageId))fail('Exact release and rollback identities are required');
  if(!Number.isSafeInteger(persistentYardRows)||persistentYardRows<0)fail('Valid read-only Yard marker count required');
@@ -43,7 +49,8 @@ export function verifyYardRollbackTarget(input){
 export function readYardPreflightDirectory(directory){
  const text=name=>readFileSync(join(directory,name),'utf8').trim(),json=name=>JSON.parse(text(name));
  const count=text('persistent-yard-count.txt');if(!/^(0|[1-9]\d*)$/.test(count))fail('Invalid PostgreSQL aggregate count');
- return {candidate:json('candidate.json'),previous:json('previous.json'),previousHealth:json('previous-health.json'),candidateImage:json('candidate-image.json'),previousImage:json('previous-image.json'),repository:text('repository.txt'),candidateDigest:text('candidate-digest.txt'),candidateBuildId:text('candidate-build.txt'),previousImageId:text('previous-image-id.txt'),previousBuildId:text('previous-build.txt'),persistentYardRows:Number(count)};
+ const maintenance=existsSync(join(directory,'maintenance-approved-sha256.txt'))?{approvedRecordSha256:text('maintenance-approved-sha256.txt'),recordBytes:readFileSync(join(directory,'maintenance-record.json')),previousCompatibilityBytes:readFileSync(join(directory,'previous.json')),acceptedPredecessorReceiptBytes:readFileSync(join(directory,'maintenance-predecessor-receipt.json'))}:undefined;
+ return {candidate:json('candidate.json'),previous:json('previous.json'),previousHealth:json('previous-health.json'),candidateImage:json('candidate-image.json'),previousImage:json('previous-image.json'),repository:text('repository.txt'),candidateDigest:text('candidate-digest.txt'),candidateBuildId:text('candidate-build.txt'),previousImageId:text('previous-image-id.txt'),previousBuildId:text('previous-build.txt'),persistentYardRows:Number(count),...(maintenance?{maintenance}:{})};
 }
 if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
  try{if(process.argv.length!==3)fail('One bounded preflight directory required');process.stdout.write(JSON.stringify(verifyYardRollbackTarget(readYardPreflightDirectory(process.argv[2])))+'\n');}
