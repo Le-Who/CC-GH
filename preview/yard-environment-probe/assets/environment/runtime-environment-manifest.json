@@ -1,0 +1,156 @@
+{
+  "kind": "deterministic runtime packaging; no new image generation",
+  "source_originals_preserved": true,
+  "files": [
+    {
+      "source": "10-decorative-plate-no-gate-path.png",
+      "source_sha256": "685b0bd5c534c54c11966d223633a9c77f10e1b0d704c044c51bf611bbd22a15",
+      "source_size": [
+        1024,
+        1536
+      ],
+      "source_crop": [
+        0,
+        0,
+        1024,
+        1536
+      ],
+      "output": "yard-environment-plate.webp",
+      "output_sha256": "5b894712c3473184c1cf70f7a3e8f7506d328b4b636f8187793a004ff2cff4e3",
+      "output_size": [
+        1024,
+        1536
+      ],
+      "uniform_scale": 1.0,
+      "resampling": "single uniform inverse-affine bicubic; output canvas dimensions ceil-scaled",
+      "encoding": "WebP RGB quality 92",
+      "mode": "RGB",
+      "bytes": 521978,
+      "decoded_rgba_bytes": 6291456,
+      "source_png_unchanged": true
+    },
+    {
+      "source": "07-ground-texture.png",
+      "source_sha256": "0f97d2367500f659242fab6bb8572222139485c7c4e9c74e3e2862ee40a608f4",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_crop": [
+        0,
+        0,
+        1254,
+        1254
+      ],
+      "output": "yard-ground-texture.webp",
+      "output_sha256": "76cc38ed6599a7f38d7a7bd87c0380ca261115b3a2073d97321dbe2b75dd4424",
+      "output_size": [
+        512,
+        512
+      ],
+      "uniform_scale": 0.4082934609250399,
+      "resampling": "single uniform inverse-affine bicubic; output canvas dimensions ceil-scaled",
+      "encoding": "WebP RGB quality 92",
+      "mode": "RGB",
+      "bytes": 130516,
+      "decoded_rgba_bytes": 1048576,
+      "source_png_unchanged": true
+    },
+    {
+      "source": "08-gate-transparent.png",
+      "source_sha256": "2ec3d523b35b1204f606cf98873e18bdf36cb275ee77b11691125a103dd060b1",
+      "source_size": [
+        1254,
+        1254
+      ],
+      "source_crop": [
+        128,
+        45,
+        1168,
+        1191
+      ],
+      "output": "yard-gate.webp",
+      "output_sha256": "0d52cf6d8c84d1c75ccca5222679ba9f11bfe4961e72e22465dab66b537bcb74",
+      "output_size": [
+        256,
+        283
+      ],
+      "uniform_scale": 0.24615384615384617,
+      "resampling": "single uniform inverse-affine bicubic; output canvas dimensions ceil-scaled",
+      "encoding": "lossless WebP with exact RGBA",
+      "mode": "RGBA",
+      "bytes": 61302,
+      "decoded_rgba_bytes": 289792,
+      "source_png_unchanged": true,
+      "source_pivot": [
+        682,
+        965
+      ],
+      "cropped_pivot": [
+        554,
+        920
+      ],
+      "output_pivot": [
+        136.36923076923077,
+        226.46153846153848
+      ],
+      "output_alpha_extrema": [
+        0,
+        255
+      ],
+      "output_alpha_bbox": [
+        0,
+        0,
+        256,
+        282
+      ]
+    },
+    {
+      "source": "09-border-cluster-transparent.png",
+      "source_sha256": "cc2d73aa303dd486d86b9285300e016f7775b0913eab22f8d481bb2609bb3387",
+      "source_size": [
+        1857,
+        847
+      ],
+      "source_crop": [
+        62,
+        108,
+        1810,
+        777
+      ],
+      "output": "yard-border-cluster.webp",
+      "output_sha256": "f4f9e2c7ffefcdbbddd4494b4bab6889e990492d3e9b3998db6f84d2f9fc6719",
+      "output_size": [
+        256,
+        98
+      ],
+      "uniform_scale": 0.14645308924485126,
+      "resampling": "single uniform inverse-affine bicubic; output canvas dimensions ceil-scaled",
+      "encoding": "lossless WebP with exact RGBA",
+      "mode": "RGBA",
+      "bytes": 33062,
+      "decoded_rgba_bytes": 100352,
+      "source_png_unchanged": true,
+      "output_alpha_extrema": [
+        0,
+        255
+      ],
+      "output_alpha_bbox": [
+        0,
+        0,
+        256,
+        98
+      ]
+    }
+  ],
+  "total_decoded_rgba_bytes": 7730176,
+  "total_decoded_rgba_mib": 7.3720703125,
+  "total_encoded_bytes": 746858,
+  "notes": [
+    "PNG originals are unchanged.",
+    "Crop coordinates are source pixel bounds, right and lower exclusive.",
+    "Gate source pivot is an approximate authored ground-opening point and still requires scene composite verification.",
+    "No source or output pixel was an anisotropic rescale: one affine scale controls both axes; canvas dimensions are rounded upward.",
+    "No API/database/domain/save behavior is changed by packaging."
+  ]
+}

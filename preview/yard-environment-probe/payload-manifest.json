@@ -1,0 +1,166 @@
+{
+  "format": "yard-environment-scene-probe-payload/v1",
+  "scope": "scene-render probe; not eight-actor, gameplay or live API acceptance",
+  "baseCommit": "4620825",
+  "baseTree": "29373a982e42a756d893c3ffb8ecebd354e27fe0",
+  "localEquivalentCommit": "81459d57dc78f4d9894fdbda3d34b52aba9a8c78",
+  "sourceCamera": [
+    -9.8058,
+    -1.9612,
+    17.3205
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/yard-environment-preview.yml",
+      "bytes": 2082,
+      "sha256": "6361071f43b1468b4f4d3ccc3cd44cb9461c1eb8e69b7d5a7088b886f1ace1a9",
+      "media": false
+    },
+    {
+      "path": "game-logic/yard-playzones.js",
+      "bytes": 4289,
+      "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/README.md",
+      "bytes": 3992,
+      "sha256": "772f80ffe3a0dddc885b54a09c55f86ba8732b1c8f7eea99e2397309de97f9a4",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/app.mjs",
+      "bytes": 10376,
+      "sha256": "c9199a026366d51b43b27dc575f41d81e44839a61141005ebf5b92a1ff45cf12",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/clip/clip.json",
+      "bytes": 15062,
+      "sha256": "1f1d899a3cdd99fd9a33d31cc5b1af82f4bfac439340106ac557ffc6a4835dd3",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/clip/pages/probe-00.webp",
+      "bytes": 199816,
+      "sha256": "35a2d42650227b3d8412ade92dbdf490df179d1ce0cc42aa6b0a31380e4d1a98",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/clip/pages/probe-01.webp",
+      "bytes": 174258,
+      "sha256": "0e9fa10c0d556fe0a1b6b118de13b9433c744de4c646db7f6b3a56da5b9ef5cc",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/clip/pages/probe-02.webp",
+      "bytes": 190610,
+      "sha256": "0d69d4f4ecf97a3e0b3f8ac66a93ae743bf3014292ee9f96a63098f73699e42e",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/clip/pages/probe-03.webp",
+      "bytes": 202492,
+      "sha256": "55bbe4b3bd75621f3861facf24b139a464e40808e7451b9d4181163746b0a702",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/clip/pages/probe-04.webp",
+      "bytes": 124198,
+      "sha256": "c31c0ad33a078d20617304607d3cb9c986664e1a3b24f9f1148de11c61c1ee00",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/environment/runtime-environment-manifest.json",
+      "bytes": 4336,
+      "sha256": "ca07f3361f0c495c16c5f6cd5148987783af56fc1f0a946b01d724a4e9d00681",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/environment/yard-border-cluster.webp",
+      "bytes": 33062,
+      "sha256": "f4f9e2c7ffefcdbbddd4494b4bab6889e990492d3e9b3998db6f84d2f9fc6719",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/environment/yard-environment-plate.webp",
+      "bytes": 521978,
+      "sha256": "5b894712c3473184c1cf70f7a3e8f7506d328b4b636f8187793a004ff2cff4e3",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/environment/yard-gate.webp",
+      "bytes": 61302,
+      "sha256": "0d52cf6d8c84d1c75ccca5222679ba9f11bfe4961e72e22465dab66b537bcb74",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/assets/environment/yard-ground-texture.webp",
+      "bytes": 130516,
+      "sha256": "76cc38ed6599a7f38d7a7bd87c0380ca261115b3a2073d97321dbe2b75dd4424",
+      "media": true
+    },
+    {
+      "path": "preview/yard-environment-probe/browser.spec.mjs",
+      "bytes": 8278,
+      "sha256": "16af8517329c76d89c50d0aa366778001c7dc1154de3fa1da9a0aababd074312",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/calibration.json",
+      "bytes": 347,
+      "sha256": "e76fc3db82a1351f20cc8454f70f26f43598f7b8f1cafc85a7ee372012330352",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/index.html",
+      "bytes": 1972,
+      "sha256": "21a9f8308df58dd703e09bb57e43eb650ec9b3eb0b469c2763c901020fd7e137",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/model.mjs",
+      "bytes": 2032,
+      "sha256": "8989b47686390500ff225459ae8b8a43184bbd86330f3a3df6374cafb346399b",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/playwright.config.mjs",
+      "bytes": 773,
+      "sha256": "d90a80b4b22744d2741964443b0e323be00f1e685c10001354f73f2c46e361a6",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/server.mjs",
+      "bytes": 2279,
+      "sha256": "c65c9fe47809e7b5d7d1d8757210f3ec0a9d4e20f89a777fd72ef1c9374ecab1",
+      "media": false
+    },
+    {
+      "path": "preview/yard-environment-probe/source-checks.test.mjs",
+      "bytes": 3095,
+      "sha256": "93ea793ad607cf9fe57a0689b22cf87b3b75211b9d0cceaab1761bf8a256e045",
+      "media": false
+    },
+    {
+      "path": "src/games/companion-yard-v2/atlas.mjs",
+      "bytes": 10094,
+      "sha256": "0b3868d8bf43a1d9c8a513d1cc091d7eefa0880778d57dfe6832185108f94a94",
+      "media": false
+    },
+    {
+      "path": "src/games/companion-yard-v2/environment-layout.mjs",
+      "bytes": 3169,
+      "sha256": "8644bd3c072beffb4e110b8a89d3f7b4a7ac9fdb39087be58b74dfb83055e503",
+      "media": false
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-layout.mjs",
+      "bytes": 7094,
+      "sha256": "0b5f2c68da5ea54223d9b0b4d24db2c30fc054e30df335d93916cad9fd019f43",
+      "media": false
+    }
+  ],
+  "encodedMediaBytes": 1638232,
+  "mediaCount": 9
+}

@@ -1,0 +1,688 @@
+{
+  "format": "yard-scene-render-probe-clip/v1",
+  "id": "basil-fountain-native-camera-60deg-probe",
+  "label": "Scene-render probe: Basil + Fountain, 60 degree camera",
+  "probeOnly": true,
+  "eightActorAcceptance": false,
+  "liveApiAcceptance": false,
+  "productionReady": false,
+  "actorId": "basil",
+  "goodieId": "fountain_bowl",
+  "mode": "composited-actor-and-target-prop",
+  "containsTargetProp": true,
+  "sourceRigSha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6",
+  "sourceAction": "Basil r2 Fountain watch-right",
+  "cameraDirection": [
+    -9.8058,
+    -1.9612,
+    17.3205
+  ],
+  "cameraType": "ORTHO",
+  "canvas": [
+    640,
+    384
+  ],
+  "pixelAspect": [
+    1,
+    1
+  ],
+  "pixelsPerWorld": 96,
+  "pivotPx": [
+    449.20188903808594,
+    246.45564651489258
+  ],
+  "originWorld": [
+    0,
+    0,
+    0
+  ],
+  "targetWorld": [
+    0.0257224440574646,
+    1.377644658088684,
+    0.6228343844413757
+  ],
+  "projectionBasis": {
+    "right": [
+      0.19611998129015468,
+      -0.9805799064526813,
+      0.0
+    ],
+    "down": [
+      -0.8492069901892112,
+      -0.1698448621386405,
+      -0.5000002106188429
+    ]
+  },
+  "sourceSampleMs": 40,
+  "fps": 25,
+  "frameCount": 26,
+  "durationMs": 1000,
+  "endpointInclusive": true,
+  "sourceRangeMs": [
+    4000,
+    5000
+  ],
+  "sourceFrameRange": [
+    101,
+    126
+  ],
+  "loop": false,
+  "sampleRule": "index = min(25, floor(clamp(elapsedMs, 0, 1000) / 40)); final endpoint is held at 1000ms",
+  "runtimeSpriteRotationAllowed": false,
+  "labelsBaked": false,
+  "pages": [
+    {
+      "src": "pages/probe-00.webp",
+      "first": 0,
+      "count": 6,
+      "cols": 3,
+      "tileWidth": 640,
+      "tileHeight": 384,
+      "width": 1920,
+      "height": 768,
+      "encodedBytes": 199816,
+      "decodedBytes": 5898240,
+      "sha256": "35a2d42650227b3d8412ade92dbdf490df179d1ce0cc42aa6b0a31380e4d1a98"
+    },
+    {
+      "src": "pages/probe-01.webp",
+      "first": 6,
+      "count": 6,
+      "cols": 3,
+      "tileWidth": 640,
+      "tileHeight": 384,
+      "width": 1920,
+      "height": 768,
+      "encodedBytes": 174258,
+      "decodedBytes": 5898240,
+      "sha256": "0e9fa10c0d556fe0a1b6b118de13b9433c744de4c646db7f6b3a56da5b9ef5cc"
+    },
+    {
+      "src": "pages/probe-02.webp",
+      "first": 12,
+      "count": 6,
+      "cols": 3,
+      "tileWidth": 640,
+      "tileHeight": 384,
+      "width": 1920,
+      "height": 768,
+      "encodedBytes": 190610,
+      "decodedBytes": 5898240,
+      "sha256": "0d69d4f4ecf97a3e0b3f8ac66a93ae743bf3014292ee9f96a63098f73699e42e"
+    },
+    {
+      "src": "pages/probe-03.webp",
+      "first": 18,
+      "count": 6,
+      "cols": 3,
+      "tileWidth": 640,
+      "tileHeight": 384,
+      "width": 1920,
+      "height": 768,
+      "encodedBytes": 202492,
+      "decodedBytes": 5898240,
+      "sha256": "55bbe4b3bd75621f3861facf24b139a464e40808e7451b9d4181163746b0a702"
+    },
+    {
+      "src": "pages/probe-04.webp",
+      "first": 24,
+      "count": 2,
+      "cols": 2,
+      "tileWidth": 640,
+      "tileHeight": 384,
+      "width": 1280,
+      "height": 384,
+      "encodedBytes": 124198,
+      "decodedBytes": 1966080,
+      "sha256": "c31c0ad33a078d20617304607d3cb9c986664e1a3b24f9f1148de11c61c1ee00"
+    }
+  ],
+  "frames": [
+    {
+      "index": 0,
+      "atMs": 0,
+      "sourceAtMs": 4000,
+      "sourceFrame": 101,
+      "page": 0,
+      "tile": 0,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "1aecf094422d5e31a2f5d9b651d75006011c68bdb952a54c886d7f29cadc4a18"
+    },
+    {
+      "index": 1,
+      "atMs": 40,
+      "sourceAtMs": 4040,
+      "sourceFrame": 102,
+      "page": 0,
+      "tile": 1,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "428ab1e673ce7ad0c9ad9bd816bd1bca3d974e1513ada98d31ada85bd637f42a"
+    },
+    {
+      "index": 2,
+      "atMs": 80,
+      "sourceAtMs": 4080,
+      "sourceFrame": 103,
+      "page": 0,
+      "tile": 2,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "ea916975c7c8a799b3c3ddddbd4f577c26f97e4708b2783d7a6b58cce011dedc"
+    },
+    {
+      "index": 3,
+      "atMs": 120,
+      "sourceAtMs": 4120,
+      "sourceFrame": 104,
+      "page": 0,
+      "tile": 3,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "25869629d776bea8f87cdd6578fe649b5c546a20af81fcf3cec2f8d20779261e"
+    },
+    {
+      "index": 4,
+      "atMs": 160,
+      "sourceAtMs": 4160,
+      "sourceFrame": 105,
+      "page": 0,
+      "tile": 4,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "b40c422984ca8513acc9ffad8356a249ade5a26d70dfd418a2851215dbd710b2"
+    },
+    {
+      "index": 5,
+      "atMs": 200,
+      "sourceAtMs": 4200,
+      "sourceFrame": 106,
+      "page": 0,
+      "tile": 5,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "7659f2d831d104437221caf8cf64cb90e432ba8b8217d93593b7f39a054818ce"
+    },
+    {
+      "index": 6,
+      "atMs": 240,
+      "sourceAtMs": 4240,
+      "sourceFrame": 107,
+      "page": 1,
+      "tile": 0,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "6a2c87aac05bb00fe6a523d6ef9cd4e14c8318a829c3e544be53341a10972134"
+    },
+    {
+      "index": 7,
+      "atMs": 280,
+      "sourceAtMs": 4280,
+      "sourceFrame": 108,
+      "page": 1,
+      "tile": 1,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "8892cce1ed1018635d3bee2ae523b2075f57bb4a0cd4000474048e7c01b7b5df"
+    },
+    {
+      "index": 8,
+      "atMs": 320,
+      "sourceAtMs": 4320,
+      "sourceFrame": 109,
+      "page": 1,
+      "tile": 2,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "528ae6260a14688730e00f5d2b59f52fe6593c07796cf213484f1a11ba7b0ac6"
+    },
+    {
+      "index": 9,
+      "atMs": 360,
+      "sourceAtMs": 4360,
+      "sourceFrame": 110,
+      "page": 1,
+      "tile": 3,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "43c841f27f97599e055bb2d36422eddb8e1c491191abe025b4bc051236ea852a"
+    },
+    {
+      "index": 10,
+      "atMs": 400,
+      "sourceAtMs": 4400,
+      "sourceFrame": 111,
+      "page": 1,
+      "tile": 4,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "4e0a73e50686298b5ec96efff62892da5ed54bc35d25e7b6df92ca3e8b37debd"
+    },
+    {
+      "index": 11,
+      "atMs": 440,
+      "sourceAtMs": 4440,
+      "sourceFrame": 112,
+      "page": 1,
+      "tile": 5,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "43c841f27f97599e055bb2d36422eddb8e1c491191abe025b4bc051236ea852a"
+    },
+    {
+      "index": 12,
+      "atMs": 480,
+      "sourceAtMs": 4480,
+      "sourceFrame": 113,
+      "page": 2,
+      "tile": 0,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "abdded620bdd40ac936b65f706e640df2ab205385ceaca8cc8cde358b32d4d10"
+    },
+    {
+      "index": 13,
+      "atMs": 520,
+      "sourceAtMs": 4520,
+      "sourceFrame": 114,
+      "page": 2,
+      "tile": 1,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "6c49cf33caf80196f93e297b0f6e7292e42165aadab0a64cc58072fd48a1b6e5"
+    },
+    {
+      "index": 14,
+      "atMs": 560,
+      "sourceAtMs": 4560,
+      "sourceFrame": 115,
+      "page": 2,
+      "tile": 2,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "b768b42f11ee3623d141936a2296a80e3df15d46630e0e0c4f3fa07e85b8b546"
+    },
+    {
+      "index": 15,
+      "atMs": 600,
+      "sourceAtMs": 4600,
+      "sourceFrame": 116,
+      "page": 2,
+      "tile": 3,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "d44ef0f0b045ffbecfe31adeadd09debd00a333b818f39937ba9801444c60264"
+    },
+    {
+      "index": 16,
+      "atMs": 640,
+      "sourceAtMs": 4640,
+      "sourceFrame": 117,
+      "page": 2,
+      "tile": 4,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "09e4371d05023473ec82b0981f6896cceea8d5217a08c651dbafe6cca44f10e0"
+    },
+    {
+      "index": 17,
+      "atMs": 680,
+      "sourceAtMs": 4680,
+      "sourceFrame": 118,
+      "page": 2,
+      "tile": 5,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "6823f5c31137ec634a39837ef344b760911d7cf7d70ac74c2070a2294dbd9d32"
+    },
+    {
+      "index": 18,
+      "atMs": 720,
+      "sourceAtMs": 4720,
+      "sourceFrame": 119,
+      "page": 3,
+      "tile": 0,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "ea916975c7c8a799b3c3ddddbd4f577c26f97e4708b2783d7a6b58cce011dedc"
+    },
+    {
+      "index": 19,
+      "atMs": 760,
+      "sourceAtMs": 4760,
+      "sourceFrame": 120,
+      "page": 3,
+      "tile": 1,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "428ab1e673ce7ad0c9ad9bd816bd1bca3d974e1513ada98d31ada85bd637f42a"
+    },
+    {
+      "index": 20,
+      "atMs": 800,
+      "sourceAtMs": 4800,
+      "sourceFrame": 121,
+      "page": 3,
+      "tile": 2,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "1aecf094422d5e31a2f5d9b651d75006011c68bdb952a54c886d7f29cadc4a18"
+    },
+    {
+      "index": 21,
+      "atMs": 840,
+      "sourceAtMs": 4840,
+      "sourceFrame": 122,
+      "page": 3,
+      "tile": 3,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "becf69f52335eb4428178b3f22123d8634c2761e6a6574f92ae125c22ab3838b"
+    },
+    {
+      "index": 22,
+      "atMs": 880,
+      "sourceAtMs": 4880,
+      "sourceFrame": 123,
+      "page": 3,
+      "tile": 4,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "678af45655467e486eed6b63e85f2b9e9df5b5cc753fa319d029f01f9a3e8f65"
+    },
+    {
+      "index": 23,
+      "atMs": 920,
+      "sourceAtMs": 4920,
+      "sourceFrame": 124,
+      "page": 3,
+      "tile": 5,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "0edc125f55f3f9398f5387ccc84f09a8943460e534dcfb5f2792a2cd8ee5b039"
+    },
+    {
+      "index": 24,
+      "atMs": 960,
+      "sourceAtMs": 4960,
+      "sourceFrame": 125,
+      "page": 4,
+      "tile": 0,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "b9c4eb38e42e815b3358ce31d1c5955a08bb0811893c687e9816f49557740b1e"
+    },
+    {
+      "index": 25,
+      "atMs": 1000,
+      "sourceAtMs": 5000,
+      "sourceFrame": 126,
+      "page": 4,
+      "tile": 1,
+      "alphaBoundsPx": [
+        75,
+        110,
+        566,
+        325
+      ],
+      "evaluatedBoundsPx": [
+        76.11245356361667,
+        110.73058736419648,
+        565.3880682914112,
+        323.8842776893887
+      ],
+      "rgbaSha256": "5fab0d2318f8a8803ff8bd937f7bc72a05e87fc07dc4df78e6678f3b3f709c89"
+    }
+  ]
+}

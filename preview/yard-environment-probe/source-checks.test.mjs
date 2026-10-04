@@ -1,0 +1,16 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {createHash} from 'node:crypto';
+import {ANCHORS,frameAt,workingSet,fitProjection,validateClip,MAX_BYTES} from './model.mjs';
+import {getYardPlayzoneRows} from '../../game-logic/yard-playzones.js';
+import {conservativeMaskStrips} from '../../src/games/companion-yard-v2/scene-layout.mjs';
+const read=async file=>JSON.parse(await readFile(new URL(file,import.meta.url),'utf8'));
+const clip=await read('./assets/clip/clip.json'),cal=await read('./calibration.json'),env=await read('./assets/environment/runtime-environment-manifest.json');
+test('all native source rows and endpoint timing are preserved',()=>{assert.equal(validateClip(clip,cal),true);for(let i=0;i<26;i++)assert.equal(frameAt(i*40),i);assert.equal(frameAt(999.9),24);assert.equal(frameAt(1000),25);assert.equal(frameAt(99999),25);assert.equal(frameAt(-40),0);assert.throws(()=>frameAt(NaN));});
+test('camera mismatch and source cadence drift fail closed',()=>{assert.throws(()=>validateClip({...clip,cameraDirection:[5.66,-8,3.97]},cal),/camera mismatch/);assert.throws(()=>validateClip({...clip,fps:20},cal),/timing/);});
+test('only visible plus next page are requested through the clip',()=>{for(let i=0;i<26;i++){const set=workingSet(clip,i);assert.equal(set.visible.length,1);assert.ok(set.next.length<=1);if(set.next.length)assert.ok(set.next[0].index>i);}assert.equal(workingSet(clip,25).next.length,0);});
+test('exact anchors survive projection and inverse at target viewport shapes',()=>{assert.deepEqual(ANCHORS,{entry:{x:90,y:68},bowl:{x:25,y:83},fountain:{x:40,y:40}});for(const [w,h]of[[320,430],[390,680],[844,280]]){const p=fitProjection(cal,w,h);for(const world of Object.values(ANCHORS)){const back=p.unproject(p.project(world));assert.ok(Math.hypot(back.x-world.x,back.y-world.y)<1e-10);}assert.ok(Math.abs(p.artwork.width/p.artwork.height-2/3)<1e-12);}});
+test('conservative source-mask strips never paint a ledge outside either adjacent row',()=>{const rows=getYardPlayzoneRows('meadow');for(const s of conservativeMaskStrips(rows)){const n=s.y/2;for(const row of[rows[n],rows[n+1]])assert.ok(row.some(([a,b])=>s.x>=a&&s.x+s.width<=b+1e-10));}});
+test('complete image and DPR canvas working set fits without retaining all atlases',()=>{const envBytes=env.files.reduce((n,p)=>n+p.decoded_rgba_bytes,0);assert.equal(envBytes,7730176);const pagePair=2*Math.max(...clip.pages.map(p=>p.decodedBytes));const largestCanvas=844*844*4*4;assert.ok(envBytes+pagePair+2*largestCanvas<MAX_BYTES);assert.equal(Math.max(...clip.pages.map(p=>p.decodedBytes)),5898240);});
+test('all committed probe payloads match frozen size and SHA',async()=>{const manifest=await read('./payload-manifest.json');for(const row of manifest.files){assert.ok(!row.path.startsWith('/')&&!row.path.split('/').includes('..'));const data=await readFile(new URL('../../'+row.path,import.meta.url));assert.equal(data.length,row.bytes,row.path);assert.equal(createHash('sha256').update(data).digest('hex'),row.sha256,row.path);}});

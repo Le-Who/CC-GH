@@ -1,0 +1,55 @@
+name: Yard environment scene probe
+
+on:
+  push:
+    branches: [qa/yard-environment-preview]
+    paths:
+      - '.github/workflows/yard-environment-preview.yml'
+      - 'preview/yard-environment-probe/**'
+      - 'src/games/companion-yard-v2/scene-layout.mjs'
+      - 'src/games/companion-yard-v2/environment-layout.mjs'
+      - 'src/games/companion-yard-v2/atlas.mjs'
+      - 'game-logic/yard-playzones.js'
+
+permissions:
+  contents: read
+
+jobs:
+  scene-probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /pnpm-lock.yaml
+            /.github/workflows/yard-environment-preview.yml
+            /preview/yard-environment-probe/
+            /src/games/companion-yard-v2/atlas.mjs
+            /src/games/companion-yard-v2/scene-layout.mjs
+            /src/games/companion-yard-v2/environment-layout.mjs
+            /game-logic/yard-playzones.js
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - run: pnpm install --frozen-lockfile --ignore-scripts
+      - run: node --test preview/yard-environment-probe/source-checks.test.mjs
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Capture actual Canvas scene and native source timing
+        run: pnpm exec playwright test -c preview/yard-environment-probe/playwright.config.mjs
+      - name: Preserve screenshots, short videos, source clocks and HTTP hashes
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: yard-environment-scene-probe-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results-yard-environment/
+            playwright-report-yard-environment/
+            preview/yard-environment-probe/payload-manifest.json
+          if-no-files-found: warn
+          retention-days: 7
+          compression-level: 0

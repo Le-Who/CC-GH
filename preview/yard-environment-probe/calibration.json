@@ -1,0 +1,22 @@
+{
+  "revision": "yard-portrait-camera/r2-probe",
+  "cameraDirection": [
+    -9.8058,
+    -1.9612,
+    17.3205
+  ],
+  "worldOrigin": {
+    "x": 50,
+    "y": 60
+  },
+  "unitsPerWorld": 8,
+  "artSize": {
+    "width": 1024,
+    "height": 1536
+  },
+  "pixelsPerWorld": 81.30060940416313,
+  "artOrigin": {
+    "x": 533.0199198290986,
+    "y": 885
+  }
+}
