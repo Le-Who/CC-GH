@@ -1,45 +1,75 @@
 {
-  "format": "yard-verified-intrinsic-prop-sources/v1",
+  "format": "yard-verified-intrinsic-prop-sources/v2",
   "runtimeActivated": false,
+  "sourceIdentityNote": "Reconstructed r2 sources; historical r1 hashes are not proof. Provider registration and release remain independent.",
   "sources": [
     {
       "goodieId": "fountain_bowl",
-      "revision": "fountain-bowl-source/r1",
-      "sourceGeometrySha256": "7c0a68d29e2ada7b162902cfc8a3fe760e0c25de20a452747ea735edb6e25ab6",
-      "sourceContractSha256": "9965ea3fb9aca8b86b730054dfcdeeb55548c93d781ed365057169b7e53110fb",
-      "stillSha256": "2a33cf94432e9fdc852d69ed7ed6079052bdbebfb6fe161f38e52ca1e72e644d",
+      "revision": "fountain-bowl-source/r2-reconstructed-conditions",
+      "sourceGeometryKind": "canonical-editable-blend-sha256",
+      "sourceGeometrySha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+      "sourceContractSha256": "59f3ee077fefd939cd5e2c459dbc5eeab2a8b1e441966ee16e7ff0477c245285",
+      "stillSha256": "283439936c245694b48e722c958df8b69e7165df98ad1f8f5b5ef5663f900c0f",
+      "conditions": [
+        "new",
+        "worn",
+        "broken"
+      ],
       "unitsPerWorld": 8,
       "originWorld": [
         0,
         0,
         0
       ],
+      "rotationZ": 0,
       "bounds": {
         "min": [
-          -1.1262314319610596,
-          -1.1185343265533447,
-          0.0
+          -1.1539874076843262,
+          -1.2061333656311035,
+          0
         ],
         "max": [
-          1.0126572847366333,
-          1.1270829439163208,
-          1.253275752067566
+          1.2054322957992554,
+          1.1162787675857544,
+          1.2456690073013306
         ]
       },
       "paddingWorld": 0.025,
-      "conditions": [
-        "new"
-      ],
-      "rotationZ": 0,
+      "conditionSources": {
+        "new": {
+          "sourceBlendSha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+          "evaluatedGeometrySha256": "32ef8dbf560a57d7811eaebc8ee45db5bad68bfd20d225e853ede625d5141646",
+          "stillSha256": "283439936c245694b48e722c958df8b69e7165df98ad1f8f5b5ef5663f900c0f"
+        },
+        "worn": {
+          "sourceBlendSha256": "5e53fe871a380300375839db7263723b87211b7fdcc3e8f8436156911a3fd35a",
+          "evaluatedGeometrySha256": "4ff67a8ab6892cc1f38c06b20f46992cd156aa95358ef94d8633fb69a731b7c7",
+          "stillSha256": "6a732068dccbc5f4a45c73319f183d6bf15718cc581451ea210298644df9bfdc"
+        },
+        "broken": {
+          "sourceBlendSha256": "4c3aebc62d104e1cfd5ad6a50f46887341ab59ad08b062b7f2618e97e9cd9520",
+          "evaluatedGeometrySha256": "d15a0c40607eb3b6f08893ae62a84c5c9ea387f825e24231e2916f3ad0490bc1",
+          "stillSha256": "ebe646d5c90b38647273232a150ccbcab9078767f13f6f9c5967d977582f429b"
+        }
+      },
       "providers": [
         {
           "actorId": "basil",
+          "actorRevision": "basil-actor/r2-fountain",
           "visitorId": "basil_turtle",
-          "bindingId": "basil-fountain-watch-r1",
-          "bindingRevision": "basil-fountain-watch-source/r1",
-          "bindingCalibrationHash": "7fd97b0d4dfa585905494e0d7da4e20aa3151ab9f7fdc57bd0020d58e7badef6",
-          "sourceRigSha256": "26e2550c938b11570d0bcd99e507a5686e343c514961488bbfe0d55a14868299",
-          "sourceContractSha256": "79ae4dddcf855037d86c948df8e2f0c8183fc2a851e632df46c931949f19c364",
+          "bindingId": "basil-fountain_bowl-watch-right-r2",
+          "bindingRevision": "basil-watch-right-conditions/r2",
+          "bindingCalibrationHash": "adbb35062bebc0c99f22926010d6326f367a49b4c515ca82dc1c6480056d753a",
+          "sourceRigSha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6",
+          "sourceContractSha256": "4f1855bb40699241d61bc8611a361ac3fd61db53710831833ab0e4b6ff15e4a8",
+          "activityIds": [
+            "watch-right"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
           "requiredPhases": [
             "approach",
             "watch",
@@ -47,8 +77,9 @@
             "breathing-rest",
             "rise",
             "withdraw",
-            "turn",
-            "departure"
+            "route-approach",
+            "route-turn",
+            "route-departure"
           ],
           "sourceValidatedPhases": [
             "approach",
@@ -57,22 +88,28 @@
             "breathing-rest",
             "rise",
             "withdraw",
-            "turn",
-            "departure"
-          ],
-          "actorRevision": "basil-actor/r1",
-          "activityIds": [
-            "watch-right"
+            "route-approach",
+            "route-turn",
+            "route-departure"
           ]
         },
         {
           "actorId": "sage",
+          "actorRevision": "sage-actor/r2-fountain",
           "visitorId": "sage_turtle",
-          "bindingId": "sage-fountain-watch-r1",
-          "bindingRevision": "sage-fountain-watch-source/r1",
-          "bindingCalibrationHash": "310387b08b7e548f58629094d57b340aa2494936c215d3c3298400420d64b260",
-          "sourceRigSha256": "0c5ef9bca2474d8f5619d101cfb8b2a5b5fc875d82da2c866b6e3682cef6b9d8",
-          "sourceContractSha256": "b5189b618db2b6134a60eec7cc82679bb57afbe057661379aca03dffe1661c50",
+          "bindingId": "sage-fountain_bowl-watch-right-r2",
+          "bindingRevision": "sage-watch-right-conditions/r2",
+          "bindingCalibrationHash": "54fb51b464f123d817c73b87990f2f844d46db6a4ccf4ed14ede8986e9583666",
+          "sourceRigSha256": "00c8ba3c79aab9918bbd70a52f4c1880fff1ae12837e331f0ee402bd5690932b",
+          "sourceContractSha256": "850b311487cc8d5f02de36b238fd271dee9337fb53565e5aaa4dd9184ca504e8",
+          "activityIds": [
+            "watch-right"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
           "requiredPhases": [
             "approach",
             "watch",
@@ -80,8 +117,9 @@
             "breathing-rest",
             "rise",
             "withdraw",
-            "turn",
-            "departure"
+            "route-approach",
+            "route-turn",
+            "route-departure"
           ],
           "sourceValidatedPhases": [
             "approach",
@@ -90,100 +128,189 @@
             "breathing-rest",
             "rise",
             "withdraw",
-            "turn",
-            "departure"
-          ],
-          "actorRevision": "sage-actor/r1",
-          "activityIds": [
-            "watch-right"
+            "route-approach",
+            "route-turn",
+            "route-departure"
           ]
         }
       ]
     },
     {
       "goodieId": "moon_lamp",
-      "revision": "moon-lamp-source/r1",
-      "sourceGeometrySha256": "5af15a36d5950014ca36483d2052e88443edf6dcf80cfa3ad0b4b238dbbbe97f",
-      "sourceContractSha256": "1d1ebb8cfa34a7989e0b1b9fdaf917e9b932a9da37414e4086cac69f3a592d75",
-      "stillSha256": "b79de5e6d1c42e6c91aaa8bed63c2a12d632124b5414ecb21bc7ecd394bc451d",
+      "revision": "moon-lamp-source/r2-reconstruction",
+      "sourceGeometryKind": "canonical-editable-blend-sha256",
+      "sourceGeometrySha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+      "sourceContractSha256": "db67aff5f9d291198b87c6ae8c9e7f3c1c40a9580515784f6369bda2dc9d95a0",
+      "stillSha256": "15af1d29cf19906fe898d9f0139ba480e8e929b47e37a16215534893b31280d4",
+      "conditions": [
+        "new",
+        "worn",
+        "broken"
+      ],
       "unitsPerWorld": 8,
       "originWorld": [
         0,
         0,
         0
       ],
+      "rotationZ": 0,
       "bounds": {
         "min": [
-          -0.7295569777488708,
-          -0.44860896468162537,
-          0.0
+          -0.6800000071525574,
+          -0.4318297803401947,
+          0
         ],
         "max": [
-          0.7200000286102295,
-          0.4300000071525574,
-          1.669996738433838
+          0.6600000262260437,
+          0.42899999022483826,
+          1.6499394178390503
         ]
       },
       "paddingWorld": 0,
-      "conditions": [
-        "new"
-      ],
-      "rotationZ": 0,
+      "conditionSources": {
+        "new": {
+          "sourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+          "evaluatedGeometrySha256": "5eabaa3bbcdb138e07c1c6abf2c73be055ac72c1432b43ce86e497065cb69be3",
+          "stillSha256": "15af1d29cf19906fe898d9f0139ba480e8e929b47e37a16215534893b31280d4"
+        },
+        "worn": {
+          "sourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+          "evaluatedGeometrySha256": "9a23e1902b9bce2e81dc667b4022ed8df3b241f744781a2db2a6dca38b255c33",
+          "stillSha256": "de68b8d010ccfa8a006dba69f4e35255891dd42940efc19e95a245bcca9b9f80"
+        },
+        "broken": {
+          "sourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+          "evaluatedGeometrySha256": "0991ad4da14cbca2ed10e66a438315ab2fa916c708bba95140d00969d3c49086",
+          "stillSha256": "3275260bb6ffdcc62b9c883e0cc63ed37731d82c572b8064c424104242bba4d2"
+        }
+      },
       "providers": [
         {
           "actorId": "willow",
+          "actorRevision": "willow-actor/r2-moon",
           "visitorId": "willow_fox",
-          "bindingId": "willow-moon-combined-r1",
-          "bindingRevision": "603677b2b36052400f90478e700bd1ea32356e1195d71ef30f5601b888c13740",
-          "bindingCalibrationHash": null,
-          "sourceRigSha256": "f82850ab1f443bb62ae7bf045395a3343ca1a189322d9bf0e39078d02e90d32d",
-          "sourceContractSha256": "f46240e5006c04fc34e5a354f605290f01e939af9fffa149f92e06067ce9a73e",
-          "requiredPhases": [
-            "enter",
-            "walk",
-            "turn",
-            "align",
-            "peek",
-            "rest",
-            "leave"
-          ],
-          "sourceValidatedPhases": [
-            "align",
-            "peek",
-            "rest",
-            "leave"
-          ],
-          "actorRevision": null,
+          "bindingId": "willow-moon_lamp-peek-r2",
+          "bindingRevision": "willow-peek-conditions/r2",
+          "bindingCalibrationHash": "b04c82987cfbc0ebb283724e80b2af0edf2a3bdefa27dab2310fec7c616a7b4d",
+          "sourceRigSha256": "be79b391edac00afac982b7a7c85bd3401a10abac878b60f95dfce45eef1ef55",
+          "sourceContractSha256": "df29b3cffed5a9004aa06d73001bdb079186a586deca7e6a94e2e0ab218820c2",
           "activityIds": [
             "peek"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
+          "requiredPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
           ]
         },
         {
           "actorId": "starlit",
+          "actorRevision": "starlit-actor/r2-moon",
           "visitorId": "starlit_fox",
-          "bindingId": "starlit-moon-combined-r1",
-          "bindingRevision": "aa108cbef1d5f56ee9366ac74ebd25b8f0d772deb0e1b8492754151d44c17349",
-          "bindingCalibrationHash": null,
-          "sourceRigSha256": "93cdd5ffd74993f6fcab58fa2dee39b9fd83867550c04a1ce22f5ca16fef2801",
-          "sourceContractSha256": "e9a7c25fa42256434f43c548b2e7e358063616e9d2dda4b7fc57459d0092d0ec",
-          "requiredPhases": [
-            "enter",
-            "walk",
-            "turn",
-            "align",
-            "watch",
-            "rest",
-            "leave"
-          ],
-          "sourceValidatedPhases": [
-            "align",
-            "watch",
-            "rest",
-            "leave"
-          ],
-          "actorRevision": null,
+          "bindingId": "starlit-moon_lamp-watch-r2",
+          "bindingRevision": "starlit-watch-conditions/r2",
+          "bindingCalibrationHash": "8b98f47f2732b2872529bc191bd7fd5adfe129bb685abf30c7c8c840255f0467",
+          "sourceRigSha256": "af5dcecfe12ace76ae3b120c997eda6817de98b26be0166261dfa86099d14931",
+          "sourceContractSha256": "64a2d865813fce93ae6f06053870addcc569c127cf07577633e8265077e6fa31",
           "activityIds": [
             "watch"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
+          "requiredPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ]
+        },
+        {
+          "actorId": "starlit",
+          "actorRevision": "starlit-actor/r2-moon",
+          "visitorId": "starlit_fox",
+          "bindingId": "starlit-moon_lamp-glow-r2",
+          "bindingRevision": "starlit-glow-conditions/r2",
+          "bindingCalibrationHash": "378b8c21bc05277daf26675f6529824fe325353acca60d384510a59a43d36a56",
+          "sourceRigSha256": "e8824a65558d20b8019cfd18524018c6e266474d872856aa5a8cdd7fae194e20",
+          "sourceContractSha256": "93d44167125f54a48758a388e2605ec8dabda950a7028e9ebb1bc8f43a9294ba",
+          "activityIds": [
+            "glow"
+          ],
+          "conditions": [
+            "new"
+          ],
+          "requiredPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
           ]
         }
       ]

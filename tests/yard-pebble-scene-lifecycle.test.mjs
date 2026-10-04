@@ -35,6 +35,6 @@ test('shared scene keeps coherent backing pixels and pointer coordinates during 
  const point=createProjection(width,height).project({x:60,y:48}),event={clientX:point.x*rect.width/width,clientY:point.y*rect.height/height};
  const logical=scene.point(event);assert.ok(Math.abs(logical.x-60)<1e-9);assert.ok(Math.abs(logical.y-48)<1e-9);assert.equal(scene.hit(event).slotId,'leaf');
  await pump(()=>scene.diagnostics().pendingDecodes===1);assert.equal(clears,heldClears);release();await pump(()=>scene.diagnostics().view?.now===fixture.times.rest&&!scene.diagnostics().pendingResize);
- assert.equal(canvas.width,568);assert.equal(canvas.height,252);assert.ok(clears>heldClears);assert.deepEqual(errors,[]);assert.ok(scene.diagnostics().retainedPages<=3);
+ assert.equal(canvas.width,568);assert.equal(canvas.height,252);assert.ok(clears>heldClears);assert.deepEqual(errors,[]);const d=scene.diagnostics();assert.equal(d.atlasPolicy.id,'yard-canonical-atlas/r1');assert.equal(d.atlasPolicy.maxPages,3);assert.ok(d.retainedPages<=3);assert.ok(d.decodedBytesEstimate+d.pendingBytesEstimate<=64*1024*1024);assert.ok(d.pendingDecodes<=1);
  scene.dispose();assert.equal(scene.diagnostics().retainedPages,0);assert.ok(closed.length>0);assert.ok(requests.some(p=>p.startsWith('/assets/yard-pebble/')));
 });

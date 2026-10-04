@@ -25,7 +25,7 @@ export function createTrustedObstacleContext(mediaRegistry){
   if(matches.length===1)props[id]=c;
  }
  const intrinsic=intrinsicPropReadiness(mediaRegistry);Object.assign(props,intrinsic.props);
- const context=deepFreeze({format:'yard-trusted-source-obstacles/v1',revision:digest(props),props,...(Object.keys(intrinsic.props).length?{providerProofs:intrinsic.proofs}:{})});minted.add(context);return context;
+ const context=deepFreeze({format:'yard-trusted-source-obstacles/v1',revision:Object.keys(intrinsic.props).length?digest({props,conditionCoverage:intrinsic.conditionCoverage}):digest(props),props,...(Object.keys(intrinsic.props).length?{providerProofs:intrinsic.proofs,conditionCoverage:intrinsic.conditionCoverage}:{})});minted.add(context);return context;
 }
 export const obstacleContextRevision=context=>context===undefined?null:minted.has(context)?context.revision:'untrusted-obstacle-context';
 export function planningSceneWithObstacles(baseScene,yard,context){
@@ -37,7 +37,7 @@ export function planningSceneWithObstacles(baseScene,yard,context){
  for(const p of yard.placedGoodies){
   const known=Object.hasOwn(baseScene.footprints||{},p?.goodieId),c=Object.hasOwn(context.props,p?.goodieId)?context.props[p.goodieId]:null;
   if(!c){if(known)continue;return{ok:false,code:'PROP_OBSTACLE_SOURCE_UNAVAILABLE'};}
-  if(typeof p.slotId!=='string'||!p.slotId||![p.x,p.y].every(Number.isFinite)||p.condition!=='new'||(p.rotationZ??0)!==0)return{ok:false,code:'PROP_OBSTACLE_STATE_UNSUPPORTED'};
+  if(typeof p.slotId!=='string'||!p.slotId||![p.x,p.y].every(Number.isFinite)||!(context.conditionCoverage?.[p.goodieId]||c.conditions).includes(p.condition)||(p.rotationZ??0)!==0)return{ok:false,code:'PROP_OBSTACLE_STATE_UNSUPPORTED'};
   if(known)continue;
   footprints[p.goodieId]=clone(c.footprint);foreign.push({slotId:p.slotId,goodieId:p.goodieId,x:p.x,y:p.y,condition:p.condition,rotationZ:0,
    ...(Object.hasOwn(INTRINSIC_PROP_SOURCES,p.goodieId)?{intrinsicIdentity:c.identity,sourceGeometrySha256:c.sourceGeometrySha256}:{bindingId:c.bindingId,bindingRevision:c.bindingRevision,sourceRigSha256:c.sourceRigSha256}),footprint:clone(c.footprint)});
@@ -57,7 +57,7 @@ export function propObstacleReceiptCompatible(plan,mediaRegistry){
  const context=createTrustedObstacleContext(mediaRegistry),slots=new Set();
  return r.foreign.every(row=>{
   const c=Object.hasOwn(context.props,row?.goodieId)?context.props[row.goodieId]:null;
-  if(!c||typeof row.slotId!=='string'||!row.slotId||slots.has(row.slotId)||![row.x,row.y].every(Number.isFinite)||row.condition!=='new'||row.rotationZ!==0)return false;
+  if(!c||typeof row.slotId!=='string'||!row.slotId||slots.has(row.slotId)||![row.x,row.y].every(Number.isFinite)||!(context.conditionCoverage?.[row.goodieId]||c.conditions).includes(row.condition)||row.rotationZ!==0)return false;
   slots.add(row.slotId);const sourceMatches=Object.hasOwn(INTRINSIC_PROP_SOURCES,row.goodieId)
    ?row.intrinsicIdentity===c.identity&&row.sourceGeometrySha256===c.sourceGeometrySha256&&context.providerProofs?.[row.goodieId]?.length>0
    :row.bindingId===c.bindingId&&row.bindingRevision===c.bindingRevision&&row.sourceRigSha256===c.sourceRigSha256;
