@@ -4,6 +4,12 @@ export async function openHome(page){
  const id=await page.locator('.telegram-app').getAttribute('data-active-tab');
  if(id==='garden')await expect(page.locator('.gs2-stage')).toBeVisible();
  else await expect(page.locator('.telegram-app.immersive-mode')).toBeVisible();
+ // Immersive styling is route-owned from the first frame, not controller
+ // readiness. A transient loading launcher can disappear while click waits
+ // for the entry animation, leaving Yard's real Settings route unselected.
+ // This helper navigates mounted games; loading-control tests target those
+ // controls explicitly instead. Preserve normal actionability and deadlines.
+ await expect(page.locator('.game-entry-status')).toHaveCount(0);
  const launcher=page.getByRole('button',{name:/^(All games|Все игры)$/});
  const pause=page.locator('[data-game-pause="true"]');
  const workshop=page.getByTestId('ml-exit');

@@ -1,0 +1,1177 @@
+import { openHome, selectHomeGame } from './helpers/home.js';
+import { expectLegacyYardToolbarReachable } from './helpers/yard-hud.js';
+import { test, expect } from "@playwright/test";
+import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
+import { buildSnapshot } from "../../routes/player.js";
+import { isPointInsideObstacle } from "../../src/games/companion-yard/movement.js";
+import { YARD_PANEL_REFERENCE, YARD_SCREEN_SLOT_MAPS } from "../../src/games/companion-yard/yardPanelSlots.js";
+
+function buildYardMovementSnapshot(now = Date.now()) {
+  const player = createDefaultPlayer("yard-motion-user", "Yard Motion", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.placedGoodies = [{
+    slotId: "large-1",
+    goodieId: "cardboard_cottage",
+    condition: "worn",
+    uses: 12,
+    placedAt: now - 60_000,
+  }];
+  player.yard.activeVisitors = [
+    {
+      visitId: "visit-mika",
+      visitorId: "mika_cat",
+      goodieId: "cardboard_cottage",
+      slotId: "large-1",
+      bowlId: "bowl-1",
+      pose: "peek",
+      activityId: "window-peek",
+      activityLayer: "back",
+      entryEdge: "left",
+      facing: "right",
+      motionSeed: "mika-motion",
+      arrivedAt: now - 8 * 60_000,
+      leavesAt: now + 40 * 60_000,
+    },
+    {
+      visitId: "visit-mochi",
+      visitorId: "mochi_bunny",
+      goodieId: "cardboard_cottage",
+      slotId: "large-1",
+      bowlId: "bowl-1",
+      pose: "rest",
+      activityId: "door-lounge",
+      activityLayer: "front",
+      entryEdge: "right",
+      facing: "left",
+      motionSeed: "mochi-motion",
+      arrivedAt: now - 6 * 60_000,
+      leavesAt: now + 42 * 60_000,
+    },
+  ];
+  return buildSnapshot(player);
+}
+
+function buildFreePlacementSnapshot(now = Date.now()) {
+  const player = createDefaultPlayer("yard-placement-user", "Yard Placement", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.goodieInventory = {
+    yarn_mouse: 1,
+    sun_cushion: 1,
+  };
+  player.yard.placedGoodies = [];
+  player.yard.activeVisitors = [];
+  return buildSnapshot(player);
+}
+
+function buildOccupiedPlacementSnapshot(now = Date.now()) {
+  const player = createDefaultPlayer("yard-occupied-placement-user", "Yard Occupied Placement", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.goodieInventory = {
+    yarn_mouse: 1,
+  };
+  player.yard.placedGoodies = [{
+    slotId: "occupied-sun-cushion",
+    goodieId: "sun_cushion",
+    condition: "new",
+    uses: 0,
+    x: 68,
+    y: 58,
+    placedAt: now - 60_000,
+  }];
+  player.yard.activeVisitors = [];
+  return buildSnapshot(player);
+}
+
+function buildPlayzoneAuditSnapshot(remodel = "meadow", now = Date.now()) {
+  const player = createDefaultPlayer(`yard-playzone-${remodel}`, "Yard Playzone", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.remodel = remodel;
+  player.yard.ownedRemodels = ["meadow", "moon_garden", "tea_house"];
+  player.yard.goodieInventory = { yarn_mouse: 1 };
+  player.yard.placedGoodies = [
+    {
+      slotId: "nap-cushion",
+      goodieId: "sun_cushion",
+      condition: "new",
+      uses: 0,
+      x: remodel === "tea_house" ? 50 : 52,
+      y: remodel === "tea_house" ? 70 : 66,
+      placedAt: now - 240000,
+    },
+    {
+      slotId: "path-blocker",
+      goodieId: "yarn_mouse",
+      condition: "new",
+      uses: 0,
+      x: remodel === "moon_garden" ? 45 : 50,
+      y: remodel === "moon_garden" ? 64 : 62,
+      placedAt: now - 180000,
+    },
+    {
+      slotId: "runner-toy",
+      goodieId: "yarn_mouse",
+      condition: "new",
+      uses: 0,
+      x: remodel === "tea_house" ? 64 : 70,
+      y: remodel === "tea_house" ? 66 : 64,
+      placedAt: now - 120000,
+    },
+  ];
+  player.yard.activeVisitors = [
+    {
+      visitId: `visit-mochi-${remodel}`,
+      visitorId: "mochi_bunny",
+      goodieId: "sun_cushion",
+      slotId: "nap-cushion",
+      bowlId: "bowl-1",
+      pose: "nap",
+      activityId: "nap",
+      activityLayer: "front",
+      entryEdge: "left",
+      facing: "right",
+      motionSeed: `mochi-${remodel}`,
+      arrivedAt: now - 30 * 60_000,
+      leavesAt: now + 30 * 60_000,
+    },
+    {
+      visitId: `visit-mika-${remodel}`,
+      visitorId: "mika_cat",
+      goodieId: "yarn_mouse",
+      slotId: "runner-toy",
+      bowlId: "bowl-1",
+      pose: "pounce",
+      activityId: "chase",
+      activityLayer: "front",
+      entryEdge: "left",
+      facing: "right",
+      motionSeed: `mika-${remodel}`,
+      arrivedAt: now - 30 * 60_000,
+      leavesAt: now + 30 * 60_000,
+    },
+  ];
+  return buildSnapshot(player);
+}
+
+function buildHudAuditSnapshot(now = Date.now()) {
+  const player = createDefaultPlayer("yard-hud-user", "Yard HUD", now);
+  player.yard.lastSimulatedAt = now;
+  player.yard.currencies = { treats: 704, shinyTreats: 4 };
+  player.yard.foodInventory = { kibble: 3, berry_plate: 2, bonito_bowl: 1 };
+  player.yard.goodieInventory = {
+    yarn_mouse: 2,
+    sun_cushion: 1,
+    leaf_pot: 1,
+  };
+  player.yard.placedGoodies = [
+    {
+      slotId: "slot-yarn",
+      goodieId: "yarn_mouse",
+      condition: "new",
+      uses: 0,
+      x: 31,
+      y: 58,
+      placedAt: now - 120000,
+    },
+    {
+      slotId: "slot-cottage",
+      goodieId: "cardboard_cottage",
+      condition: "worn",
+      uses: 12,
+      x: 49,
+      y: 43,
+      placedAt: now - 240000,
+    },
+  ];
+  player.yard.activeVisitors = [{
+    visitId: "visit-mika",
+    visitorId: "mika_cat",
+    goodieId: "cardboard_cottage",
+    slotId: "slot-cottage",
+    bowlId: "bowl-1",
+    pose: "peek",
+    activityId: "window-peek",
+    activityLayer: "back",
+    entryEdge: "left",
+    facing: "right",
+    motionSeed: "mika-motion",
+    arrivedAt: now - 8 * 60_000,
+    leavesAt: now + 40 * 60_000,
+  }];
+  player.yard.pendingGifts = [{
+    id: "gift-mika",
+    visitorId: "mika_cat",
+    treats: 42,
+    shinyTreats: 1,
+    createdAt: now - 60000,
+  }];
+  player.yard.petbook = {
+    mika_cat: { visits: 3, lastVisitedAt: now - 60000 },
+  };
+  player.yard.album = {
+    favoritePhotoId: null,
+    photos: [{
+      id: "photo-mika",
+      visitorId: "mika_cat",
+      pose: "peek",
+      caption: "Mika by the window",
+      takenAt: now - 50000,
+    }],
+  };
+  player.yard.expansion = { level: 1 };
+  player.yard.ownedRemodels = ["meadow", "moon_garden"];
+  player.yard.helper = { unlocked: true, autoRefill: false, preferredFoodId: "kibble" };
+  player.yard.dailyLetter = { lastClaimedDate: "2026-04-30", stamps: 4 };
+  return buildSnapshot(player);
+}
+
+async function contrastRatioFor(page, textSelector, surfaceSelector) {
+  return page.locator(textSelector).first().evaluate((el, selector) => {
+    const parseRgb = (value) => {
+      const match = String(value).match(/rgba?\(([^)]+)\)/);
+      if (!match) return [0, 0, 0, 1];
+      const parts = match[1].split(",").map((part) => Number(part.trim()));
+      return [parts[0] || 0, parts[1] || 0, parts[2] || 0, parts[3] == null ? 1 : parts[3]];
+    };
+    const blend = (fg, bg) => {
+      const alpha = fg[3] + bg[3] * (1 - fg[3]);
+      return [
+        (fg[0] * fg[3] + bg[0] * bg[3] * (1 - fg[3])) / alpha,
+        (fg[1] * fg[3] + bg[1] * bg[3] * (1 - fg[3])) / alpha,
+        (fg[2] * fg[3] + bg[2] * bg[3] * (1 - fg[3])) / alpha,
+        alpha,
+      ];
+    };
+    const luminance = (rgb) => {
+      const channels = rgb.slice(0, 3).map((value) => {
+        const c = value / 255;
+        return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      });
+      return channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
+    };
+    const ratio = (fg, bg) => {
+      const a = luminance(fg);
+      const b = luminance(bg);
+      return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+    };
+    const surface = selector ? el.closest(selector) : el.parentElement;
+    const base = document.documentElement.dataset.uiTheme === "dark" ? [0, 0, 0, 1] : [255, 255, 255, 1];
+    const bg = blend(parseRgb(getComputedStyle(surface || el).backgroundColor), base);
+    const fg = blend(parseRgb(getComputedStyle(el).color), bg);
+    return ratio(fg, bg);
+  }, surfaceSelector);
+}
+
+async function expectAppReady(page) {
+  await expect(page.locator(".status-dot.ready")).toHaveCount(1, { timeout: 15000 });
+}
+
+function collectYardAssetSlotCollisionProblems() {
+  const screen = document.querySelector(".yard-game-screen");
+  if (!screen) return ["missing:.yard-game-screen"];
+  const visible = (node) => {
+    const style = getComputedStyle(node);
+    const rect = node.getBoundingClientRect();
+    return style.display !== "none" && style.visibility !== "hidden" && rect.width > 0 && rect.height > 0;
+  };
+  const rectOf = (node) => {
+    const rect = node.getBoundingClientRect();
+    return {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    };
+  };
+  const fitsInside = (inner, outer, pad = 1) => inner.left >= outer.left - pad
+    && inner.right <= outer.right + pad
+    && inner.top >= outer.top - pad
+    && inner.bottom <= outer.bottom + pad;
+  const overlapArea = (a, b) => Math.max(0, Math.min(a.right, b.right) - Math.max(a.left, b.left))
+    * Math.max(0, Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top));
+  const labelFor = (node) => node.getAttribute("data-asset-slot-group")
+    || node.getAttribute("data-asset-slot")
+    || node.getAttribute("aria-label")
+    || (typeof node.className === "string" && node.className.trim().replace(/\s+/g, ".").slice(0, 48))
+    || node.textContent.trim().replace(/\s+/g, " ").slice(0, 48)
+    || node.tagName.toLowerCase();
+  const textRectFor = (node) => {
+    const range = document.createRange();
+    range.selectNodeContents(node);
+    const rect = range.getBoundingClientRect();
+    range.detach();
+    return rect.width > 0 && rect.height > 0 ? {
+      left: rect.left,
+      top: rect.top,
+      right: rect.right,
+      bottom: rect.bottom,
+      width: rect.width,
+      height: rect.height,
+    } : null;
+  };
+  const rowSelectors = [
+    ".yard-shop-row[data-asset-slot-group]",
+    ".yard-shop-row-polished[data-asset-slot-group]",
+    ".yard-photo-card[data-asset-slot-group]",
+    ".yard-petbook-card[data-asset-slot-group]",
+    ".yard-choice-tile[data-asset-slot-group]",
+    ".yard-row[data-asset-slot-group]",
+    ".yard-metric-grid > span[data-asset-slot-group]",
+    ".yard-species-grid button[data-asset-slot-group]",
+  ];
+  const childSelector = [
+    ":scope > img",
+    ":scope > span",
+    ":scope > strong",
+    ":scope > small",
+    ":scope > b",
+    ":scope > button",
+    ":scope > input",
+    ":scope > .yard-shop-copy",
+    ":scope > .yard-shop-purchase",
+    ":scope > .yard-row-actions",
+    ":scope > .yard-price-chip",
+  ].join(",");
+  const problems = [];
+  for (const rowSelector of rowSelectors) {
+    for (const row of [...screen.querySelectorAll(rowSelector)].filter(visible)) {
+      const rowRect = rectOf(row);
+      const zones = [...row.querySelectorAll(childSelector)].filter(visible);
+      for (const zone of zones) {
+        const zoneRect = rectOf(zone);
+        if (!fitsInside(zoneRect, rowRect, 1.5)) {
+          const delta = [
+            Math.round((zoneRect.left - rowRect.left) * 10) / 10,
+            Math.round((zoneRect.top - rowRect.top) * 10) / 10,
+            Math.round((zoneRect.right - rowRect.right) * 10) / 10,
+            Math.round((zoneRect.bottom - rowRect.bottom) * 10) / 10,
+          ].join(",");
+          problems.push(`${labelFor(row)}:${labelFor(zone)} escapes row ${delta}`);
+        }
+        for (const textNode of [...zone.querySelectorAll("strong, small, b, span")].filter(visible)) {
+          const style = getComputedStyle(textNode);
+          const textRect = textRectFor(textNode);
+          if (textRect && style.overflow === "visible" && !fitsInside(textRect, rectOf(textNode), 1.5)) {
+            problems.push(`${labelFor(row)}:${labelFor(textNode)} text escapes slot`);
+          }
+        }
+      }
+      for (let leftIndex = 0; leftIndex < zones.length; leftIndex += 1) {
+        for (let rightIndex = leftIndex + 1; rightIndex < zones.length; rightIndex += 1) {
+          const left = zones[leftIndex];
+          const right = zones[rightIndex];
+          if (left.contains(right) || right.contains(left)) continue;
+          const area = overlapArea(rectOf(left), rectOf(right));
+          if (area > 4) {
+            problems.push(`${labelFor(row)}:${labelFor(left)} overlaps ${labelFor(right)}`);
+          }
+        }
+      }
+    }
+  }
+  return problems;
+}
+
+test.describe("Cozy Yard movement and assets", () => {
+  // These players and remodels are page-routed fixtures, including repeat visits.
+  test.use({ serviceWorkers: 'block' });
+  test.beforeEach(async ({ page }) => {
+    await page.addInitScript(() => {
+      window.localStorage.setItem("gh_dev_user_id", `yard_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    });
+  });
+
+  for (const language of ["en", "ru"]) for (const [width, height] of [[320, 568], [360, 800], [390, 844], [414, 896], [568, 320], [844, 390], [768, 1024], [1024, 768], [1280, 720]]) {
+    test.describe(`legacy Yard toolbar ${language} ${width}x${height}`, () => {
+      test.use({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: width < 1100, hasTouch: width < 1100 });
+      test("keeps maximum balances readable and controls reachable", async ({ page }, info) => {
+        const snapshot = buildHudAuditSnapshot();
+        const labels = language === "ru"
+          ? { settings: "Настройки", close: "Закрыть", tools: "Инструменты", treats: "Лакомства", shinyTreats: "Сияющие" }
+          : { settings: "Settings", close: "Close", tools: "Tools", treats: "Treats", shinyTreats: "Shiny" };
+        const balances = [{ treats: 1000000000, shinyTreats: 1000000 }];
+        // Russian near-boundary units are wider than the legal maxima (1 млрд/1 млн).
+        if (width === 320) balances.push({ treats: 999000000, shinyTreats: 999000 }, { treats: 9999, shinyTreats: 9999 });
+        await page.addInitScript(locale => localStorage.setItem("garden_shelf_language", locale), language);
+        await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify(snapshot) }));
+        for (const balance of balances) {
+          snapshot.yard.currencies = balance;
+          await page.goto("/?tab=room");
+          await expectAppReady(page);
+          await expect(page.locator(".companion-yard-stage")).toBeVisible();
+          for (const [kind, value] of Object.entries(balance)) {
+            await expect(page.getByRole("img", { name: `${labels[kind]}: ${new Intl.NumberFormat(language).format(value)}`, exact: true })).toBeVisible();
+          }
+          await expectLegacyYardToolbarReachable(page);
+          await page.getByRole("button", { name: labels.settings, exact: true }).click();
+          await expect(page.getByRole("dialog", { name: labels.settings, exact: true })).toBeVisible();
+          await page.getByRole("dialog").getByRole("button", { name: labels.close, exact: true }).click();
+          await page.getByRole("button", { name: labels.tools, exact: true }).click();
+          await expect(page.locator(".yard-side-tools")).toBeVisible();
+          await expectLegacyYardToolbarReachable(page);
+          await page.getByRole("button", { name: labels.tools, exact: true }).click();
+          await expect(page.locator(".yard-side-tools")).toHaveCount(0);
+          await expectLegacyYardToolbarReachable(page);
+          await info.attach(`legacy-yard-toolbar-${balance.treats}`, { body: await page.screenshot(), contentType: "image/png" });
+          if (width === 320 || width === 390) {
+            await page.setViewportSize({ width: height, height: width });
+            await expectLegacyYardToolbarReachable(page);
+            await page.setViewportSize({ width, height });
+            await expectLegacyYardToolbarReachable(page);
+          }
+        }
+      });
+    });
+  }
+
+  test("renders manifest-backed backgrounds, layered visitors, and selected visitor capture", async ({ page }) => {
+    const snapshot = buildYardMovementSnapshot();
+    const mutateBodies = [];
+
+    await page.route("**/assets/manifest.json", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({
+          graphics: {
+            games: {
+              companionYard: {
+                backgrounds: {
+                  meadow: "/custom-yard/backgrounds/meadow-test.webp",
+                },
+              },
+            },
+          },
+        }),
+      });
+    });
+
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      mutateBodies.push(JSON.parse(route.request().postData() || "{}"));
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+
+    await selectHomeGame(page, 'room');
+    await expect(page.locator(".companion-yard-stage")).toBeVisible();
+    await expect(page.locator(".yard-background-art")).toHaveAttribute("src", "/custom-yard/backgrounds/meadow-test.webp");
+    await expect(page.locator(".yard-visitor")).toHaveCount(2);
+    expect(await page.locator(".yard-pet-layer-back .yard-visitor").count()).toBeGreaterThan(0);
+    expect(await page.locator(".yard-pet-layer-front .yard-visitor").count()).toBeGreaterThan(0);
+    const cottageBox = await page.getByRole("button", { name: /Cardboard Cottage placed goodie/ }).boundingBox();
+    expect(cottageBox).not.toBeNull();
+    const cottageVisitorCenters = {};
+    for (const visitorName of ["Mika visitor", "Mochi visitor"]) {
+      const visitor = page.getByRole("button", { name: visitorName });
+      const visitorBox = await visitor.boundingBox();
+      expect(visitorBox, `${visitorName} should render near the cottage`).not.toBeNull();
+      const visitorCenter = {
+        x: visitorBox.x + visitorBox.width / 2,
+        y: visitorBox.y + visitorBox.height / 2,
+      };
+      cottageVisitorCenters[visitorName] = visitorCenter;
+      const cottageCenter = {
+        x: cottageBox.x + cottageBox.width / 2,
+        y: cottageBox.y + cottageBox.height / 2,
+      };
+      expect(Math.abs(visitorCenter.x - cottageCenter.x), `${visitorName} should stay horizontally attached to the decor`).toBeLessThan(cottageBox.width * 0.7);
+      expect(Math.abs(visitorCenter.y - cottageCenter.y), `${visitorName} should stay vertically attached to the decor`).toBeLessThan(cottageBox.height * 0.9);
+    }
+    await expect(page.getByRole("button", { name: "Mika visitor" })).toHaveAttribute("data-visual-anchor-x", /^(6[4-9]|[78]\d)\./);
+    await expect(page.getByRole("button", { name: "Mochi visitor" })).toHaveAttribute("data-visual-anchor-x", /^([12]\d|3[0-6])\./);
+    expect(
+      cottageVisitorCenters["Mochi visitor"].x - cottageVisitorCenters["Mika visitor"].x,
+      "cottage visitors should occupy distinct left/right decor targets instead of clustering at the center",
+    ).toBeGreaterThan(cottageBox.width * 0.35);
+
+    const mochiVisitor = page.getByRole("button", { name: "Mochi visitor" });
+    const labelState = await mochiVisitor.locator("b").evaluate((node) => {
+      const styles = getComputedStyle(node);
+      return { opacity: Number(styles.opacity), visibility: styles.visibility };
+    });
+    expect(labelState.opacity).toBe(0);
+    expect(labelState.visibility).toBe("hidden");
+    const canHover = await page.evaluate(() => window.matchMedia("(hover: hover)").matches);
+    if (canHover) {
+      await mochiVisitor.hover({ force: true });
+      await expect(mochiVisitor.locator("b")).toBeVisible();
+      await page.mouse.move(1, 1);
+    }
+    await mochiVisitor.click({ force: true });
+    await expect(mochiVisitor).toHaveClass(/selected/);
+    await page.mouse.move(1, 1);
+    await mochiVisitor.evaluate((node) => node.blur());
+    await page.waitForTimeout(180);
+    const selectedLabelState = await mochiVisitor.locator("b").evaluate((node) => {
+      const styles = getComputedStyle(node);
+      return { opacity: Number(styles.opacity), visibility: styles.visibility };
+    });
+    expect(selectedLabelState.opacity).toBe(0);
+    expect(selectedLabelState.visibility).toBe("hidden");
+
+    await page.getByRole("button", { name: "Tools" }).click();
+    await page.getByRole("button", { name: "Camera" }).click();
+    await expect.poll(() => mutateBodies.some((body) => body.action === "yard.capturePhoto")).toBe(true);
+    const capture = mutateBodies.find((body) => body.action === "yard.capturePhoto");
+    expect(capture.payload.visitId).toBe("visit-mochi");
+  });
+
+  test("opens in-game HUD screens and places a goodie at free coordinates", async ({ page }) => {
+    const snapshot = buildFreePlacementSnapshot();
+    const mutateBodies = [];
+
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      mutateBodies.push(JSON.parse(route.request().postData() || "{}"));
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+
+    await selectHomeGame(page, 'room');
+    await page.getByRole("button", { name: "Goodies", exact: true }).click();
+    await expect(page.getByRole("dialog", { name: "Goodies" })).toBeVisible();
+
+    await page.getByRole("button", { name: "Place" }).first().click();
+    await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
+
+    const stage = page.locator(".companion-yard-stage");
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box.x + box.width * 0.68, box.y + box.height * 0.58);
+    await page.getByRole("button", { name: "Confirm placement" }).click();
+
+    await expect.poll(() => mutateBodies.some((body) => body.action === "yard.placeGoodie")).toBe(true);
+    const placement = mutateBodies.find((body) => body.action === "yard.placeGoodie");
+    expect(placement.payload.goodieId).toBe("yarn_mouse");
+    expect(placement.payload.x).toBeGreaterThan(62);
+    expect(placement.payload.x).toBeLessThan(74);
+    expect(placement.payload.y).toBeGreaterThan(52);
+    expect(placement.payload.y).toBeLessThan(64);
+  });
+
+  test("keeps placement mode when tapping over an existing goodie", async ({ page }) => {
+    const snapshot = buildOccupiedPlacementSnapshot();
+    const mutateBodies = [];
+
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      mutateBodies.push(JSON.parse(route.request().postData() || "{}"));
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+
+    await selectHomeGame(page, 'room');
+    await page.getByRole("button", { name: "Goodies", exact: true }).click();
+    const goodiesDialog = page.getByRole("dialog", { name: "Goodies" });
+    await goodiesDialog.getByRole("button", { name: "Place", exact: true }).first().click();
+    await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
+
+    const stage = page.locator(".companion-yard-stage");
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box.x + box.width * 0.68, box.y + box.height * 0.58);
+    await page.getByRole("button", { name: "Confirm placement" }).click();
+
+    await expect.poll(() => mutateBodies.some((body) => body.action === "yard.placeGoodie")).toBe(true);
+    expect(mutateBodies.some((body) => body.action === "yard.moveGoodie")).toBe(false);
+    const placement = mutateBodies.find((body) => body.action === "yard.placeGoodie");
+    expect(placement.payload.goodieId).toBe("yarn_mouse");
+    expect(placement.payload.x).toBeGreaterThan(66);
+    expect(placement.payload.x).toBeLessThan(70);
+    expect(placement.payload.y).toBeGreaterThan(56);
+    expect(placement.payload.y).toBeLessThan(60);
+  });
+
+  test("keeps visitors and free placement inside mobile playzones across yard backgrounds", async ({ page }) => {
+    let snapshot = buildPlayzoneAuditSnapshot("meadow");
+
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    for (const [remodel, label] of [
+      ["meadow", "Morning Meadow"],
+      ["moon_garden", "Moon Garden"],
+      ["tea_house", "Tea House"],
+    ]) {
+      snapshot = buildPlayzoneAuditSnapshot(remodel);
+      await page.goto("/");
+      await expectAppReady(page);
+      if (!await page.locator(".companion-yard-stage").isVisible()) {
+        await selectHomeGame(page, 'room');
+      }
+      await expect(page.locator(".companion-yard-stage")).toBeVisible();
+      await expect(page.locator(".yard-background-art")).toHaveAttribute("src", new RegExp(`${remodel}`));
+
+      const mikaMotion = await page.getByRole("button", { name: "Mika visitor" }).evaluate((node) => ({
+        x: Number(node.dataset.motionX),
+        y: Number(node.dataset.motionY),
+      }));
+      expect(isYardPointInPlayzone(remodel, mikaMotion.x, mikaMotion.y), `${label} active visitor should stay in the playzone`).toBe(true);
+      expect(isPointInsideObstacle(mikaMotion, {
+        x: (remodel === "moon_garden" ? 45 : 50) - 7,
+        y: (remodel === "moon_garden" ? 64 : 62) - 6,
+        width: 14,
+        height: 12,
+      }), `${label} active visitor should be repelled by the blocking goodie`).toBe(false);
+
+      const cushionBox = await page.getByRole("button", { name: /Sun Cushion placed goodie/ }).boundingBox();
+      const mochiBox = await page.getByRole("button", { name: "Mochi visitor" }).boundingBox();
+      expect(cushionBox, `${label} cushion should render`).not.toBeNull();
+      expect(mochiBox, `${label} stationary visitor should render`).not.toBeNull();
+      const cushionCenter = {
+        x: cushionBox.x + cushionBox.width / 2,
+        y: cushionBox.y + cushionBox.height / 2,
+      };
+      const mochiCenter = {
+        x: mochiBox.x + mochiBox.width / 2,
+        y: mochiBox.y + mochiBox.height / 2,
+      };
+      expect(Math.abs(mochiCenter.x - cushionCenter.x), `${label} stationary visitor should stay horizontally on the decor`).toBeLessThan(cushionBox.width * 0.55);
+      expect(Math.abs(mochiCenter.y - cushionCenter.y), `${label} stationary visitor should stay visually on the decor`).toBeLessThan(cushionBox.height * 0.75);
+    }
+  });
+
+  test("clamps free move targets to the playable yard on narrow mobile", async ({ page }) => {
+    const snapshot = buildOccupiedPlacementSnapshot();
+    const mutateBodies = [];
+
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.route("**/api/player/mutate", async (route) => {
+      mutateBodies.push(JSON.parse(route.request().postData() || "{}"));
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify({ snapshot }),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+
+    await selectHomeGame(page, 'room');
+    await page.getByRole("button", { name: "Goodies", exact: true }).click();
+    const goodiesDialog = page.getByRole("dialog", { name: "Goodies" });
+    await goodiesDialog.getByRole("button", { name: "Move", exact: true }).click();
+    await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
+
+    const stage = page.locator(".companion-yard-stage");
+    const box = await stage.boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.click(box.x + box.width * 0.5, box.y + box.height * 0.08);
+    await page.getByRole("button", { name: "Confirm placement" }).click();
+
+    await expect.poll(() => mutateBodies.some((body) => body.action === "yard.moveGoodie")).toBe(true);
+    const move = mutateBodies.find((body) => body.action === "yard.moveGoodie");
+    expect(isYardPointInPlayzone("meadow", move.payload.x, move.payload.y)).toBe(true);
+  });
+
+  test("keeps mobile standalone HUD and screens readable in dark mode", async ({ page }) => {
+    const snapshot = buildHudAuditSnapshot();
+    const screens = [
+      ["Food", "Food bowls"],
+      ["Goodies", "Goodies"],
+      ["Shop", "Shop"],
+      ["Petbook", "Petbook"],
+      ["Album", "Photo album"],
+      ["Gifts", "Gift collection"],
+      ["Repair goodies", "Repair goodies"],
+      ["Remodel yard", "Remodel yard"],
+      ["Expansion", "Expansion"],
+      ["Daily letter", "Daily letter"],
+      ["Companion helper", "Companion helper"],
+      ["Settings", "Settings"],
+    ];
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem("garden_shelf_language", "en");
+      window.localStorage.setItem("game_hub_ui_theme", "dark");
+    });
+
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+
+    await selectHomeGame(page, 'room');
+    await expect(page.locator(".companion-yard-stage")).toBeVisible();
+
+    const hudMetrics = await page.evaluate(() => {
+      const visible = (el) => {
+        const rect = el.getBoundingClientRect();
+        const style = getComputedStyle(el);
+        return rect.width > 0 && rect.height > 0 && style.display !== "none" && style.visibility !== "hidden";
+      };
+      const minSide = (selector) => {
+        const values = [...document.querySelectorAll(selector)]
+          .filter(visible)
+          .map((el) => {
+            const rect = el.getBoundingClientRect();
+            return Math.min(rect.width, rect.height);
+          });
+        return values.length ? Math.min(...values) : 0;
+      };
+      return {
+        viewportWidth: window.innerWidth,
+        bottomIconMin: minSide(".yard-bottom-dock .yard-hud-icon"),
+        compactIconMin: minSide(".yard-corner-actions .yard-hud-icon, .yard-side-tools .yard-hud-icon"),
+        compactButtonMin: minSide(".yard-corner-actions .yard-icon-button, .yard-side-tools .yard-icon-button"),
+        goodieSizes: Object.fromEntries([...document.querySelectorAll(".yard-placed-goodie")]
+          .filter(visible)
+          .map((el) => {
+            const rect = el.getBoundingClientRect();
+            return [el.dataset.goodieId, { width: rect.width, height: rect.height }];
+          })),
+      };
+    });
+    expect(hudMetrics.bottomIconMin).toBeGreaterThanOrEqual(38);
+    expect(hudMetrics.compactIconMin).toBeGreaterThanOrEqual(38);
+    expect(hudMetrics.compactButtonMin).toBeGreaterThanOrEqual(48);
+    expect(hudMetrics.goodieSizes.yarn_mouse.width).toBeLessThan(hudMetrics.goodieSizes.cardboard_cottage.width * 0.55);
+    expect(hudMetrics.goodieSizes.yarn_mouse.height).toBeLessThan(hudMetrics.goodieSizes.cardboard_cottage.height * 0.55);
+    expect(hudMetrics.goodieSizes.cardboard_cottage.width).toBeGreaterThan(hudMetrics.viewportWidth <= 420 ? 140 : 150);
+    expect(await contrastRatioFor(page, ".yard-currency-chip .yard-currency-label", ".yard-currency-chip")).toBeGreaterThanOrEqual(4.5);
+    const legacyHudBackgrounds = await page.evaluate(() => {
+      const selectors = [".yard-currency-chip", ".yard-side-tools", ".yard-bottom-dock", ".yard-activity-pill"];
+      return selectors.flatMap((selector) => [...document.querySelectorAll(selector)]
+        .map((node) => ({ selector, backgroundImage: getComputedStyle(node).backgroundImage }))
+        .filter(({ backgroundImage }) => /companion-yard\/ui|cozy-[\w-]+\.png/.test(backgroundImage)));
+    });
+    expect(legacyHudBackgrounds).toEqual([]);
+
+    for (const [buttonName, dialogName] of screens) {
+      const close = page.getByRole("button", { name: "Close" });
+      if (await close.count()) await close.first().click();
+
+      const screenButton = page.getByRole("button", { name: buttonName, exact: true });
+      if (!await screenButton.count() || !await screenButton.first().isVisible()) {
+        await page.getByRole("button", { name: "Tools", exact: true }).click();
+      }
+      await screenButton.click();
+      await expect(page.getByRole("dialog", { name: dialogName })).toBeVisible();
+      const legacyScreenBackgrounds = await page.evaluate(() => {
+        const selectors = [".yard-game-screen", ".yard-screen-header", ".yard-shop-row-polished", ".yard-price-chip"];
+        return selectors.flatMap((selector) => [...document.querySelectorAll(selector)]
+          .map((node) => ({ selector, backgroundImage: getComputedStyle(node).backgroundImage }))
+          .filter(({ backgroundImage }) => /companion-yard\/ui|cozy-[\w-]+\.png/.test(backgroundImage)));
+      });
+      expect(legacyScreenBackgrounds).toEqual([]);
+
+      const layout = await page.evaluate(() => {
+        const screen = document.querySelector(".yard-game-screen")?.getBoundingClientRect();
+        const dock = document.querySelector(".yard-bottom-dock")?.getBoundingClientRect();
+        const hitSize = (node) => {
+          const rect = node.getBoundingClientRect();
+          const before = getComputedStyle(node, "::before");
+          const beforeX = Math.abs(parseFloat(before.left || "0")) + Math.abs(parseFloat(before.right || "0"));
+          const beforeY = Math.abs(parseFloat(before.top || "0")) + Math.abs(parseFloat(before.bottom || "0"));
+          return {
+            width: rect.width + beforeX,
+            height: rect.height + beforeY,
+          };
+        };
+        const smallButtons = [...document.querySelectorAll(".yard-game-screen button")]
+          .filter((button) => {
+            const rect = button.getBoundingClientRect();
+            const hit = hitSize(button);
+            return rect.width > 0 && rect.height > 0 && (hit.width < 44 || hit.height < 44);
+          })
+          .map((button) => button.getAttribute("aria-label") || button.textContent.trim());
+        return {
+          screenBottom: screen?.bottom || 0,
+          dockTop: dock?.top || window.innerHeight,
+          smallButtons,
+        };
+      });
+      expect(layout.screenBottom).toBeLessThanOrEqual(layout.dockTop);
+      expect(layout.smallButtons).toEqual([]);
+
+      if (buttonName === "Shop") {
+        await expect(page.locator(".yard-shop-row-polished").first()).toBeVisible();
+        await expect(page.locator(".yard-shop-row-polished .yard-price-chip").first()).toBeVisible();
+        expect(await page.locator(".yard-price-chip.is-plain .yard-hud-icon").count()).toBe(0);
+        const shopLayout = await page.locator(".yard-shop-row-polished").first().evaluate((row) => {
+          const copy = row.querySelector(".yard-shop-copy small")?.getBoundingClientRect();
+          const price = row.querySelector(".yard-price-chip")?.getBoundingClientRect();
+          const action = row.querySelector(".yard-row-actions")?.getBoundingClientRect();
+          const thumb = row.querySelector(".yard-shop-thumb")?.getBoundingClientRect();
+          return {
+            priceText: row.querySelector(".yard-price-chip")?.textContent?.trim() || "",
+            copyRight: copy?.right || 0,
+            copyBottom: copy?.bottom || 0,
+            priceLeft: price?.left || 0,
+            priceTop: price?.top || 0,
+            priceRight: price?.right || 0,
+            actionLeft: action?.left || 0,
+            thumbRight: thumb?.right || 0,
+            sameRow: Math.abs((price?.top || 0) - (action?.top || 0)) < 12,
+          };
+        });
+        expect(shopLayout.priceText.length).toBeGreaterThan(0);
+        expect(await contrastRatioFor(page, ".yard-price-chip b", ".yard-price-chip")).toBeGreaterThanOrEqual(4.5);
+        expect(shopLayout.actionLeft).toBeGreaterThanOrEqual(shopLayout.thumbRight);
+        if (shopLayout.copyBottom > shopLayout.priceTop + 1) {
+          expect(shopLayout.copyRight).toBeLessThanOrEqual(shopLayout.priceLeft + 1);
+        }
+        if (shopLayout.sameRow) {
+          expect(shopLayout.priceRight).toBeLessThanOrEqual(shopLayout.actionLeft + 1);
+        }
+        await page.keyboard.press("Escape");
+        await expect(page.getByRole("dialog", { name: dialogName })).toHaveCount(0);
+      }
+    }
+
+    await expect(page.getByRole("dialog", { name: "Settings" })).toBeVisible();
+    await page.locator(".yard-background-art").click({ position: { x: 16, y: 180 }, force: true });
+    await expect(page.locator(".yard-game-screen")).toHaveCount(0);
+
+    await page.getByRole("button", { name: "Goodies", exact: true }).click();
+    await page.getByRole("dialog", { name: "Goodies" }).getByRole("button", { name: "Place", exact: true }).first().click();
+    await expect(page.getByRole("button", { name: "Confirm placement" })).toBeVisible();
+    expect(await contrastRatioFor(page, ".yard-placement-dock span", ".yard-placement-dock")).toBeGreaterThanOrEqual(4.5);
+  });
+
+  test("localizes active visitor status and keeps Yard dock labels as press tooltips on mobile", async ({ page }) => {
+    const snapshot = buildHudAuditSnapshot();
+    snapshot.yard.pendingGifts = [];
+
+    await page.addInitScript(() => {
+      window.localStorage.setItem("garden_shelf_language", "ru");
+      window.localStorage.setItem("game_hub_ui_theme", "dark");
+    });
+
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+
+    await selectHomeGame(page, 'room');
+    const activityPill = page.locator(".yard-activity-pill");
+    await expect(activityPill).toContainText("Гостей: 1");
+    await expect(activityPill).not.toContainText("{count}");
+
+    const dockItems = await page.evaluate(() => [...document.querySelectorAll(".yard-bottom-dock .yard-icon-button")]
+      .map((button) => {
+        const rect = button.getBoundingClientRect();
+        const icon = button.querySelector(".yard-hud-icon")?.getBoundingClientRect();
+        const label = button.querySelector(".yard-icon-label")?.getBoundingClientRect();
+        const labelStyle = button.querySelector(".yard-icon-label")
+          ? getComputedStyle(button.querySelector(".yard-icon-label"))
+          : null;
+        return {
+          ariaLabel: button.getAttribute("aria-label"),
+          tooltip: button.getAttribute("data-tooltip"),
+          labelVisible: !!label
+            && labelStyle?.display !== "none"
+            && labelStyle?.visibility !== "hidden"
+            && (label.width || 0) > 2
+            && (label.height || 0) > 2,
+          iconCentered:
+            !!icon
+            && Math.abs(((icon.left + icon.right) / 2) - ((rect.left + rect.right) / 2)) <= 3
+            && Math.abs(((icon.top + icon.bottom) / 2) - ((rect.top + rect.bottom) / 2)) <= 3,
+        };
+      }));
+    expect(dockItems).toHaveLength(6);
+    for (const item of dockItems) {
+      expect(item.ariaLabel).toBeTruthy();
+      expect(item.tooltip).toBe(item.ariaLabel);
+      expect(item.labelVisible).toBe(false);
+      expect(item.iconCentered).toBe(true);
+    }
+
+    const foodButton = page.locator(".yard-bottom-dock .yard-icon-button").first();
+    await foodButton.dispatchEvent("pointerdown");
+    await expect(page.locator(".yard-bottom-dock .press-tooltip")).toContainText(/Еда|Food/);
+    await foodButton.dispatchEvent("pointerup");
+    await expect(page.locator(".yard-bottom-dock .press-tooltip")).toHaveCount(0);
+  });
+
+  test("keeps Russian management panels aligned to generated slots on mobile", async ({ page }) => {
+    const snapshot = buildHudAuditSnapshot();
+    const screens = [
+      ["Еда", "Миски с едой", "food"],
+      ["Декор", "Декорации", "goodies"],
+      ["Магазин", "Магазин", "shop"],
+      ["Питомцы", "Книга гостей", "petbook"],
+      ["Альбом", "Фотоальбом", "album"],
+      ["Подарки", "Коллекция подарков", "gifts"],
+      ["Починка декора", "Починка декора", "repair"],
+      ["Фон двора", "Фон двора", "remodel"],
+      ["Расширение", "Расширение", "expansion"],
+      ["Ежедневное письмо", "Ежедневное письмо", "daily"],
+      ["Помощник", "Помощник", "companion"],
+      ["Настройки", "Настройки", "settings"],
+    ];
+    const slotRequirements = {
+      food: { slots: ["panel-title", "panel-close"], groups: { "food-choice": 3 } },
+      goodies: {
+        slots: ["panel-title", "panel-close", "inventory-title", "inventory-list", "placed-title", "placed-list"],
+        groups: { "inventory-row": 3, "placed-row": 2 },
+      },
+      shop: {
+        slots: ["panel-title", "panel-close", "food-title", "food-list", "goodies-title", "goodies-list", "backgrounds-title", "backgrounds-list"],
+        groups: { "shop-food-row": 3, "shop-goodies-row": 2, "shop-background-row": 1 },
+      },
+      petbook: { slots: ["panel-title", "panel-close"], groups: { "petbook-card": 6 } },
+      album: { slots: ["panel-title", "panel-close"], groups: { "album-card": 1 } },
+      gifts: { slots: ["panel-title", "panel-close", "gifts-summary-title", "gifts-collect"], groups: { "gifts-metric": 3, "gifts-row": 1 } },
+      repair: { slots: ["panel-title", "panel-close"], groups: { "repair-row": 1 } },
+      remodel: { slots: ["panel-title", "panel-close"], groups: { "remodel-row": 2 } },
+      expansion: { slots: ["panel-title", "panel-close", "expansion-title", "expansion-action"], groups: { "expansion-metric": 3 } },
+      daily: { slots: ["panel-title", "panel-close", "daily-title", "daily-action"], groups: { "daily-metric": 2 } },
+      companion: { slots: ["panel-title", "panel-close", "companion-title", "companion-name", "companion-save", "companion-helper"], groups: { "companion-species": 6 } },
+      settings: { slots: ["panel-title", "panel-close", "settings-title", "settings-action"], groups: { "settings-row": 2 } },
+    };
+
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.addInitScript(() => {
+      window.localStorage.setItem("garden_shelf_language", "ru");
+      window.localStorage.setItem("game_hub_ui_theme", "light");
+    });
+    await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, async (route) => {
+      await route.fulfill({
+        contentType: "application/json",
+        body: JSON.stringify(snapshot),
+      });
+    });
+
+    await page.goto("/");
+    await expectAppReady(page);
+    await selectHomeGame(page, 'room');
+
+    const allCollisionProblems = [];
+    for (const [buttonName, dialogName, screenId] of screens) {
+      const button = page.getByRole("button", { name: buttonName, exact: true });
+      if (!await button.count() || !await button.first().isVisible()) {
+        await page.getByRole("button", { name: "Инструменты", exact: true }).click();
+      }
+      await button.first().click();
+      await expect(page.locator(".yard-game-screen")).toHaveAttribute("data-yard-screen", screenId);
+      await expect(page.getByRole("dialog", { name: dialogName })).toBeVisible();
+
+      const metrics = await page.evaluate(() => {
+        const screen = document.querySelector(".yard-game-screen");
+        const screenRect = screen?.getBoundingClientRect();
+        const visible = (node) => {
+          const rect = node.getBoundingClientRect();
+          const style = getComputedStyle(node);
+          if (style.display === "none" || style.visibility === "hidden" || rect.width <= 0 || rect.height <= 0) return false;
+          const centerX = (rect.left + rect.right) / 2;
+          const centerY = (rect.top + rect.bottom) / 2;
+          for (let current = node.parentElement; current && current !== document.body; current = current.parentElement) {
+            const currentStyle = getComputedStyle(current);
+            const clips = `${currentStyle.overflow}${currentStyle.overflowX}${currentStyle.overflowY}`;
+            if (!/(auto|scroll|hidden|clip)/.test(clips)) continue;
+            const currentRect = current.getBoundingClientRect();
+            if (
+              centerX < currentRect.left
+              || centerX > currentRect.right
+              || centerY < currentRect.top
+              || centerY > currentRect.bottom
+            ) return false;
+          }
+          return true;
+        };
+        const labelFor = (node) => node.getAttribute("aria-label") || node.textContent.trim().replace(/\s+/g, " ");
+        const centerInsideScreen = (rect) => screenRect
+          && ((rect.left + rect.right) / 2) >= screenRect.left
+          && ((rect.left + rect.right) / 2) <= screenRect.right
+          && ((rect.top + rect.bottom) / 2) >= screenRect.top
+          && ((rect.top + rect.bottom) / 2) <= screenRect.bottom;
+        const controls = [...(screen?.querySelectorAll("button, input") || [])]
+          .filter(visible)
+          .filter((node) => centerInsideScreen(node.getBoundingClientRect()));
+        const insideScreen = (rect) => screenRect
+          && rect.left >= screenRect.left - 1
+          && rect.right <= screenRect.right + 1
+          && rect.top >= screenRect.top - 1
+          && rect.bottom <= screenRect.bottom + 1;
+        const hitSize = (node) => {
+          const rect = node.getBoundingClientRect();
+          const before = getComputedStyle(node, "::before");
+          const beforeX = Math.abs(parseFloat(before.left || "0")) + Math.abs(parseFloat(before.right || "0"));
+          const beforeY = Math.abs(parseFloat(before.top || "0")) + Math.abs(parseFloat(before.bottom || "0"));
+          return {
+            width: rect.width + beforeX,
+            height: rect.height + beforeY,
+          };
+        };
+        return {
+          horizontalOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+          tinyControls: controls
+            .filter((node) => {
+              const hit = hitSize(node);
+              return hit.width < 44 || hit.height < 44;
+            })
+            .map(labelFor),
+          clippedControls: controls
+            .filter((node) => !insideScreen(node.getBoundingClientRect()))
+            .map(labelFor),
+          overflowingButtons: controls
+            .filter((node) => node.tagName === "BUTTON")
+            .filter((node) => {
+              const style = getComputedStyle(node);
+              const hiddenLabel = style.fontSize === "0px" || [...node.querySelectorAll("span")]
+                .some((span) => {
+                  const spanStyle = getComputedStyle(span);
+                  const spanRect = span.getBoundingClientRect();
+                  return spanStyle.fontSize === "0px" || spanRect.width <= 1 || spanRect.height <= 1;
+                });
+              return !hiddenLabel;
+            })
+            .filter((node) => node.scrollWidth > node.clientWidth + 1 || node.scrollHeight > node.clientHeight + 1)
+            .map(labelFor),
+          speciesOpaqueButtons: [...(screen?.querySelectorAll(".yard-species-grid button") || [])]
+            .filter(visible)
+            .filter((node) => getComputedStyle(node).backgroundColor !== "rgba(0, 0, 0, 0)")
+            .map(labelFor),
+        };
+      });
+
+      expect(metrics.horizontalOverflow).toBeLessThanOrEqual(1);
+      expect(metrics.tinyControls).toEqual([]);
+      expect(metrics.clippedControls).toEqual([]);
+      expect(metrics.overflowingButtons).toEqual([]);
+      expect(metrics.speciesOpaqueButtons).toEqual([]);
+
+      const slotAlignment = await page.evaluate(({ screenId, screenMap, reference, requirement }) => {
+        const screen = document.querySelector(".yard-game-screen");
+        const screenRect = screen?.getBoundingClientRect();
+        if (!screen || !screenRect || !screenMap) {
+          return { surface: null, missing: [`${screenId}:screen`], deviations: [] };
+        }
+
+        const expectedRect = (slot) => ({
+          left: screenRect.left + (slot.x / reference.width) * screenRect.width,
+          top: screenRect.top + (slot.y / reference.height) * screenRect.height,
+          width: (slot.width / reference.width) * screenRect.width,
+          height: (slot.height / reference.height) * screenRect.height,
+        });
+        const measure = (node, expected, id) => {
+          const rect = node.getBoundingClientRect();
+          const deviation = Math.max(
+            Math.abs(rect.left - expected.left),
+            Math.abs(rect.top - expected.top),
+            Math.abs(rect.width - expected.width),
+            Math.abs(rect.height - expected.height),
+          );
+          return { id, deviation };
+        };
+
+        const missing = [];
+        const deviations = [];
+        for (const slotId of requirement.slots || []) {
+          const target = screen.querySelector(`[data-asset-slot="${slotId}"]`);
+          const slot = screenMap.slots?.[slotId];
+          if (!target || !slot) {
+            missing.push(`${screenId}:${slotId}`);
+            continue;
+          }
+          deviations.push(measure(target, expectedRect(slot), `${screenId}:${slotId}`));
+        }
+
+        for (const [groupId, count] of Object.entries(requirement.groups || {})) {
+          const targets = [...screen.querySelectorAll(`[data-asset-slot-group="${groupId}"]`)]
+            .sort((a, b) => Number(a.dataset.assetSlotIndex || 0) - Number(b.dataset.assetSlotIndex || 0));
+          const slots = screenMap.groups?.[groupId] || [];
+          if (targets.length < count || slots.length < count) {
+            missing.push(`${screenId}:${groupId}:${targets.length}/${count}`);
+            continue;
+          }
+          for (let index = 0; index < count; index += 1) {
+            const slotIndex = Number(targets[index].dataset.assetSlotIndex || index);
+            const slot = slots[slotIndex];
+            if (!slot) {
+              missing.push(`${screenId}:${groupId}:${slotIndex}`);
+              continue;
+            }
+            deviations.push(measure(targets[index], expectedRect(slot), `${screenId}:${groupId}:${slotIndex}`));
+          }
+        }
+
+        return {
+          surface: screen.getAttribute("data-asset-slot-surface"),
+          missing,
+          deviations,
+        };
+      }, {
+        screenId,
+        screenMap: YARD_SCREEN_SLOT_MAPS[screenId],
+        reference: YARD_PANEL_REFERENCE,
+        requirement: slotRequirements[screenId],
+      });
+
+      expect(slotAlignment.surface).toBe(`yard-${screenId}`);
+      expect(slotAlignment.missing).toEqual([]);
+      expect(slotAlignment.deviations.filter((item) => item.deviation > 1.2)).toEqual([]);
+
+      const collisionProblems = await page.evaluate(collectYardAssetSlotCollisionProblems);
+      allCollisionProblems.push(...collisionProblems.map((problem) => `${screenId}:${problem}`));
+
+      await page.keyboard.press("Escape");
+      await expect(page.locator(".yard-game-screen")).toHaveCount(0);
+    }
+
+    expect(allCollisionProblems).toEqual([]);
+  });
+});

@@ -1,0 +1,170 @@
+{
+  "format": "yard-moon-intrinsic-calibrated-candidate/v1",
+  "manifestRevision": "moon-r2-calibrated-r6",
+  "runtimeActivated": false,
+  "runtimeReady": false,
+  "goodieId": "moon_lamp",
+  "intrinsicSourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+  "intrinsicSourceContractSha256": "db67aff5f9d291198b87c6ae8c9e7f3c1c40a9580515784f6369bda2dc9d95a0",
+  "clips": {
+    "moon-lamp-new-r2": {
+      "id": "moon-lamp-new-r2",
+      "goodieId": "moon_lamp",
+      "condition": "new",
+      "frameCount": 1,
+      "fps": 25,
+      "pixelsPerWorld": 72,
+      "pivotPx": [
+        294.9506632096836,
+        221.69864269396453
+      ],
+      "canvas": [
+        384,
+        288
+      ],
+      "originWorld": [
+        0,
+        0,
+        0
+      ],
+      "bakedSourcePropRoot": [
+        1.7,
+        0.65,
+        0
+      ],
+      "cameraDirection": [
+        5.66,
+        -8,
+        3.97
+      ],
+      "rotationZ": 0,
+      "runtimeSpriteRotationAllowed": false,
+      "labelsBaked": false,
+      "intrinsicSourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+      "intrinsicSourceContractSha256": "db67aff5f9d291198b87c6ae8c9e7f3c1c40a9580515784f6369bda2dc9d95a0",
+      "canonicalConditionGeometrySha256": "5eabaa3bbcdb138e07c1c6abf2c73be055ac72c1432b43ce86e497065cb69be3",
+      "rgbaSha256": "c48ecf3f84495411324fedc85f37df4bfb1627d7d73510986524b8eb220034fb",
+      "pages": [
+        {
+          "src": "stills/moon-new.webp",
+          "first": 0,
+          "count": 1,
+          "cols": 1,
+          "tileWidth": 384,
+          "tileHeight": 288,
+          "width": 384,
+          "height": 288,
+          "sha256": "15af1d29cf19906fe898d9f0139ba480e8e929b47e37a16215534893b31280d4",
+          "encodedBytes": 21228,
+          "decodedBytes": 442368
+        }
+      ]
+    },
+    "moon-lamp-worn-r2": {
+      "id": "moon-lamp-worn-r2",
+      "goodieId": "moon_lamp",
+      "condition": "worn",
+      "frameCount": 1,
+      "fps": 25,
+      "pixelsPerWorld": 72,
+      "pivotPx": [
+        294.9506632096836,
+        221.69864269396453
+      ],
+      "canvas": [
+        384,
+        288
+      ],
+      "originWorld": [
+        0,
+        0,
+        0
+      ],
+      "bakedSourcePropRoot": [
+        1.7,
+        0.65,
+        0
+      ],
+      "cameraDirection": [
+        5.66,
+        -8,
+        3.97
+      ],
+      "rotationZ": 0,
+      "runtimeSpriteRotationAllowed": false,
+      "labelsBaked": false,
+      "intrinsicSourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+      "intrinsicSourceContractSha256": "db67aff5f9d291198b87c6ae8c9e7f3c1c40a9580515784f6369bda2dc9d95a0",
+      "canonicalConditionGeometrySha256": "9a23e1902b9bce2e81dc667b4022ed8df3b241f744781a2db2a6dca38b255c33",
+      "rgbaSha256": "29464b7c12c1b2e21097c21ac369d955d0f9032dea604a5b9aa09b1eaaae2920",
+      "pages": [
+        {
+          "src": "stills/moon-worn.webp",
+          "first": 0,
+          "count": 1,
+          "cols": 1,
+          "tileWidth": 384,
+          "tileHeight": 288,
+          "width": 384,
+          "height": 288,
+          "sha256": "de68b8d010ccfa8a006dba69f4e35255891dd42940efc19e95a245bcca9b9f80",
+          "encodedBytes": 22246,
+          "decodedBytes": 442368
+        }
+      ]
+    },
+    "moon-lamp-broken-r2": {
+      "id": "moon-lamp-broken-r2",
+      "goodieId": "moon_lamp",
+      "condition": "broken",
+      "frameCount": 1,
+      "fps": 25,
+      "pixelsPerWorld": 72,
+      "pivotPx": [
+        294.9506632096836,
+        221.69864269396453
+      ],
+      "canvas": [
+        384,
+        288
+      ],
+      "originWorld": [
+        0,
+        0,
+        0
+      ],
+      "bakedSourcePropRoot": [
+        1.7,
+        0.65,
+        0
+      ],
+      "cameraDirection": [
+        5.66,
+        -8,
+        3.97
+      ],
+      "rotationZ": 0,
+      "runtimeSpriteRotationAllowed": false,
+      "labelsBaked": false,
+      "intrinsicSourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+      "intrinsicSourceContractSha256": "db67aff5f9d291198b87c6ae8c9e7f3c1c40a9580515784f6369bda2dc9d95a0",
+      "canonicalConditionGeometrySha256": "0991ad4da14cbca2ed10e66a438315ab2fa916c708bba95140d00969d3c49086",
+      "rgbaSha256": "f661a9d90e0baf3b37201646592439386ae12e5d8750d5ad17f3dbf0e903c24f",
+      "pages": [
+        {
+          "src": "stills/moon-broken.webp",
+          "first": 0,
+          "count": 1,
+          "cols": 1,
+          "tileWidth": 384,
+          "tileHeight": 288,
+          "width": 384,
+          "height": 288,
+          "sha256": "3275260bb6ffdcc62b9c883e0cc63ed37731d82c572b8064c424104242bba4d2",
+          "encodedBytes": 21160,
+          "decodedBytes": 442368
+        }
+      ]
+    }
+  }
+}

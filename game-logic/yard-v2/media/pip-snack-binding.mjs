@@ -1,5 +1,6 @@
 /** Pip-specific calibrated source candidate. Default admission is always closed.
  * Only the exact static new-state Snack Table is covered by this source. */
+import {presentationReservationsConflict} from '../visit-reservations.mjs';
 import {planningSceneWithObstacles,obstacleContextRevision} from '../prop-obstacles.mjs';
 import {clone,deepFreeze,digest} from '../util.mjs';
 import {PIP_ACTOR_REFERENCE,PIP_ACTOR_PROFILE} from '../pip-actor-profile.mjs';
@@ -63,8 +64,8 @@ export function createPipSnackCandidate({clip,strideContract,motionContract,scen
   if(outgoing.durationMs)segments.push({kind:'route',route:outgoing,startAt:cursor,endAt:candidate.leavesAt,role:'depart'});
   const reservations=[{startMs:combinedStart,endMs:combinedEnd,rect:region},...incoming.legs.map(l=>guard.reservation(l,candidate.at+delay+l.startMs)),...outgoing.legs.map(l=>guard.reservation(l,combinedEnd+l.startMs))];
   for(const r of existing){
-   const end=Number.isSafeInteger(r.leavesAt)?r.leavesAt:Number.MAX_SAFE_INTEGER,start=Number.isSafeInteger(r.arrivedAt)?r.arrivedAt:-Number.MAX_SAFE_INTEGER,boxes=r.mediaAdmission?.plan?.reservationBoxes||r.reservationBoxes||[];
-   if(reservations.some(n=>n.startMs<end&&n.endMs>start&&boxes.some(old=>overlaps(n.rect,old))))return{ok:false,code:'PRESENTATION_REGION_RESERVED'};
+   const end=Number.isSafeInteger(r.leavesAt)?r.leavesAt:Number.MAX_SAFE_INTEGER,start=Number.isSafeInteger(r.arrivedAt)?r.arrivedAt:-Number.MAX_SAFE_INTEGER;
+   if(presentationReservationsConflict(reservations,r))return{ok:false,code:'PRESENTATION_REGION_RESERVED'};
    if(r.slotId===p.slotId&&candidate.at<end&&candidate.leavesAt>start)return{ok:false,code:'TARGET_PROP_RESERVED'};
   }
   const schedule={version:PIP_SCHEDULE,arrivalAt:candidate.at,enterAt:candidate.at+delay,leavesAt:candidate.leavesAt,combinedStart,combinedEnd,propReleaseAt:combinedEnd,entryDelayMs:delay,loop:{...clone(loop),cycles},segments,propCommits:[],giftAuthority:'server-economic-visit-completion'};

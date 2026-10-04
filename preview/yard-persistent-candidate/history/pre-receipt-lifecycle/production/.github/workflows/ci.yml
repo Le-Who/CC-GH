@@ -1,0 +1,804 @@
+name: Game Hub CI
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [codex/telegram-pixi-vps-migration]
+
+jobs:
+  yard-release-mode:
+    name: Resolve exact CLOSED and ACTIVE source identities
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.release.outputs.mode }}
+      closed_ref: ${{ steps.release.outputs.closed_ref }}
+      active_ref: ${{ steps.release.outputs.active_ref }}
+      closed_digest: ${{ steps.release.outputs.closed_digest }}
+      contract_hash: ${{ steps.release.outputs.contract_hash }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify committed release mode and full promotion boundary
+        id: release
+        run: node scripts/yard-ci-dispatch.mjs --plan
+      - name: Test dispatch negative controls
+        run: node --test tests/yard-active-dispatch.test.mjs
+
+  test:
+    needs: [yard-release-mode]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [24.x]
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+          POSTGRES_DB: ccgh_merge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Verify promotion machinery against exact CLOSED source
+        run: node --test tests/yard-active-promotion.test.mjs
+
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate HUD layout contracts
+        run: node scripts/hud-layout-validate.mjs
+
+      - name: Build Telegram Mini App client
+        run: pnpm run build
+
+      - name: Summarize emitted code chunks even after build failure
+        if: always()
+        run: node scripts/summarize-emitted-chunks.mjs
+
+      - name: Verify exact frozen Yard runtime delivery
+        env:
+          NODE_ENV: test
+        run: |
+          node --test tests/yard-renderer-chunk.test.mjs tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
+          pnpm run perf:guard:build
+
+      - name: Run platform cleanup guard
+        run: pnpm run test:cleanup
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: Validate casual motion and input lifecycle
+        run: node --test --test-concurrency=1 tests/garden-navigation-observation.test.js tests/match3-render-budget.test.js tests/match3-motion-fixture.test.js tests/match3-motion.test.js tests/bubbo-motion-observation.test.js tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/blox-casual-motion.test.cjs tests/casual-motion-feedback.test.mjs
+
+      - name: Validate inactive Yard candidate
+        env:
+          NODE_ENV: test
+          YARD_CANDIDATE_CI: '1'
+        run: |
+          node preview/yard-persistent-candidate/run-checks.mjs
+          node preview/yard-persistent-candidate/compile-check.mjs
+
+      - name: Merge V3 real PostgreSQL15 persistence and OCC
+        env:
+          MERGE_LAB_PG_TEST: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+        run: node --test --test-concurrency=1 tests/merge-lab-postgres.test.mjs
+
+      - name: Garden atomic accounting PostgreSQL15 persistence and OCC
+        env:
+          GARDEN_ACCOUNTING_PG_TEST: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+        run: node --test --test-concurrency=1 tests/garden-accounting-postgres.test.mjs
+
+      - name: Garden R2 PostgreSQL15 persistence and cross-process OCC
+        env:
+          GARDEN_R2_PG_TEST: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+        run: node --test --test-concurrency=1 tests/garden-r2-postgres.test.mjs
+
+      - name: Inactive Yard v2 PostgreSQL15 persistence and cross-process OCC
+        env:
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: candidate
+          YARD_CANDIDATE_CI: '1'
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+        run: node --test --test-concurrency=1 tests/yard-v2-postgres.test.mjs
+
+      - name: Check Yard v2 persistence fixture safety
+        run: node --test --test-concurrency=1 tests/yard-v2-pg-fixture.test.mjs tests/yard-v2-pg-guard.test.mjs
+
+      - name: Closed family source PostgreSQL15 conditions, rewards and cross-process OCC
+        env:
+          YARD_FAMILY_PG_TEST: '1'
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: integrated
+          YARD_CANDIDATE_CI: ''
+          CI: 'true'
+          NODE_ENV: test
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+        run: pnpm run test:yard-family:pg
+
+      - name: Preserve measured shipped-media budget report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/perf/perf-build-report.json
+            artifacts/perf/yard-lazy-build-report.json
+            artifacts/perf/emitted-chunks.json
+            dist/game-loading-graph.json
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preserve verified client build
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-client-${{ github.sha }}-${{ github.run_attempt }}
+          path: dist/
+          retention-days: 14
+
+  yard-player:
+    needs: [yard-release-mode]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+          POSTGRES_DB: ccgh_merge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Enable locked pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Build unchanged production client for genuine Yard player integration
+        timeout-minutes: 8
+        run: pnpm run build
+      - name: Summarize emitted code chunks even after build failure
+        if: always()
+        run: node scripts/summarize-emitted-chunks.mjs
+
+      - name: Check genuine Yard API integration safety contracts
+        run: node --test tests/yard-player-api-contract.test.mjs
+
+      - name: Install Chromium for genuine Yard player integration
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Genuine Yard API, store, browser and PostgreSQL15 integration
+        timeout-minutes: 15
+        env:
+          YARD_PLAYER_API_TEST: '1'
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: integrated
+          CI: 'true'
+          NODE_ENV: test
+          DEV_AUTH_ENABLED: 'true'
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: pnpm exec playwright test --config playwright.yard-player-integration.config.js
+
+      - name: Preserve bounded Yard player integration evidence
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: yard-player-integration
+
+  yard-eight-player:
+    needs: [yard-release-mode]
+    name: Yard eight-player / ${{ matrix.group }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        group: [small-phone, phone, landscape, desktop]
+    env:
+      YARD_EIGHT_PLAYER_GROUP: ${{ matrix.group }}
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+          POSTGRES_DB: ccgh_merge_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Enable locked pnpm
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install locked dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check exact isolated eight-actor policy contracts
+        run: node --test tests/yard-eight-player-contract.test.mjs tests/yard-panel-escape.test.mjs
+      - name: Build separate test-only eight-actor player
+        timeout-minutes: 8
+        env:
+          CI: 'true'
+          NODE_ENV: test
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: '1'
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: |
+          pnpm run assets:build
+          pnpm exec vite build --config vite.yard-eight-player-candidate.config.js
+      - name: Verify native fixture inputs before the real 1x clock starts
+        timeout-minutes: 10
+        env:
+          CI: 'true'
+          NODE_ENV: test
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: '1'
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: node --import ./tests/helpers/yard-eight-player-loader.mjs tests/helpers/yard-eight-player-fixtures.mjs --group "$YARD_EIGHT_PLAYER_GROUP"
+      - name: Install acceptance Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Genuine eight-actor API store browser PostgreSQL15 acceptance
+        timeout-minutes: 16
+        env:
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: '1'
+          YARD_PLAYER_API_TEST: '1'
+          YARD_V2_PG_TEST: '1'
+          YARD_V2_PG_TARGET: integrated
+          CI: 'true'
+          NODE_ENV: test
+          DEV_AUTH_ENABLED: 'true'
+          DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+          REDIS_URL: ''
+          NODE_OPTIONS: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_PLAYER_WIRING_TEST: ''
+        run: |
+          pnpm exec playwright test --config playwright.yard-eight-player.config.js --list --reporter=json > "test-results/yard-eight-player-${YARD_EIGHT_PLAYER_GROUP}-discovery.json"
+          node tests/helpers/yard-eight-player-groups.mjs --verify-list "test-results/yard-eight-player-${YARD_EIGHT_PLAYER_GROUP}-discovery.json" "$YARD_EIGHT_PLAYER_GROUP"
+          pnpm exec playwright test --config playwright.yard-eight-player.config.js
+      - name: Preserve bounded eight-actor player evidence
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: yard-eight-player-${{ matrix.group }}
+
+  browser-plan:
+    needs: [yard-release-mode]
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.groups.outputs.matrix }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Validate exhaustive browser groups and bounded artifacts
+        run: node --test tests/browser-ci-contract.test.mjs tests/yard-eight-evidence.test.mjs
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install dependencies for real Playwright discovery
+        run: pnpm install --frozen-lockfile
+      - name: Discover every Chromium test before dispatching browser runners
+        run: |
+          pnpm exec playwright test --project=chromium --list --reporter=json > browser-ci-discovery.json
+          node scripts/browser-ci-groups.mjs --verify-list browser-ci-discovery.json
+      - name: List exact browser spec ownership
+        run: node scripts/browser-ci-groups.mjs
+      - name: Produce independent game and functional groups
+        id: groups
+        run: echo "matrix=$(node scripts/browser-ci-groups.mjs --matrix)" >> "$GITHUB_OUTPUT"
+      - name: Preserve discovery evidence even when test loading fails
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: inventory
+
+  browser:
+    name: Browser / ${{ matrix.group }}
+    needs: [yard-release-mode, browser-plan]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.browser-plan.outputs.matrix) }}
+    env:
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      BROWSER_CI_GROUP: ${{ matrix.group }}
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install isolated Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Diagnose bounded entry HTTP connection starvation
+        if: matrix.group == 'assets-performance'
+        timeout-minutes: 1
+        run: timeout --signal=TERM --kill-after=5s 55s node scripts/entry-http-diagnostic.mjs
+      - name: Preserve small entry HTTP diagnostic immediately
+        if: always() && matrix.group == 'assets-performance'
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-entry-http-diagnostic-${{ github.sha }}-${{ github.run_attempt }}
+          path: artifacts/entry-http-diagnostic.json
+          if-no-files-found: error
+          retention-days: 14
+      - name: Run assigned browser specs with original config and retries
+        run: node scripts/browser-ci-groups.mjs --run "$BROWSER_CI_GROUP"
+      - name: Preserve bounded group evidence
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: ${{ matrix.group }}
+
+  touch:
+    needs: [yard-release-mode]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run touch-specific and gesture regression tests
+        run: pnpm exec playwright test tests/e2e/gestures.spec.js --project=mobile-chrome --workers=1
+      - name: Preserve touch diagnostics and screenshots
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-touch-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            playwright-results.json
+            test-results/**/error-context.md
+            test-results/**/*-diagnostics.json
+            test-results/**/*.png
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Preserve touch traces
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-touch-traces-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results/**/*.zip
+          if-no-files-found: ignore
+          retention-days: 14
+
+  mochi:
+    needs: [yard-release-mode]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify and report exact CLOSED acceptance source
+        env:
+          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+        run: |
+          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
+          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+      - name: Enable pnpm via corepack
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Check Mochi source presenter
+        run: node --test tests/yard-mochi-presentation.test.mjs
+      - name: Check canonical actors and mixed-prop boundaries
+        run: node --test tests/yard-mixed-obstacles.test.mjs tests/yard-pip-canonical.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/yard-pebble-canonical.test.mjs tests/yard-pebble-scene-lifecycle.test.mjs tests/yard-mochi-canonical.test.mjs tests/yard-mochi-scene-lifecycle.test.mjs
+      - name: Check CURRENT-FOUR scheduling and decoded atlas budgets
+        run: pnpm run test:yard-current-four
+      - name: Check closed family conditions, native persistence and frozen media budgets
+        run: pnpm run test:yard-family
+      - name: Check required native pair activity eligibility
+        run: node --test tests/yard-native-pair-eligibility.test.mjs
+      - name: Check existing Mika mouse native pair witnesses
+        run: node --test tests/yard-mika-supported-pairs.test.mjs
+      - name: Validate inactive Mochi media
+        run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
+      - name: Validate canonical Yard scene
+        run: pnpm exec playwright test -c playwright.yard-canonical.config.js --project=chromium --workers=1
+      - name: Check Pip source binding
+        run: node --test tests/yard-pip-source.test.mjs
+      - name: Validate inactive Pip visit
+        run: pnpm exec playwright test -c playwright.pip.config.js --project=chromium --workers=1
+      - name: Validate Pebble shared-scene candidate
+        run: pnpm exec playwright test -c playwright.yard-pebble.config.js --project=chromium --workers=1
+      - name: Validate canonical Pip scene
+        run: pnpm exec playwright test -c playwright.pip-canonical.config.js --project=chromium --workers=1
+      - name: Validate closed eight-species native witnesses and actual family media
+        run: pnpm exec playwright test -c playwright.yard-eight.config.js --project=chromium --workers=1
+      - name: Preserve bounded closed family viewport and real-time evidence
+        if: always()
+        uses: ./.github/actions/upload-browser-evidence
+        with:
+          group: yard-eight-closed
+          include-hidden-files: 'true'
+      - name: Collect bounded Pebble diagnostics
+        if: always()
+        run: if [ -f test-results-yard-pebble/results.json ]; then node scripts/collect-yard-pebble-diagnostics.mjs; fi
+      - name: Preserve Pebble compact review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-pebble-compact-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble viewport frames
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble compact shard 02
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-compact-02-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics-02/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble compact shard 03
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-compact-03-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics-03/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble compact shard 04
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-compact-04-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/compact-diagnostics-04/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble frames shard 02
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-02-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames-02/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble frames shard 03
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-03-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames-03/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pebble frames shard 04
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pebble-frames-04-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-pebble/viewport-frames-04/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve canonical Pip compact review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pip-canonical-compact-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-pip-canonical/compact/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Pip visit evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pip-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results-pip/
+            playwright-report-pip/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve compact Pip review
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-pip-compact-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-pip/compact/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve canonical Yard evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-yard-canonical-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-yard-canonical/
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Mochi diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-mochi-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results-mochi/results.json
+          if-no-files-found: ignore
+          retention-days: 14
+      - name: Preserve Mochi evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: game-hub-mochi-evidence-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            test-results-mochi/artifacts/
+            playwright-report-mochi/
+          if-no-files-found: ignore
+          retention-days: 14
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: [test, browser, touch, mochi, yard-eight-player, yard-player]
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify Docker build
+        run: docker build -t game-hub-ci .
+
+      - name: Verify final container Yard HTTP delivery
+        run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-public-media-http.mjs
+
+  yard-active:
+    name: ACTIVE ordinary imports
+    needs: [yard-release-mode]
+    if: needs.yard-release-mode.outputs.mode == 'ACTIVE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Verify exact ACTIVE tree before installing or building
+        run: node scripts/yard-ci-dispatch.mjs --verify-active
+      - name: Install frozen dependencies
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Build ordinary ACTIVE client
+        env:
+          VITE_BUILD_ID: ${{ needs.yard-release-mode.outputs.active_ref }}
+        run: pnpm run build
+      - name: Check ordinary ACTIVE behavior and real adapter metadata
+        run: node scripts/yard-active-runtime-checks.mjs
+      - name: Check ACTIVE loading graph and exact delivered bytes
+        env:
+          NODE_ENV: test
+        run: |
+          node --test tests/yard-renderer-chunk.test.mjs tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
+          pnpm run perf:guard:build
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: yard-active-build-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
+          path: |
+            artifacts/perf/
+            dist/game-loading-graph.json
+          if-no-files-found: error
+          retention-days: 14
+
+  yard-active-production:
+    name: ACTIVE production image and rollback
+    needs: [yard-release-mode, yard-active]
+    if: needs.yard-release-mode.outputs.mode == 'ACTIVE'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    permissions:
+      contents: read
+      packages: read
+    env:
+      CI: 'true'
+      YARD_PRODUCTION_ACCEPTANCE: '1'
+      YARD_ACTIVE_COMMIT: ${{ needs.yard-release-mode.outputs.active_ref }}
+      YARD_CLOSED_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
+      YARD_CLOSED_DIGEST: ${{ needs.yard-release-mode.outputs.closed_digest }}
+      YARD_IMAGE_REPOSITORY: ghcr.io/le-who/cc-gh
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Validate exact ACTIVE tree and production acceptance safety
+        run: |
+          node scripts/yard-ci-dispatch.mjs --verify-active
+          node --test tests/yard-production-contract.test.mjs
+      - name: Install frozen test dependencies and Chromium
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch exact A and build ordinary B without publishing
+        run: |
+          docker pull "${YARD_IMAGE_REPOSITORY}@${YARD_CLOSED_DIGEST}"
+          docker pull postgres:15
+          docker build --file Dockerfile --build-arg "BUILD_ID=${YARD_ACTIVE_COMMIT}" --label "org.opencontainers.image.revision=${YARD_ACTIVE_COMMIT}" --tag "ccgh-yard-production:${YARD_ACTIVE_COMMIT}" .
+      - name: Real production API, persistence and warm A-B-A cache acceptance
+        timeout-minutes: 18
+        run: node scripts/yard-production-acceptance.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: yard-production-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
+          path: test-results/yard-production/
+          if-no-files-found: error
+          retention-days: 14
+
+  release-ready:
+    name: Exact source release acceptance
+    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-active, yard-active-production]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require the complete mode-specific result set
+        env:
+          RELEASE_MODE: ${{ needs.yard-release-mode.outputs.mode }}
+          RELEASE_RESULTS: ${{ toJSON(needs) }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          const needs=JSON.parse(process.env.RELEASE_RESULTS),mode=process.env.RELEASE_MODE;
+          assert.ok(['CLOSED','ACTIVE'].includes(mode));
+          for(const job of ['yard-release-mode','test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,'success',job);
+          for(const job of ['yard-active','yard-active-production'])assert.equal(needs[job].result,mode==='ACTIVE'?'success':'skipped',job);
+          JS

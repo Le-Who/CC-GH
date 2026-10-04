@@ -23,6 +23,7 @@
   "tests/garden-transaction-ledger.test.js": "checks-src/garden-transaction-ledger.source.mjs",
   "tests/garden-accounting-routes.test.js": "checks-src/garden-accounting-routes.source.mjs",
   "tests/gameStore.test.js": "checks-src/gameStore.source.mjs",
+  "tests/hub-account-boundaries.test.mjs": "history/pre-room-hud/production/tests/hub-account-boundaries.test.mjs",
   "tests/asset-runtime.test.js": "checks-src/asset-runtime.source.mjs",
   "tests/yard-rebase-shared.test.mjs": "checks-src/yard-rebase-shared.source.mjs",
   "tests/yard-ground-coverage.test.mjs": "checks-src/yard-ground-coverage.source.mjs",

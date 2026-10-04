@@ -583,7 +583,9 @@ export function applyMatch3Booster(board, booster, x, y, options = {}) {
     dirtyMask.cols[cx] = 1;
   }
   const gravity = applyGravityAndFill(next, dirtyMask);
+  const gravitySnapshot = cloneBoard(next);
   const dropResult = options.collectDrops ? collectAndBackfillDrops(next, dirtyMask) : null;
+  const firstSnapshot = cloneBoard(next);
   const resolved = resolveBoard(next, options);
   const firstStep = {
     cleared,
@@ -593,7 +595,8 @@ export function applyMatch3Booster(board, booster, x, y, options = {}) {
     dropCollected: dropResult?.dropCollected || [],
     triggeredSpecials: specialChain.triggeredSpecials,
     combo: 1,
-    boardSnapshot: cloneBoard(next),
+    boardSnapshot: firstSnapshot,
+    motionPhases: [{ kind: "fall", fallen: gravity.fallen, filled: gravity.filled, boardSnapshot: gravitySnapshot }, ...(dropResult?.motionPhases || [])],
   };
   return {
     valid: true,
@@ -658,6 +661,7 @@ function collectAndBackfillDrops(board, dirtyMask = null) {
   const dropCollected = [];
   const fallen = [];
   const filled = [];
+  const motionPhases = [];
   let points = 0;
   let guard = 0;
 
@@ -666,16 +670,19 @@ function collectAndBackfillDrops(board, dirtyMask = null) {
     const collected = collectBottomDropTokens(board, dirtyMask);
     if (!collected.length) break;
     dropCollected.push(...collected);
+    motionPhases.push({ kind: "collect", dropCollected: collected });
     points += collected.reduce((sum, item) => sum + item.points, 0);
     const refill = applyGravityAndFill(board, dirtyMask);
     fallen.push(...refill.fallen);
     filled.push(...refill.filled);
+    motionPhases.push({ kind: "fall", fallen: refill.fallen, filled: refill.filled, boardSnapshot: cloneBoard(board) });
   }
 
   return {
     dropCollected,
     fallen,
     filled,
+    motionPhases,
     points,
   };
 }
@@ -738,6 +745,7 @@ export function resolveBoard(b, optionsOrCallback) {
     totalPoints += cleared.length * 10 * Math.min(cascadeCombo, 5);
 
     const gravity = applyGravityAndFill(b, nextDirtyMask);
+    const gravitySnapshot = cloneBoard(b);
     const dropResult = options.collectDrops ? collectAndBackfillDrops(b, nextDirtyMask) : null;
     const fallen = [...gravity.fallen, ...(dropResult?.fallen || [])];
     const filled = [...gravity.filled, ...(dropResult?.filled || [])];
@@ -751,6 +759,7 @@ export function resolveBoard(b, optionsOrCallback) {
       dropCollected: dropResult?.dropCollected || [],
       combo: cascadeCombo,
       boardSnapshot: cloneBoard(b),
+      motionPhases: [{ kind: "fall", fallen: gravity.fallen, filled: gravity.filled, boardSnapshot: gravitySnapshot }, ...(dropResult?.motionPhases || [])],
     });
 
     // Callback for star-drop mode checks
@@ -823,7 +832,9 @@ export function attemptMatch3Move(board, from, to, options = {}) {
       dirtyMask.cols[x] = 1;
     }
     const gravity = applyGravityAndFill(next, dirtyMask);
+    const gravitySnapshot = cloneBoard(next);
     const dropResult = options.collectDrops ? collectAndBackfillDrops(next, dirtyMask) : null;
+    const firstSnapshot = cloneBoard(next);
     const resolved = resolveBoard(next, options);
     const specialPoints = cleared.length * 12;
     const firstStep = {
@@ -834,7 +845,8 @@ export function attemptMatch3Move(board, from, to, options = {}) {
       dropCollected: dropResult?.dropCollected || [],
       triggeredSpecials: specialChain.triggeredSpecials,
       combo: 1,
-      boardSnapshot: cloneBoard(next),
+      boardSnapshot: firstSnapshot,
+      motionPhases: [{ kind: "fall", fallen: gravity.fallen, filled: gravity.filled, boardSnapshot: gravitySnapshot }, ...(dropResult?.motionPhases || [])],
     };
     return {
       valid: true,

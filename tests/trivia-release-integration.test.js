@@ -119,3 +119,11 @@ test('migrated integrated e2e flows exercise real routes, inert restoration, rea
     assert.doesNotMatch(source, /\.trivia-shell|\.trivia-card|\.question-panel|\.answer-grid|data-pause-menu="trivia"/);
   }
 });
+
+
+test('compact lifeline typography wins over the generic button font and landscape answers fit their panel', () => {
+  assert.match(css, /\.trv2-root \.trv2-lifeline\s*\{[^}]*font-size:\s*13px/);
+  assert.match(css, /@media \(max-width:\s*360px\)[^\n]*\.trv2-root \.trv2-lifeline\s*\{\s*font-size:\s*12px/);
+  assert.match(css, /\.trv2-root \.trv2-lifeline > span\s*\{[^}]*white-space:\s*nowrap;[^}]*overflow-wrap:\s*normal/);
+  assert.match(css, /\[data-trivia-layout='landscape'\] \.trv2-answers\s*\{\s*grid-template-columns:\s*repeat\(auto-fit,minmax\(min\(100%,13rem\),1fr\)\)/);
+});

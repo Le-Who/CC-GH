@@ -5,6 +5,7 @@ import { useAppI18n } from "../app/i18n.jsx";
 import { HudEditableRegion, useHudLayout, useHudRegion } from "../app/hud-layout/index.js";
 import { setGameGestureActive } from "../platform/telegram.js";
 import { warmPixiAssetBundle } from "./pixiAssetBundles.js";
+import { match3RenderResolution, resizeMatch3Renderer } from "../games/match3/match3RenderBudget.js";
 
 const PIXI_ASSET_REGION_IDS = {
   blox: ["bloxBackgroundAsset", "bloxBoardFrameAsset", "bloxTrayPanelAsset"],
@@ -147,7 +148,10 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
         if (width === lastWidth && height === lastHeight) return;
         lastWidth = width;
         lastHeight = height;
-        app.renderer?.resize?.(width, height);
+        // Only the textured Match3 scene has a backing-pixel budget. Pixi's
+        // screen and pointer coordinates remain in the same CSS-pixel space.
+        if (sceneKey === "match3") resizeMatch3Renderer(app.renderer, { width, height }, window.devicePixelRatio);
+        else app.renderer?.resize?.(width, height);
         if (typeof sceneRef.current?.resize === "function") {
           sceneRef.current.resize(stateRef.current);
         } else {
@@ -167,7 +171,7 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
       window.removeEventListener("resize", syncSize);
       window.visualViewport?.removeEventListener?.("resize", syncSize);
     };
-  }, []);
+  }, [sceneKey]);
 
   const beginGesture = (event) => {
     activePointerRef.current = event.pointerId;
@@ -204,12 +208,15 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
         setFailed(false);
         setReady(false);
         app = new Application();
+        const size = containerRef.current.getBoundingClientRect();
         await app.init({
           resizeTo: containerRef.current,
           backgroundAlpha: 0,
-          antialias: true,
+          antialias: sceneKey !== "match3",
           autoDensity: true,
-          resolution: Math.min(window.devicePixelRatio || 1, 2),
+          resolution: sceneKey === "match3"
+            ? match3RenderResolution(size.width, size.height, window.devicePixelRatio)
+            : Math.min(window.devicePixelRatio || 1, 2),
           preference: "webgl",
           powerPreference: "high-performance",
         });
@@ -232,6 +239,9 @@ export default function PixiGameHost({ sceneKey, buildScene, sceneState, classNa
           destroyPixiApp(app, isolated);
           return;
         }
+        // Async init/assets can outlive the shell's initial layout. An observer
+        // notification before appRef exists cannot apply the final pixel budget.
+        if (sceneKey === "match3") resizeMatch3Renderer(app.renderer, containerRef.current.getBoundingClientRect(), window.devicePixelRatio);
         // Scene builders consume the initial state and draw once; avoid an immediate duplicate redraw.
         sceneRef.current = buildScene(app, stateRef.current);
         if (sceneKey === "match3" && !stateRef.current.match3?.gameActive) {

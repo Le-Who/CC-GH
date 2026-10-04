@@ -25,7 +25,7 @@ export function courtyardPresentation(snapshot, now, clips,{mediaRevisions,actor
       &&local.groundFootprintRevision===plan?.groundFootprintRevision);
     const targets=(yard.placedGoodies||[]).filter(p=>p.slotId===record.slotId);
     const sourceCompatible=!actor?.presentation||(actor.presentation.scheduleVersion===plan?.schedule?.version
-      &&targets.length===1&&actor.presentation.validTarget(plan,resolvedPlacement(targets[0])));
+      &&targets.length===1&&actor.presentation.validTarget(plan,resolvedPlacement(targets[0]),now));
     if (!actor || !plan?.schedule || record.renderCompatible !== true || !localCompatible || !sourceCompatible) {
       legacy.push({ ...record, presentationStatus: record.presentationStatus || 'preserved-legacy-visit' });
       continue;
@@ -48,10 +48,11 @@ export function courtyardPresentation(snapshot, now, clips,{mediaRevisions,actor
     const sourceVisit=(runtime?.visits||[]).find(r=>r.slotId===raw.slotId&&now>=r.arrivedAt&&now<r.leavesAt&&plans[r.visitId]
       &&actorsByVisit[r.visitId]?.presentation?.targetStillId);
     const localProp=propBindings[raw.goodieId],ownPropReady=!!localProp&&localProp.validPlacement(placement);
-    const stillId=sourceVisit?actorsByVisit[sourceVisit.visitId].presentation.targetStillId:ownPropReady?localProp.stillId:null;
+    const targetStill=sourceVisit&&actorsByVisit[sourceVisit.visitId].presentation.targetStillId;
+    const stillId=sourceVisit?typeof targetStill==='function'?targetStill(plans[sourceVisit.visitId],placement,now):targetStill:ownPropReady?localProp.stillFor?.(placement)||localProp.stillId:null;
     const readiness=runtime?.placementReadiness?.find(r=>r.slotId===raw.slotId)||null;
     return [{ ...raw, transform, supported: SUPPORTED_PROPS.includes(raw.goodieId)||ownPropReady,readiness,
-      reserved: !!active, drawStandalone: !owner, visualOwner: owner?.visitId || 'standalone',...(stillId?{stillId}:{}) }];
+      reserved: !!active, drawStandalone: !owner, visualOwner: owner?.visitId || 'standalone',...(localProp?.conditionPixels?{conditionPixels:true}:{}),...(stillId?{stillId}:{}) }];
   });
   return { pets, props, legacy, plans, runtime, yard, now,
     pendingGifts: yard.pendingGifts || [], bowls: yard.bowls || [],

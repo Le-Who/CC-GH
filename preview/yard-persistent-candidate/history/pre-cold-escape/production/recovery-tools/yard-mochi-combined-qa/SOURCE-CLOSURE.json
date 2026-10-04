@@ -1,0 +1,74 @@
+{
+  "inactive": true,
+  "productionImportsChanged": false,
+  "files": [
+    {
+      "path": "game-logic/yard-catalog.js",
+      "sha256": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b"
+    },
+    {
+      "path": "game-logic/yard-playzones.js",
+      "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af"
+    },
+    {
+      "path": "game-logic/yard-v2/actor-profiles.mjs",
+      "sha256": "3fcc220cdde1ec6189989ade0e21b025182f300abac13ed04af6ad17521570b2"
+    },
+    {
+      "path": "game-logic/yard-v2/catalog.mjs",
+      "sha256": "b157b05aea487f0e8e396d33961ecda743f4462c548ea119d68c59c54abdac40"
+    },
+    {
+      "path": "game-logic/yard-v2/geometry.mjs",
+      "sha256": "8258df96395e8046924058b0576d79cdc7818451a40f44e49096974a06ee9777"
+    },
+    {
+      "path": "game-logic/yard-v2/ground-coverage.mjs",
+      "sha256": "5c8235c748e99c3481a3c9a08518dd4ba9821ecbe233f1fb66ba85573a51bda9"
+    },
+    {
+      "path": "game-logic/yard-v2/media/authored-motion-ground.mjs",
+      "sha256": "db22fe71ce9dd908db6b5db32d8d2f68cad9523ea593db993557a1292d751161"
+    },
+    {
+      "path": "game-logic/yard-v2/media/authored-stride-routes.mjs",
+      "sha256": "a20c94db6656e762edb3a84de9075fa0a41272dc1cb39ca285e7c4f85eb2591b"
+    },
+    {
+      "path": "game-logic/yard-v2/media/authored-stride.mjs",
+      "sha256": "17017897f70472042679f4ff369dcab9bbd2a8543da91227f5fc54448eee48f4"
+    },
+    {
+      "path": "game-logic/yard-v2/media/mochi-combined-binding.mjs",
+      "sha256": "176a55570cbfe137470eab30c80835aa1400b661dff2ec7c964ae625c3c6deb5"
+    },
+    {
+      "path": "game-logic/yard-v2/media/stride-routes.mjs",
+      "sha256": "a3f11ec5cc1fe9e57aeeb266ef102aba7f5eb709b1180e49d9079ec318f08fb3"
+    },
+    {
+      "path": "game-logic/yard-v2/media/walk-phase-lookup.mjs",
+      "sha256": "ec716e34b5d256aa8cefb2b8efe0808cb700c16c23b20e15e76347fed7b9c2c6"
+    },
+    {
+      "path": "game-logic/yard-v2/sha256.mjs",
+      "sha256": "2090ca5c72ac826b3147bd8db37b4cb28a746380d99e77937d3a8d1742eadabf"
+    },
+    {
+      "path": "game-logic/yard-v2/util.mjs",
+      "sha256": "c29d9a42722cc0af141d6a1902680e4f74641215e9dd7200a08f107667224692"
+    },
+    {
+      "path": "src/games/companion-yard-v2/atlas.mjs",
+      "sha256": "00ba6a7f9bba5fc9ba4cd225643c370a52907778f617f6f585199aa0c42a4f17"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mochi-candidate-presentation.mjs",
+      "sha256": "b95f0e038fd40faa9d8273c36d090a03ae8dc50897b7627d92dd14120aa01646"
+    },
+    {
+      "path": "src/games/companion-yard-v2/projection.mjs",
+      "sha256": "0c886f735e42d9e61e6bd06c71cd8894919d8a8f341ad30fa440265b037b4d3c"
+    }
+  ]
+}

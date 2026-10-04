@@ -9,9 +9,15 @@
       "activeGameFrame": { "mode": "custom", "visible": true },
       "yardStage": { "mode": "custom", "visible": true },
       "yardHudLayer": { "mode": "custom", "visible": true },
+      "yardBowls": { "mode": "custom", "x": 0, "y": 0, "visible": true },
+      "yardCornerActions": { "mode": "custom", "x": 0, "y": 0, "visible": true },
+      "yardSideTools": { "mode": "custom", "x": 0, "y": 0, "bottomReserve": 92, "visible": true },
+      "yardActivityPill": { "mode": "custom", "x": 0, "y": 0, "visible": true },
       "yardCurrencyStack": { "mode": "stack", "direction": "vertical", "gap": 6, "x": 0, "y": 0, "zIndex": 30, "visible": true },
       "yardBottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 76, "reserve": 92, "alignment": "center", "zIndex": 40, "visible": true },
-      "yardGameScreen": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 640, "zIndex": 45, "visible": true }
+      "yardGameScreen": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 640, "zIndex": 45, "visible": true },
+      "yardVisitStatus": { "mode": "custom", "visible": true },
+      "yardBackgroundAsset": { "mode": "freeform", "x": 0, "y": 0, "scale": 1, "opacity": 1, "rotation": 0, "visible": true }
     }
   },
   "profiles": {
@@ -19,7 +25,11 @@
       "match": { "orientation": "portrait", "maxWidth": 360 },
       "regions": {
         "yardBottomDock": { "thickness": 70, "reserve": 88 },
-        "yardCurrencyStack": { "x": 0, "y": 0 },
+        "yardCurrencyStack": { "x": 0, "y": 0, "maxWidth": 280 },
+        "yardBowls": { "y": 40 },
+        "yardCornerActions": { "y": 54 },
+        "yardSideTools": { "y": 56, "bottomReserve": 88 },
+        "yardActivityPill": { "maxWidth": 120 },
         "yardGameScreen": { "maxWidth": 304 }
       }
     },
@@ -27,6 +37,11 @@
       "match": { "orientation": "portrait", "maxWidth": 430 },
       "regions": {
         "yardBottomDock": { "thickness": 74, "reserve": 92 },
+        "yardCurrencyStack": { "maxWidth": 280 },
+        "yardBowls": { "y": 40 },
+        "yardCornerActions": { "y": 54 },
+        "yardSideTools": { "y": 56, "bottomReserve": 88 },
+        "yardActivityPill": { "maxWidth": 120 },
         "yardGameScreen": { "maxWidth": 380 }
       }
     },
@@ -35,6 +50,7 @@
       "regions": {
         "yardBottomDock": { "edge": "bottom", "thickness": 58, "reserve": 68 },
         "yardCurrencyStack": { "x": 0, "y": -4 },
+        "yardSideTools": { "bottomReserve": 88 },
         "yardGameScreen": { "maxWidth": 520 }
       }
     },
@@ -61,6 +77,6 @@
     }
   },
   "editor": {
-    "notes": "Cozy Yard keeps custom activity layers and bottom HUD-launched screens; layout registers the stage, HUD layer, currency stack, dock, and dialog screen."
+    "notes": "Cozy Yard keeps custom activity layers and bottom HUD-launched screens; layout registers the stage, HUD layer, currency stack, dock, and dialog screen. Persistent Mika uses reserved CSS-grid header/status/nav, with the existing yardStage, yardBottomDock and editable background. Its authored camera, world projection, entry/bowl anchors and prop footprints are intentionally fixed calibration inputs shared with server preflight; editing them requires revalidating contact/route media, not a player placement override."
   }
 }

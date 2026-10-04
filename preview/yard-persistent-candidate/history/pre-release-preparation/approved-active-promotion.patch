@@ -1,0 +1,396 @@
+diff --git a/docs/yard-active-promotion.md b/docs/yard-active-promotion.md
+new file mode 100644
+index 0000000..891c93c
+--- /dev/null
++++ b/docs/yard-active-promotion.md
+@@ -0,0 +1,74 @@
++# Reviewed Yard promotion machinery
++
++These tools prepare a reviewable overlay; they do not apply it, publish it or
++activate any running process. They have no placeholder predecessor or fallback
++acceptance input. The source checkout must be the clean exact commit of the
++closed image supplied in the input record.
++
++Run `node scripts/yard-active-promotion.mjs --source-root CLOSED_CHECKOUT --inputs VERIFIED_INPUTS.json --output NEW_OVERLAY_DIRECTORY`.
++
++The explicit input record has format `yard-active-inputs/v1`, repository
++`le-who/cc-gh`, and these required fields:
++
++- `closed.buildId`: full verified closed image source commit.
++- `closed.imageDigest`: immutable registry digest, including `sha256:`.
++- `closed.image`: Docker image inspection result, with `Id`, `RepoDigests` and
++  `Config.Labels["org.opencontainers.image.revision"]`.
++- `closed.compatibility`: output of that pristine image's existing
++  `scripts/yard-release-compatibility.mjs`; it must be closed, quarantine-verified
++  and support `yard-persistent/v1`.
++- `acceptance.reviewReference`: explicit review approving this transition.
++- `acceptance.nativeDuration`, `acceptance.eightPlayer` and
++  `acceptance.geometryEquivalence`: each has `reference`, `artifactSha256` and
++  `sourceCommit`. `eightPlayer.runId` must be the already accepted `37181170572`.
++
++Retrieve real image/evidence outputs through the authorized release workflow.
++The tool checks supplied identities and hashes; it does not authenticate an
++external claim or independently approve an artifact. Input examples containing
++fabricated credentials/digests are deliberately not provided. Unit-test inputs
++are synthetic, in-memory only, and are not release receipts.
++
++The tool validates all eight closed fingerprints and compares the existing
++strict candidate transformer. It emits six source files, two manifest wrappers,
++eight byte-preserved originals, four archived CLOSED verification files and
++`game-logic/yard-v2/active-release-contract.json`. The five historical source/media
++closure manifests remain unchanged. A separate report records exact parity of
++profiles, props, registry, scene, 24 source preflight results and eight native
++admission/completion/collect/replay outcomes between the passed candidate
++transformation and the promoted production bytes. Only those short deterministic
++checks rerun; no native 110-minute browser run is started.
++
++Mochi's wrapper promotes top-level `playbackReady` and `runtimeActivated`; nested
++source manifests retain both false flags. Pebble promotes only `playbackReady`.
++Mika, Pip, family, all atlas/still bytes and calibration descriptors are unchanged.
++The new source policy has revision `yard-player-rollout/active-r1` and freezes the
++exact supplied closed predecessor. No production environment/query bypass exists.
++
++After root review applies the overlay, run
++`node scripts/yard-active-contract.mjs APPLIED_CHECKOUT` in a fresh process without
++policy hooks. `verifyPromotionContract({rootDir})` checks every transition, the
++archived CLOSED verifier files and all historical closure members against the
++closed Git commit. Changed manifest/profile bytes are resolved through their
++preserved originals for historical verification; the active files separately
++must equal the exact defined promotion. Contract files do not hash themselves.
++
++`await verifyActiveRuntime('/app')` is the image-safe semantic check. It reads
++only backend source and the active contract copied by the existing Dockerfile.
++It returns eight actors, six props, ten ready bindings, policy revision and
++canonical-JSON contract SHA-256. It needs no tests, public source tree, recovery
++files or Git. Run it alongside the existing image-owned compatibility command.
++
++## Integration boundary
++
++This patch intentionally does not rewrite the existing CLOSED verifier, its
++negative controls, the candidate six-source transformer or CI. They must remain
++available against the preserved closed A artifact. Root must explicitly select
++the ACTIVE verifier and ordinary production-image acceptance lane for B; an
++ACTIVE tree must not be fed through the old CLOSED default assertions. A branch
++with these preparation tools alone remains closed.
++
++Before deployment, require final root review, ordinary production-image API/PG
++acceptance, warm service-worker A-to-B-to-A verification and the existing
++pre-switch guard. The latter independently checks the actual live predecessor
++against the code-owned digest, healthy build and quarantine capability. No
++production marker query, migration or deployment happens during preparation.
+diff --git a/scripts/yard-active-contract.mjs b/scripts/yard-active-contract.mjs
+new file mode 100644
+index 0000000..f275713
+--- /dev/null
++++ b/scripts/yard-active-contract.mjs
+@@ -0,0 +1,124 @@
++/** Reviewed code-owned release contract. No network, policy injection or writes. */
++import assert from 'node:assert/strict';
++import {createHash} from 'node:crypto';
++import {readFileSync} from 'node:fs';
++import {resolve,relative,isAbsolute} from 'node:path';
++import {pathToFileURL} from 'node:url';
++import {spawnSync} from 'node:child_process';
++
++export const ACTIVE_CONTRACT_PATH='game-logic/yard-v2/active-release-contract.json';
++export const ACTIVE_REVISION='yard-player-rollout/active-r1';
++export const ACTORS=Object.freeze(['mika','mochi','pebble','pip','willow','starlit','basil','sage']);
++export const PROPS=Object.freeze(['yarn_mouse','sun_cushion','leaf_pot','snack_table','moon_lamp','fountain_bowl']);
++export const SOURCE_PINS=Object.freeze({
++ 'game-logic/yard-v2/release-policy.mjs':'dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec',
++ 'game-logic/yard-v2/mochi-actor-profile.mjs':'412b43826c380e3f0d3b1d37f30d3b5059bc140d589809e3e539029a06bc4313',
++ 'game-logic/yard-v2/pebble-actor-profile.mjs':'0af9977bbc35da9d9cc7e6120502bf431b093525ca7f1e5b3f24d90d8b562200',
++ 'game-logic/yard-v2/pip-actor-profile.mjs':'818796394a7c91182eebdf4a14243089edcdc90f558f68aeb29e41154f185ddc',
++ 'game-logic/yard-v2/family-actor-profile.mjs':'607ea60757995eb66c97261061d49c6f4db1fe2a1221c4656ec91ca0f13c1cb5',
++ 'game-logic/yard-v2/media/family-actor-profiles.json':'6a1bcd9b79891243e86cd2dc47e0af5e2d6f05a4798dfd99391db8184f052bd8',
++});
++export const MEDIA_PINS=Object.freeze({
++ 'public/assets/yard-mochi/runtime-media.json':'41dd78f72df7726393a1dca31ffe16ed67c774badf29d7fab7b514c208cbc859',
++ 'public/assets/yard-pebble/runtime-media.json':'c7828a7b760100ff972218607a245dadd0590de6d3d1cab1153ae50df71d3578',
++});
++export const PROMOTED_PATHS=Object.freeze([...Object.keys(SOURCE_PINS),...Object.keys(MEDIA_PINS)]);
++export const fingerprint=bytes=>({bytes:Buffer.byteLength(bytes),sha256:createHash('sha256').update(bytes).digest('hex')});
++const sha=value=>typeof value==='string'&&/^[a-f0-9]{64}$/.test(value);
++const commit=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
++const digest=value=>typeof value==='string'&&/^sha256:[a-f0-9]{64}$/.test(value);
++const reference=value=>typeof value==='string'&&value.trim()===value&&value.length>=8&&value.length<=2000&&!/[\r\n]/.test(value);
++export function safePath(root,path){
++ assert.equal(typeof path,'string');assert.ok(path&&!isAbsolute(path)&&!path.split('/').some(p=>!p||p==='.'||p==='..'),'Relative owned file required');
++ const target=resolve(root,path),local=relative(root,target);assert.ok(local&&!local.startsWith('..')&&!isAbsolute(local));return target;
++}
++export function validateActivationInputs(input){
++ assert.equal(input?.format,'yard-active-inputs/v1','Explicit reviewed activation inputs required');
++ assert.equal(input.repository,'le-who/cc-gh','Exact reviewed repository required');
++ const closed=input.closed,image=closed?.image,cap=closed?.compatibility;
++ assert.ok(commit(closed?.buildId)&&digest(closed?.imageDigest),'Verified closed build and registry digest required');
++ assert.ok(digest(image?.Id));assert.ok(Array.isArray(image.RepoDigests)&&image.RepoDigests.includes(`ghcr.io/${input.repository}@${closed.imageDigest}`),'Immutable repository image identity array required');
++ assert.equal(image.Config?.Labels?.['org.opencontainers.image.revision'],closed.buildId);
++ assert.equal(cap?.format,'cc-gh-yard-release-compatibility/v1');assert.equal(cap.buildId,closed.buildId);assert.equal(cap.policyRevision,'yard-player-rollout/closed-r1');
++ assert.equal(cap.playerRolloutEnabled,false,'Predecessor must be closed');assert.equal(cap.closedQuarantineVerified,true,'Closed quarantine proof required');
++ assert.ok(Array.isArray(cap.readableStorageFormats)&&cap.readableStorageFormats.includes('yard-persistent/v1'),'Storage format array required');assert.equal(cap.requiredClosedPredecessor,null);
++ const evidence=input.acceptance;assert.ok(reference(evidence?.reviewReference),'Explicit acceptance review reference required');
++ for(const kind of ['nativeDuration','eightPlayer','geometryEquivalence']){
++  const row=evidence[kind];assert.ok(reference(row?.reference)&&sha(row?.artifactSha256)&&commit(row?.sourceCommit),`Reviewed ${kind} evidence identity required`);
++ }
++ assert.equal(evidence.nativeDuration.sourceCommit,'b92c84d685a1221cf6fdbde41624c901bc8b2f8f','Accepted historical native evidence must retain its original source identity');
++ assert.equal(evidence.eightPlayer.runId,37181170572,'Use the explicitly accepted 59-case run; new evidence needs a reviewed tool update');
++ return {repository:input.repository,closed:{buildId:closed.buildId,imageDigest:closed.imageDigest,imageId:image.Id,
++  compatibilitySha256:fingerprint(JSON.stringify(cap)).sha256},acceptance:structuredClone(evidence)};
++}
++export function promoteExactBytes(path,bytes,closed){
++ const expected=SOURCE_PINS[path]||MEDIA_PINS[path];assert.ok(expected,`Unreviewed promotion path: ${path}`);
++ assert.equal(fingerprint(bytes).sha256,expected,`Closed bytes changed: ${path}`);
++ const text=Buffer.isBuffer(bytes)?bytes.toString('utf8'):bytes;
++ if(Object.hasOwn(MEDIA_PINS,path)){
++  const data=JSON.parse(text);assert.equal(data.playbackReady,false);assert.equal(data.runtimeActivated,false);
++  return JSON.stringify({...data,playbackReady:true,...(path.includes('yard-mochi/')?{runtimeActivated:true}:{})});
++ }
++ let output=text.replace(/(\b(?:enabled|accepted|playbackReady)"?\s*:\s*)false/g,'$1true');
++ if(path.endsWith('/release-policy.mjs')){
++  assert.ok(commit(closed?.buildId)&&digest(closed?.imageDigest),'No placeholder predecessor permitted');
++  assert.equal(output.split("revision: 'yard-player-rollout/closed-r1'").length,2);
++  assert.equal(output.split('requiredClosedPredecessor: null').length,2);
++  output=output.replace("revision: 'yard-player-rollout/closed-r1'",`revision: '${ACTIVE_REVISION}'`)
++   .replace('requiredClosedPredecessor: null',`requiredClosedPredecessor: Object.freeze(${JSON.stringify({buildId:closed.buildId,imageDigest:closed.imageDigest})})`);
++ }
++ return output;
++}
++export function verifyPromotionContract({rootDir,contract=JSON.parse(readFileSync(safePath(rootDir,ACTIVE_CONTRACT_PATH),'utf8')),read=path=>readFileSync(safePath(rootDir,path))}){
++ assert.equal(contract.format,'yard-active-contract/v1');assert.equal(contract.mode,'ACTIVE');assert.equal(contract.revision,ACTIVE_REVISION);
++ const inputs=validateActivationInputs(contract.inputs);assert.equal(contract.closedTree?.length,40);assert.ok(commit(contract.closedTree));
++ const git=args=>{const r=spawnSync('git',args,{cwd:rootDir,maxBuffer:4*1024*1024});assert.equal(r.status,0,r.stderr?.toString()||r.error?.message);return r.stdout;};
++ assert.equal(git(['rev-parse',`${inputs.closed.buildId}^{tree}`]).toString().trim(),contract.closedTree,'Closed Git tree identity differs');
++ const closedBytes=path=>git(['cat-file','blob',`${inputs.closed.buildId}:${path}`]);
++ assert.deepEqual(contract.transitions.map(row=>row.path),PROMOTED_PATHS,'Exactly six source and two metadata transitions required');
++ for(const row of contract.transitions){
++  assert.equal(row.before.sha256,SOURCE_PINS[row.path]||MEDIA_PINS[row.path]);
++  assert.equal(row.archive,`preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/${row.path}`);
++  const before=read(row.archive),after=read(row.path);assert.deepEqual(fingerprint(before),row.before,row.archive);assert.deepEqual(fingerprint(closedBytes(row.path)),row.before,'Original promotion bytes must belong to the closed image commit');
++  const expected=promoteExactBytes(row.path,before,inputs.closed);assert.equal(Buffer.from(after).toString('utf8'),expected,`Only exact reviewed promotion allowed: ${row.path}`);
++  assert.deepEqual(fingerprint(after),row.after,row.path);
++ }
++ const required=['preview/yard-persistent-candidate/base-contract.json','preview/yard-persistent-candidate/verify-production.mjs','preview/yard-persistent-candidate/verify-closed-rollout.mjs','preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs'];
++ assert.deepEqual(contract.closedVerification.map(row=>row.original),required);
++ for(const row of contract.closedVerification){assert.equal(row.archive,`preview/yard-persistent-candidate/history/pre-activation/closed-verification/${row.original}`);assert.deepEqual(fingerprint(read(row.archive)),row.fingerprint,row.archive);assert.deepEqual(fingerprint(closedBytes(row.original)),row.fingerprint,'Closed verifier must belong to the predecessor commit');}
++ assert.equal(contract.closures.length,5);
++ const closurePaths=['mochi','pebble','pip','eight'].map(id=>`recovery-tools/yard-canonical-${id}-qa/SOURCE-CLOSURE.json`).concat('recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json');
++ assert.deepEqual(contract.closures.map(row=>row.path),closurePaths);
++ const audited=new Map();
++ for(const row of contract.closures){
++  const bytes=read(row.path);assert.deepEqual(fingerprint(bytes),row.fingerprint,row.path);assert.deepEqual(fingerprint(closedBytes(row.path)),row.fingerprint,'Closure must belong to the predecessor commit');
++  const data=JSON.parse(bytes);assert.equal(data.runtimeActivated,false);assert.ok(Array.isArray(data.files)&&data.files.length>0);
++  for(const file of data.files){const path=file.repositoryPath||file.path;safePath(rootDir,path);const key=path+':'+file.sha256;if(audited.has(key))continue;
++   const changed=contract.transitions.find(t=>t.path===path),actual=read(changed?changed.archive:path);
++   assert.equal(fingerprint(actual).sha256,file.sha256,`Historical closure mismatch: ${path}`);if(file.bytes!==undefined)assert.equal(actual.length,file.bytes,path);audited.set(key,true);
++  }
++ }
++ return {status:'verified',mode:'ACTIVE',revision:ACTIVE_REVISION,closedBuildId:inputs.closed.buildId,transitions:8,historicalClosureFiles:audited.size,
++  acceptanceReference:inputs.acceptance.reviewReference,contractSha256:fingerprint(JSON.stringify(contract)).sha256};
++}
++export async function verifyActiveRuntime(rootDir){
++ const load=path=>import(pathToFileURL(safePath(rootDir,path)).href);
++ const {YARD_PLAYER_RELEASE_POLICY:p}=await load('game-logic/yard-v2/release-policy.mjs');
++ const contract=JSON.parse(readFileSync(safePath(rootDir,ACTIVE_CONTRACT_PATH),'utf8'));
++ assert.equal(contract.format,'yard-active-contract/v1');assert.equal(contract.mode,'ACTIVE');assert.equal(contract.revision,ACTIVE_REVISION);validateActivationInputs(contract.inputs);
++ assert.equal(p.enabled,true);assert.equal(p.revision,ACTIVE_REVISION);assert.ok(Object.isFrozen(p));
++ assert.deepEqual(p.requiredClosedPredecessor,{buildId:contract.inputs.closed.buildId,imageDigest:contract.inputs.closed.imageDigest});assert.ok(Object.isFrozen(p.requiredClosedPredecessor));
++ const {YARD_ACTOR_PROFILES:actors}=await load('game-logic/yard-v2/released-actor-profiles.mjs');
++ const {YARD_PROP_PROFILES:props}=await load('game-logic/yard-v2/released-prop-profiles.mjs');
++ const {getYardServerOptions}=await load('game-logic/yard-v2/yard-media.mjs');const options=getYardServerOptions();
++ assert.deepEqual(Object.keys(actors),ACTORS);assert.deepEqual(options.actorProfiles,actors);assert.deepEqual(Object.keys(props),PROPS);
++ assert.equal(options.mediaRegistry.bindings.length,10);assert.ok(Object.values(actors).every(p=>p.playbackReady===true));
++ assert.ok(options.mediaRegistry.bindings.every(b=>b.playbackReady===true));
++ return {actors:ACTORS,props:PROPS,bindings:10,policyRevision:p.revision,contractSha256:fingerprint(JSON.stringify(contract)).sha256};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
++ try{assert.equal(process.argv.length,3,'Usage: node scripts/yard-active-contract.mjs ROOT');const rootDir=resolve(process.argv[2]);
++  assert.ok(!process.env.NODE_OPTIONS&&!process.env.YARD_PLAYER_WIRING_TEST&&!process.env.YARD_EIGHT_PLAYER_CANDIDATE_TEST,'No policy loader permitted');
++  console.log(JSON.stringify({...verifyPromotionContract({rootDir}),runtime:await verifyActiveRuntime(rootDir)}));
++ }catch(e){console.error(`ACTIVE verification failed: ${e.message}`);process.exitCode=1;}
++}
+diff --git a/scripts/yard-active-promotion.mjs b/scripts/yard-active-promotion.mjs
+new file mode 100644
+index 0000000..3fe96b9
+--- /dev/null
++++ b/scripts/yard-active-promotion.mjs
+@@ -0,0 +1,91 @@
++/** Offline, reviewable promotion overlay. Never edits the source checkout. */
++import assert from 'node:assert/strict';
++import {readFileSync,writeFileSync,mkdirSync,lstatSync,realpathSync} from 'node:fs';
++import {resolve,dirname,basename,relative} from 'node:path';
++import {pathToFileURL} from 'node:url';
++import {spawnSync} from 'node:child_process';
++import {ACTIVE_CONTRACT_PATH,ACTIVE_REVISION,SOURCE_PINS,MEDIA_PINS,PROMOTED_PATHS,fingerprint,safePath,validateActivationInputs,promoteExactBytes,verifyPromotionContract} from './yard-active-contract.mjs';
++
++const CLOSED_CHECKS=['preview/yard-persistent-candidate/base-contract.json','preview/yard-persistent-candidate/verify-production.mjs','preview/yard-persistent-candidate/verify-closed-rollout.mjs','preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs'];
++const CLOSURES=['mochi','pebble','pip','eight'].map(id=>`recovery-tools/yard-canonical-${id}-qa/SOURCE-CLOSURE.json`).concat('recovery-tools/yard-canonical-eight-qa/MEDIA-CLOSURE.json');
++function git(root,args){const r=spawnSync('git',args,{cwd:root,encoding:'utf8',maxBuffer:4*1024*1024});assert.equal(r.status,0,r.stderr||r.error?.message);return r.stdout.trim();}
++function boundedInputs(input){
++ validateActivationInputs(input);const c=input.closed,cap=c.compatibility;
++ return {format:input.format,repository:input.repository,closed:{buildId:c.buildId,imageDigest:c.imageDigest,
++  image:{Id:c.image.Id,RepoDigests:[`ghcr.io/${input.repository}@${c.imageDigest}`],Config:{Labels:{'org.opencontainers.image.revision':c.buildId}}},
++  compatibility:{format:cap.format,buildId:cap.buildId,policyRevision:cap.policyRevision,playerRolloutEnabled:false,readableStorageFormats:['yard-persistent/v1'],closedQuarantineVerified:true,requiredClosedPredecessor:null}},
++  acceptance:{reviewReference:input.acceptance.reviewReference,...Object.fromEntries(['nativeDuration','eightPlayer','geometryEquivalence'].map(kind=>{const r=input.acceptance[kind];return[kind,{reference:r.reference,artifactSha256:r.artifactSha256,sourceCommit:r.sourceCommit,...(kind==='eightPlayer'?{runId:r.runId}:{})}];}))}};
++}
++/** Pure assembly accepts supplied bytes; the public CLI separately verifies Git identity. */
++export function assemblePromotion({read,inputs,closedTree}){
++ const normalized=boundedInputs(inputs),files=new Map(),transitions=[];
++ for(const path of PROMOTED_PATHS){
++  const before=read(path),after=promoteExactBytes(path,before,normalized.closed),archive=`preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/${path}`;
++  files.set(archive,before);files.set(path,after);transitions.push({path,archive,before:fingerprint(before),after:fingerprint(after)});
++ }
++ const closedVerification=CLOSED_CHECKS.map(original=>{const bytes=read(original),archive=`preview/yard-persistent-candidate/history/pre-activation/closed-verification/${original}`;files.set(archive,bytes);return{original,archive,fingerprint:fingerprint(bytes)};});
++ const contract={format:'yard-active-contract/v1',mode:'ACTIVE',revision:ACTIVE_REVISION,inputs:normalized,closedTree,transitions,closedVerification,
++  closures:CLOSURES.map(path=>({path,fingerprint:fingerprint(read(path))})),
++  evidenceScope:'Historical native duration and 59-case candidate evidence retain their original identities; this contract records a reviewed promotion, not a new successful run.'};
++ files.set(ACTIVE_CONTRACT_PATH,JSON.stringify(contract,null,2)+'\n');return {contract,files};
++}
++export function verifyEffectiveParity({sourceRoot,files}){
++ // Each side has a fresh module graph. Hooks exist only in these offline test
++ // subprocesses; the emitted production overlay contains no hook or bypass.
++ const baseSources=Object.fromEntries(Object.keys(SOURCE_PINS).map(path=>[path,readFileSync(safePath(sourceRoot,path),'utf8')]));
++ const candidateSources=Object.fromEntries(Object.entries(baseSources).map(([path,text])=>[path,text.replace(/(\b(?:enabled|accepted|playbackReady)"?\s*:\s*)false/g,'$1true')]));
++ const activeSources=Object.fromEntries(Object.keys(SOURCE_PINS).map(path=>[path,String(files.get(path))]));
++ const script=sources=>`
++ import {registerHooks} from 'node:module';import {fileURLToPath,pathToFileURL} from 'node:url';import {relative,resolve} from 'node:path';import {createHash} from 'node:crypto';
++ const root=${JSON.stringify(sourceRoot)},sources=${JSON.stringify(sources)};
++ registerHooks({load(url,ctx,next){if(url.startsWith('file:')){const path=relative(root,fileURLToPath(url)).replaceAll('\\\\','/');if(Object.hasOwn(sources,path))return{shortCircuit:true,format:path.endsWith('.json')?'json':'module',source:sources[path]};}return next(url,ctx);}});
++ const load=path=>import(pathToFileURL(resolve(root,path)).href);
++ const {getYardServerOptions}=await load('game-logic/yard-v2/yard-media.mjs');const options=getYardServerOptions();
++ const {YARD_ACTOR_PROFILES}=await load('game-logic/yard-v2/released-actor-profiles.mjs');const {YARD_PROP_PROFILES}=await load('game-logic/yard-v2/released-prop-profiles.mjs');
++ const {candidate,nativePlayer,NOW,H}=await load('tests/helpers/yard-eight-domain-fixtures.mjs');const {YARD_GOODIES}=await load('game-logic/yard-v2/catalog.mjs');
++ const {createAdmissionPolicy}=await load('game-logic/yard-v2/orchestrator.mjs');const {ensurePersistentPlayerYard,executePersistentYardAction}=await load('game-logic/yard-v2/service.mjs');
++ const policy=createAdmissionPolicy(options),plans=[],native=[];
++ for(const id of Object.keys(options.actorProfiles)){
++  for(const minutes of [45,110]){const q=candidate(id,{minutes});plans.push({id,minutes,result:policy(q)});}
++  if(['willow','starlit','basil','sage'].includes(id))for(const mult of [1,2]){const q=candidate(id),d=YARD_GOODIES[q.placement.goodieId].durability;plans.push({id,uses:d*mult,result:policy(candidate(id,{uses:d*mult}))});}
++  const p=nativePlayer(id);for(const now of [NOW,NOW+H]){const r=ensurePersistentPlayerYard(p,{now,simulate:now>NOW,...options});if(r.status!==200)throw Error('Native fixture rejected');}
++  const visits=Object.values(p._yardV2.runtime.visits);if(visits.length!==1)throw Error('Expected one actual native admission');
++  const end=visits[0].leavesAt;ensurePersistentPlayerYard(p,{now:end,simulate:true,...options});
++  const actionId='yard-v2:promotion-parity-'+id,first=executePersistentYardAction(p,'yard.collectGifts',{}, {...options,now:end,actionId}),once=JSON.stringify(p),retry=executePersistentYardAction(p,'yard.collectGifts',{}, {...options,now:end,actionId});
++  if(first.status!==200||retry.replayed!==true||JSON.stringify(p)!==once)throw Error('Native completion/receipt mismatch');native.push(p);
++ }
++ const hash=value=>createHash('sha256').update(JSON.stringify(value)).digest('hex');
++ console.log(JSON.stringify({actors:Object.keys(options.actorProfiles),profiles:hash(YARD_ACTOR_PROFILES),props:hash(YARD_PROP_PROFILES),registry:hash(options.mediaRegistry),scene:hash(options.scene),planCount:plans.length,plans:hash(plans),nativeCount:native.length,native:hash(native)}));`;
++ const run=sources=>{const r=spawnSync(process.execPath,['--input-type=module'],{cwd:sourceRoot,input:script(sources),encoding:'utf8',timeout:120000,maxBuffer:2*1024*1024,
++  env:{...process.env,NODE_OPTIONS:'',YARD_PLAYER_WIRING_TEST:'',YARD_EIGHT_PLAYER_CANDIDATE_TEST:'',YARD_CANDIDATE_CI:'',DATABASE_URL:'',REDIS_URL:''}});
++  assert.equal(r.status,0,r.stderr||r.error?.message);return JSON.parse(r.stdout);};
++ const candidate=run(candidateSources),active=run(activeSources);assert.deepEqual(active,candidate,'Promotion must preserve candidate effective profiles, registries, plans and native economy');return active;
++}
++export async function preparePromotion({sourceRoot,inputs,outputDir}){
++ const root=realpathSync(sourceRoot),requested=resolve(outputDir);validateActivationInputs(inputs);
++ // The output is new, so resolve its existing parent before containment. A
++ // lexical outside path may otherwise enter the source through a symlink.
++ const output=resolve(realpathSync(dirname(requested)),basename(requested));
++ const rel=relative(root,output);assert.ok(rel==='..'||rel.startsWith('../'),'Output must be outside the source checkout');assert.ok(!lstatSync(output,{throwIfNoEntry:false}),'Output must be a new directory');
++ assert.equal(git(root,['rev-parse','HEAD']),inputs.closed.buildId,'Source must be the verified closed image commit');
++ assert.equal(git(root,['status','--porcelain','--untracked-files=no']),'','Closed source checkout must have no tracked edits');
++ const read=path=>readFileSync(safePath(root,path)),prepared=assemblePromotion({read,inputs,closedTree:git(root,['rev-parse','HEAD^{tree}'])});
++ // Compare the already-reviewed candidate implementation, not a silently
++ // broadened replacement of its strict six-source and two-metadata transform.
++ const candidate=await import(pathToFileURL(safePath(root,'tests/helpers/yard-eight-player-candidate.mjs')).href);
++ assert.deepEqual(candidate.CANDIDATE_SOURCE_PINS,SOURCE_PINS);
++ assert.deepEqual(candidate.CANDIDATE_MEDIA_PINS,Object.fromEntries(Object.entries(MEDIA_PINS).map(([path,hash])=>[path.slice(7),hash])));
++ for(const path of Object.keys(SOURCE_PINS)){const before=read(path).toString('utf8');assert.equal(candidate.candidateSource(path,before),before.replace(/(\b(?:enabled|accepted|playbackReady)"?\s*:\s*)false/g,'$1true'));}
++ for(const path of Object.keys(MEDIA_PINS))assert.equal(prepared.files.get(path),candidate.candidateManifest(path.slice(7),read(path).toString('utf8')));
++ const verification=verifyPromotionContract({rootDir:root,contract:prepared.contract,read:path=>prepared.files.has(path)?Buffer.from(prepared.files.get(path)):read(path)});
++ const parity=verifyEffectiveParity({sourceRoot:root,files:prepared.files});
++ // No file is written until all inputs, preserved closures and behavior match.
++ mkdirSync(output,{recursive:false});for(const [path,bytes]of prepared.files){const target=safePath(output,path);mkdirSync(dirname(target),{recursive:true});writeFileSync(target,bytes,{flag:'wx'});}
++ writeFileSync(resolve(output,'PROMOTION-REPORT.json'),JSON.stringify({verification,parity,files:[...prepared.files.keys()]},null,2)+'\n',{flag:'wx'});
++ return {...verification,status:'prepared-only',outputDir:output,files:prepared.files.size,parity};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
++ try{const args=process.argv.slice(2);assert.deepEqual(args.filter((_,i)=>i%2===0),['--source-root','--inputs','--output'],'Usage: --source-root CLOSED_CHECKOUT --inputs VERIFIED_INPUTS.json --output NEW_OVERLAY_DIRECTORY');assert.equal(args.length,6);
++  console.log(JSON.stringify(await preparePromotion({sourceRoot:args[1],inputs:JSON.parse(readFileSync(args[3],'utf8')),outputDir:args[5]})));
++ }catch(e){console.error(`Promotion blocked: ${e.message}`);process.exitCode=1;}
++}
+diff --git a/tests/yard-active-promotion.test.mjs b/tests/yard-active-promotion.test.mjs
+new file mode 100644
+index 0000000..6a35840
+--- /dev/null
++++ b/tests/yard-active-promotion.test.mjs
+@@ -0,0 +1,83 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFileSync,mkdtempSync,symlinkSync,existsSync,rmSync} from 'node:fs';
++import {tmpdir} from 'node:os';
++import {resolve} from 'node:path';
++import {spawnSync} from 'node:child_process';
++import {ACTIVE_CONTRACT_PATH,ACTIVE_REVISION,SOURCE_PINS,MEDIA_PINS,PROMOTED_PATHS,fingerprint,validateActivationInputs,promoteExactBytes,verifyPromotionContract} from '../scripts/yard-active-contract.mjs';
++import {assemblePromotion,verifyEffectiveParity,preparePromotion} from '../scripts/yard-active-promotion.mjs';
++
++// This override selects read-only test inputs, never a production policy.
++const root=resolve(process.env.YARD_PROMOTION_TEST_SOURCE_ROOT||process.cwd());
++const git=args=>{const r=spawnSync('git',args,{cwd:root,maxBuffer:4*1024*1024});assert.equal(r.status,0,r.stderr.toString());return r.stdout;};
++const buildId=git(['rev-parse','HEAD']).toString().trim(),closedTree=git(['rev-parse','HEAD^{tree}']).toString().trim();
++const original=path=>git(['cat-file','blob',`${buildId}:${path}`]);
++// Fabricated identities exist only in these in-memory unit inputs. No overlay,
++// image, acceptance receipt or production input file is created by these tests.
++const fixtureInputs=()=>({format:'yard-active-inputs/v1',repository:'le-who/cc-gh',closed:{buildId,imageDigest:'sha256:'+'1'.repeat(64),
++ image:{Id:'sha256:'+'2'.repeat(64),RepoDigests:['ghcr.io/le-who/cc-gh@sha256:'+'1'.repeat(64)],Config:{Labels:{'org.opencontainers.image.revision':buildId},Env:['UNRELATED_VALUE=not-persisted']}},
++ compatibility:{format:'cc-gh-yard-release-compatibility/v1',buildId,policyRevision:'yard-player-rollout/closed-r1',playerRolloutEnabled:false,readableStorageFormats:['yard-persistent/v1'],closedQuarantineVerified:true,requiredClosedPredecessor:null}},
++ acceptance:{reviewReference:'test-fixture:review-only',...Object.fromEntries(['nativeDuration','eightPlayer','geometryEquivalence'].map(kind=>[kind,{reference:`test-fixture:${kind}`,artifactSha256:'3'.repeat(64),sourceCommit:kind==='nativeDuration'?'b92c84d685a1221cf6fdbde41624c901bc8b2f8f':buildId,...(kind==='eightPlayer'?{runId:37181170572}:{})}]))}});
++const assembled=()=>assemblePromotion({read:original,inputs:fixtureInputs(),closedTree});
++const check=({contract,files})=>verifyPromotionContract({rootDir:root,contract,read:path=>files.has(path)?Buffer.from(files.get(path)):readFileSync(resolve(root,path))});
++
++test('missing verified inputs and activation predecessors fail closed',()=>{
++ for(const value of [undefined,{}, {format:'yard-active-inputs/v1'}])assert.throws(()=>validateActivationInputs(value));
++ for(const change of [d=>delete d.closed,d=>d.closed.imageDigest='latest',d=>d.closed.compatibility.playerRolloutEnabled=true,d=>d.closed.compatibility.closedQuarantineVerified=false,d=>d.closed.image.RepoDigests=[],d=>d.closed.image.RepoDigests=d.closed.image.RepoDigests[0],d=>d.closed.compatibility.readableStorageFormats='yard-persistent/v1',d=>d.closed.image.Config.Labels['org.opencontainers.image.revision']='f'.repeat(40),d=>delete d.acceptance.reviewReference,d=>delete d.acceptance.nativeDuration.artifactSha256,d=>d.acceptance.eightPlayer.runId=1]){
++  const data=fixtureInputs();change(data);assert.throws(()=>validateActivationInputs(data));
++ }
++ assert.throws(()=>promoteExactBytes('game-logic/yard-v2/release-policy.mjs',original('game-logic/yard-v2/release-policy.mjs'),null),/No placeholder/);
++});
++test('only six exact source modules and two manifest wrappers can be promoted',()=>{
++ assert.equal(Object.keys(SOURCE_PINS).length,6);assert.equal(Object.keys(MEDIA_PINS).length,2);
++ for(const path of PROMOTED_PATHS){const before=original(path),after=promoteExactBytes(path,before,fixtureInputs().closed);assert.notEqual(after,before.toString());assert.throws(()=>promoteExactBytes(path,Buffer.concat([before,Buffer.from('\n')]),fixtureInputs().closed),/Closed bytes changed/);}
++ assert.throws(()=>promoteExactBytes('game-logic/yard-v2/availability.mjs','',fixtureInputs().closed),/Unreviewed promotion path/);
++});
++test('Mochi and Pebble promotion preserves every nested source and pixel descriptor',()=>{
++ for(const path of Object.keys(MEDIA_PINS)){
++  const before=JSON.parse(original(path)),after=JSON.parse(promoteExactBytes(path,original(path),fixtureInputs().closed));
++  assert.equal(after.playbackReady,true);assert.equal(after.runtimeActivated,path.includes('yard-mochi/'));
++  assert.deepEqual({...after,playbackReady:false,runtimeActivated:false},before);
++  if(path.includes('yard-mochi/'))for(const source of Object.values(after.sourceMedia)){assert.equal(source.playbackReady,false);assert.equal(source.runtimeActivated,false);}
++ }
++});
++test('assembly archives exact closed controls, sanitizes image inputs and contains no policy bypass',()=>{
++ const {contract,files}=assembled();assert.equal(files.size,21);assert.deepEqual(contract.transitions.map(r=>r.path),PROMOTED_PATHS);
++ assert.equal(contract.closedVerification.length,4);assert.equal(contract.closures.length,5);assert.ok(files.has(ACTIVE_CONTRACT_PATH));
++ assert.equal(contract.inputs.closed.image.Config.Env,undefined);
++ const policy=String(files.get('game-logic/yard-v2/release-policy.mjs'));assert.ok(policy.includes(`revision: '${ACTIVE_REVISION}'`));assert.ok(policy.includes('enabled: true'));assert.ok(policy.includes(`"buildId":"${buildId}"`));assert.ok(policy.includes('requiredClosedPredecessor: Object.freeze('));assert.doesNotMatch(policy,/process\.env|location\.|URLSearchParams/);
++ for(const path of PROMOTED_PATHS)assert.deepEqual(files.get(`preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/${path}`),original(path));
++});
++test('actual frozen source/media closures and their historical Git identities remain verifiable',()=>{
++ const result=check(assembled());assert.equal(result.mode,'ACTIVE');assert.equal(result.transitions,8);assert.ok(result.historicalClosureFiles>=978);
++});
++for(const [name,mutate]of [
++ ['enabled gate closed again',({files})=>{const p='game-logic/yard-v2/release-policy.mjs';files.set(p,String(files.get(p)).replace('enabled: true','enabled: false'));}],
++ ['partial actor readiness',({files})=>{const p='game-logic/yard-v2/media/family-actor-profiles.json',d=JSON.parse(files.get(p));d.sage.playbackReady=false;files.set(p,JSON.stringify(d));}],
++ ['wrong metadata promotion',({files})=>{const p='public/assets/yard-pebble/runtime-media.json',d=JSON.parse(files.get(p));d.runtimeActivated=true;files.set(p,JSON.stringify(d));}],
++ ['rewritten historical source',({files})=>{const p='preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/game-logic/yard-v2/pip-actor-profile.mjs';files.set(p,Buffer.concat([files.get(p),Buffer.from('\n')]));}],
++ ['wrong closed tree',({contract})=>{contract.closedTree='0'.repeat(40);}],
++ ['missing accepted proof',({contract})=>{delete contract.inputs.acceptance.geometryEquivalence;}],
++ ['missing transition',({contract})=>{contract.transitions.pop();}],
++ ['closed mode relabel',({contract})=>{contract.mode='CLOSED';}],
++])test(`ACTIVE contract rejects ${name} even if current hashes are repinned`,()=>{
++ const prepared=assembled();mutate(prepared);for(const row of prepared.contract.transitions)row.after=fingerprint(prepared.files.get(row.path));assert.throws(()=>check(prepared));
++});
++test('rewriting a closure and its contract pin cannot replace historical evidence',()=>{
++ const p=assembled(),row=p.contract.closures[0],data=JSON.parse(readFileSync(resolve(root,row.path)));data.files=data.files.slice(1);const text=JSON.stringify(data);p.files.set(row.path,text);row.fingerprint=fingerprint(text);assert.throws(()=>check(p),/Closure must belong/);
++});
++test('public preparation rejects an unverified checkout before any output write',async()=>{
++ const inputs=fixtureInputs();inputs.closed.buildId='f'.repeat(40);inputs.closed.image.Config.Labels['org.opencontainers.image.revision']=inputs.closed.buildId;inputs.closed.compatibility.buildId=inputs.closed.buildId;
++ await assert.rejects(()=>preparePromotion({sourceRoot:root,inputs,outputDir:resolve('/tmp','yard-must-not-be-written')}),/verified closed image commit/);
++});
++test('an outside symlink parent cannot direct preparation into the closed checkout',async()=>{
++ const temporary=mkdtempSync(resolve(tmpdir(),'yard-promotion-parent-')),name='forbidden-'+temporary.split('/').at(-1),link=resolve(temporary,'closed-link'),inside=resolve(root,name);
++ try{
++  symlinkSync(root,link,'dir');assert.equal(existsSync(inside),false);
++  await assert.rejects(()=>preparePromotion({sourceRoot:root,inputs:fixtureInputs(),outputDir:resolve(link,name)}),/Output must be outside the source checkout/);
++  assert.equal(existsSync(inside),false,'No overlay may be created through the parent symlink');assert.equal(existsSync(resolve(link,name)),false);
++ }finally{rmSync(temporary,{recursive:true,force:true});}
++});
++test('promoted defaults equal passed candidate profiles, registry, plans and native receipt outcomes',()=>{
++ const parity=verifyEffectiveParity({sourceRoot:root,files:assembled().files});assert.equal(parity.actors.length,8);assert.equal(parity.planCount,24);assert.equal(parity.nativeCount,8);
++});

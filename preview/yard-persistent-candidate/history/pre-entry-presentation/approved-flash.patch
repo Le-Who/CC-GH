@@ -1,0 +1,660 @@
+From 9e856bda5c5a36325d7cae90c2c3c32ac0ee8243 Mon Sep 17 00:00:00 2001
+From: dot <dot@local.invalid>
+Date: Sun, 4 Oct 2026 07:05:54 +0300
+Subject: [PATCH] Fix initial game shell flash without changing controller
+ lifecycle
+
+---
+ docs/game-entry-flash-fix.md           | 113 +++++++++++++++++++
+ package.json                           |   2 +-
+ scripts/browser-ci-groups.mjs          |   2 +-
+ src/App.jsx                            |  13 ++-
+ src/app/gameChunks.jsx                 |  15 ++-
+ src/index.css                          |  51 +++++++++
+ tests/e2e/game-entry-flash.spec.js     | 149 +++++++++++++++++++++++++
+ tests/e2e/helpers/entryFrames.js       |  56 ++++++++++
+ tests/e2e/helpers/resourceGate.mjs     |  21 ++++
+ tests/e2e/helpers/swFixture.mjs        |   9 +-
+ tests/game-entry-presentation.test.mjs |  50 +++++++++
+ 11 files changed, 471 insertions(+), 10 deletions(-)
+ create mode 100644 docs/game-entry-flash-fix.md
+ create mode 100644 tests/e2e/game-entry-flash.spec.js
+ create mode 100644 tests/e2e/helpers/entryFrames.js
+ create mode 100644 tests/e2e/helpers/resourceGate.mjs
+ create mode 100644 tests/game-entry-presentation.test.mjs
+
+diff --git a/docs/game-entry-flash-fix.md b/docs/game-entry-flash-fix.md
+new file mode 100644
+index 0000000..79d85cb
+--- /dev/null
++++ b/docs/game-entry-flash-fix.md
+@@ -0,0 +1,113 @@
++# Game entry first-frame correction
++
++## Scope and attribution
++
++Base: `67dd04ebcacc46dabefe525614a6eb17dda44d5a`.
++Published comparison: `84d252d4`.
++
++The affected App layout, global CSS, immersive-controller hook, runtime asset
++URL helper, HUD skin CSS and update manager are identical in those two source
++versions. The intervening Yard loader switches to `YardReleaseGame`; it is not
++the origin of this cross-game entry problem.
++
++A source-level first-frame defect is present in the published version:
++
++1. `useGameHub.setActiveTab` clears `activeGameShell`, correctly preventing use
++   of the outgoing controller during navigation.
++2. App previously derived its immersive *presentation* solely from that field.
++3. The new lazy game registers its controller in a passive effect after mount.
++   Before its chunk/snapshot arrives, the global legacy Hub header and metric
++   skins can therefore render. The generic `.loading-panel` also paints the
++   previous glass/gradient skin.
++4. Garden already hides global metric chips through its layout defaults. Its
++   relevant early mismatch is the old green-gradient host and generic loading
++   surface, not painted global chips.
++5. Current game image decoding remains asynchronous. Its current solid stage
++   colors are a suitable fallback; former Hub artwork is not.
++
++This is verified source attribution, not a claim that an actual user's cached
++browser has been inspected. Pixel reproduction and final visual acceptance are
++pending the real-browser CI cases below.
++
++## Correction
++
++- Choose immersive presentation synchronously from the existing game registry.
++  Keep actual controller registration, cleanup, active-run state and Home leave
++  barriers exactly as before.
++- Use an art-free status for both initial snapshot and lazy chunk loading. Home
++  remains reachable, but other game cards stay disabled until the existing
++  controller/outbox rules permit switching. An offline initial snapshot keeps a
++  Retry action.
++- Give the root, selected shell and keyed game frame solid entry surfaces.
++  Current backgrounds and button images reveal over those surfaces naturally.
++  No image URL is repointed to an old asset while another image decodes.
++- Do not await every texture, preload inactive games, add timers, remount running
++  games for image changes or suppress gameplay input behind a decode overlay.
++  Existing loading behavior, game lifecycle and startup lazy-loading budgets
++  therefore retain their original ownership.
++
++The temporary entry status/actions are an intentional layout exception inside
++the existing `activeGameFrame`; they are not an editor-tunable gameplay HUD.
++They use 44px-or-larger controls and do not own additional playfield reserves.
++
++## Cache audit
++
++The production worker uses `NetworkOnly` for navigation/API and `CacheFirst`
++for runtime image/audio/font requests under `/games/` and `/assets-runtime/`.
++It does not use stale-while-revalidate for this art. A CacheFirst hit itself
++cannot explain a same-request old-then-new background swap.
++
++The shared `assetUrl` helper build-versions Blox/Bubbo/Match3 `/games/` URLs;
++runtime manifest assets have content-hashed filenames. Some CSS and Garden /
++Trivia direct paths remain unversioned, so replacing those files under an
++unchanged URL can retain older bytes. That separate cache-invalidation risk
++has not been claimed fixed by this presentation patch. No cache, localStorage,
++IndexedDB, save, account, update policy or registration is cleared or changed.
++
++## Browser coverage and acceptance
++
++`tests/e2e/game-entry-flash.spec.js` is assigned to the existing
++`assets-performance` group. It runs against production-built chunks and the
++real generated service worker through the existing ephemeral local fixture.
++The fixture delays original HTTP responses without changing their bytes or
++replacing production functions.
++
++The ten entry cases cover all eight current games across 320×568, 360×800,
++390×844 (2× DPI), 414×896, 568×320, 844×390, 768×1024, 1024×768, 1280×720 and
++393×873. Each checks:
++
++- cold snapshot loading, delayed real artwork and fully loaded entry;
++- a populated production runtime-art cache and a warm controlled reload;
++- paint-frame observations beginning before the application entry script,
++  including the root before App mounts;
++- no visible legacy Hub chrome, old gradient loading surface or wrong-game root;
++- retained test-owned save and unrelated cache sentinels.
++
++A further case delays the actual Blox lazy chunk, checks that Home cannot
++abandon an unmounted controller, then rapidly navigates Blox → Bubbo → Match3 →
++Garden with artwork held at the HTTP server. Late outgoing image completion,
++Home close/Back/Forward, final game identity and uncaught browser errors are
++checked. Bounded JSON frame
++observations and real screenshots are preserved for each meaningful phase.
++These observations supplement, rather than replace, the existing full game
++layout, touch, lifecycle and screenshot suites.
++
++Run through the existing CI browser group, or with installed dependencies:
++
++```
++pnpm exec playwright test tests/e2e/game-entry-flash.spec.js --project=chromium --workers=1
++```
++
++## Local evidence and remaining limits
++
++- 63 focused Node tests pass: entry presentation, browser-group contract, Home
++  navigation, HUD layouts, runtime URLs, update-manager core, pointer sessions
++  and Telegram gesture lifecycle.
++- HUD validation passes for 8 visible games / 15 preview presets. The two
++  existing Blox/Match3 identical-reserve warnings are unchanged.
++- JavaScript syntax checks for the new browser spec/helpers pass.
++- `git diff --check` passes.
++- Production build, actual Playwright discovery/execution and screenshot review
++  have not run locally: dependencies are not installed in this isolated
++  checkout. No package/network restriction was bypassed. CI must establish
++  browser, build and startup/performance acceptance before release.
+diff --git a/package.json b/package.json
+index e50b848..05fce79 100644
+--- a/package.json
++++ b/package.json
+@@ -21,7 +21,7 @@
+     "start": "node server.js",
+     "dev:server": "node server.js",
+     "dev": "vite",
+-    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-player-rollout.test.mjs tests/yard-rollback-guard.test.mjs",
++    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/game-entry-presentation.test.mjs tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-player-rollout.test.mjs tests/yard-rollback-guard.test.mjs",
+     "test:perf": "node --test tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js",
+     "perf:guard": "node scripts/perf-guard.mjs",
+     "perf:guard:build": "node scripts/perf-build-guard.mjs",
+diff --git a/scripts/browser-ci-groups.mjs b/scripts/browser-ci-groups.mjs
+index 9657acd..08ec296 100644
+--- a/scripts/browser-ci-groups.mjs
++++ b/scripts/browser-ci-groups.mjs
+@@ -15,7 +15,7 @@ export const BROWSER_GROUPS = Object.freeze({
+   'hud-layout': ['glass-ui.spec.js', 'hud-art-visual-regressions.spec.js', 'hud-editor.spec.js', 'hud-redesign-runtime-coverage.spec.js'],
+   'mobile-ui': ['mobile-ui-extended.spec.js', 'mobile-ui-matrix.spec.js'],
+   'navigation-input': ['gestures.spec.js', 'home-navigation.spec.js', 'minigames.spec.js', 'pause-paint-regression.spec.js'],
+-  'assets-performance': ['asset-retirement.spec.js', 'assets-runtime.spec.js', 'perf-guard.spec.js', 'split-game-loading.spec.js'],
++  'assets-performance': ['asset-retirement.spec.js', 'game-entry-flash.spec.js', 'assets-runtime.spec.js', 'perf-guard.spec.js', 'split-game-loading.spec.js'],
+   'auth-cache-smoke': ['auth.spec.js', 'multi-game-logic-smoke.spec.js', 'player-copy.spec.js', 'sw-api-cache.spec.js'],
+ });
+ const specPattern = /\.(spec|test)\.[cm]?[jt]sx?$/;
+diff --git a/src/App.jsx b/src/App.jsx
+index 561dc9e..27333d2 100644
+--- a/src/App.jsx
++++ b/src/App.jsx
+@@ -28,10 +28,10 @@ import { formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward
+ import { formatR2Gold } from "./games/garden-shelf/lib/gardenR2View.js";
+ import { useGameHub } from "./game-state/useGameHub.js";
+ import { useGameEvents } from "./game-state/gameEvents.js";
+-import { ActiveGame } from "./app/gameChunks.jsx";
++import { ActiveGame, GameEntryFallback } from "./app/gameChunks.jsx";
+ import { useSnapshot } from "./app/gameHooks.js";
+ import { AppI18nContext, appTranslate, playerFeedbackText, useAppI18n } from "./app/i18n.jsx";
+-import { VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
++import { VISIBLE_GAME_IDS, getGameDefinition } from "./app/gameRegistry.js";
+ import { Stat, formatCount, semanticHudIconPath } from "./app/shell.jsx";
+ import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
+ import { useEscapeDismiss } from "./app/useDismissableLayer.js";
+@@ -306,6 +306,9 @@ export default function App() {
+   const activeGameShellId = typeof activeGameShell === "string" ? activeGameShell : activeGameShell?.id;
+   const activeGameControls = activeGameShell && typeof activeGameShell === "object" ? activeGameShell : null;
+   const shellActive = activeGameShellId === activeTab;
++  // Presentation belongs to the selected route, not to an asynchronously
++  // mounted controller. Controller readiness still gates navigation/saving.
++  const immersivePresentation = getGameDefinition(activeTab)?.shell === "game" || shellActive;
+   const gameHudDescriptors = useGameHudDescriptors(activeTab, snapshot, activeGameControls?.hudState || null);
+   useTelegramGameNavigation({
+     activeGame: activeTab,
+@@ -397,7 +400,7 @@ export default function App() {
+       <HudLayoutProvider gameId={activeTab} buildId={config?.buildId || ""}>
+         <HudPreviewSurface>
+           <main
+-            className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}
++            className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || immersivePresentation ? " play-mode" : ""}${immersivePresentation ? " immersive-mode" : ""}`}
+             data-ui-theme={uiTheme}
+             data-active-tab={activeTab}
+           >
+@@ -430,10 +433,10 @@ export default function App() {
+                 />
+               ))}
+             </HudEditableRegion>
+-            <GameEventOverlay hidden={shellActive} />
++            <GameEventOverlay hidden={immersivePresentation} />
+             {message && <button type="button" className="notice" role="alert" aria-label={`${playerMessage} · ${t("common.close")}`} onClick={() => useGameHub.setState({ message: "" })}>{playerMessage}</button>}
+             {!snapshot ? (
+-              <div className="loading-panel">{t("app.loading")}</div>
++              <GameEntryFallback label={t("app.loading")} onRetry={status === "offline" ? () => loadSnapshot() : null} />
+             ) : (
+               <HudRegion id="activeGameFrame" as="section" key={activeTab} className="active-game-frame">
+                 <HomeVisibilityContext.Provider value={homeOpen}><ActiveGame activeTab={activeTab} /></HomeVisibilityContext.Provider>
+diff --git a/src/app/gameChunks.jsx b/src/app/gameChunks.jsx
+index 2b3b227..ad95209 100644
+--- a/src/app/gameChunks.jsx
++++ b/src/app/gameChunks.jsx
+@@ -1,6 +1,7 @@
+ import React from "react";
+ import { GameLoadBoundary, preloadPixiSceneHost } from "./PixiScene.jsx";
+ import { useAppI18n } from "./i18n.jsx";
++import { openHome } from "./homeNavigation.js";
+ // Only these current game presentations use Pixi. Bubbo v2 uses Canvas 2D;
+ // Merge v3 uses DOM. Legacy Merge still loads Pixi lazily when it renders.
+ export const PIXI_TABS = new Set(["blox", "match3"]);
+@@ -21,12 +22,24 @@ export function preloadGameTab(tabId) {
+   gameLoaders[tabId]?.();
+   if (PIXI_TABS.has(tabId)) preloadPixiSceneHost(tabId);
+ }
++// Deliberately art-free: the game owns its artwork once its lazy module is ready.
++// Never reuse the former Hub panel/button skins as a loading placeholder.
++export function GameEntryFallback({ label, onRetry = null }) {
++  const { t } = useAppI18n();
++  return <div className="game-entry-status" role="status" aria-live="polite">
++    <span>{label}</span>
++    <div className="game-entry-actions">
++      {onRetry && <button type="button" onClick={onRetry}>{t("common.retry")}</button>}
++      <button type="button" onClick={openHome}>{t("nav.allGames")}</button>
++    </div>
++  </div>;
++}
+ export function ActiveGame({ activeTab }) {
+   const { t } = useAppI18n();
+   const GameComponent = gameComponents[activeTab] || gameComponents.room;
+   return (
+     <GameLoadBoundary key={activeTab}>
+-      <React.Suspense fallback={<div className="loading-panel">{t("app.loadingGame")}</div>}>
++      <React.Suspense fallback={<GameEntryFallback label={t("app.loadingGame")} />}>
+         <GameComponent />
+       </React.Suspense>
+     </GameLoadBoundary>
+diff --git a/src/index.css b/src/index.css
+index d86b532..001d4a3 100644
+--- a/src/index.css
++++ b/src/index.css
+@@ -2155,3 +2155,54 @@ button.stat-chip {
+ .telegram-app[data-active-tab="trivia"] .stats-row {
+   display: none;
+ }
++
++/* Entry surfaces are shell-owned and available before any lazy game CSS.
++ * They deliberately contain no prior-generation artwork or gradient skin.
++ * Current game art can decode over its own solid base without revealing Hub
++ * chrome, including while a scene is being unmounted during navigation. */
++#root { background: #101923; }
++.telegram-app[data-active-tab] {
++  --game-entry-surface: #101923;
++  --game-entry-ink: #f6f2e7;
++  background: var(--game-entry-surface);
++}
++.telegram-app[data-active-tab="garden"] { --game-entry-surface: #d5dec6; --game-entry-ink: #243e2b; }
++.telegram-app[data-active-tab="blox"] { --game-entry-surface: #050b1c; }
++.telegram-app[data-active-tab="match3"] { --game-entry-surface: #100a1f; }
++.telegram-app[data-active-tab="bubbo"] { --game-entry-surface: #032632; }
++.telegram-app[data-active-tab="merge"] { --game-entry-surface: #211b15; }
++.telegram-app[data-active-tab="trivia"] { --game-entry-surface: #06152a; }
++.telegram-app[data-active-tab="room"] { --game-entry-surface: #20320f; }
++.telegram-app[data-active-tab="settlement"] { --game-entry-surface: #07130c; }
++.telegram-app .game-entry-status {
++  min-width: 0;
++  min-height: 0;
++  width: 100%;
++  height: 100%;
++  display: flex;
++  flex-direction: column;
++  align-items: center;
++  justify-content: center;
++  gap: 16px;
++  padding: 20px;
++  color: var(--game-entry-ink);
++  background: var(--game-entry-surface);
++  text-align: center;
++  font-weight: 800;
++}
++main.telegram-app[data-active-tab] .active-game-frame {
++  background-color: var(--game-entry-surface);
++}
++
++.game-entry-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
++.game-entry-actions button {
++  min-width: 44px;
++  min-height: 44px;
++  border: 1px solid currentColor;
++  border-radius: 8px;
++  padding: 8px 16px;
++  background: transparent;
++  color: inherit;
++  cursor: pointer;
++}
++.game-entry-actions button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }
+diff --git a/tests/e2e/game-entry-flash.spec.js b/tests/e2e/game-entry-flash.spec.js
+new file mode 100644
+index 0000000..013e913
+--- /dev/null
++++ b/tests/e2e/game-entry-flash.spec.js
+@@ -0,0 +1,149 @@
++import { test, expect } from '@playwright/test';
++import { readFile } from 'node:fs/promises';
++import { resolve } from 'node:path';
++import { startSwFixture } from './helpers/swFixture.mjs';
++import { installEntryFrameProbe } from './helpers/entryFrames.js';
++import { selectHomeGame, openHome } from './helpers/home.js';
++
++const screens = {
++  garden: '.gs2-stage', blox: '.bx-stage', match3: '.m3-stage', bubbo: '.bb-stage',
++  merge: '.ml-root, [data-game-shell="merge"]', trivia: '.trv2-root',
++  room: '.companion-yard-layout, .cy-app', settlement: '.settlement-game-root',
++};
++const matrix = [
++  ['garden', 320, 568], ['blox', 360, 800], ['match3', 390, 844],
++  ['bubbo', 414, 896], ['trivia', 568, 320], ['merge', 844, 390],
++  ['room', 768, 1024], ['settlement', 1024, 768], ['garden', 1280, 720],
++  ['bubbo', 393, 873],
++];
++const afterPaint = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
++async function installProbe(page) {
++  await page.addInitScript(installEntryFrameProbe);
++  await page.addInitScript(() => {
++    localStorage.setItem('gh_dev_user_id', 'fixture-a');
++    localStorage.setItem('garden_shelf_language', 'en');
++  });
++}
++async function record(page, testInfo, phase) {
++  await afterPaint(page);
++  const frames = await page.evaluate(() => window.__entryFrames.read());
++  await testInfo.attach(`${phase}-entry-frames.json`, { body: Buffer.from(JSON.stringify(frames, null, 2)), contentType: 'application/json' });
++  await testInfo.attach(`${phase}-screen`, { body: await page.screenshot(), contentType: 'image/png' });
++  expect(frames.frames, 'sample actual browser frames, not only a settled DOM').toBeGreaterThan(0);
++  expect(frames.violations, 'no previous Hub chrome, old background or outgoing game may paint').toEqual([]);
++}
++async function expectArtSettled(page, game) {
++  await expect(page.locator(screens[game]).first()).toBeVisible({ timeout: 25_000 });
++  await expect.poll(() => page.locator('img:visible').evaluateAll(images => images.every(image => image.complete && image.naturalWidth > 0))).toBe(true);
++  await page.waitForLoadState('networkidle');
++}
++
++// The full HUD/WebView viewport matrix is distributed across the current games;
++// existing mobile-ui-matrix continues checking every completed game layout.
++for (const [game, width, height] of matrix) test.describe(`entry ${game} ${width}x${height}`, () => {
++  test.use({ viewport: { width, height }, deviceScaleFactor: width === 390 ? 2 : 1, isMobile: width < 1024, hasTouch: width < 1024 });
++  test('cold entry, delayed real artwork and warm service-worker reload never show the previous shell', async ({ page }, testInfo) => {
++    test.setTimeout(90_000);
++    const fixture = await startSwFixture({ gameActions: true });
++    const errors = []; page.on('pageerror', error => errors.push(error.message));
++    try {
++      await installProbe(page);
++      fixture.holdResources(['/api/player/snapshot', '/games/', '/assets-runtime/']);
++      await page.goto(`${fixture.origin}/?tab=${game}`, { waitUntil: 'domcontentloaded' });
++      await expect(page.locator('.game-entry-status')).toBeVisible();
++      await record(page, testInfo, 'cold-snapshot-pending');
++      fixture.releaseResources(['/api/player/snapshot']);
++      await expect(page.locator(screens[game]).first()).toBeVisible({ timeout: 25_000 });
++      await expect.poll(() => fixture.pendingResources().filter(path => /^\/(games|assets-runtime)\//.test(path)).length).toBeGreaterThan(0);
++      await record(page, testInfo, 'cold-art-pending');
++      fixture.releaseResources();
++      await expectArtSettled(page, game);
++      await record(page, testInfo, 'cold-ready');
++      await page.evaluate(() => navigator.serviceWorker.ready);
++
++      // A first visit may load its images before the worker claims the page.
++      // Reload once under the real worker to populate its production art cache.
++      await page.reload();
++      await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
++      await expectArtSettled(page, game);
++      const savedIds = fixture.player('account-a').garden.plants.map(plant => plant.id);
++      await page.evaluate(async () => {
++        localStorage.setItem('entry-save-sentinel', 'preserve-me');
++        const cache = await caches.open('entry-unrelated-cache');
++        await cache.put('/entry-unrelated-sentinel', new Response('preserve-me'));
++      });
++      const cachedArt = await page.evaluate(async () => {
++        const keys = await caches.keys();
++        const name = keys.find(key => key === 'runtime-art-v1');
++        return name ? (await (await caches.open(name)).keys()).map(request => request.url) : [];
++      });
++      expect(cachedArt.length, 'exercise a genuinely populated production art cache').toBeGreaterThan(0);
++      const beforeWarmRequests = fixture.artRequests.length;
++      fixture.holdResources(['/api/player/snapshot']);
++      await page.reload({ waitUntil: 'domcontentloaded' });
++      await expect(page.locator('.game-entry-status')).toBeVisible();
++      await record(page, testInfo, 'warm-snapshot-pending');
++      fixture.releaseResources();
++      await expectArtSettled(page, game);
++      await record(page, testInfo, 'warm-ready');
++      await testInfo.attach('warm-art-cache.json', { body: Buffer.from(JSON.stringify({ cachedArt, warmNetworkArtRequests: fixture.artRequests.slice(beforeWarmRequests) }, null, 2)), contentType: 'application/json' });
++      expect(await page.evaluate(async () => ({
++        save: localStorage.getItem('entry-save-sentinel'),
++        unrelated: await (await (await caches.open('entry-unrelated-cache')).match('/entry-unrelated-sentinel')).text(),
++      }))).toEqual({ save: 'preserve-me', unrelated: 'preserve-me' });
++      expect(fixture.player('account-a').garden.plants.map(plant => plant.id)).toEqual(savedIds);
++      expect(errors).toEqual([]);
++    } finally { fixture.releaseResources(); await fixture.close(); }
++  });
++});
++
++test.describe('rapid entry changes', () => {
++  test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
++  test('old image completion and repeated Home navigation cannot repaint an outgoing game', async ({ page }, testInfo) => {
++    test.setTimeout(90_000);
++    const fixture = await startSwFixture({ gameActions: true });
++    const errors = []; page.on('pageerror', error => errors.push(error.message));
++    try {
++      await installProbe(page);
++      await page.goto(`${fixture.origin}/?tab=garden`);
++      await expectArtSettled(page, 'garden');
++      // Hold only presentation art, not game code/API/controller readiness.
++      // Then leave using real controls while those HTTP responses are pending.
++      const graph = JSON.parse(await readFile(resolve(fixture.dist, 'game-loading-graph.json'), 'utf8'));
++      const bloxChunk = graph.chunks.find(chunk => chunk.gameModules.includes('src/games/blox/BloxGame.jsx'));
++      expect(bloxChunk).toBeTruthy();
++      const chunkPath = `/${bloxChunk.file}`;
++      fixture.holdResources([chunkPath, '/games/blox-v2/', '/games/bubbo-v2/', '/games/match3-v2/']);
++      await selectHomeGame(page, 'blox');
++      await expect(page.locator('.game-entry-status')).toBeVisible();
++      await expect(page.locator('.bx-stage')).toHaveCount(0);
++      await record(page, testInfo, 'lazy-controller-pending');
++      await page.locator('.game-entry-status').getByRole('button', { name: 'All games', exact: true }).click();
++      await expect(page.getByTestId('home-catalogue')).toBeVisible();
++      await expect(page.locator('[data-home-game="garden"]')).toBeDisabled();
++      await page.getByRole('button', { name: 'Close Home', exact: true }).click();
++      fixture.releaseResources([chunkPath]);
++      await expect(page.locator('.bx-stage')).toBeVisible();
++      await record(page, testInfo, 'rapid-blox');
++      for (const game of ['bubbo', 'match3', 'garden']) {
++        await selectHomeGame(page, game);
++        await expect(page.locator(screens[game]).first()).toBeVisible();
++        await record(page, testInfo, `rapid-${game}`);
++      }
++      expect(fixture.pendingResources().length).toBeGreaterThan(0);
++      fixture.releaseResources();
++      await expectArtSettled(page, 'garden');
++      await record(page, testInfo, 'late-outgoing-art-completed');
++      await openHome(page);
++      await page.getByRole('button', { name: 'Close Home', exact: true }).click();
++      await expect(page.getByTestId('home-catalogue')).toHaveCount(0);
++      await openHome(page);
++      await page.goBack();
++      await expect(page.getByTestId('home-catalogue')).toHaveCount(0);
++      await page.goForward();
++      await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab', 'garden');
++      await record(page, testInfo, 'history-stable');
++      expect(errors).toEqual([]);
++    } finally { fixture.releaseResources(); await fixture.close(); }
++  });
++});
+diff --git a/tests/e2e/helpers/entryFrames.js b/tests/e2e/helpers/entryFrames.js
+new file mode 100644
+index 0000000..731504d
+--- /dev/null
++++ b/tests/e2e/helpers/entryFrames.js
+@@ -0,0 +1,56 @@
++// Observational only: no renderer, Image, fetch, store or timer replacements.
++// Sampling starts before the entry script and continues at browser paint frames.
++export function installEntryFrameProbe() {
++  const samples = [], violations = [];
++  let frames = 0, stopped = false, last = '';
++  const roots = {
++    garden: '.gs2-stage', blox: '.bx-stage', match3: '.m3-stage', bubbo: '.bb-stage',
++    merge: '.ml-root, [data-game-shell="merge"]', trivia: '.trv2-root',
++    room: '.companion-yard-layout, .cy-app', settlement: '.settlement-game-root',
++  };
++  const visible = node => {
++    if (!node) return false;
++    const rect = node.getBoundingClientRect(), style = getComputedStyle(node);
++    return rect.width > 0 && rect.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
++  };
++  function sample() {
++    const host = document.getElementById('root');
++    const main = document.querySelector('.telegram-app');
++    if (host) {
++      frames++;
++      const hostStyle = getComputedStyle(host);
++      const outer = { rootBackgroundImage: hostStyle.backgroundImage, rootBackgroundColor: hostStyle.backgroundColor };
++      if (!main) {
++        const state = { game: null, phase: 'pre-app', ...outer };
++        if (outer.rootBackgroundImage !== 'none' && violations.length < 100) violations.push({ at: performance.now(), ...state });
++        const key = JSON.stringify(state);
++        if (key !== last && samples.length < 200) { samples.push({ at: performance.now(), ...state }); last = key; }
++        if (!stopped) requestAnimationFrame(sample);
++        return;
++      }
++      const game = main.dataset.activeTab, style = getComputedStyle(main);
++      const root = main.querySelector(roots[game] || ':not(*)');
++      const state = {
++        game, ...outer, immersive: main.classList.contains('immersive-mode'),
++        loading: visible(main.querySelector('.game-entry-status')),
++        root: visible(root),
++        legacyTopbar: game !== 'garden' && visible(main.querySelector('.topbar')),
++        legacyStats: visible(main.querySelector('.stats-row')),
++        legacyLoading: [...main.querySelectorAll(':scope > .loading-panel, .active-game-frame > .loading-panel')].some(visible),
++        backgroundImage: style.backgroundImage, backgroundColor: style.backgroundColor,
++        wrongRoots: Object.entries(roots).filter(([id, selector]) => id !== game && [...main.querySelectorAll(selector)].some(visible)).map(([id]) => id),
++      };
++      if (outer.rootBackgroundImage !== 'none' || (game !== 'garden' && !state.immersive) || state.legacyTopbar || state.legacyStats || state.legacyLoading || state.backgroundImage !== 'none' || state.wrongRoots.length) {
++        if (violations.length < 100) violations.push({ at: performance.now(), ...state });
++      }
++      const key = JSON.stringify(state);
++      if (key !== last && samples.length < 200) { samples.push({ at: performance.now(), ...state }); last = key; }
++    }
++    if (!stopped) requestAnimationFrame(sample);
++  }
++  window.__entryFrames = {
++    read() { return { frames, samples, violations }; },
++    stop() { stopped = true; return this.read(); },
++  };
++  requestAnimationFrame(sample);
++}
+diff --git a/tests/e2e/helpers/resourceGate.mjs b/tests/e2e/helpers/resourceGate.mjs
+new file mode 100644
+index 0000000..8fd3de1
+--- /dev/null
++++ b/tests/e2e/helpers/resourceGate.mjs
+@@ -0,0 +1,21 @@
++// Network timing only: requests still reach the real fixture server and retain
++// their original production response bytes, headers and service-worker rules.
++export function createResourceGate() {
++  let prefixes = [];
++  const pending = new Set();
++  const matches = (path, values) => values.some(prefix => path.startsWith(prefix));
++  return {
++    hold(values) { prefixes = [...new Set([...prefixes, ...values])]; },
++    wait(path) {
++      if (!matches(path, prefixes)) return Promise.resolve();
++      return new Promise(resolve => pending.add({ path, resolve }));
++    },
++    release(values = prefixes) {
++      prefixes = prefixes.filter(prefix => !values.includes(prefix));
++      for (const request of pending) if (!matches(request.path, prefixes)) {
++        pending.delete(request); request.resolve();
++      }
++    },
++    pending() { return [...pending].map(request => request.path); },
++  };
++}
+diff --git a/tests/e2e/helpers/swFixture.mjs b/tests/e2e/helpers/swFixture.mjs
+index 7ccc917..43445f6 100644
+--- a/tests/e2e/helpers/swFixture.mjs
++++ b/tests/e2e/helpers/swFixture.mjs
+@@ -1,4 +1,5 @@
+ import {createServer} from 'node:http';
++import {createResourceGate} from './resourceGate.mjs';
+ import {readFile,writeFile,mkdtemp,rm} from 'node:fs/promises';
+ import {readFileSync,existsSync} from 'node:fs';
+ import {tmpdir} from 'node:os';
+@@ -42,6 +43,7 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
+   }}]});
+   let apiFailure=false,delayA=0,delayB=0,httpFresh=false;
+   const requests=[],delayedResponses=[],timers=new Set(),players=new Map();
++  const resourceGate=createResourceGate(),artRequests=[];
+   function currentPlayer(account){
+     if(gameActions&&players.has(account))return players.get(account);
+     let player=createDefaultPlayer(account,account==='account-a'?'Fixture A':'Fixture B');
+@@ -59,6 +61,8 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
+   }
+   const server=createServer(async(req,res)=>{
+     const url=new URL(req.url,'http://fixture.invalid');
++    if (/^\/(?:games|assets-runtime)\//.test(url.pathname)) artRequests.push(url.pathname);
++    await resourceGate.wait(url.pathname);
+     if(url.pathname.startsWith('/api/')){
+       const auth=req.headers.authorization||'',account=auth.endsWith('fixture-b')?'account-b':'account-a';
+       const record={path:url.pathname,query:url.search,auth,account};requests.push(record);
+@@ -110,10 +114,11 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
+   const realtime=new SocketServer(server,{serveClient:false});
+   await new Promise(done=>server.listen(0,'127.0.0.1',done));
+   return {
+-    origin:`http://127.0.0.1:${server.address().port}`,productionWorker,dist,requests,delayedResponses,
++    origin:`http://127.0.0.1:${server.address().port}`,productionWorker,dist,requests,delayedResponses,artRequests,
++    holdResources:resourceGate.hold,releaseResources:resourceGate.release,pendingResources:resourceGate.pending,
+     player:currentPlayer,
+     failApi(value=true){apiFailure=value;},delayAccountA(ms){delayA=ms;},delayAccountB(ms){delayB=ms;},freshHttpCache(value=true){httpFresh=value;},
+-    async close(){for(const timer of timers)clearTimeout(timer);await new Promise(done=>realtime.close(done));server.closeAllConnections();if(server.listening)await new Promise(done=>server.close(done));const base=resolve(tmpdir());if(!temporary.startsWith(base+sep)||!basename(temporary).startsWith('ccgh-sw-proof-'))throw Error('Unsafe fixture cleanup path');await rm(temporary,{recursive:true,force:true});},
++    async close(){resourceGate.release();for(const timer of timers)clearTimeout(timer);await new Promise(done=>realtime.close(done));server.closeAllConnections();if(server.listening)await new Promise(done=>server.close(done));const base=resolve(tmpdir());if(!temporary.startsWith(base+sep)||!basename(temporary).startsWith('ccgh-sw-proof-'))throw Error('Unsafe fixture cleanup path');await rm(temporary,{recursive:true,force:true});},
+   };
+ }
+ 
+diff --git a/tests/game-entry-presentation.test.mjs b/tests/game-entry-presentation.test.mjs
+new file mode 100644
+index 0000000..6a6cd86
+--- /dev/null
++++ b/tests/game-entry-presentation.test.mjs
+@@ -0,0 +1,50 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import { readFileSync } from 'node:fs';
++import { GAME_REGISTRY } from '../src/app/gameRegistry.js';
++import { createResourceGate } from './e2e/helpers/resourceGate.mjs';
++const read = path => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
++
++test('entry presentation is selected synchronously, without manufacturing controller readiness', () => {
++  const app = read('src/App.jsx');
++  assert.match(app, /const immersivePresentation = getGameDefinition\(activeTab\)\?\.shell === "game" \|\| shellActive;/);
++  assert.match(app, /\$\{immersivePresentation \? " immersive-mode" : ""\}/);
++  assert.match(app, /activeTab === "garden" \|\| !!activeGameControls/);
++  assert.match(app, /leaveGameForHome\(\{ state, controls, accountId:/);
++  for (const game of ['blox', 'match3', 'merge', 'bubbo', 'trivia', 'room', 'settlement']) assert.equal(GAME_REGISTRY[game].shell, 'game');
++  // The source fix must not move passive lifecycle hooks or relax the existing
++  // saved-run leave barrier just to make the loading shell look ready.
++  const hooks = read('src/app/gameHooks.js'), navigation = read('src/app/homeNavigation.js');
++  assert.doesNotMatch(hooks, /useLayoutEffect/);
++  assert.match(hooks, /useEffect\(\(\) => \{\s*setActiveGameShell/);
++  assert.match(navigation, /state.activeTab !== 'garden' && \(!controls \|\| controls.id !== state.activeTab\)/);
++
++});
++
++test('snapshot and chunk loading share an art-free status and per-game solid base', () => {
++  const chunks = read('src/app/gameChunks.jsx'), app = read('src/App.jsx'), css = read('src/index.css');
++  assert.match(app, /<GameEntryFallback label=\{t\("app.loading"\)\}/);
++  assert.match(chunks, /fallback=\{<GameEntryFallback label=\{t\("app.loadingGame"\)\}/);
++  const fallback = chunks.slice(chunks.indexOf('export function GameEntryFallback'), chunks.indexOf('export function ActiveGame'));
++  assert.match(fallback, /role="status"/);
++  assert.doesNotMatch(fallback, /loading-panel|<img|backgroundImage|panel-button/);
++  const loadingCss = css.slice(css.indexOf('/* Entry surfaces are shell-owned'));
++  assert.doesNotMatch(loadingCss, /url\(|gradient\(/);
++  for (const game of Object.keys(GAME_REGISTRY).filter(id => GAME_REGISTRY[id].visible)) assert.ok(loadingCss.includes(`data-active-tab="${game}"`), game);
++  assert.match(loadingCss, /#root \{ background: #101923; \}/);
++  assert.match(loadingCss, /main\.telegram-app\[data-active-tab\] \.active-game-frame/);
++});
++
++test('the delayed browser fixture holds exact requests and releases overlapping prefixes safely', async () => {
++  const gate = createResourceGate();
++  gate.hold(['/games/', '/games/blox-v2/', '/api/player/snapshot']);
++  let blox = false, garden = false, snapshot = false;
++  const a = gate.wait('/games/blox-v2/background.webp').then(() => { blox = true; });
++  const b = gate.wait('/games/garden-v2/panel.webp').then(() => { garden = true; });
++  const c = gate.wait('/api/player/snapshot').then(() => { snapshot = true; });
++  await gate.wait('/assets/main.js');
++  gate.release(['/games/']); await Promise.resolve();
++  assert.equal(garden, true); assert.equal(blox, false); assert.equal(snapshot, false);
++  gate.release(['/api/player/snapshot']); await c; assert.equal(snapshot, true);
++  gate.release(); await Promise.all([a, b]); assert.equal(blox, true); assert.deepEqual(gate.pending(), []);
++});
+-- 
+2.52.0
+

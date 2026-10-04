@@ -109,6 +109,25 @@ test('loss/reload replay and reconcile retain one receipt while outdated or mism
   stale.payload.accountId = 'other'; assert.equal((await invoke(loaded, stale)).body.error, 'GARDEN_R2_ACCOUNT_MISMATCH'); assert.equal(loaded.resources.gold, gold);
 });
 
+test('Garden duplicate preserves state except the exact full-energy snapshot timestamp', async t => {
+  let clock = NOW;
+  t.mock.method(Date, 'now', () => clock);
+  const p = fixture(); await adopt(p);
+  const request = command(p, 'buyPlant', { type: 'daisy', shelfIndex: 0, spotIndex: 1 });
+  const first = await invoke(p, request); assert.equal(first.status, 200);
+  const loaded = JSON.parse(JSON.stringify(p)), before = structuredClone(loaded);
+  assert.equal(before.resources.energy.current, before.resources.energy.max);
+  clock = NOW + 4628;
+  // The receipt's domain time and the shared snapshot's wall clock are distinct.
+  const replay = await invoke(loaded, request, { serverNow: NOW + 10 * 86400000 });
+  assert.equal(replay.status, 200); assert.equal(replay.body.duplicate, true);
+  assert.equal(replay.body.snapshot.serverTime, clock);
+  assert.equal(replay.body.snapshot.resources.energy.lastRegenTimestamp, clock);
+  const expected = structuredClone(before); expected.resources.energy.lastRegenTimestamp = clock;
+  assert.deepEqual(loaded, expected);
+  assert.deepEqual(replay.body.snapshot.resources.energy, loaded.resources.energy);
+});
+
 test('first uncommitted adoption reconciles safely; malformed private namespace stays fenced', async () => {
   const p = fixture(), cmd = command(p, 'adopt', { legacyRevision: 0, acknowledgedTotal: 0 });
   const result = await applyAction(p, 'garden.r2.reconcile', { accountId: p.id, streamId: STREAM, sequence: 1, clientActionId: cmd.clientActionId, payloadHash: gardenR2Hash(cmd.payload) });

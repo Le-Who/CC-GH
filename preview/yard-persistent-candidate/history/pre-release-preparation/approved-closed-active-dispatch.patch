@@ -1,0 +1,717 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 11d764a..e800bb6 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -6,7 +6,31 @@ on:
+     branches: [codex/telegram-pixi-vps-migration]
+ 
+ jobs:
++  yard-release-mode:
++    name: Resolve exact CLOSED and ACTIVE source identities
++    runs-on: ubuntu-latest
++    outputs:
++      mode: ${{ steps.release.outputs.mode }}
++      closed_ref: ${{ steps.release.outputs.closed_ref }}
++      active_ref: ${{ steps.release.outputs.active_ref }}
++      closed_digest: ${{ steps.release.outputs.closed_digest }}
++      contract_hash: ${{ steps.release.outputs.contract_hash }}
++    steps:
++      - uses: actions/checkout@v6
++        with:
++          fetch-depth: 0
++          persist-credentials: false
++      - uses: actions/setup-node@v6
++        with:
++          node-version: 24.x
++      - name: Verify committed release mode and full promotion boundary
++        id: release
++        run: node scripts/yard-ci-dispatch.mjs --plan
++      - name: Test dispatch negative controls
++        run: node --test tests/yard-active-dispatch.test.mjs
++
+   test:
++    needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     strategy:
+       matrix:
+@@ -29,12 +53,24 @@ jobs:
+ 
+     steps:
+       - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          persist-credentials: false
+ 
+       - name: Use Node.js ${{ matrix.node-version }}
+         uses: actions/setup-node@v6
+         with:
+           node-version: ${{ matrix.node-version }}
+ 
++      - name: Verify and report exact CLOSED acceptance source
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: |
++          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
++      - name: Verify promotion machinery against exact CLOSED source
++        run: node --test tests/yard-active-promotion.test.mjs
++
+       - name: Enable pnpm via corepack
+         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+ 
+@@ -135,7 +171,7 @@ jobs:
+         if: always()
+         uses: actions/upload-artifact@v7
+         with:
+-          name: game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
++          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-media-budget-${{ github.sha }}-${{ github.run_attempt }}
+           path: |
+             artifacts/perf/perf-build-report.json
+             artifacts/perf/yard-lazy-build-report.json
+@@ -152,6 +188,7 @@ jobs:
+           retention-days: 14
+ 
+   yard-player:
++    needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     timeout-minutes: 30
+     services:
+@@ -171,9 +208,18 @@ jobs:
+ 
+     steps:
+       - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          persist-credentials: false
+       - uses: actions/setup-node@v6
+         with:
+           node-version: 24.x
++      - name: Verify and report exact CLOSED acceptance source
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: |
++          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+       - name: Enable locked pnpm
+         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+       - name: Install locked dependencies
+@@ -214,6 +260,7 @@ jobs:
+           group: yard-player-integration
+ 
+   yard-eight-player:
++    needs: [yard-release-mode]
+     name: Yard eight-player / ${{ matrix.group }}
+     runs-on: ubuntu-latest
+     strategy:
+@@ -239,9 +286,18 @@ jobs:
+           --health-retries 12
+     steps:
+       - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          persist-credentials: false
+       - uses: actions/setup-node@v6
+         with:
+           node-version: 24.x
++      - name: Verify and report exact CLOSED acceptance source
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: |
++          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+       - name: Enable locked pnpm
+         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+       - name: Install locked dependencies
+@@ -298,16 +354,26 @@ jobs:
+           group: yard-eight-player-${{ matrix.group }}
+ 
+   browser-plan:
++    needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     outputs:
+       matrix: ${{ steps.groups.outputs.matrix }}
+     steps:
+       - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          persist-credentials: false
+       - uses: actions/setup-node@v6
+         with:
+           node-version: 24.x
+       - name: Validate exhaustive browser groups and bounded artifacts
+         run: node --test tests/browser-ci-contract.test.mjs tests/yard-eight-evidence.test.mjs
++      - name: Verify and report exact CLOSED acceptance source
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: |
++          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+       - name: Enable pnpm via corepack
+         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+       - name: Install dependencies for real Playwright discovery
+@@ -329,7 +395,7 @@ jobs:
+ 
+   browser:
+     name: Browser / ${{ matrix.group }}
+-    needs: [browser-plan]
++    needs: [yard-release-mode, browser-plan]
+     runs-on: ubuntu-latest
+     strategy:
+       fail-fast: false
+@@ -340,9 +406,18 @@ jobs:
+       BROWSER_CI_GROUP: ${{ matrix.group }}
+     steps:
+       - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          persist-credentials: false
+       - uses: actions/setup-node@v6
+         with:
+           node-version: 24.x
++      - name: Verify and report exact CLOSED acceptance source
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: |
++          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+       - name: Enable pnpm via corepack
+         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+       - name: Install dependencies
+@@ -370,12 +445,22 @@ jobs:
+           group: ${{ matrix.group }}
+ 
+   touch:
++    needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          persist-credentials: false
+       - uses: actions/setup-node@v6
+         with:
+           node-version: 24.x
++      - name: Verify and report exact CLOSED acceptance source
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: |
++          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+       - name: Enable pnpm via corepack
+         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+       - name: Install dependencies
+@@ -388,7 +473,7 @@ jobs:
+         if: always()
+         uses: actions/upload-artifact@v7
+         with:
+-          name: game-hub-touch-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
++          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-touch-diagnostics-${{ github.sha }}-${{ github.run_attempt }}
+           path: |
+             playwright-results.json
+             test-results/**/error-context.md
+@@ -407,12 +492,22 @@ jobs:
+           retention-days: 14
+ 
+   mochi:
++    needs: [yard-release-mode]
+     runs-on: ubuntu-latest
+     steps:
+       - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.closed_ref }}
++          persist-credentials: false
+       - uses: actions/setup-node@v6
+         with:
+           node-version: 24.x
++      - name: Verify and report exact CLOSED acceptance source
++        env:
++          CLOSED_SOURCE_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++        run: |
++          node scripts/yard-ci-dispatch.mjs --assert-closed-ref "$CLOSED_SOURCE_COMMIT"
++          echo "CLOSED suites source: $CLOSED_SOURCE_COMMIT; workflow candidate: $GITHUB_SHA" >> "$GITHUB_STEP_SUMMARY"
+       - name: Enable pnpm via corepack
+         run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+       - name: Install dependencies
+@@ -458,7 +553,7 @@ jobs:
+         if: always()
+         uses: actions/upload-artifact@v7
+         with:
+-          name: game-hub-pebble-compact-${{ github.sha }}-${{ github.run_attempt }}
++          name: CLOSED-${{ needs.yard-release-mode.outputs.closed_ref }}-game-hub-pebble-compact-${{ github.sha }}-${{ github.run_attempt }}
+           path: test-results-yard-pebble/compact-diagnostics/
+           if-no-files-found: ignore
+           retention-days: 14
+@@ -582,3 +677,128 @@ jobs:
+ 
+       - name: Verify final container Yard HTTP delivery
+         run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-public-media-http.mjs
++
++  yard-active:
++    name: ACTIVE ordinary imports
++    needs: [yard-release-mode]
++    if: needs.yard-release-mode.outputs.mode == 'ACTIVE'
++    runs-on: ubuntu-latest
++    timeout-minutes: 20
++    steps:
++      - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
++          fetch-depth: 0
++          persist-credentials: false
++      - uses: actions/setup-node@v6
++        with:
++          node-version: 24.x
++      - name: Verify exact ACTIVE tree before installing or building
++        run: node scripts/yard-ci-dispatch.mjs --verify-active
++      - name: Install frozen dependencies
++        run: |
++          corepack enable && corepack prepare pnpm@10.28.2 --activate
++          pnpm install --frozen-lockfile
++      - name: Build ordinary ACTIVE client
++        env:
++          VITE_BUILD_ID: ${{ needs.yard-release-mode.outputs.active_ref }}
++        run: pnpm run build
++      - name: Check ordinary ACTIVE behavior and real adapter metadata
++        run: node scripts/yard-active-runtime-checks.mjs
++      - name: Check ACTIVE loading graph and exact delivered bytes
++        env:
++          NODE_ENV: test
++        run: |
++          node --test tests/yard-renderer-chunk.test.mjs tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
++          pnpm run perf:guard:build
++      - uses: actions/upload-artifact@v7
++        if: always()
++        with:
++          name: yard-active-build-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
++          path: |
++            artifacts/perf/
++            dist/game-loading-graph.json
++          if-no-files-found: error
++          retention-days: 14
++
++  yard-active-production:
++    name: ACTIVE production image and rollback
++    needs: [yard-release-mode, yard-active]
++    if: needs.yard-release-mode.outputs.mode == 'ACTIVE'
++    runs-on: ubuntu-latest
++    timeout-minutes: 40
++    permissions:
++      contents: read
++      packages: read
++    env:
++      CI: 'true'
++      YARD_PRODUCTION_ACCEPTANCE: '1'
++      YARD_ACTIVE_COMMIT: ${{ needs.yard-release-mode.outputs.active_ref }}
++      YARD_CLOSED_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
++      YARD_CLOSED_DIGEST: ${{ needs.yard-release-mode.outputs.closed_digest }}
++      YARD_IMAGE_REPOSITORY: ghcr.io/le-who/cc-gh
++      NODE_OPTIONS: ''
++      DEV_AUTH_ENABLED: ''
++      TELEGRAM_BOT_TOKEN: ''
++      DATABASE_URL: ''
++      REDIS_URL: ''
++      YARD_PLAYER_WIRING_TEST: ''
++      YARD_CANDIDATE_CI: ''
++      YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
++    steps:
++      - uses: actions/checkout@v6
++        with:
++          ref: ${{ needs.yard-release-mode.outputs.active_ref }}
++          fetch-depth: 0
++          persist-credentials: false
++      - uses: actions/setup-node@v6
++        with:
++          node-version: 24.x
++      - name: Validate exact ACTIVE tree and production acceptance safety
++        run: |
++          node scripts/yard-ci-dispatch.mjs --verify-active
++          node --test tests/yard-production-contract.test.mjs
++      - name: Install frozen test dependencies and Chromium
++        run: |
++          corepack enable && corepack prepare pnpm@10.28.2 --activate
++          pnpm install --frozen-lockfile
++          pnpm exec playwright install --with-deps chromium
++      - uses: docker/login-action@v4
++        with:
++          registry: ghcr.io
++          username: ${{ github.actor }}
++          password: ${{ secrets.GITHUB_TOKEN }}
++      - name: Fetch exact A and build ordinary B without publishing
++        run: |
++          docker pull "${YARD_IMAGE_REPOSITORY}@${YARD_CLOSED_DIGEST}"
++          docker pull postgres:15
++          docker build --file Dockerfile --build-arg "BUILD_ID=${YARD_ACTIVE_COMMIT}" --label "org.opencontainers.image.revision=${YARD_ACTIVE_COMMIT}" --tag "ccgh-yard-production:${YARD_ACTIVE_COMMIT}" .
++      - name: Real production API, persistence and warm A-B-A cache acceptance
++        timeout-minutes: 18
++        run: node scripts/yard-production-acceptance.mjs
++      - uses: actions/upload-artifact@v7
++        if: always()
++        with:
++          name: yard-production-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
++          path: test-results/yard-production/
++          if-no-files-found: error
++          retention-days: 14
++
++  release-ready:
++    name: Exact source release acceptance
++    needs: [yard-release-mode, test, yard-player, yard-eight-player, browser-plan, browser, touch, mochi, docker, yard-active, yard-active-production]
++    if: always()
++    runs-on: ubuntu-latest
++    steps:
++      - name: Require the complete mode-specific result set
++        env:
++          RELEASE_MODE: ${{ needs.yard-release-mode.outputs.mode }}
++          RELEASE_RESULTS: ${{ toJSON(needs) }}
++        run: |
++          node --input-type=module <<'JS'
++          import assert from 'node:assert/strict';
++          const needs=JSON.parse(process.env.RELEASE_RESULTS),mode=process.env.RELEASE_MODE;
++          assert.ok(['CLOSED','ACTIVE'].includes(mode));
++          for(const job of ['yard-release-mode','test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi','docker'])assert.equal(needs[job].result,'success',job);
++          for(const job of ['yard-active','yard-active-production'])assert.equal(needs[job].result,mode==='ACTIVE'?'success':'skipped',job);
++          JS
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index 19c3ffe..5444124 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -18,6 +18,7 @@ jobs:
+     uses: ./.github/workflows/ci.yml
+     permissions:
+       contents: read
++      packages: read
+ 
+   build-and-push:
+     needs: validate
+diff --git a/docs/yard-active-ci-dispatch.md b/docs/yard-active-ci-dispatch.md
+new file mode 100644
+index 0000000..8ca44fe
+--- /dev/null
++++ b/docs/yard-active-ci-dispatch.md
+@@ -0,0 +1,51 @@
++# Exact-tree CLOSED / ACTIVE CI
++
++Install this dispatch machinery, the reviewed promotion tools, production-image
++acceptance lane and rollback outbox fix in CLOSED A before freezing/publishing A.
++This patch does not change any release flag or generate an active overlay.
++
++`scripts/yard-ci-dispatch.mjs --plan` first rejects dirty/untracked source. A
++closed commit must pass the existing full `verify-production.mjs`, including its
++entire historical transfer graph. An active commit must pass the promotion
++contract, ordinary runtime semantics and a Git-tree comparison against its exact
++ancestor A. Outside the eight promoted existing files and thirteen explicitly
++named new contract/archive files, every Git object, path, type and mode must be
++identical. Existing file modes are preserved; new proof files must be regular
++100644 files. A history-directory prefix is never an allowlist.
++
++The workflow keeps all existing CLOSED commands and suites. For ACTIVE B those
++jobs explicitly check out A, verify its full contract again, and report A's SHA
++in verified step summaries and artifact metadata. Existing check names stay stable
++so repository required-check settings need no change. Their green status is CLOSED-source evidence,
++not a claim that those closed assertions ran against B. For CLOSED runs A is the
++workflow's own checked commit. The six-file candidate transformer stays strict.
++
++The ACTIVE-only job checks out B, runs its ordinary Vite build, built-media and
++loading-budget tests, and `yard-active-runtime-checks.mjs`. That script uses
++ordinary on-disk production modules: eight adapters, actual default admissions,
++condition/food restrictions, migration/archive preservation, completion/replay,
++unsupported actions and future/null storage. No loader or acceptance options are
++used. The independent production-image job then builds ordinary B with its exact
++build/revision identity, pulls exact A and runs the real API/PG/warm-cache A-B-A
++lane. Every ACTIVE-required job must succeed in the final `release-ready` gate;
++its CLOSED expectation for those two jobs is an explicit skip, not ignored failure.
++
++The existing Docker gate and deployment compatibility/pre-switch logic are
++unchanged. Reusable CI failure blocks publication. There is no new 110-minute
++duration run: accepted historical duration and reviewed equivalence remain
++scoped to their real source identities.
++
++The reusable `deploy.validate` caller grants `packages: read` alongside its
++existing `contents: read`, matching the ACTIVE production job's read-only pull
++of this repository's exact A image. No write scope, persistent credential or
++new secret is added. Before A is frozen, integrate the exact ci.yml/deploy.yml
++changes through their existing protected workflow transfer proofs. Do not
++replace old pins silently. Final readiness requires a complete `--plan` pass on
++that clean committed integration; checks against the prior tree are narrower.
++
++Local execution of the new dispatch negative tests needs only Node/Git and a
++readable complete closed source checkout. In the tiny author workspace use
++`YARD_DISPATCH_TEST_SOURCE_ROOT=/path/to/closed node --test tests/yard-active-dispatch.test.mjs`.
++The override selects read-only test inputs, never release mode or runtime policy.
++Real B build/image/browser execution awaits a reviewed promotion and exact A
++identity; local synthetic Git-tree tests are not that release proof.
+diff --git a/scripts/yard-active-runtime-checks.mjs b/scripts/yard-active-runtime-checks.mjs
+new file mode 100644
+index 0000000..0ac5c89
+--- /dev/null
++++ b/scripts/yard-active-runtime-checks.mjs
+@@ -0,0 +1,48 @@
++/** Short ACTIVE equivalents using ordinary production imports and built media. */
++import assert from 'node:assert/strict';
++import {readFileSync} from 'node:fs';
++import {resolve} from 'node:path';
++import {pathToFileURL} from 'node:url';
++import {verifyActiveRuntime,ACTORS} from './yard-active-contract.mjs';
++export async function checkActiveYard(root){
++ assert.ok(!process.env.NODE_OPTIONS&&!process.execArgv.some(a=>/^--(?:import|(?:experimental-)?loader)(?:=|$)/.test(a))&&!process.env.YARD_PLAYER_WIRING_TEST&&!process.env.YARD_EIGHT_PLAYER_CANDIDATE_TEST&&!process.env.YARD_CANDIDATE_CI,'Ordinary production imports required');
++ const runtime=await verifyActiveRuntime(root),load=path=>import(pathToFileURL(resolve(root,path)).href);
++ const {getYardServerOptions}=await load('game-logic/yard-v2/yard-media.mjs'),options=getYardServerOptions();
++ const {createAdmissionPolicy}=await load('game-logic/yard-v2/orchestrator.mjs');const policy=createAdmissionPolicy(options);
++ const {nativePlayer,candidate,NOW,H}=await load('tests/helpers/yard-eight-domain-fixtures.mjs');
++ const {YARD_GOODIES}=await load('game-logic/yard-v2/catalog.mjs');
++ const {initializeReleasedPlayerYard,executeReleasedYardAction,releasedYardSnapshot}=await load('game-logic/yard-v2/player-release.mjs');
++ const {createActorMediaEntry}=await load('src/games/companion-yard-v2/actor-media.mjs');
++ const {MIKA_CLIPS}=await load('game-logic/yard-v2/media/mika-clips.mjs');const {MIKA_ACTOR_REFERENCE}=await load('game-logic/yard-v2/actor-profiles.mjs');
++ const {createMochiActorMediaEntry}=await load('src/games/companion-yard-v2/mochi-actor-media.mjs');
++ const {createPebbleActorMediaEntry}=await load('src/games/companion-yard-v2/pebble-actor-media.mjs');
++ const {createPipActorMediaEntry}=await load('src/games/companion-yard-v2/pip-actor-media.mjs');
++ const {createFamilyActorMediaEntry}=await load('src/games/companion-yard-v2/family-actor-media.mjs');
++ const witnesses=[];
++ for(const id of ACTORS){
++  const family=['willow','starlit','basil','sage'].includes(id),path=family?`assets/yard-family/${id}/runtime-media.json`:`assets/yard-${id}/runtime-media.json`;
++  const manifest=JSON.parse(readFileSync(resolve(root,'dist',path))),args={assetBaseURL:new URL(path.replace('runtime-media.json',''),'http://127.0.0.1').href,profiles:options.actorProfiles};
++  const construct=m=>id==='mika'?createActorMediaEntry(m,{...args,reference:MIKA_ACTOR_REFERENCE,clips:MIKA_CLIPS}):id==='mochi'?createMochiActorMediaEntry(m,args):id==='pebble'?createPebbleActorMediaEntry(m,args):id==='pip'?createPipActorMediaEntry(m,args):createFamilyActorMediaEntry(id,m,args);
++  assert.equal(construct(manifest).profile.id,id);
++  if(['mochi','pebble'].includes(id)){assert.equal(manifest.playbackReady,true);assert.equal(manifest.runtimeActivated,id==='mochi');assert.throws(()=>construct({...manifest,playbackReady:false}),/mismatch/);}
++  if(id==='pip'||family){assert.equal(manifest.playbackReady,false);assert.equal(manifest.runtimeActivated,false);assert.throws(()=>construct({...manifest,playbackReady:true}),/mismatch|Frozen/);}
++  if(id==='mochi'){const bad=structuredClone(manifest);bad.sourceMedia.combined.playbackReady=true;assert.throws(()=>construct(bad),/cannot activate/);}
++  const p=nativePlayer(id),outside=structuredClone({resources:p.resources,garden:p.garden,merge:p.merge,futureAccount:p.futureAccount});
++  assert.equal(initializeReleasedPlayerYard(p,{now:NOW}).status,200);const archive=JSON.stringify(p._yardV2.migration.rawBackup);
++  assert.equal(initializeReleasedPlayerYard(p,{now:NOW+H,simulate:true}).status,200);assert.equal(JSON.stringify(p._yardV2.migration.rawBackup),archive);
++  const visits=Object.values(p._yardV2.runtime.visits);assert.equal(visits.length,1,id);assert.equal(visits[0].original.visitorId,options.actorProfiles[id].visitorId);
++  const snapshot=releasedYardSnapshot(p,{now:NOW+H});assert.equal(snapshot.yardRuntime.mutable,true);assert.equal(snapshot.yardRuntime.actionProtocol,'yard-v2:');assert.equal(snapshot.yardRuntime.visits[0].renderCompatible,true);
++  const end=visits[0].leavesAt;assert.equal(initializeReleasedPlayerYard(p,{now:end,simulate:true}).status,200);assert.equal(p.yard.pendingGifts.length,1);
++  const actionId=`yard-v2:active-equivalent-${id}`;assert.equal(executeReleasedYardAction(p,'yard.collectGifts',{}, {now:end,actionId}).status,200);
++  const before=JSON.stringify(p);assert.equal(executeReleasedYardAction(p,'yard.collectGifts',{}, {now:end+1,actionId}).replayed,true);assert.equal(JSON.stringify(p),before);
++  assert.deepEqual({resources:p.resources,garden:p.garden,merge:p.merge,futureAccount:p.futureAccount},outside);
++  for(const [action,payload]of [['yard.buyExpansion',{}],['yard.setRemodel',{remodelId:'zen'}]])assert.equal(executeReleasedYardAction(p,action,payload,{now:end,actionId:`yard-v2:${id}-${action}`}).status,409);
++  witnesses.push({id,visitId:visits[0].visitId,minutes:(visits[0].leavesAt-visits[0].arrivedAt)/60000});
++ }
++ for(const id of ['pip','starlit'])for(const mult of [1,2]){const base=candidate(id),uses=YARD_GOODIES[base.placement.goodieId].durability*mult,q=candidate(id,{uses,...(id==='starlit'?{activityId:'glow'}:{})}),before=JSON.stringify(q);assert.equal(policy(q).ok,false);assert.equal(JSON.stringify(q),before);}
++ for(const id of ['willow','starlit','basil','sage'])for(const mult of [1,2]){const q=candidate(id),uses=YARD_GOODIES[q.placement.goodieId].durability*mult;assert.equal(policy(candidate(id,{uses})).ok,true);}
++ for(const [id,foodId]of [['sage','kibble'],['starlit','berry_plate']]){const q=candidate(id);q.bowl.foodId=foodId;assert.equal(policy(q).code,'REQUIRED_PROP_OR_FOOD_UNAVAILABLE');}
++ for(const marker of [null,{version:99,format:'future'}]){const p=nativePlayer('mika');p._yardV2=marker;const before=JSON.stringify(p);assert.equal(initializeReleasedPlayerYard(p,{now:NOW,simulate:true}).status,409);assert.equal(releasedYardSnapshot(p,{now:NOW}).yardRuntime.mutable,false);assert.equal(JSON.stringify(p),before);}
++ return {status:'passed',scope:'Ordinary ACTIVE production defaults, built manifests, native domain and receipt equivalents; no HTTP/browser claim',runtime,witnesses};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){try{assert.equal(process.argv.length,2);console.log(JSON.stringify(await checkActiveYard(process.cwd())));}catch(e){console.error(`ACTIVE equivalents failed: ${e.message}`);process.exitCode=1;}}
+diff --git a/scripts/yard-ci-dispatch.mjs b/scripts/yard-ci-dispatch.mjs
+new file mode 100644
+index 0000000..15172b2
+--- /dev/null
++++ b/scripts/yard-ci-dispatch.mjs
+@@ -0,0 +1,77 @@
++/** Exact tree routing for CLOSED A and its narrowly promoted ACTIVE B. */
++import assert from 'node:assert/strict';
++import {readFileSync,appendFileSync} from 'node:fs';
++import {resolve} from 'node:path';
++import {pathToFileURL} from 'node:url';
++import {spawnSync} from 'node:child_process';
++import {ACTIVE_CONTRACT_PATH,PROMOTED_PATHS,verifyPromotionContract,verifyActiveRuntime} from './yard-active-contract.mjs';
++export const CLOSED_VERIFIERS=Object.freeze(['preview/yard-persistent-candidate/base-contract.json','preview/yard-persistent-candidate/verify-production.mjs','preview/yard-persistent-candidate/verify-closed-rollout.mjs','preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs']);
++export const ADDED_PROMOTION_PATHS=Object.freeze([ACTIVE_CONTRACT_PATH,
++ ...PROMOTED_PATHS.map(path=>`preview/yard-persistent-candidate/history/pre-activation/promoted-inputs/${path}`),
++ ...CLOSED_VERIFIERS.map(path=>`preview/yard-persistent-candidate/history/pre-activation/closed-verification/${path}`)]);
++export const FULL_PROMOTION_PATHS=Object.freeze([...PROMOTED_PATHS,...ADDED_PROMOTION_PATHS]);
++const fullCommit=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
++function git(root,args){const r=spawnSync('git',args,{cwd:root,encoding:'utf8',maxBuffer:16*1024*1024});assert.equal(r.status,0,r.stderr||r.error?.message);return r.stdout;}
++export function parseGitTree(text){
++ const entries=new Map();for(const row of text.split('\0').filter(Boolean)){
++  const match=/^(\d{6}) (blob|tree|commit) ([a-f0-9]{40})\t([\s\S]+)$/.exec(row);assert.ok(match,'Malformed Git tree entry');
++  const [,mode,type,objectId,path]=match;assert.ok(!entries.has(path),'Duplicate Git path');entries.set(path,{mode,type,objectId});
++ }return entries;
++}
++export function assertExactPromotionTree(before,after){
++ const expected=new Set(FULL_PROMOTION_PATHS),changed=[];
++ assert.equal(expected.size,21);
++ for(const path of new Set([...before.keys(),...after.keys()])){
++  const a=before.get(path),b=after.get(path);if(JSON.stringify(a)===JSON.stringify(b))continue;
++  assert.ok(expected.has(path),`Unrelated tree change outside promotion: ${path}`);changed.push(path);
++  if(PROMOTED_PATHS.includes(path)){
++   assert.ok(a&&b,`Existing promotion file must remain present: ${path}`);assert.equal(a.type,'blob');assert.equal(b.type,'blob');assert.ok(['100644','100755'].includes(a.mode));assert.equal(b.mode,a.mode,`Promotion file mode changed: ${path}`);
++  }else{
++   assert.equal(a,undefined,`Promotion evidence must be newly added: ${path}`);assert.equal(b?.type,'blob');assert.equal(b?.mode,'100644',`Regular new evidence file required: ${path}`);
++  }
++ }
++ assert.deepEqual(changed.sort(),[...FULL_PROMOTION_PATHS].sort(),'Every exact promotion file must change, with no extra path');
++ return {changedFiles:21,unchangedFiles:before.size-PROMOTED_PATHS.length};
++}
++export function assertCleanReleaseCheckout(root){
++ assert.equal(git(root,['status','--porcelain=v1','--untracked-files=all']),'','Committed release boundary rejects dirty or untracked files');
++}
++export function verifyGitPromotionBoundary({rootDir,closedCommit,activeCommit,closedTree}){
++ assert.ok(fullCommit(closedCommit)&&fullCommit(activeCommit)&&fullCommit(closedTree),'Exact A/B commit and A tree required');
++ assertCleanReleaseCheckout(rootDir);assert.equal(git(rootDir,['rev-parse','HEAD']).trim(),activeCommit,'The checked working tree must be B');
++ assert.notEqual(activeCommit,closedCommit,'Activation must be a later commit');
++ assert.equal(git(rootDir,['rev-parse',`${closedCommit}^{tree}`]).trim(),closedTree);
++ const ancestor=spawnSync('git',['merge-base','--is-ancestor',closedCommit,activeCommit],{cwd:rootDir,encoding:'utf8'});assert.equal(ancestor.status,0,'Closed A must be an ancestor of B');
++ const before=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree',closedCommit]));
++ const after=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree',activeCommit]));
++ return {...assertExactPromotionTree(before,after),closedCommit,activeCommit,closedTree};
++}
++export function verifyClosedSource(rootDir,expectedCommit){
++ assert.ok(fullCommit(expectedCommit));assertCleanReleaseCheckout(rootDir);
++ assert.equal(git(rootDir,['rev-parse','HEAD']).trim(),expectedCommit,'CLOSED suites must run on their declared A commit');
++ const tree=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree','HEAD']));assert.ok(!tree.has(ACTIVE_CONTRACT_PATH),'Closed checkout cannot contain an ACTIVE contract');
++ const result=spawnSync(process.execPath,[resolve(rootDir,'preview/yard-persistent-candidate/verify-production.mjs')],{cwd:rootDir,encoding:'utf8',timeout:120000,maxBuffer:4*1024*1024,
++  env:{...process.env,NODE_OPTIONS:'',DATABASE_URL:'',REDIS_URL:'',YARD_CANDIDATE_CI:'',YARD_PLAYER_WIRING_TEST:'',YARD_EIGHT_PLAYER_CANDIDATE_TEST:''}});
++ assert.equal(result.status,0,result.stderr||result.error?.message);const verified=JSON.parse(result.stdout);
++ assert.equal(verified.rolloutEnabled,false);assert.equal(verified.sourceAcceptance,'closed');assert.deepEqual(verified.releasedActors,['mika']);
++ return {mode:'CLOSED',sourceCommit:expectedCommit,fullContract:verified};
++}
++export async function planYardRelease(rootDir){
++ assert.ok(!process.env.NODE_OPTIONS&&!process.env.YARD_PLAYER_WIRING_TEST&&!process.env.YARD_EIGHT_PLAYER_CANDIDATE_TEST&&!process.env.YARD_CANDIDATE_CI,'No inherited policy loader allowed');
++ assertCleanReleaseCheckout(rootDir);const head=git(rootDir,['rev-parse','HEAD']).trim(),tree=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree','HEAD']));
++ if(!tree.has(ACTIVE_CONTRACT_PATH)){const closed=verifyClosedSource(rootDir,head);return {mode:'CLOSED',closed_ref:head,active_ref:head,closed_digest:'',contract_hash:'',closed};}
++ const contract=JSON.parse(readFileSync(resolve(rootDir,ACTIVE_CONTRACT_PATH),'utf8')),closed=contract.inputs?.closed;
++ const boundary=verifyGitPromotionBoundary({rootDir,closedCommit:closed?.buildId,activeCommit:head,closedTree:contract.closedTree});
++ const promotion=verifyPromotionContract({rootDir}),runtime=await verifyActiveRuntime(rootDir);
++ return {mode:'ACTIVE',closed_ref:closed.buildId,active_ref:head,closed_digest:closed.imageDigest,contract_hash:runtime.contractSha256,boundary,promotion,runtime};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(resolve(process.argv[1])).href){
++ try{
++  const [command,argument]=process.argv.slice(2),root=process.cwd();assert.ok(['--plan','--verify-active','--assert-closed-ref'].includes(command));
++  if(command==='--assert-closed-ref')console.log(JSON.stringify(verifyClosedSource(root,argument)));
++  else{assert.equal(argument,undefined);const result=await planYardRelease(root);if(command==='--verify-active')assert.equal(result.mode,'ACTIVE');
++   if(command==='--plan'&&process.env.GITHUB_OUTPUT)for(const key of ['mode','closed_ref','active_ref','closed_digest','contract_hash'])appendFileSync(process.env.GITHUB_OUTPUT,`${key}=${result[key]}\n`);
++   console.log(JSON.stringify(result));
++  }
++ }catch(e){console.error(`Yard CI dispatch blocked: ${e.message}`);process.exitCode=1;}
++}
+diff --git a/tests/yard-active-dispatch.test.mjs b/tests/yard-active-dispatch.test.mjs
+new file mode 100644
+index 0000000..a1e116e
+--- /dev/null
++++ b/tests/yard-active-dispatch.test.mjs
+@@ -0,0 +1,120 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {mkdtempSync,mkdirSync,writeFileSync,readFileSync,existsSync,rmSync,chmodSync,symlinkSync,unlinkSync} from 'node:fs';
++import {resolve,dirname} from 'node:path';
++import {tmpdir} from 'node:os';
++import {spawnSync} from 'node:child_process';
++import {PROMOTED_PATHS,ACTIVE_CONTRACT_PATH} from '../scripts/yard-active-contract.mjs';
++import {FULL_PROMOTION_PATHS,ADDED_PROMOTION_PATHS,parseGitTree,assertExactPromotionTree,verifyGitPromotionBoundary,verifyClosedSource,planYardRelease} from '../scripts/yard-ci-dispatch.mjs';
++const ownRoot=resolve(import.meta.dirname,'..'),sourceRoot=resolve(process.env.YARD_DISPATCH_TEST_SOURCE_ROOT||ownRoot);
++const run=(root,args)=>{const r=spawnSync('git',args,{cwd:root,encoding:'utf8'});assert.equal(r.status,0,r.stderr);return r.stdout.trim();};
++const put=(root,path,data)=>{mkdirSync(dirname(resolve(root,path)),{recursive:true});writeFileSync(resolve(root,path),data);};
++const commit=root=>{run(root,['add','-A']);run(root,['-c','user.name=Fixture','-c','user.email=fixture@invalid','commit','-qm','owned fixture']);return run(root,['rev-parse','HEAD']);};
++function fixture(){
++ const root=mkdtempSync(resolve(tmpdir(),'yard-dispatch-tree-'));run(root,['init','-q']);run(root,['config','core.filemode','true']);
++ for(const path of PROMOTED_PATHS)put(root,path,'closed:'+path+'\n');
++ for(const path of ['routes/player.js','src/game-state/useGameHub.js','src/game-state/yardOutboxStorage.js','public/assets/yard-pip/actor.webp','.github/workflows/ci.yml'])put(root,path,'unchanged:'+path+'\n');
++ const closedCommit=commit(root),closedTree=run(root,['rev-parse','HEAD^{tree}']);
++ for(const path of PROMOTED_PATHS)put(root,path,'active:'+path+'\n');for(const path of ADDED_PROMOTION_PATHS)put(root,path,'owned fixture:'+path+'\n');
++ const activeCommit=commit(root);return {root,closedCommit,closedTree,activeCommit};
++}
++function withFixture(fn){const f=fixture();try{return fn(f);}finally{rmSync(f.root,{recursive:true,force:true});}}
++const verify=f=>verifyGitPromotionBoundary({rootDir:f.root,...f});
++test('the complete permitted delta is exactly eight existing and thirteen new paths',()=>{
++ assert.equal(FULL_PROMOTION_PATHS.length,21);assert.equal(new Set(FULL_PROMOTION_PATHS).size,21);assert.equal(ADDED_PROMOTION_PATHS.length,13);
++ assert.ok(!FULL_PROMOTION_PATHS.some(path=>path.endsWith('/')));
++ withFixture(f=>assert.equal(verify(f).changedFiles,21));
++});
++for(const path of ['routes/player.js','src/game-state/useGameHub.js','src/game-state/yardOutboxStorage.js','public/assets/yard-pip/actor.webp','.github/workflows/ci.yml'])test(`unrelated committed ${path} changes fail full-tree comparison`,()=>withFixture(f=>{
++ put(f.root,path,'unreviewed drift');f.activeCommit=commit(f.root);assert.throws(()=>verify(f),/Unrelated tree change/);
++}));
++test('an extra file under the history prefix is not an allowed promotion',()=>withFixture(f=>{
++ put(f.root,'preview/yard-persistent-candidate/history/pre-activation/unreviewed.js','bad');f.activeCommit=commit(f.root);assert.throws(()=>verify(f),/Unrelated tree change/);
++}));
++test('promoted-file deletion, executable-bit changes and new symlink evidence fail',()=>{
++ for(const change of [f=>unlinkSync(resolve(f.root,PROMOTED_PATHS[0])),f=>chmodSync(resolve(f.root,PROMOTED_PATHS[0]),0o755),f=>{const p=resolve(f.root,ADDED_PROMOTION_PATHS[0]);unlinkSync(p);symlinkSync('../outside',p);}])withFixture(f=>{change(f);f.activeCommit=commit(f.root);assert.throws(()=>verify(f),/remain present|mode changed|Regular new evidence/);});
++});
++test('dirty tracked bytes and untracked source files fail before tree reuse',()=>{
++ for(const path of ['routes/player.js','src/untracked-promotion-bypass.js'])withFixture(f=>{put(f.root,path,'uncommitted');assert.throws(()=>verify(f),/dirty or untracked/);});
++});
++test('wrong A tree, wrong checked B, identical A/B and nonancestor A fail',()=>{
++ withFixture(f=>assert.throws(()=>verify({...f,closedTree:'0'.repeat(40)})));
++ withFixture(f=>assert.throws(()=>verify({...f,activeCommit:f.closedCommit}),/working tree must be B/));
++ withFixture(f=>{run(f.root,['checkout','--detach',f.closedCommit]);assert.throws(()=>verify({...f,activeCommit:f.closedCommit}),/later commit/);});
++ withFixture(f=>{run(f.root,['checkout','--orphan','unrelated']);f.activeCommit=commit(f.root);assert.throws(()=>verify(f),/ancestor/);});
++});
++test('missing one required promotion and pre-existing added evidence fail',()=>withFixture(f=>{
++ const tree=ref=>parseGitTree(run(f.root,['ls-tree','-rz','--full-tree',ref]));const a=tree(f.closedCommit),b=tree(f.activeCommit);
++ const missing=new Map(b);missing.set(PROMOTED_PATHS[0],a.get(PROMOTED_PATHS[0]));assert.throws(()=>assertExactPromotionTree(a,missing),/Every exact promotion/);
++ const preexisting=new Map(a);preexisting.set(ADDED_PROMOTION_PATHS[0],{mode:'100644',type:'blob',objectId:'f'.repeat(40)});assert.throws(()=>assertExactPromotionTree(preexisting,b),/newly added/);
++}));
++test('actual checkout verifies its exact mode and never relabels ACTIVE as CLOSED',async()=>{
++ const head=run(sourceRoot,['rev-parse','HEAD']);
++ if(existsSync(resolve(sourceRoot,ACTIVE_CONTRACT_PATH))){
++  assert.throws(()=>verifyClosedSource(sourceRoot,head),/cannot contain an ACTIVE contract/);
++  const plan=await planYardRelease(sourceRoot);assert.equal(plan.mode,'ACTIVE');assert.equal(plan.active_ref,head);assert.notEqual(plan.closed_ref,head);assert.equal(plan.boundary.changedFiles,21);
++ }else{
++  const closed=verifyClosedSource(sourceRoot,head);assert.equal(closed.mode,'CLOSED');assert.ok(closed.fullContract.boundary.reviewedProductionTransitions>=9);
++  const plan=await planYardRelease(sourceRoot);assert.equal(plan.mode,'CLOSED');assert.equal(plan.closed_ref,head);assert.equal(plan.active_ref,head);
++ }
++});
++const workflow=readFileSync(resolve(ownRoot,'.github/workflows/ci.yml'),'utf8');
++const block=job=>workflow.match(new RegExp(`^  ${job}:\\n([\\s\\S]*?)(?=^  [a-z][a-z0-9_-]*:|$(?![\\s\\S]))`,'m'))?.[1];
++// Parse the workflow's explicit block indentation: nested step/artifact fields
++// must never satisfy job-level metadata checks. No dependency install is needed.
++function metadata(text){
++ const jobs={};let inJobs=false,job=null,step=null,permissions=false,withFields=false;
++ for(const line of text.split('\n')){
++  if(line==='jobs:'){inJobs=true;continue;}if(!inJobs)continue;
++  let m=/^  ([a-z][a-z0-9_-]*):$/.exec(line);if(m){job=jobs[m[1]]={permissions:{},steps:[]};step=null;permissions=false;withFields=false;continue;}
++  if(!job)continue;
++  m=/^    ([a-z][a-z_-]*):\s*(.*)$/.exec(line);if(m){permissions=m[1]==='permissions';withFields=false;if(['name','uses'].includes(m[1]))job[m[1]]=m[2];continue;}
++  if(permissions){m=/^      ([a-z-]+):\s*(\S+)$/.exec(line);if(m){job.permissions[m[1]]=m[2];continue;}}
++  m=/^      - ([a-z]+):\s*(.*)$/.exec(line);if(m){permissions=false;withFields=false;step={[m[1]]:m[2],with:{}};job.steps.push(step);continue;}
++  if(!step)continue;
++  m=/^        ([a-z-]+):\s*(.*)$/.exec(line);if(m){withFields=m[1]==='with';if(m[1]==='uses')step.uses=m[2];continue;}
++  m=/^          ([a-z-]+):\s*(.*)$/.exec(line);if(m&&withFields)step.with[m[1]]=m[2];
++ }
++ return jobs;
++}
++function validateArtifactNames(jobs){
++ let count=0;for(const job of Object.values(jobs))for(const step of job.steps.filter(s=>/^actions\/upload-artifact@/.test(s.uses||''))){
++  const name=step.with.name;assert.equal(typeof name,'string');assert.ok(name.length>0);const literal=name.replace(/\$\{\{[^}]+\}\}/g,'EXPRESSION');assert.doesNotMatch(literal,/[\\/":<>|*?\r\n]/,`Illegal artifact name: ${name}`);count++;
++ }assert.ok(count>0);return count;
++}
++const STABLE_CLOSED_NAMES={test:undefined,'yard-player':undefined,'yard-eight-player':'Yard eight-player / ${{ matrix.group }}','browser-plan':undefined,browser:'Browser / ${{ matrix.group }}',touch:undefined,mochi:undefined};
++function assertStableJobNames(jobs){for(const [job,name]of Object.entries(STABLE_CLOSED_NAMES))assert.equal(jobs[job].name,name,`Existing check identity must remain stable: ${job}`);assert.equal(jobs['yard-active'].name,'ACTIVE ordinary imports');assert.equal(jobs['yard-active-production'].name,'ACTIVE production image and rollback');assert.equal(jobs['release-ready'].name,'Exact source release acceptance');}
++test('unchanged CLOSED jobs check out and disclose exact A, never silently use B',()=>{
++ const jobs=metadata(workflow);assertStableJobNames(jobs);
++ for(const job of ['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi']){
++  const text=block(job);assert.ok(text,job);assert.match(text,/needs: \[yard-release-mode/);assert.match(text,/ref: \$\{\{ needs.yard-release-mode.outputs.closed_ref \}\}/);
++  assert.match(text,/yard-ci-dispatch\.mjs --assert-closed-ref/);assert.match(text,/CLOSED suites source:.*workflow candidate:/);
++ }
++ for(const required of ['pnpm test','preview/yard-persistent-candidate/run-checks.mjs','preview/yard-persistent-candidate/compile-check.mjs','tests/yard-player-api-contract.test.mjs','tests/yard-eight-player-contract.test.mjs','playwright.yard-eight-player.config.js','tests/yard-mika-supported-pairs.test.mjs'])assert.ok(workflow.includes(required),required);
++ assert.match(workflow,/needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
++});
++test('parsed job identities stay stable and every upload name is filename-safe',()=>{
++ const jobs=metadata(workflow);assert.ok(validateArtifactNames(jobs)>=20);
++ assert.equal(jobs.test.name,undefined);assert.ok(jobs.test.steps.some(s=>(s.with.name||'').startsWith('CLOSED-')),'Nested artifact identity does not become a check name');
++ const renamed=structuredClone(jobs);renamed.test.name='CLOSED '+ 'a'.repeat(40);assert.throws(()=>assertStableJobNames(renamed),/check identity/);
++ const missing=metadata(workflow.replace(/^    name: Browser.*\n/m,''));assert.equal(missing.browser.name,undefined);assert.throws(()=>assertStableJobNames(missing),/check identity/);
++ const malformed=structuredClone(jobs),upload=malformed.test.steps.find(s=>/^actions\/upload-artifact@/.test(s.uses||''));upload.with.name='CLOSED / forbidden';assert.throws(()=>validateArtifactNames(malformed),/Illegal artifact name/);
++});
++test('reusable deploy caller grants only the same read permissions required for exact GHCR A',()=>{
++ const caller=metadata(readFileSync(resolve(ownRoot,'.github/workflows/deploy.yml'),'utf8')).validate,callee=metadata(workflow)['yard-active-production'];
++ assert.equal(caller.uses,'./.github/workflows/ci.yml');assert.deepEqual(caller.permissions,{contents:'read',packages:'read'});assert.deepEqual(callee.permissions,caller.permissions);
++ const production=block('yard-active-production');assert.match(production,/YARD_IMAGE_REPOSITORY: ghcr.io\/le-who\/cc-gh/);assert.match(production,/docker pull "\$\{YARD_IMAGE_REPOSITORY\}@\$\{YARD_CLOSED_DIGEST\}"/);assert.doesNotMatch(production,/packages: write|docker push/);
++ const withoutRead=structuredClone(caller);delete withoutRead.permissions.packages;assert.notDeepEqual(withoutRead.permissions,callee.permissions);
++});
++test('ACTIVE build and production image lanes consume B and are mandatory only in ACTIVE mode',()=>{
++ const ordinary=block('yard-active'),production=block('yard-active-production'),aggregate=block('release-ready');
++ for(const text of [ordinary,production]){assert.match(text,/if: needs.yard-release-mode.outputs.mode == 'ACTIVE'/);assert.match(text,/ref: \$\{\{ needs.yard-release-mode.outputs.active_ref \}\}/);assert.match(text,/yard-ci-dispatch\.mjs --verify-active/);assert.doesNotMatch(text,/continue-on-error|yard-eight-player-loader|vite.yard-eight-player-candidate/);}
++ assert.match(ordinary,/run: pnpm run build/);assert.match(ordinary,/yard-active-runtime-checks\.mjs/);assert.match(ordinary,/perf:guard:build/);
++ assert.match(production,/BUILD_ID=\$\{YARD_ACTIVE_COMMIT\}/);assert.match(production,/org.opencontainers.image.revision=\$\{YARD_ACTIVE_COMMIT\}/);assert.match(production,/yard-production-acceptance\.mjs/);assert.match(production,/timeout-minutes: 18/);
++ assert.match(aggregate,/if: always\(\)/);assert.match(aggregate,/mode==='ACTIVE'\?'success':'skipped'/);assert.match(aggregate,/yard-active-production/);
++});
++test('ACTIVE ordinary-import checks contain no policy substitution or candidate options',()=>{
++ const source=readFileSync(resolve(ownRoot,'scripts/yard-active-runtime-checks.mjs'),'utf8');
++ assert.doesNotMatch(source,/registerHooks|candidateSource|createEightAcceptanceOptions|sourceCatalogActionPolicy/);
++ for(const term of ['initializeReleasedPlayerYard','executeReleasedYardAction','createMochiActorMediaEntry','createFamilyActorMediaEntry','renderCompatible','replayed'])assert.ok(source.includes(term));
++});
+diff --git a/tests/yard-player-api-contract.test.mjs b/tests/yard-player-api-contract.test.mjs
+index cf5f6b0..dfe0008 100644
+--- a/tests/yard-player-api-contract.test.mjs
++++ b/tests/yard-player-api-contract.test.mjs
+@@ -35,7 +35,7 @@ test('new lane keeps production app, policies, authentication, database and clie
+ test('independent required CI job builds the unchanged app and retains guarded PostgreSQL evidence',()=>{
+  const ci=read('.github/workflows/ci.yml'),job=ci.slice(ci.indexOf('  yard-player:'),ci.indexOf('  yard-eight-player:'));
+  assert.match(job,/image: postgres:15/);assert.match(job,/pnpm run build/);assert.match(job,/pnpm install --frozen-lockfile/);assert.match(job,/timeout-minutes: 30/);
+- assert.doesNotMatch(job,/needs:|continue-on-error|download-artifact/);
++ assert.match(job,/needs: \[yard-release-mode\]/);assert.doesNotMatch(job,/needs: \[[^\]]*test|continue-on-error|download-artifact/);
+  assert.match(ci,/needs: \[test, browser, touch, mochi, yard-eight-player, yard-player\]/);
+  const start=job.indexOf('      - name: Genuine Yard API, store, browser and PostgreSQL15 integration'),end=job.length,block=job.slice(start,end);
+  assert.ok(start>0&&end>start);assert.match(block,/timeout-minutes: 15/);assert.match(block,/YARD_PLAYER_API_TEST: '1'/);assert.match(block,/YARD_PLAYER_WIRING_TEST: ''/);assert.match(block,/playwright\.yard-player-integration\.config\.js/);assert.match(block,/if: always\(\)/);assert.match(block,/upload-browser-evidence/);assert.doesNotMatch(block,/continue-on-error/);

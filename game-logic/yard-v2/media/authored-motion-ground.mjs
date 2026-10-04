@@ -25,7 +25,9 @@ export function createAuthoredMotionGround(input,{remodel,obstacles=[],reservati
    ||clip.frames[0].atMs!==0||clip.frames.at(-1).atMs!==clip.durationMs||!Array.isArray(clip.bodyBounds)||!clip.bodyBounds.length)fail();
   for(const [i,r]of clip.frames.entries())if(!Number.isSafeInteger(r.atMs)||(i&&r.atMs<=clip.frames[i-1].atMs)
    ||r.root?.length!==3||!r.root.every(finite)||!finite(r.bodyYaw)||!Array.isArray(r.contacts)||r.contacts.some(f=>!c.soles[f.foot]
-   ||typeof f.supportId!=='string'||f.world?.length!==3||!f.world.every(finite)||!finite(f.yaw)))fail();
+   ||typeof f.supportId!=='string'||f.world?.length!==3||!f.world.every(finite)||!finite(f.yaw)
+   ||Object.hasOwn(f,'polygon')&&(c.contactGeometry!=='measured-per-row-world-polygons'||!Array.isArray(f.polygon)||f.polygon.length<3||f.polygon.some(p=>p.length!==2||!p.every(finite)))
+   ||c.contactGeometry==='measured-per-row-world-polygons'&&!Object.hasOwn(f,'polygon')))fail();
   for(const [i,r]of clip.bodyBounds.entries())if(!finite(r.atMs)||(i&&r.atMs<=clip.bodyBounds[i-1].atMs)
    ||r.box?.length!==4||!r.box.every(finite)||r.box[0]>=r.box[2]||r.box[1]>=r.box[3])fail();
   if(clip.bodyBounds[0].atMs!==0||clip.bodyBounds.at(-1).atMs!==clip.durationMs
@@ -34,7 +36,7 @@ export function createAuthoredMotionGround(input,{remodel,obstacles=[],reservati
  if(c.clips.hop.durationMs!==c.cycleMs||!near(c.clips.hop.frames[0].root[0],0)||!near(c.clips.hop.frames.at(-1).root[0],c.strideWorld))fail();
  if(!Array.isArray(obstacles)||!obstacles.every(rect)||!Array.isArray(reservations)
   ||reservations.some(r=>!rect(r.rect)||![r.startMs,r.endMs].every(finite)||r.endMs<=r.startMs))fail();
- const blocks=deepFreeze(clone(obstacles)),reserved=deepFreeze(clone(reservations));deepFreeze(c);const cache=new Map();
+ const blocks=deepFreeze(clone(obstacles)),reserved=deepFreeze(clone(reservations));deepFreeze(c);const cache=new Map(),spatialCache=new WeakMap();
  function coverage(kind,facing,sourceMs=0){
   if(!directions[facing]||!['hop','left90','right90','rest','stand'].includes(kind))return null;
   const clip=c.clips[kind==='stand'?'hop':kind],start=clip.frames.find(r=>r.atMs===sourceMs);
@@ -43,7 +45,7 @@ export function createAuthoredMotionGround(input,{remodel,obstacles=[],reservati
   const angle=facing*Math.PI/4,polygons=[],seen=new Map();
   for(const row of (kind==='stand'?clip.frames.slice(0,1):clip.frames.filter(r=>r.atMs>=sourceMs)))for(const f of row.contacts){
    const anchor=rotate([f.world[0]-start.root[0],f.world[1]-start.root[1]],angle);
-   const polygon=paddedConvexPolygon(c.soles[f.foot].map(p=>{
+   const polygon=paddedConvexPolygon(f.polygon?f.polygon.map(p=>rotate([p[0]-start.root[0],p[1]-start.root[1]],angle)):c.soles[f.foot].map(p=>{
     const q=rotate(p,f.yaw+angle);return[q[0]+anchor[0],q[1]+anchor[1]];
    }),c.paddingWorld);
    const old=seen.get(f.supportId);
@@ -59,8 +61,16 @@ export function createAuthoredMotionGround(input,{remodel,obstacles=[],reservati
  }
  function atOrigin(value,origin){const b=value.body,u=c.unitsPerWorld;return{x:origin.x+b.x*u,y:origin.y+b.y*u,width:b.width*u,height:b.height*u};}
  function allowed(value,origin,interval){
-  if(!value||!point(origin)||!groundCoverageAllowed(value.polygons,origin,remodel,{unitsPerWorld:c.unitsPerWorld,obstacles:blocks}))return false;
-  const body=atOrigin(value,origin);if(blocks.some(r=>overlap(body,r)))return false;
+  if(!value||!point(origin))return false;
+  const body=atOrigin(value,origin),key=`${origin.x}:${origin.y}`;
+  let memo=spatialCache.get(value);if(!memo){memo=new Map();spatialCache.set(value,memo);}
+  if(!memo.has(key)){
+   // Immutable source, remodel and obstacles make this exact spatial result
+   // reusable across graph edges. Temporal reservations are checked separately.
+   const safe=!blocks.some(r=>overlap(body,r))&&groundCoverageAllowed(value.polygons,origin,remodel,{unitsPerWorld:c.unitsPerWorld,obstacles:blocks});
+   if(memo.size>=2048)memo.delete(memo.keys().next().value);memo.set(key,safe);
+  }
+  if(!memo.get(key))return false;
   if(interval){
    if(![interval.startMs,interval.endMs].every(finite)||interval.endMs<=interval.startMs)return false;
    if(reserved.some(r=>interval.startMs<r.endMs&&interval.endMs>r.startMs&&overlap(body,r.rect)))return false;

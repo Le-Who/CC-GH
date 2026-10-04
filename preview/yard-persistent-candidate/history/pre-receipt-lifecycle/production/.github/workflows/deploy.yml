@@ -1,0 +1,373 @@
+name: VPS Deploy
+
+on:
+  push:
+    branches:
+      - codex/telegram-pixi-vps-migration
+  workflow_dispatch:
+
+concurrency:
+  group: cc-gh-production
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  validate:
+    uses: ./.github/workflows/ci.yml
+    permissions:
+      contents: read
+      packages: read
+
+  build-and-push:
+    needs: validate
+    if: github.ref == 'refs/heads/codex/telegram-pixi-vps-migration'
+    outputs:
+      image_digest: ${{ steps.build_image.outputs.digest }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Set lowercase repository name
+        run: echo "REPO=${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v6
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.REPO }}
+          tags: |
+            type=raw,value=latest
+            type=sha,format=long,prefix=sha-
+
+      - name: Build and push Docker image
+        id: build_image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          push: true
+          build-args: |
+            BUILD_ID=${{ github.sha }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  deploy:
+    needs: build-and-push
+    permissions:
+      contents: read
+      packages: read
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Ensure deploy directory exists
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          script: |
+            set -euo pipefail
+            if [ "$(id -u)" -eq 0 ]; then
+              install -d -m 0750 /opt/game-hub
+            else
+              sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /opt/game-hub
+            fi
+
+      - name: Stage immutable release files on VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          source: "docker-compose.yml,scripts/yard-pre-switch-guard.sh"
+          target: "/opt/game-hub/releases/${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
+
+      - name: Deploy isolated CC-GH stack
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REGISTRY: ${{ env.REGISTRY }}
+          REPO: ${{ github.repository }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER || 'appuser' }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB || 'gamehub' }}
+          APP_HOST_PORT: ${{ secrets.APP_HOST_PORT || '18080' }}
+          CUSTOM_DOMAIN: ${{ secrets.CUSTOM_DOMAIN }}
+          PUBLIC_APP_URL: ${{ secrets.PUBLIC_APP_URL }}
+          APP_BUILD_ID: ${{ github.sha }}
+          APP_IMAGE_DIGEST: ${{ needs.build-and-push.outputs.image_digest }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_BOT_USERNAME: ${{ secrets.TELEGRAM_BOT_USERNAME }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          envs: GITHUB_TOKEN,REGISTRY,REPO,POSTGRES_USER,POSTGRES_PASSWORD,POSTGRES_DB,APP_HOST_PORT,CUSTOM_DOMAIN,PUBLIC_APP_URL,APP_BUILD_ID,APP_IMAGE_DIGEST,TELEGRAM_BOT_TOKEN,TELEGRAM_BOT_USERNAME,ADMIN_TOKEN
+          script: |
+            set -euo pipefail
+
+            REPO_LOWER=$(echo "$REPO" | tr '[:upper:]' '[:lower:]')
+            APP_HOST_PORT="${APP_HOST_PORT:-18080}"
+            if [[ ! "$APP_IMAGE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+              echo "Expected published image digest is missing or invalid"
+              exit 1
+            fi
+
+            for required_var in POSTGRES_PASSWORD CUSTOM_DOMAIN PUBLIC_APP_URL TELEGRAM_BOT_TOKEN TELEGRAM_BOT_USERNAME ADMIN_TOKEN; do
+              if [ -z "${!required_var:-}" ]; then
+                echo "$required_var is required"
+                exit 1
+              fi
+            done
+
+            case "$APP_HOST_PORT" in
+              ''|*[!0-9]*)
+                echo "APP_HOST_PORT must be numeric"
+                exit 1
+                ;;
+            esac
+
+            case "$APP_HOST_PORT" in
+              80|443|10000)
+                echo "APP_HOST_PORT=$APP_HOST_PORT is reserved for Caddy or the Telegram bot"
+                exit 1
+                ;;
+            esac
+
+            if ss -ltn | awk '{print $4}' | grep -Eq "(:|\\])${APP_HOST_PORT}$"; then
+              if ! docker ps --filter "name=^/ccgh-app$" --format '{{.Ports}}' | grep -q "127.0.0.1:${APP_HOST_PORT}->8080"; then
+                echo "Port $APP_HOST_PORT is already used by a non-CC-GH process"
+                ss -ltnp | grep ":${APP_HOST_PORT}" || true
+                exit 1
+              fi
+            fi
+
+            if [ "$(id -u)" -eq 0 ]; then
+              install -d -m 0750 /opt/game-hub
+            else
+              sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /opt/game-hub
+            fi
+            cd /opt/game-hub
+
+            umask 077
+            # Serialize the full server-side release, including rollback. Manual
+            # release procedures must use this same lock; CI concurrency remains.
+            command -v flock >/dev/null || { echo "flock is required for safe deployment"; exit 1; }
+            exec 9>/opt/game-hub/.release.lock
+            flock -n 9 || { echo "Another release owns the deployment lock"; exit 1; }
+            # SCP only writes this run's isolated staging tree. Promote effective
+            # compose/helper files only after acquiring the shared release lock.
+            RELEASE_STAGING_PATH="/opt/game-hub/releases/${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
+            test -r "$RELEASE_STAGING_PATH/docker-compose.yml"
+            test -r "$RELEASE_STAGING_PATH/scripts/yard-pre-switch-guard.sh"
+            install -m 0644 "$RELEASE_STAGING_PATH/docker-compose.yml" ./docker-compose.yml
+            install -d -m 0750 ./scripts
+            install -m 0700 "$RELEASE_STAGING_PATH/scripts/yard-pre-switch-guard.sh" ./scripts/yard-pre-switch-guard.sh
+            RELEASE_SWITCH_STARTED=0
+            PREVIOUS_ENV_BACKUP=""
+            if [ -f .env ]; then
+              PREVIOUS_ENV_BACKUP="$(mktemp .env.before-${APP_BUILD_ID}.XXXXXX)"
+              cp -p .env "$PREVIOUS_ENV_BACKUP"
+            fi
+            release_exit() {
+              local release_status="$1"
+              trap - EXIT
+              if [ "$release_status" -eq 0 ]; then
+                if [ -n "$PREVIOUS_ENV_BACKUP" ]; then rm -f -- "$PREVIOUS_ENV_BACKUP"; fi
+                return
+              fi
+              set +e
+              if [ -n "$PREVIOUS_ENV_BACKUP" ]; then
+                cp -p -- "$PREVIOUS_ENV_BACKUP" .env
+              fi
+              if [ "$RELEASE_SWITCH_STARTED" -eq 1 ]; then
+                if ! rollback_application; then
+                  echo "App rollback failed; previous image and environment remain recorded"
+                fi
+              fi
+              exit "$release_status"
+            }
+            trap 'release_exit "$?"' EXIT
+            cat > .env << EOF
+            COMPOSE_PROJECT_NAME=ccgh
+            NODE_ENV=production
+            PORT=8080
+            APP_HOST_PORT=$APP_HOST_PORT
+            POSTGRES_USER=$POSTGRES_USER
+            POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+            POSTGRES_DB=$POSTGRES_DB
+            CUSTOM_DOMAIN=$CUSTOM_DOMAIN
+            PUBLIC_APP_URL=$PUBLIC_APP_URL
+            APP_BUILD_ID=$APP_BUILD_ID
+            APP_IMAGE_SUFFIX=@$APP_IMAGE_DIGEST
+            TELEGRAM_BOT_TOKEN=$TELEGRAM_BOT_TOKEN
+            TELEGRAM_BOT_USERNAME=$TELEGRAM_BOT_USERNAME
+            ADMIN_TOKEN=$ADMIN_TOKEN
+            DEV_AUTH_ENABLED=false
+            EOF
+
+            echo "$GITHUB_TOKEN" | docker login "$REGISTRY" -u "${{ github.actor }}" --password-stdin
+            export GHCR_REPO="$REPO_LOWER"
+
+            run_root() {
+              if [ "$(id -u)" -eq 0 ]; then
+                "$@"
+              else
+                sudo "$@"
+              fi
+            }
+
+            ensure_compose() {
+              if docker compose version >/dev/null 2>&1; then
+                return 0
+              fi
+
+              echo "Docker Compose v2 plugin is not available; attempting automated installation."
+              if command -v apt-get >/dev/null 2>&1; then
+                run_root apt-get update
+                run_root apt-get install -y docker-compose-plugin
+              fi
+
+              if docker compose version >/dev/null 2>&1; then
+                return 0
+              fi
+
+              if ! command -v curl >/dev/null 2>&1; then
+                if command -v apt-get >/dev/null 2>&1; then
+                  run_root apt-get update
+                  run_root apt-get install -y curl
+                else
+                  echo "curl is required to install standalone Docker Compose."
+                  return 1
+                fi
+              fi
+
+              ARCH="$(uname -m)"
+              case "$ARCH" in
+                x86_64|amd64) COMPOSE_ARCH="x86_64" ;;
+                aarch64|arm64) COMPOSE_ARCH="aarch64" ;;
+                *)
+                  echo "Unsupported architecture for standalone Docker Compose: $ARCH"
+                  return 1
+                  ;;
+              esac
+
+              COMPOSE_VERSION="$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | sed -n 's/.*"tag_name": "\(v[^"]*\)".*/\1/p' | head -n 1)"
+              if [ -z "$COMPOSE_VERSION" ]; then
+                echo "Could not resolve latest Docker Compose release."
+                return 1
+              fi
+
+              TMP_COMPOSE="$(mktemp)"
+              curl -fsSL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-${COMPOSE_ARCH}" -o "$TMP_COMPOSE"
+              run_root install -d -m 0755 /usr/local/lib/docker/cli-plugins
+              run_root install -m 0755 "$TMP_COMPOSE" /usr/local/lib/docker/cli-plugins/docker-compose
+              rm -f "$TMP_COMPOSE"
+
+              docker compose version >/dev/null 2>&1
+            }
+
+            ensure_compose
+
+            if docker compose version >/dev/null 2>&1; then
+              compose() { docker compose "$@"; }
+              echo "Using Docker Compose v2 plugin"
+            else
+              if command -v docker-compose >/dev/null 2>&1; then
+                echo "Legacy docker-compose is installed, but Compose v2 is required."
+                docker-compose version || true
+              fi
+              echo "Install docker-compose-plugin or provide a Docker Compose v2 CLI plugin."
+              exit 1
+            fi
+
+            # Preserve the pre-release database and immutable app identity locally.
+            # No backup is deleted automatically; restore is a separate deliberate operation.
+            docker inspect ccgh-postgres >/dev/null
+              install -d -m 0700 /opt/game-hub/backups
+              BACKUP_PATH="/opt/game-hub/backups/pre-${APP_BUILD_ID}-$(date -u +%Y%m%dT%H%M%SZ).dump"
+              docker exec ccgh-postgres pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" -Fc > "$BACKUP_PATH"
+              test -s "$BACKUP_PATH"
+              docker exec -i ccgh-postgres pg_restore --list < "$BACKUP_PATH" >/dev/null
+              sha256sum "$BACKUP_PATH" > "$BACKUP_PATH.sha256"
+              echo "Pre-release database backup created; archive catalog checked"
+            PREVIOUS_IMAGE_ID="$(docker inspect --format '{{.Image}}' ccgh-app)"
+            PREVIOUS_BUILD_ID="$(docker inspect --format '{{range .Config.Env}}{{println .}}{{end}}' ccgh-app | sed -n 's/^APP_BUILD_ID=//p')"
+            if [ -z "$PREVIOUS_ENV_BACKUP" ] || [ -z "$PREVIOUS_IMAGE_ID" ] || [[ ! "$PREVIOUS_BUILD_ID" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "Cannot safely replace the app without its previous image, build and environment"
+              exit 1
+            fi
+            printf '%s\n' "$PREVIOUS_IMAGE_ID" > /opt/game-hub/previous-image-id.txt
+            rollback_application() {
+              local rollback_tag="rollback-${APP_BUILD_ID}"
+              if ! docker image tag "$PREVIOUS_IMAGE_ID" "ghcr.io/${REPO_LOWER}:${rollback_tag}"; then return 1; fi
+              export APP_IMAGE_SUFFIX=":${rollback_tag}"
+              export APP_BUILD_ID="$PREVIOUS_BUILD_ID"
+              # Restart only the prior app. Never restore a database or replace volumes.
+              if ! compose -p ccgh up -d --no-deps app; then return 1; fi
+              if [ "$(docker inspect --format '{{.Image}}' ccgh-app)" != "$PREVIOUS_IMAGE_ID" ] || [ "$(docker inspect --format '{{.State.Running}}' ccgh-app)" != true ]; then return 1; fi
+              echo "Previous app image and environment restored"
+            }
+
+            compose -p ccgh pull app
+            # Refuse unsafe Yard format transitions before the live container is touched.
+            bash scripts/yard-pre-switch-guard.sh "ghcr.io/${REPO_LOWER}@${APP_IMAGE_DIGEST}" "$APP_BUILD_ID" "$PREVIOUS_IMAGE_ID" "$PREVIOUS_BUILD_ID" "$APP_HOST_PORT" "$POSTGRES_USER" "$POSTGRES_DB" "$REPO_LOWER"
+            # Keep the exact checked rollback image reachable by a stable local tag.
+            docker image tag "$PREVIOUS_IMAGE_ID" "ghcr.io/${REPO_LOWER}:yard-rollback-${PREVIOUS_BUILD_ID}"
+
+            STALE_APP_CONTAINERS="$(docker ps -a --format '{{.ID}} {{.Names}}' | awk '$2 ~ /_ccgh-app$/ { print $1 }')"
+            if [ -n "$STALE_APP_CONTAINERS" ]; then
+              echo "Removing stale failed app recreate containers: $STALE_APP_CONTAINERS"
+              docker rm -f $STALE_APP_CONTAINERS
+            fi
+
+            RELEASE_SWITCH_STARTED=1
+            compose -p ccgh up -d --remove-orphans
+
+            for i in $(seq 1 30); do
+              if curl --connect-timeout 5 --max-time 10 -fsS "http://127.0.0.1:${APP_HOST_PORT}/api/health" | docker exec -i ccgh-app node scripts/verify-release-health.mjs "$APP_BUILD_ID"; then
+                echo "CC-GH local health check passed"
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "CC-GH local health check failed"
+                compose -p ccgh logs --tail=120 app
+                exit 1
+              fi
+              sleep 2
+            done
+
+            if [ -n "${PUBLIC_APP_URL:-}" ]; then
+              for i in $(seq 1 15); do
+                if curl --connect-timeout 5 --max-time 10 -fsS "${PUBLIC_APP_URL%/}/api/health" | docker exec -i ccgh-app node scripts/verify-release-health.mjs "$APP_BUILD_ID"; then
+                  echo "CC-GH public health check passed"
+                  break
+                fi
+                if [ "$i" -eq 15 ]; then
+                  echo "CC-GH public health check failed; check DNS/Caddy for $PUBLIC_APP_URL"
+                  exit 1
+                fi
+                sleep 2
+              done
+            fi
+
+            docker image prune -f --filter "until=168h"

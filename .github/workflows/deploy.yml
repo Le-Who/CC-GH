@@ -18,6 +18,8 @@ jobs:
     uses: ./.github/workflows/ci.yml
     permissions:
       contents: read
+      packages: read
+      actions: read
 
   build-and-push:
     needs: validate
@@ -88,15 +90,15 @@ jobs:
               sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /opt/game-hub
             fi
 
-      - name: Copy docker-compose to VPS
+      - name: Stage immutable release files on VPS
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || '22' }}
-          source: "docker-compose.yml"
-          target: "/opt/game-hub"
+          source: "docker-compose.yml,scripts/yard-pre-switch-guard.sh"
+          target: "/opt/game-hub/releases/${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
 
       - name: Deploy isolated CC-GH stack
         uses: appleboy/ssh-action@v1.0.3
@@ -168,6 +170,19 @@ jobs:
             cd /opt/game-hub
 
             umask 077
+            # Serialize the full server-side release, including rollback. Manual
+            # release procedures must use this same lock; CI concurrency remains.
+            command -v flock >/dev/null || { echo "flock is required for safe deployment"; exit 1; }
+            exec 9>/opt/game-hub/.release.lock
+            flock -n 9 || { echo "Another release owns the deployment lock"; exit 1; }
+            # SCP only writes this run's isolated staging tree. Promote effective
+            # compose/helper files only after acquiring the shared release lock.
+            RELEASE_STAGING_PATH="/opt/game-hub/releases/${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
+            test -r "$RELEASE_STAGING_PATH/docker-compose.yml"
+            test -r "$RELEASE_STAGING_PATH/scripts/yard-pre-switch-guard.sh"
+            install -m 0644 "$RELEASE_STAGING_PATH/docker-compose.yml" ./docker-compose.yml
+            install -d -m 0750 ./scripts
+            install -m 0700 "$RELEASE_STAGING_PATH/scripts/yard-pre-switch-guard.sh" ./scripts/yard-pre-switch-guard.sh
             RELEASE_SWITCH_STARTED=0
             PREVIOUS_ENV_BACKUP=""
             if [ -f .env ]; then
@@ -315,6 +330,10 @@ jobs:
             }
 
             compose -p ccgh pull app
+            # Refuse unsafe Yard format transitions before the live container is touched.
+            bash scripts/yard-pre-switch-guard.sh "ghcr.io/${REPO_LOWER}@${APP_IMAGE_DIGEST}" "$APP_BUILD_ID" "$PREVIOUS_IMAGE_ID" "$PREVIOUS_BUILD_ID" "$APP_HOST_PORT" "$POSTGRES_USER" "$POSTGRES_DB" "$REPO_LOWER"
+            # Keep the exact checked rollback image reachable by a stable local tag.
+            docker image tag "$PREVIOUS_IMAGE_ID" "ghcr.io/${REPO_LOWER}:yard-rollback-${PREVIOUS_BUILD_ID}"
 
             STALE_APP_CONTAINERS="$(docker ps -a --format '{{.ID}} {{.Names}}' | awk '$2 ~ /_ccgh-app$/ { print $1 }')"
             if [ -n "$STALE_APP_CONTAINERS" ]; then

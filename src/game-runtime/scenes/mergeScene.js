@@ -1,3 +1,4 @@
+import { createFeedbackTrack } from './feedbackTrack.js';
 import {
   Container,
   Graphics,
@@ -28,12 +29,9 @@ import {
   makeInteractive,
   fitGrid,
   cellFromPoint,
-  makeSparkles,
-  makeRipple,
   makeRafScheduler,
   setupStage,
   applyHudAssetRegion,
-  tickParticles,
 } from './shared/runtime.js';
 import { loadRuntimeAssetManifest } from '../assetBundles.js';
 import { BOARD_COLS, BOARD_ROWS, createEmptyMergeBoard } from '../../../game-logic.js';
@@ -49,7 +47,14 @@ export function buildMergeScene(app, initial = {}) {
   let data = initial;
   let layout = null;
   let drag = null;
-  let destroyed = false;
+  let destroyed = false, feedbackEpoch = 0, background = false;
+  const motionMedia = window.matchMedia?.('(prefers-reduced-motion: reduce)');
+  const feedback = createFeedbackTrack(effects, { limit: 24 });
+  const animate = (node, options = {}) => {
+    if (destroyed || background || data.mergeLocked) { node.destroy?.({ children: true }); return; }
+    feedback.add(node, { ...options, reduced: !!motionMedia?.matches });
+    app.ticker.start();
+  };
   let cellViews = [];
   let lastStaticKey = "";
   let lastBoardKeys = [];
@@ -94,8 +99,9 @@ export function buildMergeScene(app, initial = {}) {
           playMergeDropFeedback(done, { error: tapResult.error || "invalid merge" }, item);
         } else {
           const tone = item ? AMBER : MUTED;
-          makeRipple(effects, done.x, done.y, tone, item ? 24 : 14);
-          if (item) makeSparkles(effects, done.x, done.y, tone, 5);
+          const marker = new Graphics().circle(0, 0, (layout?.cell || 48) * .38).stroke({ color: tone, width: 2, alpha: .6 });
+          marker.position.set(done.x, done.y);
+          animate(marker, { duration: 180 });
         }
         app.ticker.start();
       }
@@ -109,9 +115,10 @@ export function buildMergeScene(app, initial = {}) {
       clear(dragLayer);
       const target = cellFromPoint(layout, done.x, done.y);
       if (target) {
-        data.onMergeDrop?.(current.fromR, current.fromC, target.row, target.col, current.item)?.then?.((result) => {
-          playMergeDropFeedback(done, result, current.item);
-        });
+        const epoch = feedbackEpoch;
+        Promise.resolve(data.onMergeDrop?.(current.fromR, current.fromC, target.row, target.col, current.item)).then(result => {
+          if (!destroyed && epoch === feedbackEpoch && result) playMergeDropFeedback({ x: layout.left + (target.col + .5) * layout.cell, y: layout.top + (target.row + .5) * layout.cell }, result, current.item);
+        }).catch(() => {});
       }
       draw();
     },
@@ -316,55 +323,15 @@ export function buildMergeScene(app, initial = {}) {
   }
 
   function playMergeDropFeedback(point, result = {}, item = null) {
-    const success = !result?.error;
-    const color = success ? MINT : CORAL;
-    makeSparkles(effects, point.x, point.y, color, success ? 9 : 6);
-    makeRipple(effects, point.x, point.y, color, success ? 24 : 20);
-    if (!success) {
-      const reject = label(data.mergeMissText || "miss", point.x, point.y - 22, 13, CORAL);
-      reject._tween = { fromX: reject.x, fromY: reject.y, toX: reject.x + 12, toY: reject.y - 18, duration: 18, fade: true, scaleFrom: 0.9, scaleTo: 1.05 };
-      effects.addChild(reject);
-      app.ticker.start();
-      return;
+    if (destroyed || background || data.mergeLocked) return;
+    const success = !result.error;
+    const ring = new Graphics().circle(0, 0, (layout?.cell || 48) * .4).stroke({ color: success ? MINT : CORAL, width: 2.5, alpha: .7 });
+    ring.position.set(point.x, point.y);
+    animate(ring, { duration: success ? 250 : 180, from: .94, peak: 1.04 });
+    // Only a confirmed new item gets a merge reveal; moves cannot invent a level.
+    if (success && result.newItem) {
+      animate(drawMergeItem(result.newItem, point.x, point.y, layout.cell, .85), { duration: 270, from: .9, peak: 1.06 });
     }
-    const level = Number(result?.newItem?.level ?? item?.level ?? 0) + 1;
-    const pop = label(`${data.mergeLevelPrefix || "L"}${level + 1}`, point.x, point.y - 26, 15, AMBER);
-    pop._tween = { fromX: pop.x, fromY: pop.y, toX: pop.x, toY: pop.y - 34, duration: 24, fade: true, scaleFrom: 0.7, scaleTo: 1.22 };
-    effects.addChild(pop);
-    if (result?.yardDrop) {
-      const perfect = label(data.mergePerfectText || "Perfect reaction", point.x, point.y - 48, 14, AMBER);
-      perfect._tween = { fromX: perfect.x, fromY: perfect.y, toX: perfect.x, toY: perfect.y - 38, duration: 30, fade: true, scaleFrom: 0.76, scaleTo: 1.16 };
-      effects.addChild(perfect);
-    }
-    const essenceReward = Math.max(0, Math.floor(Number(result?.essenceReward) || 0));
-    if (essenceReward > 0) {
-      const essenceAsset = mergeSceneAsset("fx", "essenceOrb");
-      if (essenceAsset) {
-        const orb = sprite(essenceAsset, point.x, point.y - 12, 25, 25, 0.82);
-        orb._tween = { fromX: orb.x, fromY: orb.y, toX: orb.x, toY: orb.y - 32, duration: 24, fade: true, scaleFrom: 0.64, scaleTo: 0.98 };
-        effects.addChild(orb);
-      }
-      const essencePop = label(`+${essenceReward}`, point.x + 19, point.y - 16, 13, SKY);
-      essencePop._tween = { fromX: essencePop.x, fromY: essencePop.y, toX: essencePop.x + 2, toY: essencePop.y - 28, duration: 24, fade: true, scaleFrom: 0.7, scaleTo: 1.06 };
-      effects.addChild(essencePop);
-      makeSparkles(effects, point.x + 8, point.y - 8, SKY, 4);
-    }
-    for (let i = 0; i < 4; i += 1) {
-      const angle = -Math.PI / 2 + (i - 1.5) * 0.32;
-      const shard = new Graphics()
-        .roundRect(-3, -9, 6, 18, 4)
-        .fill({ color: [MINT, AMBER, SKY, 0xcdb7e9][i % 4], alpha: 0.88 });
-      shard.x = point.x;
-      shard.y = point.y;
-      shard.rotation = angle;
-      shard._vx = Math.cos(angle) * (1.5 + i * 0.1);
-      shard._vy = Math.sin(angle) * (2 + i * 0.12);
-      shard._gravity = 0.09;
-      shard._spin = 0.08 * (i % 2 ? 1 : -1);
-      shard._life = 25 + i;
-      effects.addChild(shard);
-    }
-    app.ticker.start();
   }
 
   function updateDragVisualNow() {
@@ -404,7 +371,9 @@ export function buildMergeScene(app, initial = {}) {
     );
     const target = cellFromPoint(layout, drag.x, drag.y);
     if (target) {
-      dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, MINT, 6, 0xf7efe0, 0.58, 3));
+      const other = board[target.row]?.[target.col];
+      const valid = !(drag.fromR === target.row && drag.fromC === target.col) && !!other && sameMergeTarget(drag.item, other);
+      dragLayer.addChild(strokedRect(layout.left + target.col * layout.cell + 2, layout.top + target.row * layout.cell + 2, layout.cell - 4, layout.cell - 4, valid ? MINT : CORAL, 6, 0xf7efe0, 0.28, 2));
     }
     app.render?.();
   }
@@ -414,6 +383,7 @@ export function buildMergeScene(app, initial = {}) {
   }
 
   function draw() {
+    if (destroyed) return;
     const merge = data.merge || {};
     const board = merge.board || createEmptyMergeBoard();
     const cols = BOARD_COLS;
@@ -512,8 +482,18 @@ export function buildMergeScene(app, initial = {}) {
   }
 
   const cleanup = setupStage(app, pointer.move, pointer.end, () => pointer.cancel("stage"));
-  const ticker = () => {
-    tickParticles(effects);
+  const resetFeedback = () => { feedbackEpoch++; feedback.clear(); };
+  const suspend = () => { background = true; resetFeedback(); app.render?.(); app.ticker.stop(); };
+  const resume = () => { background = false; };
+  const visibility = () => document.visibilityState === 'hidden' ? suspend() : resume();
+  const resize = () => { resetFeedback(); pointer.cancel('resize'); draw(); };
+  window.addEventListener('blur', suspend); window.addEventListener('focus', resume);
+  window.addEventListener('resize', resize);
+  document.addEventListener('visibilitychange', visibility);
+  motionMedia?.addEventListener?.('change', resetFeedback);
+  const ticker = frame => {
+    if (background) return;
+    feedback.tick(frame?.deltaMS ?? 1000 / 60);
     if (!drag && effects.children.length === 0) {
       app.render?.();
       app.ticker.stop();
@@ -524,11 +504,16 @@ export function buildMergeScene(app, initial = {}) {
   return {
     update(next) {
       data = next || {};
+      if (data.mergeLocked) { resetFeedback(); pointer.cancel("locked"); }
       if (drag) updateDragVisual();
       else draw();
     },
     destroy() {
-      destroyed = true;
+      destroyed = true; resetFeedback();
+      window.removeEventListener('blur', suspend); window.removeEventListener('focus', resume);
+      window.removeEventListener('resize', resize);
+      document.removeEventListener('visibilitychange', visibility);
+      motionMedia?.removeEventListener?.('change', resetFeedback);
       cleanup();
       app.ticker.remove(ticker);
       dragVisual.cancel();

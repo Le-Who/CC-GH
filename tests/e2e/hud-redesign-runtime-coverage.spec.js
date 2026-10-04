@@ -1,4 +1,5 @@
 import { openHome, selectHomeGame } from './helpers/home.js';
+import { expectYardMetricChipsAligned } from './helpers/yard-hud.js';
 import { test, expect } from "@playwright/test";
 import { mergePanel, expectMergeControlsReachable, expectMergeArt } from "./helpers/mergeV3.js";
 import { startTriviaSolo, expectTriviaControlsReachable } from "./helpers/triviaR3.js";
@@ -80,39 +81,6 @@ test.describe("HUD redesign runtime asset coverage", () => {
     expect(metrics.tinyControls).toEqual([]);
     expect(metrics.clippedControls).toEqual([]);
     expect(metrics.overflowingButtons).toEqual([]);
-  }
-
-  async function expectYardMetricChipsAligned(page) {
-    const chips = await page.locator(".yard-currency-chip").evaluateAll((nodes) => nodes.map((node) => {
-      const rect = node.getBoundingClientRect();
-      const icon = node.querySelector(".yard-hud-icon")?.getBoundingClientRect();
-      const value = node.querySelector("strong")?.getBoundingClientRect();
-      const style = getComputedStyle(node);
-      return {
-        text: node.textContent.trim(),
-        ratio: rect.width / Math.max(1, rect.height),
-        backgroundImage: style.backgroundImage,
-        backgroundColor: style.backgroundColor,
-        imageLayerCount: (style.backgroundImage.match(/url\(/g) || []).length,
-        iconVisible: !!icon && icon.width >= 24 && icon.height >= 24,
-        valueInside:
-          !!value
-          && value.left >= rect.left + 34
-          && value.right <= rect.right - 6
-          && value.top >= rect.top + 6
-          && value.bottom <= rect.bottom - 6,
-      };
-    }));
-
-    expect(chips.length).toBeGreaterThanOrEqual(2);
-    for (const chip of chips) {
-      expect(chip.backgroundImage, `${chip.text} must use generated metric-chip art`).toContain("/games/hud-redesign/room/metric-chip.webp");
-      expect(chip.backgroundColor, `${chip.text} must not paint a CSS fallback color behind transparent metric art`).toBe("rgba(0, 0, 0, 0)");
-      expect(chip.imageLayerCount, `${chip.text} should use one generated metric art layer`).toBe(1);
-      expect(chip.ratio, `${chip.text} metric chip art is visually squeezed`).toBeGreaterThanOrEqual(1.75);
-      expect(chip.iconVisible, `${chip.text} metric icon should remain visible on small mobile`).toBe(true);
-      expect(chip.valueInside, `${chip.text} metric value should sit inside the generated frame content area`).toBe(true);
-    }
   }
 
   async function expectYardDockIconsCentered(page) {

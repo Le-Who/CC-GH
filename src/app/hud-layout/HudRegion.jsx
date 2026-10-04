@@ -39,6 +39,7 @@ export function useHudRegion(regionId, { ref = null, capabilities = null } = {})
   return {
     ref: mergedRef,
     regionLayout,
+    profileId: resolvedLayout?.activeProfileId,
     capabilities: regionCapabilities,
     definition,
     style: regionLayout ? getHudRegionRuntimeStyle(regionLayout) : {},
@@ -67,6 +68,7 @@ export const HudRegion = forwardRef(function HudRegion({
     className: `${className}${className ? " " : ""}hud-region${editable ? " hud-editable-region" : ""}`.trim(),
     style: mergedStyle,
     "data-hud-region": id,
+    "data-hud-profile": region.profileId,
     "data-hud-mode": region.regionLayout?.mode || region.capabilities?.mode || undefined,
     "data-hud-selected": region.selected ? "true" : undefined,
   };

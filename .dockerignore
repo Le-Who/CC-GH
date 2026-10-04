@@ -42,6 +42,16 @@ scripts/yard-pip-fixture-path.mjs
 recovery-tools/yard-canonical-pebble-qa/
 recovery-tools/yard-canonical-pip-qa/
 recovery-tools/yard-mixed-obstacles/
+# Only exact runtime media enters the build stage; proofs and QA stay excluded.
+recovery-tools/yard-family-frozen/**
+!recovery-tools/yard-family-frozen/assets/yard-family/*/runtime-media.json
+!recovery-tools/yard-family-frozen/assets/yard-fox/**/*.webp
+!recovery-tools/yard-family-frozen/assets/yard-turtles/**/*.webp
+# Always rebuild generated public copies from the verified frozen inputs.
+public/assets/yard-family/
+public/assets/yard-fox/
+public/assets/yard-turtles/
+recovery-tools/yard-canonical-eight-qa/
 playwright.yard-pebble.config.js
 playwright.pip-canonical.config.js
 scripts/yard-pebble-ci-server.mjs

@@ -64,6 +64,8 @@ import {
   hasLegacyGardenProgress,
   isMergeGeneratorChain,
 } from "../game-logic.js";
+import {initializeReleasedPlayerYard,executeReleasedYardAction,releasedYardSnapshot,requireReleasedPlayerYard,inspectReleasedYardTarget,usesPersistentYard} from '../game-logic/yard-v2/player-release.mjs';
+import {yardCommandConflict} from '../game-logic/yard-v2/service.mjs';
 import { withPlayerLock, afterPlayerCommit } from "../playerManager.js";
 import { GARDEN_ACCOUNTING_ACTIONS, getGardenAccounting, gardenAccountingView, validateGardenSync, reconcileGardenIntent, applyGardenTransaction } from "../game-logic/garden-transactions.js";
 import { GARDEN_R2_RELEASE_POLICY } from "../game-logic/garden-r2/catalog.js";
@@ -309,6 +311,7 @@ function normalizeGardenState(raw = {}, now = Date.now()) {
 }
 
 function ensurePlayerYard(p, now = Date.now(), simulate = false) {
+  if (usesPersistentYard(p)) return initializeReleasedPlayerYard(p,{now,simulate}).yard;
   const legacy = { pet: p.pet, room: p.room };
   p.yard = simulate
     ? simulateYardState(p.yard, now, legacy, p.id || p.username || "yard")
@@ -332,7 +335,7 @@ function getFarmStats(p) {
 
 function buildInventory(p, options = {}) {
   if (options.hydrateMerge !== false) hydrateMergeBoard(p);
-  const yard = options.yard || ensurePlayerYard(p);
+  const yard = options.yard || ensurePlayerYard(p) || {};
   const roomInventory = Array.isArray(p.room?.roomInventory)
     ? p.room.roomInventory
     : Array.isArray(p.room?.inventory)
@@ -470,6 +473,7 @@ export function buildSnapshot(p, extras = {}) {
       roomInventory,
     },
     yard,
+    ...releasedYardSnapshot(p,{now}),
     achievements: {
       badges: buildAchievements(p),
       raw: p.achievements || {},
@@ -581,7 +585,7 @@ function findMergeExchangeOffer(offerId) {
 }
 
 function grantMergeExchangeReward(p, reward = {}) {
-  const yard = ensurePlayerYard(p);
+  const yard = usesPersistentYard(p)?requireReleasedPlayerYard(p):ensurePlayerYard(p);
   if (!yard.currencies) yard.currencies = { treats: 0, shinyTreats: 0 };
   const treats = Math.max(0, Math.floor(Number(reward.treats) || 0));
   const shinyTreats = Math.max(0, Math.floor(Number(reward.shinyTreats) || 0));
@@ -631,7 +635,7 @@ function rememberMergeRecipe(p, recipeId) {
 
 function randomYardGoodie(p, chance = 0.08) {
   if (Math.random() > chance) return null;
-  const yard = ensurePlayerYard(p);
+  const yard = usesPersistentYard(p)?requireReleasedPlayerYard(p):ensurePlayerYard(p);
   const ids = Object.keys(YARD_GOODIES);
   const owned = new Set([
     ...Object.keys(yard.goodieInventory || {}),
@@ -706,6 +710,10 @@ export async function applyAction(p, action, payload = {}, options = {}) {
   }
   if (p.merge?.schemaVersion === 3 && String(action).startsWith("merge.")) {
     return fail(410, "Legacy Merge mutations are retired", { code: "LEGACY_MERGE_RETIRED" });
+  }
+  if (usesPersistentYard(p) && ['merge.merge','merge.gacha','merge.freePull','merge.exchange'].includes(action)) {
+    const checked=inspectReleasedYardTarget(p,{now:options.now ?? Date.now()});
+    if(checked.status!==200)return fail(checked.status,checked.error,{code:checked.error});
   }
   switch (action) {
     case "garden.goldDelta": {
@@ -964,6 +972,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
     case "yard.buyExpansion":
     case "yard.claimDailyLetter":
     case "yard.configureCompanion": {
+      if(usesPersistentYard(p))return fail(400,'YARD_STABLE_INTENT_REQUIRED');
       const yardOptions = Number.isFinite(Number(options.yardNow)) ? { now: options.yardNow } : {};
       const result = applyYardActionToState(p.yard, action, payload, { pet: p.pet, room: p.room }, p.id || p.username || "yard", yardOptions);
       p.yard = result.yard;
@@ -1295,6 +1304,14 @@ export async function applyActionWithReceipt(p, action, payload = {}, meta = {})
     });
     return response;
   }
+  if (String(action).startsWith('yard.') && usesPersistentYard(p)) {
+    const result=executeReleasedYardAction(p,action,payload,{now:meta.serverNow ?? Date.now(),actionId:meta.clientActionId});
+    if(result.status!==200)return fail(result.status,result.error,{code:result.error,details:result.details});
+    if(!result.replayed)p._onboarded=true;
+    return ok(action,p,{...result.extras,clientActionId:meta.clientActionId,duplicate:result.replayed});
+  }
+  const yardConflict=yardCommandConflict(p,action,meta.clientActionId);
+  if(yardConflict)return fail(409,yardConflict,{clientActionId:meta.clientActionId});
   // Domain receipts + monotonic revision/epoch are authoritative. Never let generic TTL receipts
   // bypass catalog, policy, reset fencing or the mandatory Merge command envelope.
   if (action === "merge.lab" || p.merge?.schemaVersion === 3 && String(action).startsWith("merge.")) {

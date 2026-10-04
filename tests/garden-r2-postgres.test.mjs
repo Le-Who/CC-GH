@@ -8,12 +8,15 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { fork } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { assertDisposableGardenR2Database, assertGardenR2FixtureId } from './helpers/garden-r2-pg-guard.mjs';
+import { assertDisposableGardenR2Database, assertGardenR2FixtureId, gardenR2WorkerExecArgv } from './helpers/garden-r2-pg-guard.mjs';
 
 if (process.env.GARDEN_R2_PG_TEST !== '1') {
   test('Garden R2 actual PostgreSQL gate requires explicit CI opt-in', { skip: 'Not executed; no release persistence evidence' }, () => {});
 } else {
   assertDisposableGardenR2Database(); // Must precede every application import.
+  const { YARD_PLAYER_RELEASE_POLICY } = await import('../game-logic/yard-v2/release-policy.mjs');
+  assert.equal(YARD_PLAYER_RELEASE_POLICY.enabled, false, 'Parent and ordinary Garden fixtures must retain closed Yard policy');
+  const { ensurePersistentPlayerYard } = await import('../game-logic/yard-v2/service.mjs');
   const { initDb, ensureDbSchema, getDb, closeDb } = await import('../db.js');
   const { withPlayerLock } = await import('../playerManager.js');
   const { applyActionWithReceipt, buildSnapshot } = await import('../routes/player.js');
@@ -26,8 +29,8 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
   const fixtureIds = [];
   const liveWorkers = new Set();
 
-  function participant() {
-    const child = fork(workerFile, [], { execArgv: [], env: { ...process.env, GARDEN_R2_PG_WORKER: '1' }, stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
+  function participant({ yardActive = false } = {}) {
+    const child = fork(workerFile, [], { execArgv: gardenR2WorkerExecArgv(yardActive), env: { ...process.env, GARDEN_R2_PG_WORKER: '1', YARD_PLAYER_WIRING_TEST: yardActive ? '1' : '' }, stdio: ['ignore', 'pipe', 'pipe', 'ipc'] });
     liveWorkers.add(child);
     let output = '', exitError = null, didExit = false;
     const queued = [], waiters = [];
@@ -68,20 +71,22 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
     return { child, wait, exited, send: message => child.send(message) };
   }
 
-  async function separate(playerId, command, { loseResponse = false } = {}) {
+  async function separate(playerId, command, { loseResponse = false, yardActive = false, preview = false } = {}) {
     assertGardenR2FixtureId(playerId);
-    const worker = participant(); await worker.wait('ready');
-    worker.send({ type: 'execute', playerId, ...command, barrier: false, loseResponse });
+    const worker = participant({ yardActive }); const ready = await worker.wait('ready');
+    assert.equal(ready.yardActive, yardActive);
+    worker.send({ type: 'execute', playerId, ...command, barrier: false, loseResponse, preview });
     const result = await worker.wait(loseResponse ? 'response-lost' : 'result');
     await worker.exited; return result;
   }
 
-  async function race(playerId, commands) {
+  async function race(playerId, commands, { yardActive = false } = {}) {
     assertGardenR2FixtureId(playerId);
-    const workers = commands.map(() => participant());
+    const workers = commands.map(() => participant({ yardActive }));
     const ready = await Promise.all(workers.map(worker => worker.wait('ready')));
     assert.equal(new Set(ready.map(item => item.pid)).size, commands.length, 'Participants must be distinct OS processes');
     assert.ok(ready.every(item => item.pid !== process.pid));
+    assert.ok(ready.every(item => item.yardActive === yardActive));
     workers.forEach((worker, index) => worker.send({ type: 'execute', playerId, ...commands[index], barrier: true }));
     const loaded = await Promise.all(workers.map(worker => worker.wait('loaded')));
     assert.ok(loaded.every(item => typeof item.version === 'string' && item.version.length > 0));
@@ -100,7 +105,7 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
     return row.data;
   }
 
-  async function seed({ gold = 100, plants = true, yardTreats = 77 } = {}) {
+  async function seed({ gold = 100, plants = true, yardTreats = 77, persistentYard = false } = {}) {
     const id = assertGardenR2FixtureId(`garden_r2_pg_${randomUUID()}`);
     fixtureIds.push(id);
     const now = Date.now(), player = createDefaultPlayer(id, 'Disposable Garden R2 CI', now);
@@ -113,7 +118,10 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
     player.yard.currencies = { treats: yardTreats, shinyTreats: 5 };
     player.yard.goodieInventory.alchemy_echo_chimes = 2402;
     player.yard.goodieInventory.alchemy_living_arbor = 1201;
-    player._yardV2 = { fixtureMarker: 'preserve-private-yard-extension' };
+    if (persistentYard) {
+      assert.equal(ensurePersistentPlayerYard(player, { now }).status, 200);
+      player._yardV2.fixtureMarker = 'preserve-private-yard-extension';
+    } else player._yardV2 = { fixtureMarker: 'preserve-private-yard-extension' };
     player.farm.harvested = { strawberry: 7 };
     player.purchases = { fixtureOrder: { delivered: true } };
     player.retainedFixtureField = { nested: ['must', 'survive'] };
@@ -263,28 +271,37 @@ if (process.env.GARDEN_R2_PG_TEST !== '1') {
         assert.equal(saved._gardenProgression.streams[commands[failedIndex].payload.intent.streamId], undefined); unchangedAdjacent(player, saved);
       });
 
+      await t.test('closed Yard policy still rejects a migrated fixture without changing its saved economy', async () => {
+        const { id, now, player } = await adopt({ plants: false, yardTreats: 240, persistentYard: true });
+        const denied = await separate(id, { action: 'yard.buyFood', now, payload: { foodId: 'berry_plate', qty: 1 }, clientActionId: `yard-v2:closed-r2:${randomUUID()}` });
+        assert.equal(denied.outcome.status, 409); assert.equal(denied.outcome.body.error, 'YARD_ROLLOUT_PAUSED');
+        const saved = await load(id); assert.deepEqual(saved.yard, player.yard); assert.deepEqual(saved._yardV2, player._yardV2);
+        assert.deepEqual(economicState(saved), economicState(player)); unchangedAdjacent(player, saved);
+      });
+
       await t.test('Garden and real Yard purchases both survive a cross-domain OS-process CAS collision', async () => {
-        const { id, now, player } = await adopt({ plants: false, yardTreats: 240 });
+        const { id, now, player } = await adopt({ plants: false, yardTreats: 240, persistentYard: true });
         const garden = purchase(player, now);
         // Kibble is free; a funded Berry Plate exercises a real independent debit.
-        const yard = { action: 'yard.buyFood', now, payload: { foodId: 'berry_plate', qty: 1 }, clientActionId: `yard-r2-race:${randomUUID()}` };
-        // Compute the authorized Yard action using its real handler, on an
-        // uncommitted clone. Runtime normalization and receipt semantics are
-        // included rather than approximated by a hand-written Yard mutation.
-        const expectedYard = structuredClone(player);
-        const expected = await applyActionWithReceipt(expectedYard, yard.action, yard.payload, { clientActionId: yard.clientActionId, serverNow: now });
-        assert.equal(expected.status, 200, JSON.stringify(expected.body));
+        const yard = { action: 'yard.buyFood', now, payload: { foodId: 'berry_plate', qty: 1 }, clientActionId: `yard-v2:r2-race:${randomUUID()}` };
+        // Preview the real route on an uncommitted DB clone in one explicitly
+        // active test process. The parent and every other Garden fixture stay closed.
+        const preview = await separate(id, yard, { yardActive: true, preview: true });
+        assertSuccess(preview); const expectedYard = preview.player;
+        assert.deepEqual(await load(id), player, 'Route preview must not write PostgreSQL');
         assert.equal(expectedYard.yard.foodInventory.berry_plate, (player.yard.foodInventory.berry_plate || 0) + 1);
         assert.equal(expectedYard.yard.currencies.treats, player.yard.currencies.treats - 120);
         assert.equal(expectedYard.yard.currencies.shinyTreats, player.yard.currencies.shinyTreats);
-        const results = await race(id, [garden, yard]); results.forEach(assertSuccess);
+        const results = await race(id, [garden, yard], { yardActive: true }); results.forEach(assertSuccess);
         const saved = await load(id); validateGardenR2Player(saved);
         assert.equal(saved.resources.gold, player.resources.gold - 25);
         assert.equal(saved.garden.plants.length, 1); assert.equal(saved.garden.plants[0].id, results[0].outcome.body.plantId);
         assert.equal(saved._gardenProgression.revision, 2);
         assert.equal(saved._gardenProgression.streams[garden.payload.intent.streamId].sequence, 1);
         assert.deepEqual(saved.yard, expectedYard.yard);
-        assert.equal(saved._actionReceipts.items.filter(receipt => receipt.clientActionId === yard.clientActionId).length, 1);
+        assert.deepEqual(Object.keys(saved._yardV2.runtime.commandReceipts), [yard.clientActionId]);
+        assert.deepEqual(saved._yardV2.runtime.commandReceipts, expectedYard._yardV2.runtime.commandReceipts);
+        assert.deepEqual(saved._actionReceipts, player._actionReceipts, 'Persistent Yard must not use the legacy receipt store');
         assert.deepEqual(saved.stats, player.stats);
         unchangedAdjacent(expectedYard, saved);
       });

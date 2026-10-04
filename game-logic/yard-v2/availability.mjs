@@ -3,7 +3,7 @@
 import {YARD_FOODS,YARD_GOODIES,YARD_REMODELS} from './catalog.mjs';
 import {clone} from './util.mjs';
 export const YARD_AVAILABILITY_REVISION='mika-persistent-food-bindings/r3';
-const GOODS=new Set(['yarn_mouse','sun_cushion','leaf_pot','snack_table']);
+const GOODS=new Set(['yarn_mouse','sun_cushion','leaf_pot','snack_table','moon_lamp','fountain_bowl']);
 const unavailable=reason=>({ok:false,code:'YARD_BINDING_REQUIRED',reason});
 const record=value=>value!==null&&typeof value==='object'&&!Array.isArray(value);
 const ownBinding=(map,id)=>record(map)&&Object.hasOwn(map,id)&&record(map[id])?map[id]:null;

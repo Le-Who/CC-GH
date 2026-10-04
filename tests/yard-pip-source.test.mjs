@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {resolve} from 'node:path';
 import {createPipSnackCandidate} from '../recovery-tools/yard-pip-snack-qa/source/game-logic/yard-v2/media/pip-snack-binding.mjs';
 import {PIP_ACTOR_PROFILE,PIP_ACTOR_REFERENCE,PIP_RELEASE_GATE} from '../recovery-tools/yard-pip-snack-qa/source/game-logic/yard-v2/pip-actor-profile.mjs';
 import {createPipActorMediaEntry} from '../recovery-tools/yard-pip-snack-qa/source/src/games/companion-yard-v2/pip-actor-media.mjs';
@@ -39,7 +40,7 @@ test('disposing during decode prevents a stale bitmap from entering the cache',a
 // Socket-free regression of the exact server path guard used in CI.
 import {fixtureFilePath} from '../scripts/yard-pip-fixture-path.mjs';
 test('fixture root normalization serves entry, modules and assets with either slash convention',()=>{
- for(const root of['/tmp/pip-fixture','/tmp/pip-fixture/'])for(const file of['index.html','source/src/games/companion-yard-v2/pip-fixture.mjs','public/assets/yard-pip/runtime-media.json'])assert.equal(fixtureFilePath(root,file),`/tmp/pip-fixture/${file}`);
+ for(const root of['/tmp/pip-fixture','/tmp/pip-fixture/'])for(const file of['index.html','source/src/games/companion-yard-v2/pip-fixture.mjs','public/assets/yard-pip/runtime-media.json'])assert.equal(fixtureFilePath(root,file),resolve('/tmp/pip-fixture',file));
 });
 test('fixture scope rejects traversal, absolute paths and sibling-prefix escapes',()=>{
  for(const file of['../secret','../../etc/passwd','/etc/passwd','../pip-fixture-other/index.html','public/../../../secret',decodeURIComponent('%2e%2e%2fsecret')])assert.equal(fixtureFilePath('/tmp/pip-fixture/',file),null,file);

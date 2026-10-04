@@ -10,7 +10,7 @@ import {footprint} from '../game-logic/yard-v2/geometry.mjs';
 import {YARD_GOODIES,YARD_VISITORS} from '../game-logic/yard-v2/catalog.mjs';
 import input from '../game-logic/yard-v2/media/shared-props/source-identities.json' with {type:'json'};
 const copy=structuredClone,mika=getMikaServerOptions(),mochi=createMochiMedia();
-const binding=(actor,ready=false)=>{const p=INTRINSIC_PROP_PROVIDERS.fountain_bowl.find(p=>p.actorId===actor);return withIntrinsicPropProof({id:p.bindingId,revision:p.bindingRevision,calibrationHash:p.bindingCalibrationHash,visitorId:p.visitorId,goodieId:'fountain_bowl',actorProfile:{id:p.actorId,revision:p.actorRevision},activityIds:copy(p.activityIds),conditions:['new'],requiredPhases:copy(p.requiredPhases),validatedPhases:copy(p.sourceValidatedPhases),playbackReady:ready});};
+const binding=(actor,ready=false)=>{const p=INTRINSIC_PROP_PROVIDERS.fountain_bowl.find(p=>p.actorId===actor);return withIntrinsicPropProof({id:p.bindingId,revision:p.bindingRevision,calibrationHash:p.bindingCalibrationHash,visitorId:p.visitorId,goodieId:'fountain_bowl',actorProfile:{id:p.actorId,revision:p.actorRevision},activityIds:copy(p.activityIds),conditions:copy(p.conditions),requiredPhases:copy(p.requiredPhases),validatedPhases:copy(p.sourceValidatedPhases),playbackReady:ready});};
 const registry=(...ids)=>({bindings:ids.map(id=>binding(id,true))}),context=(...ids)=>createTrustedObstacleContext(registry(...ids));
 const placed=(slotId,goodieId,x,y)=>({slotId,goodieId,x,y,condition:'new',rotationZ:0,uses:0});
 const yard=()=>({remodel:'meadow',expansion:{level:1},placedGoodies:[placed('mouse','yarn_mouse',50,45),placed('fountain','fountain_bowl',50,75)]});
@@ -32,9 +32,17 @@ test('provider proofs fail closed for changed geometry, actor/binding/calibratio
  assert.deepEqual(createTrustedObstacleContext({bindings:[binding('basil',true),binding('basil',true)]}).props,{});
  assert.throws(()=>withIntrinsicPropProof({...binding('basil'),calibrationHash:'0'.repeat(64)}),/Exact intrinsic/);
 });
-test('source-incomplete Moon providers cannot gain readiness by flipping runtime flags or inventing phases',()=>{
- const moon=input.sources.find(s=>s.goodieId==='moon_lamp');assert.equal(INTRINSIC_PROP_SOURCES.moon_lamp.sourceGeometrySha256,'5af15a36d5950014ca36483d2052e88443edf6dcf80cfa3ad0b4b238dbbbe97f');
- for(const p of moon.providers){assert.ok(p.requiredPhases.some(v=>!p.sourceValidatedPhases.includes(v)));assert.equal(p.bindingCalibrationHash,null);const b={id:p.bindingId,revision:p.bindingRevision,visitorId:p.visitorId,goodieId:'moon_lamp',calibrationHash:'a'.repeat(64),playbackReady:true,conditions:['new'],requiredPhases:p.requiredPhases,validatedPhases:p.requiredPhases,propSource:{propIdentity:INTRINSIC_PROP_SOURCES.moon_lamp.identity,sourceGeometrySha256:moon.sourceGeometrySha256}};assert.deepEqual(intrinsicPropReadiness({bindings:[b]}).props,{});}
+test('reconstructed Moon r2 requires exact frozen providers; old r1 hashes and invented readiness cannot authenticate it',()=>{
+ const moon=input.sources.find(s=>s.goodieId==='moon_lamp');assert.equal(input.format,'yard-verified-intrinsic-prop-sources/v2');
+ assert.equal(INTRINSIC_PROP_SOURCES.moon_lamp.sourceGeometrySha256,'235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb');
+ assert.equal(INTRINSIC_PROP_SOURCES.fountain_bowl.sourceGeometrySha256,'78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef');
+ assert.equal(moon.providers.length,3);
+ for(const p of INTRINSIC_PROP_PROVIDERS.moon_lamp){
+  assert.ok(p.requiredPhases.every(v=>p.sourceValidatedPhases.includes(v)));assert.match(p.bindingCalibrationHash,/^[a-f0-9]{64}$/);
+  const b=withIntrinsicPropProof({id:p.bindingId,revision:p.bindingRevision,visitorId:p.visitorId,goodieId:'moon_lamp',actorProfile:{id:p.actorId,revision:p.actorRevision},calibrationHash:p.bindingCalibrationHash,playbackReady:true,conditions:copy(p.conditions),activityIds:copy(p.activityIds),requiredPhases:copy(p.requiredPhases),validatedPhases:copy(p.sourceValidatedPhases)});
+  assert.equal(intrinsicPropReadiness({bindings:[b]}).props.moon_lamp.identity,INTRINSIC_PROP_SOURCES.moon_lamp.identity);
+  for(const mutate of [b=>b.revision='moon-interaction/r1',b=>b.actorProfile.revision='fox-actor/r1',b=>b.propSource.sourceGeometrySha256='5af15a36d5950014ca36483d2052e88443edf6dcf80cfa3ad0b4b238dbbbe97f',b=>b.calibrationHash='a'.repeat(64),b=>b.conditions=['new','worn','broken','future'],b=>b.validatedPhases=['invented-complete'],b=>delete b.propSource.providerDigest]){const wrong=copy(b);mutate(wrong);assert.deepEqual(intrinsicPropReadiness({bindings:[wrong]}).props,{});}
+ }
 });
 test('copied contexts and save-supplied geometry never mint trusted obstacles',()=>{
  const c=context('sage'),y=yard();y.placedGoodies[1].footprint={width:.01,height:.01};assert.equal(planningSceneWithObstacles(mika.scene,y,copy(c)).code,'UNTRUSTED_PROP_OBSTACLE_CONTEXT');const result=planningSceneWithObstacles(mika.scene,y,c);assert.equal(result.ok,true);assert.deepEqual(result.scene.footprints.fountain_bowl,INTRINSIC_PROP_SOURCES.fountain_bowl.footprint);assert.equal(mika.scene.footprints.fountain_bowl,undefined);

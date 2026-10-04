@@ -1,0 +1,246 @@
+{
+  "format": "yard-turtle-fountain-source-identities-handoff/r2",
+  "historicalR1HashesAreNotEvidence": true,
+  "newlyReconstructedAfterR1Loss": true,
+  "intrinsicProp": {
+    "goodieId": "fountain_bowl",
+    "canonicalNewSource": {
+      "path": "fountain-r2/fountain-bowl-r2.blend",
+      "bytes": 2561100,
+      "sha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef"
+    },
+    "canonicalNewContract": {
+      "path": "fountain-r2/fountain-source-contract.json",
+      "bytes": 804,
+      "sha256": "59f3ee077fefd939cd5e2c459dbc5eeab2a8b1e441966ee16e7ff0477c245285"
+    },
+    "evaluatedGeometrySha256": "554e47dbb2c36bb70544d006d6884a426ef36364981277b4542810c3d4bf3c1c",
+    "sourceGeometrySha256Meaning": "SHA-256 of the canonical .blend bytes, not the evaluated geometry digest",
+    "conditionSources": {
+      "new": {
+        "blend": {
+          "path": "fountain-conditions-r2/fountain-new-r2.blend",
+          "bytes": 2559120,
+          "sha256": "57a1a4954e87b5213d6c07c7dfaa2ee2c5a9e346449a4f6787eaae1996295a68"
+        },
+        "derivedFromCanonicalNewSourceSha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+        "canonicalGeometryMaterialSha256": "32ef8dbf560a57d7811eaebc8ee45db5bad68bfd20d225e853ede625d5141646",
+        "role": "calibrated new-state scene copy, not the canonical new source identity",
+        "runtimeAccepted": false
+      },
+      "worn": {
+        "blend": {
+          "path": "fountain-conditions-r2/fountain-worn-r2.blend",
+          "bytes": 2647020,
+          "sha256": "5e53fe871a380300375839db7263723b87211b7fdcc3e8f8436156911a3fd35a"
+        },
+        "derivedFromCanonicalNewSourceSha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+        "canonicalGeometryMaterialSha256": "4ff67a8ab6892cc1f38c06b20f46992cd156aa95358ef94d8633fb69a731b7c7",
+        "role": "condition-specific intrinsic source",
+        "runtimeAccepted": false
+      },
+      "broken": {
+        "blend": {
+          "path": "fountain-conditions-r2/fountain-broken-r2.blend",
+          "bytes": 2449244,
+          "sha256": "4c3aebc62d104e1cfd5ad6a50f46887341ab59ad08b062b7f2618e97e9cd9520"
+        },
+        "derivedFromCanonicalNewSourceSha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+        "canonicalGeometryMaterialSha256": "d15a0c40607eb3b6f08893ae62a84c5c9ea387f825e24231e2916f3ad0490bc1",
+        "role": "condition-specific intrinsic source",
+        "runtimeAccepted": false
+      }
+    },
+    "conditionManifest": {
+      "path": "fountain-conditions-r2/condition-source-manifest.json",
+      "bytes": 63708,
+      "sha256": "14d2e328f7567539bca68a558ac557337f875369f9a324cd809b110497b654fe"
+    }
+  },
+  "neutralFamily": {
+    "path": "turtle-family-editable.blend",
+    "bytes": 8810820,
+    "sha256": "b97da5dcfaaceb696b85befc277c3632e6ffee4abcbd484eafbc0c6f7d461f5b"
+  },
+  "motionFamily": {
+    "path": "turtle-family-motion.blend",
+    "bytes": 3609059,
+    "sha256": "d4fa42c7b1539b68adac6814cc5e7b71db651fd70e61b6918f60451338777151"
+  },
+  "actors": {
+    "basil": {
+      "visitorId": "basil_turtle",
+      "newCompositionBlend": {
+        "path": "fountain-interaction-r2/basil-fountain-r2.blend",
+        "bytes": 1101581,
+        "sha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6"
+      },
+      "newCompositionManifest": {
+        "path": "fountain-interaction-r2/basil-source-manifest.json",
+        "bytes": 2928,
+        "sha256": "f0985961a5fd866e88ff12f2bc279e6f702590def0b4d8af5371d28787a5bcb5"
+      },
+      "newCombinedContract": {
+        "path": "contracts-r2/basil-combined.json",
+        "bytes": 60722,
+        "sha256": "4f1855bb40699241d61bc8611a361ac3fd61db53710831833ab0e4b6ff15e4a8"
+      },
+      "combinedIdentity": {
+        "id": "basil-fountain-watch-r2",
+        "revision": "basil-fountain-watch-source/r2",
+        "sourceRigSha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6",
+        "sourceMotionSha256": "e78ffc9bccc23e2dc6954e1edecea888954d6c6938da951dd64d3df1b811719f",
+        "sourceNeutralBlendSha256": "b97da5dcfaaceb696b85befc277c3632e6ffee4abcbd484eafbc0c6f7d461f5b",
+        "intrinsicPropSha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+        "unitsPerWorld": 8,
+        "sourceSampleMs": 40,
+        "conditions": [
+          "new"
+        ]
+      },
+      "strideContract": {
+        "path": "contracts-r2/basil-stride.json",
+        "bytes": 10751,
+        "sha256": "edbdbecbf9e11e4e1e0dd94d1090e592525870d513d4469f20b09be3d3670f8a"
+      },
+      "groundContract": {
+        "path": "contracts-r2/basil-ground.json",
+        "bytes": 312550,
+        "sha256": "559359ab1831bfeafc5f7c8238ccae3768f32da63ee4322879196445580e6a90"
+      },
+      "conditionCompositions": {
+        "worn": {
+          "compositionBlend": {
+            "path": "fountain-interaction-r2/conditions/basil-fountain-worn-r2.blend",
+            "bytes": 1129320,
+            "sha256": "4b007d354408fbb897076bf7625e75fbbe3a26f703439560cc2ee94630d0cbb3"
+          },
+          "manifest": {
+            "path": "fountain-interaction-r2/conditions/basil-worn-source-manifest.json",
+            "bytes": 3229,
+            "sha256": "3db8362a995968d1a8f372201dc09491d70376adeeb6459b6e45c3b8baa4ca01"
+          },
+          "intrinsicPropSha256": "5e53fe871a380300375839db7263723b87211b7fdcc3e8f8436156911a3fd35a",
+          "baseNewInteractionSha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6",
+          "unchangedActorActionSha256": "c5a646786fb751095510569e37fe2244383ea4b98711f736b90b80dbd3a64d12",
+          "runtimeAccepted": false
+        },
+        "broken": {
+          "compositionBlend": {
+            "path": "fountain-interaction-r2/conditions/basil-fountain-broken-r2.blend",
+            "bytes": 1075158,
+            "sha256": "9f05c60ca61c0a4790ce976d3467daab27cf6369f9240969e2a85777ae081277"
+          },
+          "manifest": {
+            "path": "fountain-interaction-r2/conditions/basil-broken-source-manifest.json",
+            "bytes": 3231,
+            "sha256": "0dc56274dd8dbef6abeadf04968e0cf78febf9f130ae3ed84ba40a23c105f35d"
+          },
+          "intrinsicPropSha256": "4c3aebc62d104e1cfd5ad6a50f46887341ab59ad08b062b7f2618e97e9cd9520",
+          "baseNewInteractionSha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6",
+          "unchangedActorActionSha256": "c5a646786fb751095510569e37fe2244383ea4b98711f736b90b80dbd3a64d12",
+          "runtimeAccepted": false
+        }
+      }
+    },
+    "sage": {
+      "visitorId": "sage_turtle",
+      "newCompositionBlend": {
+        "path": "fountain-interaction-r2/sage-fountain-r2.blend",
+        "bytes": 1163976,
+        "sha256": "00c8ba3c79aab9918bbd70a52f4c1880fff1ae12837e331f0ee402bd5690932b"
+      },
+      "newCompositionManifest": {
+        "path": "fountain-interaction-r2/sage-source-manifest.json",
+        "bytes": 2934,
+        "sha256": "44ed56bb3b14b2229f18bae4e78e0d669edf556b35434bab9c4eaefa8caae289"
+      },
+      "newCombinedContract": {
+        "path": "contracts-r2/sage-combined.json",
+        "bytes": 65982,
+        "sha256": "850b311487cc8d5f02de36b238fd271dee9337fb53565e5aaa4dd9184ca504e8"
+      },
+      "combinedIdentity": {
+        "id": "sage-fountain-watch-r2",
+        "revision": "sage-fountain-watch-source/r2",
+        "sourceRigSha256": "00c8ba3c79aab9918bbd70a52f4c1880fff1ae12837e331f0ee402bd5690932b",
+        "sourceMotionSha256": "e78ffc9bccc23e2dc6954e1edecea888954d6c6938da951dd64d3df1b811719f",
+        "sourceNeutralBlendSha256": "b97da5dcfaaceb696b85befc277c3632e6ffee4abcbd484eafbc0c6f7d461f5b",
+        "intrinsicPropSha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+        "unitsPerWorld": 8,
+        "sourceSampleMs": 40,
+        "conditions": [
+          "new"
+        ]
+      },
+      "strideContract": {
+        "path": "contracts-r2/sage-stride.json",
+        "bytes": 13441,
+        "sha256": "38934d44c49dcf26b68b3ce10020764c7f8c55f45962ecb4a63ddfaec1929c75"
+      },
+      "groundContract": {
+        "path": "contracts-r2/sage-ground.json",
+        "bytes": 354877,
+        "sha256": "e4f519650ef9caa3dad0ed950d38c3c4353c2fdda72e5df8a99fa72180104ab4"
+      },
+      "conditionCompositions": {
+        "worn": {
+          "compositionBlend": {
+            "path": "fountain-interaction-r2/conditions/sage-fountain-worn-r2.blend",
+            "bytes": 1184982,
+            "sha256": "609c22e3fba0dfc1f488b869c10e4b1ed9155d5746c59399a791f54ecf5a5ab4"
+          },
+          "manifest": {
+            "path": "fountain-interaction-r2/conditions/sage-worn-source-manifest.json",
+            "bytes": 3235,
+            "sha256": "93de283694f2e14303119364763bceb82184c9c27d7db568cd21f67383b44256"
+          },
+          "intrinsicPropSha256": "5e53fe871a380300375839db7263723b87211b7fdcc3e8f8436156911a3fd35a",
+          "baseNewInteractionSha256": "00c8ba3c79aab9918bbd70a52f4c1880fff1ae12837e331f0ee402bd5690932b",
+          "unchangedActorActionSha256": "1d3cbf2558ba1f490c7a7db3b4b7eda986324b35b90ef549bd6af1ec6c993757",
+          "runtimeAccepted": false
+        },
+        "broken": {
+          "compositionBlend": {
+            "path": "fountain-interaction-r2/conditions/sage-fountain-broken-r2.blend",
+            "bytes": 1147177,
+            "sha256": "9e57f3f5e2ff0338e4177086f1ed0201dcad6250e29e51efea42ae555d3df97f"
+          },
+          "manifest": {
+            "path": "fountain-interaction-r2/conditions/sage-broken-source-manifest.json",
+            "bytes": 3237,
+            "sha256": "bff73452d4d796e0a330b1a521965ec41209a6fa0e62cf585fdc1f3fef4d5eac"
+          },
+          "intrinsicPropSha256": "4c3aebc62d104e1cfd5ad6a50f46887341ab59ad08b062b7f2618e97e9cd9520",
+          "baseNewInteractionSha256": "00c8ba3c79aab9918bbd70a52f4c1880fff1ae12837e331f0ee402bd5690932b",
+          "unchangedActorActionSha256": "1d3cbf2558ba1f490c7a7db3b4b7eda986324b35b90ef549bd6af1ec6c993757",
+          "runtimeAccepted": false
+        }
+      }
+    }
+  },
+  "integrationGates": {
+    "sharedRuntimeRegisterEdited": false,
+    "wearTimingObservedInCurrentSimulation": "admission",
+    "conditionTransitionAccepted": false,
+    "canonicalIntegrationReady": false,
+    "runtimeReady": false,
+    "releaseGateOpened": false,
+    "requiredReplay": [
+      "reconcile shared-prop identity register against these exact reconstructed sources and contracts",
+      "reconcile intended transition timing and condition selection against the current simulation, save and economy contracts; wear at admission is the observed implementation, not an art-side policy decision",
+      "reject watch-right slot overlap despite catalog capacity two",
+      "never fall back to unsupported soak-left",
+      "reconcile shared context/reservation ownership and prove eight-actor cache and canonical browser behavior"
+    ],
+    "observedImplementationEvidence": {
+      "repositoryPath": "game-logic/yard-v2/simulation.mjs",
+      "sha256": "c25db0ae77cb188fbda72cd583b9acfa1fc48f37642f9b32b1b254abf5c3c516",
+      "observedWearCommitLines": [
+        165,
+        168
+      ],
+      "policyAcceptance": false
+    }
+  }
+}

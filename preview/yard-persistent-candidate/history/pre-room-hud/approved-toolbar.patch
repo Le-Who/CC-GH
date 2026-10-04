@@ -1,0 +1,296 @@
+diff --git a/src/app/hud-layout/defaultLayouts/room.json b/src/app/hud-layout/defaultLayouts/room.json
+--- a/src/app/hud-layout/defaultLayouts/room.json
++++ b/src/app/hud-layout/defaultLayouts/room.json
+@@ -21,7 +21,7 @@
+       "match": { "orientation": "portrait", "maxWidth": 360 },
+       "regions": {
+         "yardBottomDock": { "thickness": 70, "reserve": 88 },
+-        "yardCurrencyStack": { "x": 0, "y": 0 },
++        "yardCurrencyStack": { "x": 0, "y": 0, "maxWidth": 120 },
+         "yardGameScreen": { "maxWidth": 304 }
+       }
+     },
+diff --git a/src/games/companion-yard/companion-yard.css b/src/games/companion-yard/companion-yard.css
+--- a/src/games/companion-yard/companion-yard.css
++++ b/src/games/companion-yard/companion-yard.css
+@@ -3532,3 +3532,29 @@
+   text-overflow: ellipsis;
+   white-space: nowrap;
+ }
++
++/* Phone currency width is owned by the room HUD profiles, including the tall
++   portrait fallback. Stack the icon above localized units so the full balance
++   fits without shrinking the adjacent 48px controls. */
++@media (max-width: 430px) and (orientation: portrait) {
++  .yard-currency-stack .yard-currency-chip {
++    min-width: 0;
++    flex: 1 1 auto;
++    grid-template-columns: minmax(0, 1fr);
++    grid-template-rows: 24px auto;
++    column-gap: 0;
++    padding: 3px 1px;
++  }
++
++  .yard-currency-stack .yard-currency-chip .yard-hud-icon {
++    grid-row: 1;
++    justify-self: center;
++    width: 24px;
++    height: 24px;
++  }
++
++  .yard-currency-stack .yard-currency-chip strong {
++    grid-row: 2;
++    max-width: 100%;
++  }
++}
+diff --git a/src/games/companion-yard/CompanionYardGame.jsx b/src/games/companion-yard/CompanionYardGame.jsx
+--- a/src/games/companion-yard/CompanionYardGame.jsx
++++ b/src/games/companion-yard/CompanionYardGame.jsx
+@@ -18,6 +18,7 @@
+ import { usePressTooltip } from "../../app/usePressTooltip.js";
+ import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
+ import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
++import { formatYardCurrencyBalance } from "./currencyDisplay.js";
+ import { yardPanelGroupSlotStyle, yardPanelNestedGroupSlotStyle, yardPanelSlotStyle } from "./yardPanelSlots.js";
+ import "./i18n.js";
+ import "./companion-yard.css";
+@@ -242,12 +243,13 @@
+   );
+ }
+ 
+-function YardCurrencyChip({ icon, label, value }) {
++function YardCurrencyChip({ icon, label, value, language }) {
++  const balance = formatYardCurrencyBalance(value, language);
+   return (
+-    <div className="yard-currency-chip" aria-label={`${label}: ${value}`}>
++    <div className="yard-currency-chip" role="img" aria-label={`${label}: ${balance.exact}`}>
+       <YardIcon name={icon} />
+       <span className="yard-currency-label">{label}</span>
+-      <strong>{value}</strong>
++      <strong>{balance.compact}</strong>
+     </div>
+   );
+ }
+@@ -332,7 +334,7 @@
+   const snapshot = useGameHub((state) => state.snapshot);
+   const performAction = useGameHub((state) => state.performAction);
+   const pendingActions = useGameHub((state) => state.pendingActions);
+-  const { t } = useAppI18n();
++  const { t, language } = useAppI18n();
+   const yard = snapshot?.yard || {};
+   const catalog = snapshot?.meta?.yardCatalog || {};
+   const foods = catalog.foods || YARD_FOODS;
+@@ -1156,8 +1158,8 @@
+ 
+         <HudRegion id="yardHudLayer" as="div" className="yard-hud-layer" applyLayout={false}>
+           <HudEditableRegion id="yardCurrencyStack" as="div" className="yard-currency-stack">
+-            <YardCurrencyChip icon="treats" label={text("yard.treats", "Treats")} value={formatCount(yard.currencies?.treats || 0)} />
+-            <YardCurrencyChip icon="shiny" label={text("yard.shiny", "Shiny")} value={formatCount(yard.currencies?.shinyTreats || 0)} />
++            <YardCurrencyChip icon="treats" label={text("yard.treats", "Treats")} value={yard.currencies?.treats || 0} language={language} />
++            <YardCurrencyChip icon="shiny" label={text("yard.shiny", "Shiny")} value={yard.currencies?.shinyTreats || 0} language={language} />
+           </HudEditableRegion>
+           <div className="yard-corner-actions">
+             <YardIconButton compact icon="settings" label={text("yard.screen.settings", "Settings")} active={activeScreen === "settings"} onClick={() => openScreen("settings")} />
+diff --git a/src/games/companion-yard/currencyDisplay.js b/src/games/companion-yard/currencyDisplay.js
+new file mode 100644
+--- /dev/null
++++ b/src/games/companion-yard/currencyDisplay.js
+@@ -0,0 +1,15 @@
++const formatters = Object.fromEntries(["en", "ru"].map((language) => [language, {
++  compact: new Intl.NumberFormat(language, { notation: "compact", compactDisplay: "short", maximumFractionDigits: 0 }),
++  exact: new Intl.NumberFormat(language, { maximumFractionDigits: 0 }),
++}]));
++
++// The visible HUD has a bounded lane. Keep every digit in the accessible name,
++// and use localized compact units for large balances rather than ellipsis.
++export function formatYardCurrencyBalance(value, language = "en") {
++  const amount = Number.isFinite(Number(value)) ? Math.max(0, Math.floor(Number(value))) : 0;
++  const formatter = formatters[language] || formatters.en;
++  return {
++    compact: amount < 10000 ? String(amount) : formatter.compact.format(amount),
++    exact: formatter.exact.format(amount),
++  };
++}
+diff --git a/tests/hud-layout.test.js b/tests/hud-layout.test.js
+--- a/tests/hud-layout.test.js
++++ b/tests/hud-layout.test.js
+@@ -1,5 +1,6 @@
+ import { describe, it } from "node:test";
+ import assert from "node:assert/strict";
++import { formatYardCurrencyBalance } from "../src/games/companion-yard/currencyDisplay.js";
+ import { VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
+ import {
+   EXACT_PREVIEW_PRESETS,
+@@ -342,3 +343,49 @@
+     assert.equal(getHudRegionBoxZIndex({ capabilities: { mode: "custom", control: true } }), 2147483004, "A header control must remain selectable over its background artwork");
+   });
+ });
++
++
++describe("legacy Yard small-phone currency budget", () => {
++  it("reserves toolbar space in the small portrait profile and existing tall fallback", () => {
++    for (const [width, height, maxWidth] of [[320, 568, 120], [360, 800, 120], [390, 844, undefined], [414, 896, 120], [430, 932, 120], [568, 320, undefined], [768, 1024, undefined], [1024, 768, undefined]]) {
++      const layout = resolveHudLayout({ repoLayout: HUD_LAYOUT_DEFAULTS.room, viewport: { width, height } });
++      assert.equal(layout.regions.yardCurrencyStack.maxWidth, maxWidth, `${width}x${height}`);
++      const style = getHudRegionRuntimeStyle(layout.regions.yardCurrencyStack);
++      assert.equal(style.maxWidth, maxWidth === undefined ? undefined : "120px");
++    }
++  });
++
++  it("preserves authorized editor offsets and sizing without enabling player overrides", () => {
++    const input = {
++      repoLayout: HUD_LAYOUT_DEFAULTS.room,
++      viewport: { width: 320, height: 568 },
++      localOverrides: { profiles: { "phone-small-portrait": { regions: { yardCurrencyStack: { x: 5, y: 7, maxWidth: 112 } } } } },
++    };
++    const player = resolveHudLayout(input).regions.yardCurrencyStack;
++    assert.deepEqual([player.x, player.y, player.maxWidth], [0, 0, 120]);
++    const editor = resolveHudLayout({ ...input, allowLocalOverrides: true }).regions.yardCurrencyStack;
++    assert.deepEqual([editor.x, editor.y, editor.maxWidth], [5, 7, 112]);
++    const style = getHudRegionRuntimeStyle(editor);
++    assert.equal(style["--hud-region-x"], "5px");
++    assert.equal(style["--hud-region-y"], "7px");
++    assert.equal(style.maxWidth, "112px");
++  });
++});
++
++
++describe("legacy Yard localized currency presentation", () => {
++  for (const language of ["en", "ru"]) {
++    it(`keeps exact ${language} balances accessible and visible units bounded through legal maxima`, () => {
++      for (const amount of [0, 3, 999, 1000, 9999, 10000, 99949, 99999, 100000, 999000, 999499, 999500, 999999, 1000000, 999000000, 999499999, 999999999, 1000000000]) {
++        const balance = formatYardCurrencyBalance(amount, language);
++        assert.equal(balance.exact.replace(/[^0-9]/g, ""), String(amount));
++        assert.ok(balance.compact.length <= 8, `${language} ${amount}: ${balance.compact}`);
++        assert.doesNotMatch(balance.compact, /…|\.\.\.|e[+-]\d/);
++        if (amount < 10000) assert.equal(balance.compact, String(amount));
++      }
++      assert.equal(formatYardCurrencyBalance(1000000000, language).compact, language === "ru" ? "1 млрд" : "1B");
++      assert.equal(formatYardCurrencyBalance(1000000, language).compact, language === "ru" ? "1 млн" : "1M");
++      assert.equal(formatYardCurrencyBalance(999000, language).compact, language === "ru" ? "999 тыс." : "999K");
++    });
++  }
++});
+diff --git a/tests/e2e/helpers/yard-hud.js b/tests/e2e/helpers/yard-hud.js
+new file mode 100644
+--- /dev/null
++++ b/tests/e2e/helpers/yard-hud.js
+@@ -0,0 +1,34 @@
++import { expect } from '@playwright/test';
++
++// Check painted bounds as well as click centers: a higher z-index or disabled
++// pointer events must not disguise a currency/toolbar layout collision.
++export async function expectLegacyYardToolbarReachable(page) {
++  await page.evaluate(() => document.fonts.ready);
++  const toolbar = page.locator('.yard-corner-actions');
++  await expect(toolbar.locator('button')).toHaveCount(3);
++  await expect(page.locator('.yard-currency-stack .yard-currency-chip')).toHaveCount(2);
++  await expect.poll(() => toolbar.evaluate(node => {
++    const chips = [...document.querySelectorAll('.yard-currency-stack .yard-currency-chip')];
++    const buttons = [...node.querySelectorAll('button')];
++    const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
++    const problems = [];
++    for (const button of buttons) {
++      const rect = button.getBoundingClientRect();
++      const name = button.getAttribute('aria-label');
++      const hit = document.elementFromPoint(rect.x + rect.width / 2, rect.y + rect.height / 2);
++      if (rect.width < 48 || rect.height < 48) problems.push(`${name}:small`);
++      if (rect.left < 0 || rect.right > innerWidth || rect.top < 0 || rect.bottom > innerHeight) problems.push(`${name}:clipped`);
++      if (hit !== button && !button.contains(hit)) problems.push(`${name}:covered`);
++      if (chips.some(chip => overlaps(rect, chip.getBoundingClientRect()))) problems.push(`${name}:currency-overlap`);
++    }
++    for (const chip of chips) {
++      const value = chip.querySelector('strong');
++      const rect = chip.getBoundingClientRect();
++      if (rect.left < 0 || rect.right > innerWidth) problems.push('currency:clipped');
++      if (value.scrollWidth > value.clientWidth + 1) problems.push('currency:value-clipped');
++    }
++    if (document.documentElement.scrollWidth > innerWidth + 1) problems.push('page:horizontal-scroll');
++    return problems;
++  })).toEqual([]);
++  for (const button of await toolbar.locator('button').all()) await button.click({ trial: true });
++}
+diff --git a/tests/e2e/companion-yard.spec.js b/tests/e2e/companion-yard.spec.js
+--- a/tests/e2e/companion-yard.spec.js
++++ b/tests/e2e/companion-yard.spec.js
+@@ -1,4 +1,5 @@
+ import { openHome, selectHomeGame } from './helpers/home.js';
++import { expectLegacyYardToolbarReachable } from './helpers/yard-hud.js';
+ import { test, expect } from "@playwright/test";
+ import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
+ import { buildSnapshot } from "../../routes/player.js";
+@@ -381,6 +382,49 @@
+     });
+   });
+ 
++  for (const language of ["en", "ru"]) for (const [width, height] of [[320, 568], [360, 800], [390, 844], [414, 896], [568, 320], [844, 390], [768, 1024], [1024, 768], [1280, 720]]) {
++    test.describe(`legacy Yard toolbar ${language} ${width}x${height}`, () => {
++      test.use({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: width < 1100, hasTouch: width < 1100 });
++      test("keeps maximum balances readable and controls reachable", async ({ page }, info) => {
++        const snapshot = buildHudAuditSnapshot();
++        const labels = language === "ru"
++          ? { settings: "Настройки", close: "Закрыть", tools: "Инструменты", treats: "Лакомства", shinyTreats: "Сияющие" }
++          : { settings: "Settings", close: "Close", tools: "Tools", treats: "Treats", shinyTreats: "Shiny" };
++        const balances = [{ treats: 1000000000, shinyTreats: 1000000 }];
++        // Russian near-boundary units are wider than the legal maxima (1 млрд/1 млн).
++        if (width === 320) balances.push({ treats: 999000000, shinyTreats: 999000 }, { treats: 9999, shinyTreats: 9999 });
++        await page.addInitScript(locale => localStorage.setItem("garden_shelf_language", locale), language);
++        await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify(snapshot) }));
++        for (const balance of balances) {
++          snapshot.yard.currencies = balance;
++          await page.goto("/?tab=room");
++          await expectAppReady(page);
++          await expect(page.locator(".companion-yard-stage")).toBeVisible();
++          for (const [kind, value] of Object.entries(balance)) {
++            await expect(page.getByRole("img", { name: `${labels[kind]}: ${new Intl.NumberFormat(language).format(value)}`, exact: true })).toBeVisible();
++          }
++          await expectLegacyYardToolbarReachable(page);
++          await page.getByRole("button", { name: labels.settings, exact: true }).click();
++          await expect(page.getByRole("dialog", { name: labels.settings, exact: true })).toBeVisible();
++          await page.getByRole("dialog").getByRole("button", { name: labels.close, exact: true }).click();
++          await page.getByRole("button", { name: labels.tools, exact: true }).click();
++          await expect(page.locator(".yard-side-tools")).toBeVisible();
++          await expectLegacyYardToolbarReachable(page);
++          await page.getByRole("button", { name: labels.tools, exact: true }).click();
++          await expect(page.locator(".yard-side-tools")).toHaveCount(0);
++          await expectLegacyYardToolbarReachable(page);
++          await info.attach(`legacy-yard-toolbar-${balance.treats}`, { body: await page.screenshot(), contentType: "image/png" });
++          if (width === 320 || width === 390) {
++            await page.setViewportSize({ width: height, height: width });
++            await expectLegacyYardToolbarReachable(page);
++            await page.setViewportSize({ width, height });
++            await expectLegacyYardToolbarReachable(page);
++          }
++        }
++      });
++    });
++  }
++
+   test("renders manifest-backed backgrounds, layered visitors, and selected visitor capture", async ({ page }) => {
+     const snapshot = buildYardMovementSnapshot();
+     const mutateBodies = [];
+diff --git a/tests/yard-player-integration-e2e/player.spec.js b/tests/yard-player-integration-e2e/player.spec.js
+--- a/tests/yard-player-integration-e2e/player.spec.js
++++ b/tests/yard-player-integration-e2e/player.spec.js
+@@ -7,6 +7,7 @@
+ import {ensureMergeLabState} from '../../game-logic/merge-lab-service.js';
+ import {ensurePersistentPlayerYard} from '../../game-logic/yard-v2/service.mjs';
+ import {openHome,selectHomeGame} from '../e2e/helpers/home.js';
++import {expectLegacyYardToolbarReachable} from '../e2e/helpers/yard-hud.js';
+ assertYardPlayerApiEnvironment();
+ const root=resolve(import.meta.dirname,'../..'),origin=mode=>`http://127.0.0.1:${YARD_API_PORTS[mode]}`;
+ const fixtures=[];let database,closeDatabase;
+@@ -70,11 +71,12 @@
+   test('closed ordinary account keeps legacy entry and never migrates through API or client flags',async({page,request},info)=>{
+     const f=await seed(),media=mediaRequests(page);await boot(page,f,'closed');
+     await expect(page.locator('.companion-yard-stage')).toBeVisible();await expect(page.locator('[data-yard-version],[data-yard-read-only]')).toHaveCount(0);
++    await expectLegacyYardToolbarReachable(page);
+     const s=await snapshot(request,f,'closed');expect(s.yardRuntime).toBeUndefined();expect((await saved(f))._yardV2).toBeUndefined();
+     // Untrusted options are real HTTP input, never process policy.
+     const reply=await request.post(`${origin('closed')}/api/player/mutate`,{headers:{Authorization:`dev ${f.externalId}`},data:{accountId:f.id,action:'yard.buyFood',payload:{foodId:'kibble'},clientActionId:`legacy:${randomUUID()}`,enabled:true,yardPlayerReleasePolicy:{enabled:true},serverNow:0}});
+     expect(reply.status()).toBe(200);expect((await saved(f))._yardV2).toBeUndefined();
+-    await openHome(page);await selectHomeGame(page,'room');await expect(page.locator('.companion-yard-stage')).toBeVisible();
++    await openHome(page);await selectHomeGame(page,'room');await expect(page.locator('.companion-yard-stage')).toBeVisible();await expectLegacyYardToolbarReachable(page);
+     expect(media.some(p=>/^\/assets\/yard-(mika|mochi|pebble|pip|family|fox|turtles)\//.test(p))).toBe(false);await capture(page,info,'closed-legacy-entry');
+   });
+   for(const [mode,kind] of [['closed','paused'],['closed','malformed'],['active','malformed']])test(`${mode} ${kind} save is preserved in a read-only shell with Home exit`,async({page,request},info)=>{

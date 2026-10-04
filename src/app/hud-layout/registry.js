@@ -198,6 +198,11 @@ const GAME_REGIONS = {
   room: {
     yardStage: region("yardStage", "Yard play stage", "Cozy Yard", { measured: true, affectsPixiSafeArea: false, mode: "custom" }),
     yardHudLayer: region("yardHudLayer", "Yard HUD layer", "Cozy Yard", { draggable: false, resizable: false, mode: "custom" }),
+    yardVisitStatus: region("yardVisitStatus", "Yard reserved visit status", "Cozy Yard", { measured: true, draggable: false, resizable: false, mode: "custom" }, "Reserved flow strip outside placement canvas; portrait row and landscape rail preserve readable controls."),
+    yardBowls: region("yardBowls", "Yard food bowls", "Cozy Yard", { draggable: true, mode: "custom" }),
+    yardCornerActions: region("yardCornerActions", "Yard corner controls", "Cozy Yard", { draggable: true, mode: "custom" }),
+    yardSideTools: region("yardSideTools", "Yard tools flyout", "Cozy Yard", { draggable: true, mode: "custom" }),
+    yardActivityPill: region("yardActivityPill", "Yard activity status", "Cozy Yard", { draggable: true, resizable: true, mode: "custom" }),
     yardCurrencyStack: region("yardCurrencyStack", "Yard currency stack", "Cozy Yard", { draggable: true, resizable: true, mode: "stack" }),
     yardBottomDock: region("yardBottomDock", "Yard bottom dock", "Cozy Yard", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
     yardGameScreen: region("yardGameScreen", "Yard game screen/dialog", "Cozy Yard", { draggable: true, resizable: true, mode: "anchored" }),

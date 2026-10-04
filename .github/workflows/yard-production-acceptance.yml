@@ -1,0 +1,87 @@
+name: Yard ordinary production acceptance
+
+# Deliberate final proof only; never starts a deployment or publishes an image.
+on:
+  workflow_dispatch:
+    inputs:
+      active_commit:
+        description: Exact reviewed active B commit (40 hex)
+        required: true
+        type: string
+      closed_commit:
+        description: Exact published compatible closed A commit (40 hex)
+        required: true
+        type: string
+      closed_digest:
+        description: Immutable closed A GHCR sha256 digest
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  production-policy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      CI: 'true'
+      YARD_PRODUCTION_ACCEPTANCE: '1'
+      YARD_ACTIVE_COMMIT: ${{ inputs.active_commit }}
+      YARD_CLOSED_COMMIT: ${{ inputs.closed_commit }}
+      YARD_CLOSED_DIGEST: ${{ inputs.closed_digest }}
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.active_commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Validate exact input contract before images or dependencies
+        run: |
+          echo "YARD_IMAGE_REPOSITORY=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
+          export YARD_IMAGE_REPOSITORY="ghcr.io/${GITHUB_REPOSITORY,,}"
+          node --input-type=module -e "import {assertProductionAcceptance} from './tests/helpers/yard-production-guard.mjs'; assertProductionAcceptance();"
+          test "$(git rev-parse HEAD)" = "$YARD_ACTIVE_COMMIT"
+          node --test tests/yard-production-contract.test.mjs
+          node scripts/yard-active-contract.mjs "$PWD"
+      - name: Install locked test dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Fetch immutable A and build ordinary production B (no push)
+        run: |
+          docker pull "${YARD_IMAGE_REPOSITORY}@${YARD_CLOSED_DIGEST}"
+          docker pull postgres:15
+          docker build --file Dockerfile \
+            --build-arg "BUILD_ID=${YARD_ACTIVE_COMMIT}" \
+            --label "org.opencontainers.image.revision=${YARD_ACTIVE_COMMIT}" \
+            --tag "ccgh-yard-production:${YARD_ACTIVE_COMMIT}" .
+      - name: Six bounded real-policy API and warm-cache cases
+        timeout-minutes: 18
+        run: node scripts/yard-production-acceptance.mjs
+      - uses: actions/upload-artifact@v6
+        if: always()
+        with:
+          name: yard-production-${{ inputs.active_commit }}
+          path: test-results/yard-production/
+          if-no-files-found: error
+          retention-days: 14

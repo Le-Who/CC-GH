@@ -38,6 +38,49 @@ function expectedHomeShellAst(expected){
  memo.arguments[1].elements.splice(2,0,{type:'Identifier',name:'performAction'});
  return expected;
 }
+// The selected-cell callback now exposes the exact placement promise to the
+// presentation, without changing the conditions, arguments or dependencies.
+function expectedCellFeedbackAst(expected){
+ const cells=findAstNodes(expected,node=>node.type==='VariableDeclarator'&&node.id?.name==='selectCell');
+ assert.equal(cells.length,1,'one selected-cell adapter');
+ const callback=cells[0].init.arguments[0];
+ assert.deepEqual(callback.params.map(param=>param.name),['V','X']);
+ const before=normalizedAst('()=>{selectedPiece<0||!state.gameActive||placePiece(selectedPiece,V,X)}').body[0].expression.body;
+ assert.deepEqual(callback.body,before,'immutable selected-cell guard and placement arguments');
+ callback.body=normalizedAst('()=>{if(selectedPiece<0||!state.gameActive)return;return placePiece(selectedPiece,V,X)}').body[0].expression.body;
+ return expected;
+}
+const motionAdapters=JSON.parse(read(__dirname+'/fixtures/casual-motion-ast-adapters.json'));
+const astHash=node=>sha(JSON.stringify(node));
+function sceneStatementKey(node){
+ if(node.type==='FunctionDeclaration')return 'function:'+node.id.name;
+ if(node.type==='VariableDeclaration')return 'declaration:'+node.declarations.map(declaration=>declaration.id.name).join(',');
+ if(node.type==='ReturnStatement')return 'return';
+ return 'expression:'+astHash(node);
+}
+// Normalize only statements pinned by the reviewed presentation rewrite. The
+// exact source order and both old/new AST hashes are checked first. Every other
+// statement and the complete surrounding AST still compare to the owned preview.
+function normalizeMotionSceneAst(actual,expected){
+ assert.equal(motionAdapters.schemaVersion,1);
+ assert.equal(motionAdapters.baseCommit,'73582b7be248385d087e8640b1a548083f6579f6');
+ const source=structuredClone(actual),nodes=findAstNodes(source,node=>node.type==='FunctionDeclaration'&&node.id?.name==='buildBloxScene');
+ const oldNodes=findAstNodes(expected,node=>node.type==='FunctionDeclaration'&&node.id?.name==='buildBloxScene');
+ assert.equal(nodes.length,1);assert.equal(oldNodes.length,1);
+ const body=nodes[0].body.body,old=new Map(oldNodes[0].body.body.map(node=>[sceneStatementKey(node),node]));
+ assert.deepEqual(body.map(sceneStatementKey),motionAdapters.sourceOrder,'only the reviewed scene statement order');
+ const used=[];
+ nodes[0].body.body=body.flatMap(node=>{
+  const key=sceneStatementKey(node),adapter=motionAdapters.adapters[key];
+  if(!adapter)return [node];
+  used.push(key);assert.equal(astHash(node),adapter.sourceSha256,'exact motion adapter '+key);
+  if(adapter.kind==='add'){assert.equal(old.has(key),false,'new presentation declaration '+key);assert.equal(adapter.previewSha256,null);return [];}
+  assert.equal(adapter.kind,'replace');assert.ok(old.has(key));assert.equal(astHash(old.get(key)),adapter.previewSha256,'immutable preview adapter '+key);
+  return [structuredClone(old.get(key))];
+ });
+ assert.deepEqual(used.sort(),Object.keys(motionAdapters.adapters).sort(),'every disclosed adapter is checked');
+ return source;
+}
 const corePromise=Promise.all([import(pathToFileURL(root+'/game-logic/blox-engine.js').href),import(pathToFileURL(root+'/game-logic/blox-pieces.js').href),import(pathToFileURL(root+'/game-logic/economy.js').href),import(pathToFileURL(root+'/game-logic/hud-bonuses.js').href),import(pathToFileURL(root+'/src/game-runtime/sceneGeometry.js').href)]);
 const compiledPure=closure(host,['Nr','Bi','Ec','Kg','iA','tx','ex','S2']);
 test('critical Blox engines, routes and geometry match the immutable LF-normalized production baseline',()=>{
@@ -65,11 +108,30 @@ test('all retained runtime declarations preserve the immutable baseline AST afte
   assert.deepEqual(retainedNames.sort(),Object.keys(baseline.declarations).filter(name=>!retiredDeclarations[file].includes(name)).sort(),file+' retires only the declared asset and dead renderer helpers');
  }
 });
-test('all recovered gameplay ASTs equal owned preview with only the exact Home shell adapter and disclosed source/art migration',()=>{
+test('recovered ASTs equal preview after exact Home/promise adapters and hash-pinned presentation-only scene changes',()=>{
  const groups=[['src/games/blox/BloxGame.jsx',host,['g2'],maps.globals,maps.locals],['src/games/blox/bloxInteraction.js',host,['ex','S2'],maps.globals,maps.locals],['src/games/blox/bloxComposition.js',host,['An','tx'],maps.globals,maps.locals],['src/games/blox/bloxArt.js',host,['na','yl','px','Tc','S0','Oi','E2','Di','vx'],maps.globals,maps.locals],['src/game-runtime/scenes/bloxScene.js',scene,['zt','jt','Ci'],maps.sceneGlobals,maps.sceneLocals]];
- for(const [file,input,names,g,l] of groups){let expected=expandStatements(rename(extract(input,names),g,l));if(file==='src/games/blox/bloxArt.js')expected=expected.replaceAll('.png','.webp');let expectedAst=normalizedAst(expected);if(file==='src/games/blox/BloxGame.jsx')expectedAst=expectedHomeShellAst(expectedAst);assert.deepEqual(normalizedAst(sourceDecl(root+'/'+file)),expectedAst,file);}
+ for(const [file,input,names,g,l] of groups){let expected=expandStatements(rename(extract(input,names),g,l));if(file==='src/games/blox/bloxArt.js')expected=expected.replaceAll('.png','.webp');let expectedAst=normalizedAst(expected),actualAst=normalizedAst(sourceDecl(root+'/'+file));if(file==='src/games/blox/BloxGame.jsx')expectedAst=expectedCellFeedbackAst(expectedHomeShellAst(expectedAst));if(file==='src/game-runtime/scenes/bloxScene.js')actualAst=normalizeMotionSceneAst(actualAst,expectedAst);assert.deepEqual(actualAst,expectedAst,file);}
 });
 
+test('motion AST normalization rejects extra globals, edited input, effects, ordering and lifecycle',()=>{
+ const expected=normalizedAst(expandStatements(rename(extract(scene,['zt','jt','Ci']),maps.sceneGlobals,maps.sceneLocals)));
+ const actual=normalizedAst(sourceDecl(root+'/src/game-runtime/scenes/bloxScene.js'));
+ for(const key of ['function:drawPiece','function:F','function:placementFeedback','declaration:O','return']){
+  const changed=structuredClone(actual),build=findAstNodes(changed,node=>node.type==='FunctionDeclaration'&&node.id?.name==='buildBloxScene')[0];
+  const target=build.body.body.find(node=>sceneStatementKey(node)===key);assert.ok(target,key);
+  const extra=normalizedAst('unapprovedGlobal()').body[0];
+  if(target.type==='FunctionDeclaration')target.body.body.unshift(extra);
+  else if(target.type==='VariableDeclaration')target.declarations[0].init.arguments[0].properties[0].value.body.body.unshift(extra);
+  else target.argument.expressions.push(extra.expression);
+  assert.throws(()=>assert.deepEqual(normalizeMotionSceneAst(changed,expected),expected),undefined,key+' must fail closed');
+ }
+ const changed=structuredClone(actual),build=findAstNodes(changed,node=>node.type==='FunctionDeclaration'&&node.id?.name==='buildBloxScene')[0];
+ build.body.body.push(normalizedAst('unapprovedGlobal()').body[0]);
+ assert.throws(()=>normalizeMotionSceneAst(changed,expected),/statement order/);
+ build.body.body.pop();
+ [build.body.body[0],build.body.body[1]]=[build.body.body[1],build.body.body[0]];
+ assert.throws(()=>normalizeMotionSceneAst(changed,expected),/statement order/);
+});
 test('the actual Blox Home adapter awaits an acknowledged end and refuses failures',async()=>{
  const src=read(root+'/src/games/blox/BloxGame.jsx'),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'});
  const shells=findAstNodes(ast,node=>node.type==='VariableDeclarator'&&node.id?.name==='shellControls');assert.equal(shells.length,1);
@@ -86,7 +148,7 @@ test('recovered local import paths exist and declarations have no leaked minifie
  for(const file of ['src/games/blox/BloxGame.jsx','src/games/blox/BloxPresentation.jsx','src/games/blox/bloxArt.js','src/games/blox/bloxComposition.js','src/games/blox/bloxInteraction.js','src/game-runtime/scenes/bloxScene.js']){
   const src=read(root+'/'+file),ast=acorn.parse(src,{ecmaVersion:'latest',sourceType:'module'});
   for(const n of ast.body)if(n.type==='ImportDeclaration'&&n.source.value.startsWith('.'))assert.ok(fs.existsSync(path.resolve(path.dirname(root+'/'+file),n.source.value)),file+' -> '+n.source.value);
-  rename(src);const allowed=new Set(['Promise','Array','Object','Number','Math','String','Intl','window','navigator','ResizeObserver','requestAnimationFrame','cancelAnimationFrame','console','BloxRuntimeBoundary','state','setTimeout','clearTimeout','Date','JSON','Set','type']);assert.deepEqual(rename.lastFree.filter(x=>!allowed.has(x)),[],file);
+  rename(src);const allowed=new Set(['Promise','Array','Object','Number','Math','String','Intl','window','navigator','ResizeObserver','requestAnimationFrame','cancelAnimationFrame','console','BloxRuntimeBoundary','state','setTimeout','clearTimeout','Date','JSON','Set','type']);if(file==='src/game-runtime/scenes/bloxScene.js')allowed.add('document');assert.deepEqual(rename.lastFree.filter(x=>!allowed.has(x)),[],file);
  }
 });
 test('compiled reward thresholds and rotations agree with baseline implementations',async()=>{
@@ -121,8 +183,17 @@ function controllerHarness(kind,context,core){
 test('source controller preserves preview and baseline action/economy/optimistic behavior',async()=>{
  const core=await corePromise,[engine]=core;const piece={id:'h3',cells:[[0,0],[0,1],[0,2]],color:'#60a5fa'};
  const fixture=(extra={})=>({snapshot:{blox:{highScore:1000,savedState:{board:engine.createEmptyBoard(),tray:[{piece,placed:false},{piece,placed:true}],score:100,linesCleared:1,rotateCharges:3,gameActive:true,...extra}}}});
- const scenarios=[['start',fixture(),'onStart',[]],['finish',fixture(),'onFinish',[]],['pause',fixture(),'onPause',[]],['resume',{...fixture(),paused:true},'onResume',[]],['exit',fixture(),'onExit',[]],['rotate',fixture(),'onRotate',[]],['rotate-empty',fixture({rotateCharges:0}),'onRotate',[]],['rotate-inactive',fixture({gameActive:false}),'onRotate',[]],['rotate-invalid',fixture({tray:[]}),'onRotate',[]],['rotate-error',{...fixture(),result:{error:'stale'}},'onRotate',[]],['place',fixture(),'onBloxDrop',[0,4,4]],['place-invalid',fixture(),'onBloxDrop',[0,9,9]],['place-inactive',fixture({gameActive:false}),'onBloxDrop',[0,1,1]],['place-error',{...fixture(),result:{error:'stale'}},'onBloxDrop',[0,1,1]],['place-clear',{...fixture(),result:{clear:{cleared:2}}},'onBloxDrop',[0,1,1]],['selected-cell',{...fixture(),selected:0},'onBloxCell',[1,1]],['unselected-cell',fixture(),'onBloxCell',[1,1]]];
- for(const [label,context,action,args] of scenarios){const results=[];for(const kind of ['baseline','preview','source']){const h=controllerHarness(kind,context,core);const fn=h.props[action]||h.props.sceneState[action];const result=await fn(...args);await Promise.resolve();const initial=clean(h.props);delete initial.sceneState.bloxHudReserve;results.push(clean({initial,log:h.log,states:h.states,result}));}assert.deepEqual(results[1],results[0],label+' preview vs baseline');assert.deepEqual(results[2],results[1],label+' source vs preview')}
+ const scenarios=[['start',fixture(),'onStart',[]],['finish',fixture(),'onFinish',[]],['pause',fixture(),'onPause',[]],['resume',{...fixture(),paused:true},'onResume',[]],['exit',fixture(),'onExit',[]],['rotate',fixture(),'onRotate',[]],['rotate-empty',fixture({rotateCharges:0}),'onRotate',[]],['rotate-inactive',fixture({gameActive:false}),'onRotate',[]],['rotate-invalid',fixture({tray:[]}),'onRotate',[]],['rotate-error',{...fixture(),result:{error:'stale'}},'onRotate',[]],['place',fixture(),'onBloxDrop',[0,4,4]],['place-invalid',fixture(),'onBloxDrop',[0,9,9]],['place-inactive',fixture({gameActive:false}),'onBloxDrop',[0,1,1]],['place-error',{...fixture(),result:{error:'stale'}},'onBloxDrop',[0,1,1]],['place-clear',{...fixture(),result:{clear:{cleared:2}}},'onBloxDrop',[0,1,1]],['selected-cell',{...fixture(),selected:0},'onBloxCell',[1,1]],['selected-cell-error',{...fixture(),selected:0,result:{error:'stale'}},'onBloxCell',[1,1]],['selected-cell-clear',{...fixture(),selected:0,result:{clear:{cleared:2}}},'onBloxCell',[1,1]],['selected-cell-inactive',{...fixture({gameActive:false}),selected:0},'onBloxCell',[1,1]],['unselected-cell',fixture(),'onBloxCell',[1,1]]];
+ for(const [label,context,action,args] of scenarios){const results=[];for(const kind of ['baseline','preview','source']){const h=controllerHarness(kind,context,core);const fn=h.props[action]||h.props.sceneState[action];const returned=fn(...args);const result=await returned;await new Promise(setImmediate);
+  if(action==='onBloxCell'){
+   const active=kind==='source'&&(context.selected??-1)>=0&&context.snapshot.blox.savedState.gameActive;
+   if(active){assert.equal(typeof returned?.then,'function',label+' exposes placement promise');assert.deepEqual(clean(result),context.result||{},label+' exposes unchanged server receipt');}
+   else assert.equal(result,undefined,label+' retains the no-placement return');
+  }
+  const initial=clean(h.props);delete initial.sceneState.bloxHudReserve;
+  // Only the explicitly checked promise return is presentation-only. All action,
+  // reward, sound, optimistic state and server-call traces remain exact parity.
+  results.push(clean({initial,log:h.log,states:h.states,result:action==='onBloxCell'?undefined:result}));}assert.deepEqual(results[1],results[0],label+' preview vs baseline');assert.deepEqual(results[2],results[1],label+' source vs preview')}
 });
 test('all 18 Blox lossless WebP exports retain verified bytes, dimensions and nine-slice bounds',()=>{
  const art=closure(root+'/src/games/blox/bloxArt.js',['BLOX_ART','BLOX_BLOCK_ART','BLOX_PIXI_ASSETS','BLOX_NINE_SLICE'],{assetUrl:x=>x});const files=[...Object.values(art.BLOX_ART),...Object.values(art.BLOX_BLOCK_ART)];assert.equal(files.length,18);const manifest=[];

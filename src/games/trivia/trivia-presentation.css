@@ -71,8 +71,10 @@
 .trv2-poll { display: flex; align-items: center; gap: 8px; font-size: 12px; }
 .trv2-poll meter { flex: 1; width: 40px; height: 10px; }
 .trv2-lifelines { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 6px; }
-.trv2-lifeline { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px 5px; min-height: 56px; font-size: 13px; padding: 0; border-width: 12px; border-image-width: 12px; }
+.trv2-root .trv2-lifeline { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 3px 5px; min-height: 56px; font-size: 13px; padding: 0; border-width: 12px; border-image-width: 12px; }
 .trv2-lifeline .trv2-art { height: 24px; width: 24px; flex: 0 0 24px; }
+/* Keep a short translated control label whole; the charge may wrap separately. */
+.trv2-root .trv2-lifeline > span { white-space: nowrap; overflow-wrap: normal; }
 .trv2-lifeline b { color: #ffe29d; font-size: 13px; }
 .trv2-feedback { min-height: 42px; display: flex; flex-direction: column; gap: 10px; padding: 4px 4px 0; color: #d5e7f4; font-size: 13px; }
 .trv2-feedback > div { display: grid; gap: 3px; }
@@ -94,12 +96,31 @@
 .trv2-pause-metrics { display: flex; flex-wrap: wrap; gap: 20px; }
 .trv2-pause-metrics b { color: #ffe29d; }
 .trv2-root[data-trivia-layout='landscape'] .trv2-quiz { grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); align-items: stretch; }
-.trv2-root[data-trivia-layout='landscape'] .trv2-answers { grid-template-columns: repeat(2,minmax(0,1fr)); }
+/* Fit answer columns to their own panel, not the outer viewport. A compact
+   landscape already divides the screen between the question and answers. */
+.trv2-root[data-trivia-layout='landscape'] .trv2-answers { grid-template-columns: repeat(auto-fit,minmax(min(100%,13rem),1fr)); }
 .trv2-root[data-trivia-layout='landscape'] .trv2-answer { align-items: center; min-height: 80px; }
 .trv2-root[data-trivia-layout='landscape'] .trv2-question h2 { font-size: clamp(20px,2.4vw,32px); }
 .trv2-root[data-trivia-layout='landscape'] .trv2-setup-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
 .trv2-root[data-trivia-layout='landscape'] .trv2-feedback { flex-direction: row; align-items: center; justify-content: space-between; }
 .trv2-root[data-trivia-layout='landscape'] .trv2-lifelines { width: min(650px,100%); align-self: center; }
 @media (min-width: 760px) { .trv2-setup-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } .trv2-question { min-height: 260px; padding: 32px; } .trv2-answer { min-height: 72px; } .trv2-answer-label { font-size: 21px; } .trv2-content { padding: 10px; gap: 18px; } }
-@media (max-width: 360px) { .trv2-brand { font-size: 18px; } .trv2-brand .trv2-art { width: 28px; height: 28px; flex-basis: 28px; } .trv2-header .trv2-button { font-size: 12px; } .trv2-question { padding: 20px; } .trv2-question h2 { font-size: 20px; } .trv2-lifeline .trv2-art { width: 20px; height: 20px; flex-basis: 20px; } .trv2-lifeline { font-size: 12px; } }
+@media (max-width: 360px) { .trv2-brand { font-size: 18px; } .trv2-brand .trv2-art { width: 28px; height: 28px; flex-basis: 28px; } .trv2-header .trv2-button { font-size: 12px; } .trv2-question { padding: 20px; } .trv2-question h2 { font-size: 20px; } .trv2-lifeline .trv2-art { width: 20px; height: 20px; flex-basis: 20px; } .trv2-root .trv2-lifeline { font-size: 12px; } }
 @media (prefers-reduced-motion: reduce) { .trv2-root * { transition: none !important; animation: none !important; } }
+
+/* Short, non-blocking local acknowledgements; no countdown or score logic here. */
+.trv2-question-copy{animation:trv2-question-in 200ms ease-out both}
+.trv2-answer{animation:trv2-answer-in 220ms ease-out both;animation-delay:calc(var(--trv2-answer-order,0) * 28ms);transition:transform 120ms ease,filter 120ms ease}
+.trv2-answer[data-answer-state='pending']{outline:2px solid #f2d28c;outline-offset:-3px}
+.trv2-answer[data-answer-state='correct']{animation:trv2-confirm 300ms ease-out both}
+.trv2-answer[data-answer-state='wrong']{animation:trv2-reconsider 180ms ease-out both}
+.trv2-answer[data-answer-state='removed'] .trv2-answer-label{opacity:.65}
+.trv2-feedback[data-feedback='correct']>div,.trv2-feedback[data-feedback='wrong']>div{animation:trv2-question-in 180ms ease-out both}
+.trv2-results>.trv2-art{animation:trv2-trophy 440ms cubic-bezier(.18,.75,.3,1) both}
+.trv2-root[data-motion-suspended=true] *, .trv2-root[data-paused=true] .trv2-scroll *{animation-play-state:paused!important;transition:none!important}
+@keyframes trv2-question-in{from{opacity:.55;transform:translateY(4px)}to{opacity:1;transform:none}}
+@keyframes trv2-answer-in{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:none}}
+@keyframes trv2-confirm{0%{transform:scale(1)}45%{transform:scale(1.018)}100%{transform:none}}
+@keyframes trv2-reconsider{40%{transform:scale(.99)}100%{transform:none}}
+@keyframes trv2-trophy{0%{opacity:.5;transform:translateY(7px) scale(.9)}65%{opacity:1;transform:translateY(-1px) scale(1.035)}100%{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.trv2-button:not(:disabled):active,.trv2-answer:not(:disabled):active{transform:none}}

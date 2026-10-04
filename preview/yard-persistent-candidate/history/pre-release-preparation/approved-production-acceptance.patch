@@ -1,0 +1,774 @@
+diff --git a/.github/workflows/yard-production-acceptance.yml b/.github/workflows/yard-production-acceptance.yml
+new file mode 100644
+index 0000000..c9839f2
+--- /dev/null
++++ b/.github/workflows/yard-production-acceptance.yml
+@@ -0,0 +1,87 @@
++name: Yard ordinary production acceptance
++
++# Deliberate final proof only; never starts a deployment or publishes an image.
++on:
++  workflow_dispatch:
++    inputs:
++      active_commit:
++        description: Exact reviewed active B commit (40 hex)
++        required: true
++        type: string
++      closed_commit:
++        description: Exact published compatible closed A commit (40 hex)
++        required: true
++        type: string
++      closed_digest:
++        description: Immutable closed A GHCR sha256 digest
++        required: true
++        type: string
++
++permissions:
++  contents: read
++  packages: read
++
++jobs:
++  production-policy:
++    runs-on: ubuntu-latest
++    timeout-minutes: 40
++    env:
++      CI: 'true'
++      YARD_PRODUCTION_ACCEPTANCE: '1'
++      YARD_ACTIVE_COMMIT: ${{ inputs.active_commit }}
++      YARD_CLOSED_COMMIT: ${{ inputs.closed_commit }}
++      YARD_CLOSED_DIGEST: ${{ inputs.closed_digest }}
++      NODE_OPTIONS: ''
++      DEV_AUTH_ENABLED: ''
++      TELEGRAM_BOT_TOKEN: ''
++      DATABASE_URL: ''
++      REDIS_URL: ''
++      YARD_PLAYER_WIRING_TEST: ''
++      YARD_CANDIDATE_CI: ''
++      YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
++    steps:
++      - uses: actions/checkout@v6
++        with:
++          ref: ${{ inputs.active_commit }}
++          fetch-depth: 0
++          persist-credentials: false
++      - uses: actions/setup-node@v6
++        with:
++          node-version: '24'
++      - name: Validate exact input contract before images or dependencies
++        run: |
++          echo "YARD_IMAGE_REPOSITORY=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_ENV"
++          export YARD_IMAGE_REPOSITORY="ghcr.io/${GITHUB_REPOSITORY,,}"
++          node --input-type=module -e "import {assertProductionAcceptance} from './tests/helpers/yard-production-guard.mjs'; assertProductionAcceptance();"
++          test "$(git rev-parse HEAD)" = "$YARD_ACTIVE_COMMIT"
++          node --test tests/yard-production-contract.test.mjs
++          node scripts/yard-active-contract.mjs "$PWD"
++      - name: Install locked test dependencies
++        run: |
++          corepack enable
++          corepack prepare pnpm@10.28.2 --activate
++          pnpm install --frozen-lockfile
++          pnpm exec playwright install --with-deps chromium
++      - uses: docker/login-action@v4
++        with:
++          registry: ghcr.io
++          username: ${{ github.actor }}
++          password: ${{ secrets.GITHUB_TOKEN }}
++      - name: Fetch immutable A and build ordinary production B (no push)
++        run: |
++          docker pull "${YARD_IMAGE_REPOSITORY}@${YARD_CLOSED_DIGEST}"
++          docker pull postgres:15
++          docker build --file Dockerfile \
++            --build-arg "BUILD_ID=${YARD_ACTIVE_COMMIT}" \
++            --label "org.opencontainers.image.revision=${YARD_ACTIVE_COMMIT}" \
++            --tag "ccgh-yard-production:${YARD_ACTIVE_COMMIT}" .
++      - name: Six bounded real-policy API and warm-cache cases
++        timeout-minutes: 18
++        run: node scripts/yard-production-acceptance.mjs
++      - uses: actions/upload-artifact@v6
++        if: always()
++        with:
++          name: yard-production-${{ inputs.active_commit }}
++          path: test-results/yard-production/
++          if-no-files-found: error
++          retention-days: 14
+diff --git a/docs/yard-production-acceptance.md b/docs/yard-production-acceptance.md
+new file mode 100644
+index 0000000..d7260a5
+--- /dev/null
++++ b/docs/yard-production-acceptance.md
+@@ -0,0 +1,82 @@
++# Bounded ordinary-production acceptance
++
++This independent manual lane adds six serial cases to the existing reviewed
++59-case candidate evidence. It does not replace that evidence or run another
++110-minute trajectory. There is no deployment, image push, production database,
++real Telegram credential, policy loader, alternative Vite build, or clock override.
++
++## Required immutable inputs
++
++Run `.github/workflows/yard-production-acceptance.yml` only after:
++
++1. The final compatible **closed A** commit is published as an immutable GHCR
++   image. A must already contain the all-marker quarantine and interrupted-outbox
++   retention fix, including its frontend. An earlier unpatched image is not valid.
++2. The separately reviewed active promotion is applied to **B**, including its
++   active contract and exact requiredClosedPredecessor matching A.
++3. Ordinary UI/guard CI has passed for the relevant commits.
++
++Supply `active_commit`, `closed_commit` (both full 40-character SHAs), and
++`closed_digest` (`sha256:` plus 64 hex characters). Repository comes from the
++workflow's own repository, never arbitrary input. Missing or mismatched inputs
++fail closed. The workflow verifies the active promotion contract, pulls A by
++registry digest, and builds B with the unchanged Dockerfile, standard build and
++`CMD ["node", "server.js"]`. B is tested by its immutable local image ID and exact
++OCI source revision. A's registry digest is checked independently.
++
++The final published B registry digest is a later deployment identity. This lane
++records its locally tested B image ID; it must not be presented as a registry
++publication or as verification of a different later image.
++
++## Six cases and evidence
++
++- Production auth, Socket.IO, all eight actual current-hour admissions, migration
++  once, one durable command receipt, bad auth and foreign account rejection, and
++  nonce replay after a real B container restart. Seeds select a native outcome;
++  fixtures contain only ordinary historical inputs, no runtime, authored plan,
++  altered timestamp, substituted policy or simulated service result.
++- Mochi, Pebble and Basil: three actual production-browser cases. Each verifies
++  exact final-image manifest bytes, attributed atlas pixels and HTTP bytes,
++  reload, and migration/visit preservation at a real phone viewport with DPR2.
++- Same origin and browser storage, service workers enabled: A → B → A through
++  the actual periodic build/version update manager. Warm Mochi/Pebble metadata
++  is checked against each image, including A's false / B's bounded true / A's
++  false wrappers. A real UI collect commits on B, the network proxy drops its
++  response, and A must preserve the nonce, B save and receipts read-only. The
++  browser's own exact-nonce 409/ROLLOUT_PAUSED response must be observed, and its
++  durable rollout-paused item must survive processing and A's subsequent reload.
++- A rejects each JSON marker class, including malformed/future storage, without
++  changing Yard or the marker; an untouched account remains on legacy behavior.
++
++The lane inspects eight released actor IDs, ten unique ready bindings, six prop
++profiles, source-obstacle identities and the image-owned active contract. The
++server is never imported into a custom test factory: Docker runs its normal CMD.
++Both A and B share one disposable PostgreSQL15 service. A loopback reverse proxy
++only switches the upstream or drops a response; it never fabricates app data.
++
++The native service chooses the real current-hour opportunity. Fixtures use a
++saved cursor immediately before that opportunity and a native seed search for
++100–110 minute visitors, leaving at least 40 minutes at seeding even near the
++next hour. The service, browser and fixture process retain the system clock.
++The browser portion has a 12-minute global deadline, zero retries and one worker;
++the workflow has a bounded build/setup allowance. A 15-minute parent deadline
++and SIGINT/SIGTERM handlers terminate owned process groups before cleanup.
++Health and upstream requests have deadlines; proxy teardown destroys upgraded
++peers as well as ordinary sockets. Named probe and app containers are recorded
++before launch, then removed with bounded commands on success or failure.
++
++## Results and limits
++
++`test-results/yard-production/` contains immutable inputs/image IDs, image-owned
++compatibility and active identities, actual metadata from both images, browser
++traces/screenshots, production logs, current-time admissions, receipts, warm-cache
++transition evidence, and the exact six-case JSON report. `PASS.json` is emitted
++only for six passed tests with no skipped, unexpected or flaky result and
++successful cleanup. Old success/report/fault/metadata files are removed before
++starting. The report, image evidence and final proof are bound to the current
++parent-owned run UUID and exact image inputs.
++
++Local development can run `node --test tests/yard-production-contract.test.mjs`
++without installation or Docker. Those guard/proxy checks are not the production
++proof. The full lane is deliberately blocked until the frozen A and active B
++exist; do not guess A, flip a policy with a loader, or relabel candidate evidence.
+diff --git a/playwright.yard-production.config.js b/playwright.yard-production.config.js
+new file mode 100644
+index 0000000..45e3b68
+--- /dev/null
++++ b/playwright.yard-production.config.js
+@@ -0,0 +1,15 @@
++import {defineConfig} from '@playwright/test';
++import {assertProductionAcceptance,PRODUCTION_PORTS} from './tests/helpers/yard-production-guard.mjs';
++const inputs=assertProductionAcceptance();
++if(!/^[a-f0-9-]{36}$/.test(process.env.YARD_PRODUCTION_RUN_ID||''))throw Error('Parent-owned acceptance run ID required');
++export default defineConfig({
++ metadata:{runId:process.env.YARD_PRODUCTION_RUN_ID,activeCommit:inputs.activeCommit,closedCommit:inputs.closedCommit,closedDigest:inputs.closedDigest},
++ testDir:'./tests/yard-production-e2e',testMatch:'production.spec.js',fullyParallel:false,
++ workers:1,retries:0,forbidOnly:true,timeout:180000,globalTimeout:12*60*1000,
++ outputDir:'test-results/yard-production/browser',
++ reporter:[['list'],['json',{outputFile:'test-results/yard-production/results.json'}]],
++ use:{baseURL:`http://127.0.0.1:${PRODUCTION_PORTS.origin}`,serviceWorkers:'allow',
++  viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,
++  trace:'retain-on-failure',screenshot:'only-on-failure'},
++ projects:[{name:'chromium',use:{browserName:'chromium'}}],
++});
+diff --git a/scripts/yard-production-acceptance.mjs b/scripts/yard-production-acceptance.mjs
+new file mode 100644
+index 0000000..7ea9c66
+--- /dev/null
++++ b/scripts/yard-production-acceptance.mjs
+@@ -0,0 +1,79 @@
++/** Explicit, bounded CI harness; no deployment, publication, loader, or clock override. */
++import assert from 'node:assert/strict';
++import {execFileSync} from 'node:child_process';
++import {mkdir,writeFile,readFile,rm} from 'node:fs/promises';
++import {resolve} from 'node:path';
++import {randomUUID} from 'node:crypto';
++import {assertProductionAcceptance,verifyImageIdentity,verifyCompatibility,PRODUCTION_PORTS,FIXTURE_BOT_TOKEN,DATABASE_URL,ACTORS,PROPS} from '../tests/helpers/yard-production-guard.mjs';
++import {runBoundedCommand} from '../tests/helpers/yard-production-process.mjs';
++import {setProxyState,startProductionProxy} from '../tests/helpers/yard-production-proxy.mjs';
++const inputs=assertProductionAcceptance(),root=process.cwd(),out=resolve(root,'test-results/yard-production');
++assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8',timeout:15000}).trim(),inputs.activeCommit,'Checkout must be exact active commit');
++assert.equal(execFileSync('git',['status','--porcelain','--untracked-files=no'],{encoding:'utf8',timeout:15000}).trim(),'','Tracked checkout must be clean');
++const runId=randomUUID(),prefix=`ccgh-yard-prod-${runId.slice(0,8)}`,names={db:`${prefix}-db`,A:`${prefix}-a`,B:`${prefix}-b`},created=[];
++const controller=new AbortController(),onSignal=signal=>controller.abort(Error(`Acceptance interrupted by ${signal}`));
++const sigint=()=>onSignal('SIGINT'),sigterm=()=>onSignal('SIGTERM');process.on('SIGINT',sigint);process.on('SIGTERM',sigterm);
++const deadline=setTimeout(()=>controller.abort(Error('Production acceptance exceeded 15-minute parent deadline')),15*60*1000);
++const docker=async(args,timeoutMs=60000,cleanup=false)=>(await runBoundedCommand('docker',args,{timeoutMs,signal:cleanup?undefined:controller.signal})).stdout;
++let proxy,networkCreated=false,completedProof;
++const imageA=`${inputs.repository}@${inputs.closedDigest}`,imageB=`ccgh-yard-production:${inputs.activeCommit}`;
++try{
++await mkdir(out,{recursive:true});for(const file of ['PASS.json','results.json','lost-reply.json','image-identity.json','metadata-A.json','metadata-B.json'])await rm(resolve(out,file),{force:true});
++const inspectImage=async image=>JSON.parse(await docker(['image','inspect',image]))[0];
++const a=await inspectImage(imageA),b=await inspectImage(imageB);
++const ids={A:verifyImageIdentity(a,{commit:inputs.closedCommit,digest:inputs.closedDigest,repository:inputs.repository}),B:verifyImageIdentity(b,{commit:inputs.activeCommit})};
++const probe=async(mode,image)=>{const name=`${prefix}-probe-${mode}`;created.push(name);return JSON.parse(await docker(['run','--name',name,'--network','none','--read-only',image,'node','scripts/yard-release-compatibility.mjs']));};
++const compatibility={A:await probe('a',ids.A),B:await probe('b',ids.B)};verifyCompatibility(compatibility.A,compatibility.B,inputs);
++const registryScript=`
++import fs from 'node:fs';
++import {getYardServerOptions} from './game-logic/yard-v2/yard-media.mjs';
++import {verifyActiveRuntime} from './scripts/yard-active-contract.mjs';
++import {YARD_ACTOR_PROFILES} from './game-logic/yard-v2/released-actor-profiles.mjs';
++import {YARD_PROP_PROFILES} from './game-logic/yard-v2/released-prop-profiles.mjs';
++import {createTrustedObstacleContext} from './game-logic/yard-v2/prop-obstacles.mjs';
++import {createHash} from 'node:crypto';
++const options=getYardServerOptions(),hash=v=>createHash('sha256').update(JSON.stringify(v)).digest('hex');
++if(fs.existsSync('public')||fs.existsSync('recovery-tools')||!fs.existsSync('dist/index.html'))throw Error('Ordinary final image layout required');
++const promotion=await verifyActiveRuntime('/app');
++console.log(JSON.stringify({promotion,actors:Object.keys(options.actorProfiles),actorProfilesHash:hash(YARD_ACTOR_PROFILES),bindings:options.mediaRegistry.bindings.map(b=>({id:b.id,visitorId:b.visitorId,goodieId:b.goodieId,revision:b.revision,playbackReady:b.playbackReady})),props:Object.keys(YARD_PROP_PROFILES),propProfilesHash:hash(YARD_PROP_PROFILES),obstacles:createTrustedObstacleContext(options.mediaRegistry)}));`;
++const identityProbe=`${prefix}-probe-identity`;created.push(identityProbe);
++const identity=JSON.parse(await docker(['run','--name',identityProbe,'--network','none','--read-only',ids.B,'node','--input-type=module','-e',registryScript]));
++assert.deepEqual(identity.actors,ACTORS);assert.deepEqual(identity.props,PROPS);assert.equal(identity.bindings.length,10);assert.ok(identity.bindings.every(b=>b.playbackReady));assert.equal(new Set(identity.bindings.map(b=>b.id)).size,10);
++await mkdir(out,{recursive:true});
++await writeFile(resolve(out,'image-identity.json'),JSON.stringify({runId,inputs,imageA:{Id:a.Id,RepoDigests:a.RepoDigests},imageB:{Id:b.Id},compatibility,identity},null,2));
++const statePath=resolve(out,'proxy-state.json'),faultPath=resolve(out,'lost-reply.json');await setProxyState(statePath,{target:'B'});
++const ready=async(mode)=>{const deadline=Date.now()+90000;while(Date.now()<deadline){controller.signal.throwIfAborted();try{const r=await fetch(`http://127.0.0.1:${PRODUCTION_PORTS[mode]}/api/health`,{signal:AbortSignal.any([controller.signal,AbortSignal.timeout(5000)])}),v=await r.json();if(v.status==='ok'&&v.postgres&&v.buildId===(mode==='A'?inputs.closedCommit:inputs.activeCommit))return;}catch{}await new Promise(r=>setTimeout(r,500));}throw Error(`Production ${mode} did not become healthy`);};
++ networkCreated=true;await docker(['network','create','--internal',prefix]);
++ created.push(names.db);await docker(['run','-d','--name',names.db,'--network',prefix,'-p',`127.0.0.1:${PRODUCTION_PORTS.database}:5432`,'-e','POSTGRES_USER=ccgh_yard_production_ci','-e','POSTGRES_PASSWORD=ccgh_yard_production_ci','-e','POSTGRES_DB=ccgh_yard_production_ci','postgres:15']);
++ for(let n=0;n<90;n++){controller.signal.throwIfAborted();try{await docker(['exec',names.db,'pg_isready','-U','ccgh_yard_production_ci','-d','ccgh_yard_production_ci'],2000);break;}catch{if(n===89)throw Error('Disposable PostgreSQL did not start');await new Promise(r=>setTimeout(r,500));}}
++ for(const mode of ['A','B']){
++  created.push(names[mode]);await docker(['run','-d','--name',names[mode],'--network',prefix,'--read-only','--tmpfs','/tmp','--cap-drop','ALL','--security-opt','no-new-privileges','-p',`127.0.0.1:${PRODUCTION_PORTS[mode]}:8080`,'-e','PORT=8080','-e',`DATABASE_URL=postgres://ccgh_yard_production_ci:ccgh_yard_production_ci@${names.db}:5432/ccgh_yard_production_ci`,'-e',`TELEGRAM_BOT_TOKEN=${FIXTURE_BOT_TOKEN}`,'-e',`PUBLIC_APP_URL=http://127.0.0.1:${PRODUCTION_PORTS.origin}`,ids[mode]]);await ready(mode);
++ }
++ // Copy only exact image metadata for HTTP-byte assertions; no alternate client build.
++ for(const mode of ['A','B']){
++  const container=names[mode],metadata={};
++  for(const actor of ACTORS){const path=`assets/${['mika','mochi','pebble','pip'].includes(actor)?`yard-${actor}`:`yard-family/${actor}`}/runtime-media.json`;metadata[path]=await docker(['exec',container,'cat',`dist/${path}`],10000);}
++  await writeFile(resolve(out,`metadata-${mode}.json`),JSON.stringify(metadata));
++ }
++ proxy=await startProductionProxy({statePath,evidencePath:faultPath});
++ const env={...process.env,DATABASE_URL,YARD_PRODUCTION_RUN_ID:runId,YARD_PRODUCTION_CONTAINER_B:names.B,YARD_PRODUCTION_STATE:statePath,YARD_PRODUCTION_FAULT:faultPath,YARD_PRODUCTION_EVIDENCE:out};
++ await runBoundedCommand('pnpm',['exec','playwright','test','--config','playwright.yard-production.config.js'],{inherit:true,env,signal:controller.signal,timeoutMs:13*60*1000});
++ const report=JSON.parse(await readFile(resolve(out,'results.json'),'utf8'));
++ for(const [key,value]of Object.entries({runId,activeCommit:inputs.activeCommit,closedCommit:inputs.closedCommit,closedDigest:inputs.closedDigest}))assert.equal(report.config.metadata?.[key],value,'Report must belong to this exact run and image pair');
++ assert.equal(report.stats.unexpected,0);assert.equal(report.stats.flaky,0);assert.equal(report.stats.skipped,0);assert.equal(report.stats.expected,6,'Exact bounded six-test lane required');
++ completedProof={format:'cc-gh-yard-production-acceptance/v1',runId,...inputs,activeImageId:ids.B,closedImageId:ids.A,tests:6,retries:0,completedAt:new Date().toISOString()};
++}finally{
++ // The awaited command has already terminated its entire process group on abort.
++ clearTimeout(deadline);const cleanupErrors=[];
++ try{await proxy?.closeAcceptance();}catch(error){cleanupErrors.push(error.message);}
++ for(const name of created.reverse()){
++  try{const logs=await runBoundedCommand('docker',['logs',name],{timeoutMs:5000});await writeFile(resolve(out,`${name}.log`),logs.stdout+logs.stderr);}catch{}
++  try{await docker(['rm','-f','-v',name],10000,true);}catch(error){cleanupErrors.push(error.message);}
++ }
++ if(networkCreated)try{await docker(['network','rm',prefix],10000,true);}catch(error){cleanupErrors.push(error.message);}
++ process.removeListener('SIGINT',sigint);process.removeListener('SIGTERM',sigterm);
++ if(cleanupErrors.length){process.exitCode=1;console.error('Acceptance cleanup failed:',cleanupErrors.join('; '));}
++ if(controller.signal.aborted)process.exitCode=1;
++}
++
++if(completedProof&&!process.exitCode){await writeFile(resolve(out,'PASS.json'),JSON.stringify(completedProof,null,2));console.log('Ordinary production image/API and same-origin warm-cache acceptance passed.');}
+diff --git a/tests/helpers/yard-production-fixtures.mjs b/tests/helpers/yard-production-fixtures.mjs
+new file mode 100644
+index 0000000..9397206
+--- /dev/null
++++ b/tests/helpers/yard-production-fixtures.mjs
+@@ -0,0 +1,52 @@
++/** Plain legacy save inputs. The production HTTP service owns migration/admission. */
++import assert from 'node:assert/strict';
++import {randomUUID,randomInt} from 'node:crypto';
++import {createDefaultPlayer} from '../../game-logic/player.js';
++import {getYardServerOptions} from '../../game-logic/yard-v2/yard-media.mjs';
++import {nativeDrawContext,drawNativeSeed} from './yard-native-draw.mjs';
++import {assertProductionAcceptance} from './yard-production-guard.mjs';
++export const SPECS=Object.freeze({
++ mika:{visitorId:'mika_cat',goodieId:'sun_cushion',activityId:'nap',foodId:'kibble',x:54,y:66},
++ mochi:{visitorId:'mochi_bunny',goodieId:'yarn_mouse',activityId:'sniff',foodId:'berry_plate',x:50,y:50},
++ pebble:{visitorId:'pebble_pup',goodieId:'leaf_pot',activityId:'sniff',foodId:'berry_plate',x:60,y:35},
++ pip:{visitorId:'pip_hamster',goodieId:'snack_table',activityId:'nibble',foodId:'berry_plate',x:50,y:65},
++ willow:{visitorId:'willow_fox',goodieId:'moon_lamp',activityId:'peek',foodId:'kibble',x:60,y:40},
++ starlit:{visitorId:'starlit_fox',goodieId:'moon_lamp',activityId:'watch',foodId:'bonito_bowl',x:60,y:40},
++ basil:{visitorId:'basil_turtle',goodieId:'fountain_bowl',activityId:'watch-right',foodId:'kibble',x:55,y:48},
++ sage:{visitorId:'sage_turtle',goodieId:'fountain_bowl',activityId:'watch-right',foodId:'berry_plate',x:55,y:48},
++});
++const HOUR=3600000;
++export function productionFixture(actor=null){
++ assertProductionAcceptance();
++ const now=Date.now(),opportunity=Math.floor(now/HOUR)*HOUR;
++ let id=`acct:${randomUUID()}`,p=createDefaultPlayer(id,'Disposable Yard production fixture',now);
++ p._onboarded=true;p._version=randomUUID();p.yard.currencies={treats:5000,shinyTreats:100};
++ p.yard.placedGoodies=[];p.yard.pendingGifts=[{id:`fixture-gift-${randomUUID()}`,visitorId:'mika_cat',treats:17,shinyTreats:0,createdAt:now}];
++ p.yard.productionFixture={preserve:'unknown yard input'};
++ if(actor){
++  const s=SPECS[actor];assert.ok(s);p.yard.lastSimulatedAt=opportunity-1;
++  p.yard.placedGoodies=[{slotId:'target',goodieId:s.goodieId,x:s.x,y:s.y,uses:0,condition:'new',rotationZ:0}];
++  p.yard.bowls[0]={id:'bowl-1',foodId:s.foodId,servings:1,placedAt:opportunity-1,expiresAt:opportunity+8*HOUR};
++  const context=nativeDrawContext({yard:p.yard,placement:p.yard.placedGoodies[0],foodId:s.foodId,scene:getYardServerOptions().scene,at:opportunity});
++  assert.ok(context.ok,'Actual released geometry required');let selected=false;
++  for(let n=0;n<50000;n++){
++   const candidate=`acct:${randomUUID()}`,draw=drawNativeSeed(candidate,context);
++   if(draw?.visitorId===s.visitorId&&draw.activityId===s.activityId&&draw.minutes>=100){id=candidate;selected=true;break;}
++  }
++  assert.ok(selected,'Current-hour native seed search exhausted; never force an outcome');p.id=id;
++ }
++ assert.equal(Object.hasOwn(p,'_yardV2'),false,'No authored runtime/plan fixture allowed');
++ return {id,externalId:String(9000000000000+randomInt(0,1000000000)),actor,opportunity,initial:p};
++}
++export async function insertFixture(sql,f,runId){
++ assert.match(f.id,/^acct:[a-f0-9-]{36}$/);assert.match(f.externalId,/^900[0-9]{10}$/);assert.match(runId,/^[a-f0-9-]{36}$/);
++ await sql.begin(async tx=>{
++  await tx`INSERT INTO accounts(id,display_name,profile) VALUES(${f.id},'Disposable Yard production fixture',${{yardProductionFixture:runId}})`;
++  await tx`INSERT INTO account_identities(provider,external_id,account_id,profile) VALUES('telegram',${f.externalId},${f.id},${{yardProductionFixture:runId}})`;
++  await tx`INSERT INTO players(id,data) VALUES(${f.id},${f.initial})`;
++ });
++}
++export async function readFixture(sql,f,runId){
++ const [row]=await sql`SELECT p.data,a.profile AS owner FROM players p JOIN accounts a ON a.id=p.id JOIN account_identities i ON i.account_id=p.id WHERE p.id=${f.id} AND i.provider='telegram' AND i.external_id=${f.externalId}`;
++ assert.equal(row?.owner?.yardProductionFixture,runId,'Refuse foreign fixture row');return row.data;
++}
+diff --git a/tests/helpers/yard-production-guard.mjs b/tests/helpers/yard-production-guard.mjs
+new file mode 100644
+index 0000000..65a829a
+--- /dev/null
++++ b/tests/helpers/yard-production-guard.mjs
+@@ -0,0 +1,37 @@
++/** CI-only disposable Docker lane. Never selected by production code. */
++import assert from 'node:assert/strict';
++export const PRODUCTION_PORTS=Object.freeze({A:3231,B:3232,origin:3233,database:35432});
++export const ACTORS=Object.freeze(['mika','mochi','pebble','pip','willow','starlit','basil','sage']);
++export const PROPS=Object.freeze(['yarn_mouse','sun_cushion','leaf_pot','snack_table','moon_lamp','fountain_bowl']);
++export const FIXTURE_BOT_TOKEN='9000000000:yard-production-disposable-not-a-real-bot';
++export const DATABASE_URL='postgres://ccgh_yard_production_ci:ccgh_yard_production_ci@127.0.0.1:35432/ccgh_yard_production_ci';
++export function assertProductionAcceptance(env=process.env){
++ assert.equal(env.YARD_PRODUCTION_ACCEPTANCE,'1','Explicit production acceptance opt-in required');
++ assert.equal(env.CI,'true','Only isolated CI execution is supported');
++ for(const key of ['NODE_OPTIONS','DEV_AUTH_ENABLED','TELEGRAM_BOT_TOKEN','REDIS_URL','YARD_CANDIDATE_CI','YARD_PLAYER_WIRING_TEST','YARD_EIGHT_PLAYER_CANDIDATE_TEST'])assert.ok(!env[key],`Inherited ${key} is forbidden`);
++ assert.ok(!env.DATABASE_URL||env.DATABASE_URL===DATABASE_URL,'Only the disposable production acceptance database is allowed');
++ assert.match(env.YARD_ACTIVE_COMMIT||'',/^[a-f0-9]{40}$/,'Exact active commit required');
++ assert.match(env.YARD_CLOSED_COMMIT||'',/^[a-f0-9]{40}$/,'Frozen closed commit required');
++ assert.notEqual(env.YARD_ACTIVE_COMMIT,env.YARD_CLOSED_COMMIT);
++ assert.match(env.YARD_CLOSED_DIGEST||'',/^sha256:[a-f0-9]{64}$/,'Frozen closed registry digest required');
++ assert.match(env.YARD_IMAGE_REPOSITORY||'',/^ghcr\.io\/[a-z0-9][a-z0-9_.-]*\/[a-z0-9][a-z0-9_.-]*$/,'Exact GHCR repository required');
++ return {activeCommit:env.YARD_ACTIVE_COMMIT,closedCommit:env.YARD_CLOSED_COMMIT,closedDigest:env.YARD_CLOSED_DIGEST,repository:env.YARD_IMAGE_REPOSITORY};
++}
++export function verifyImageIdentity(image,{commit,digest,repository}){
++ assert.match(image.Id||'',/^sha256:[a-f0-9]{64}$/);
++ assert.equal(image.Config?.Labels?.['org.opencontainers.image.revision'],commit);
++ assert.deepEqual(image.Config?.Cmd,['node','server.js']);
++ const env=Object.fromEntries((image.Config?.Env||[]).map(row=>{const i=row.indexOf('=');return[row.slice(0,i),row.slice(i+1)];}));
++ assert.equal(env.NODE_ENV,'production');assert.equal(env.APP_BUILD_ID,commit);
++ for(const key of ['NODE_OPTIONS','DEV_AUTH_ENABLED','YARD_PLAYER_WIRING_TEST','YARD_CANDIDATE_CI'])assert.ok(!env[key]);
++ if(digest)assert.ok(image.RepoDigests?.includes(`${repository}@${digest}`),'Closed registry digest mismatch');
++ return image.Id;
++}
++export function verifyCompatibility(A,B,inputs){
++ assert.equal(A.format,'cc-gh-yard-release-compatibility/v1');assert.equal(B.format,A.format);
++ assert.equal(A.buildId,inputs.closedCommit);assert.equal(B.buildId,inputs.activeCommit);
++ assert.equal(A.playerRolloutEnabled,false);assert.equal(A.closedQuarantineVerified,true);
++ assert.equal(B.playerRolloutEnabled,true);
++ assert.deepEqual(B.requiredClosedPredecessor,{buildId:inputs.closedCommit,imageDigest:inputs.closedDigest});
++ assert.ok(A.readableStorageFormats.includes('yard-persistent/v1'));assert.ok(B.readableStorageFormats.includes('yard-persistent/v1'));
++}
+diff --git a/tests/helpers/yard-production-process.mjs b/tests/helpers/yard-production-process.mjs
+new file mode 100644
+index 0000000..a05eb6e
+--- /dev/null
++++ b/tests/helpers/yard-production-process.mjs
+@@ -0,0 +1,30 @@
++/** Bounded process group ownership for the disposable acceptance runner. */
++import {spawn} from 'node:child_process';
++export function runBoundedCommand(command,args,{timeoutMs=60000,signal,inherit=false,maxBuffer=8*1024*1024,env=process.env}={}){
++ if(signal?.aborted)return Promise.reject(signal.reason||Error('Acceptance interrupted'));
++ return new Promise((resolve,reject)=>{
++  const child=spawn(command,args,{env,detached:true,stdio:inherit?'inherit':['ignore','pipe','pipe']});
++  const stdout=[],stderr=[];let bytes=0,reason=null,settled=false,escalation,stopLimit;
++  const kill=signal=>{if(!child.pid)return;try{process.kill(-child.pid,signal);}catch(error){if(error.code!=='ESRCH')reason??=error;}};
++  const finish=(error,value)=>{
++   if(settled)return;settled=true;clearTimeout(deadline);clearTimeout(escalation);clearTimeout(stopLimit);signal?.removeEventListener('abort',abort);
++   // An exited wrapper must not leave its browser/npm grandchildren running.
++   kill('SIGKILL');error?reject(error):resolve(value);
++  };
++  const stop=error=>{
++   if(reason||settled)return;reason=error;kill('SIGTERM');
++   escalation=setTimeout(()=>kill('SIGKILL'),1000);
++   stopLimit=setTimeout(()=>{kill('SIGKILL');finish(reason);},3000);
++  };
++  const abort=()=>stop(signal.reason||Error('Acceptance interrupted'));
++  const deadline=setTimeout(()=>stop(Error(`${command} exceeded ${timeoutMs}ms deadline`)),timeoutMs);
++  signal?.addEventListener('abort',abort,{once:true});
++  for(const [stream,chunks]of [[child.stdout,stdout],[child.stderr,stderr]])stream?.on('data',chunk=>{bytes+=chunk.length;if(bytes>maxBuffer)stop(Error(`${command} exceeded output limit`));else chunks.push(chunk);});
++  child.once('error',error=>finish(error));
++  child.once('close',(code,killedBy)=>{
++   const value={code,stdout:Buffer.concat(stdout).toString(),stderr:Buffer.concat(stderr).toString()};
++   finish(reason||(code!==0?Error(`${command} failed (${code??killedBy}): ${value.stderr.slice(-4000)}`):null),value);
++  });
++  if(signal?.aborted)abort();
++ });
++}
+diff --git a/tests/helpers/yard-production-proxy.mjs b/tests/helpers/yard-production-proxy.mjs
+new file mode 100644
+index 0000000..7ee5faa
+--- /dev/null
++++ b/tests/helpers/yard-production-proxy.mjs
+@@ -0,0 +1,42 @@
++/** Same-origin network switch/fault injection only. Never replaces app responses. */
++import http from 'node:http';
++import {readFile,writeFile,rename} from 'node:fs/promises';
++import {PRODUCTION_PORTS} from './yard-production-guard.mjs';
++export async function setProxyState(path,value){await writeFile(path+'.next',JSON.stringify(value));await rename(path+'.next',path);}
++export async function startProductionProxy({statePath,evidencePath,timeoutMs=15000}){
++ let dropped=false,closing=false;const sockets=new Set(),requests=new Set();
++ const track=socket=>{sockets.add(socket);socket.once('close',()=>sockets.delete(socket));return socket;};
++ const own=request=>{requests.add(request);const deadline=setTimeout(()=>request.destroy(Error('Acceptance upstream deadline')),timeoutMs);request.once('close',()=>{clearTimeout(deadline);requests.delete(request);});request.once('upgrade',()=>clearTimeout(deadline));request.setTimeout(timeoutMs,()=>request.destroy(Error('Acceptance upstream timeout')));return request;};
++ const server=http.createServer(async(req,res)=>{
++  try{
++   const state=JSON.parse(await readFile(statePath,'utf8'));
++   if(closing||!['A','B'].includes(state.target))throw Error('Explicit A/B target required');
++   const chunks=[];let length=0;for await(const chunk of req){length+=chunk.length;if(length>1024*1024)throw Error('Acceptance proxy body too large');chunks.push(chunk);}const body=Buffer.concat(chunks);
++   let command;try{command=JSON.parse(body);}catch{}
++   const isFault=state.dropCollect===true&&command?.action==='yard.collectGifts';
++   if(isFault&&dropped){res.destroy();return;}
++   const upstream=own(http.request({hostname:'127.0.0.1',port:PRODUCTION_PORTS[state.target],method:req.method,path:req.url,headers:req.headers},response=>{
++    if(!isFault){res.writeHead(response.statusCode,response.headers);response.pipe(res);return;}
++    dropped=true;const reply=[];response.on('data',chunk=>reply.push(chunk));response.on('end',()=>{
++     void (async()=>{try{await writeFile(evidencePath,JSON.stringify({target:state.target,command,status:response.statusCode,body:JSON.parse(Buffer.concat(reply)),committedAt:Date.now()}));}catch(error){server.emit('acceptance-error',error);}finally{res.destroy();}})();
++    });
++   }));
++   upstream.on('error',()=>{if(!res.headersSent)res.writeHead(502);res.end();});res.once('close',()=>upstream.destroy());upstream.end(body);
++  }catch(error){if(!res.headersSent)res.writeHead(503,{'content-type':'text/plain'});res.end(error.message);}
++ });
++ server.requestTimeout=timeoutMs;server.headersTimeout=timeoutMs;server.timeout=timeoutMs;
++ server.on('connection',track);
++ // Socket.IO websocket traffic uses the same selected production server.
++ server.on('upgrade',async(req,socket,head)=>{
++  try{const state=JSON.parse(await readFile(statePath,'utf8'));if(closing||!['A','B'].includes(state.target))throw Error('Bad proxy target');
++   const upstream=own(http.request({hostname:'127.0.0.1',port:PRODUCTION_PORTS[state.target],path:req.url,headers:req.headers}));
++   upstream.on('upgrade',(response,peer,upstreamHead)=>{if(closing){peer.destroy();socket.destroy();return;}track(peer);peer.setTimeout(0);socket.setTimeout(0);socket.write(`HTTP/1.1 101 Switching Protocols\r\n${Object.entries(response.headers).map(([k,v])=>`${k}: ${v}`).join('\r\n')}\r\n\r\n`);if(head.length)peer.write(head);if(upstreamHead.length)socket.write(upstreamHead);socket.pipe(peer).pipe(socket);peer.on('error',()=>socket.destroy());socket.on('error',()=>peer.destroy());peer.once('close',()=>socket.destroy());socket.once('close',()=>peer.destroy());});
++   upstream.on('error',()=>socket.destroy());socket.once('close',()=>upstream.destroy());upstream.end();
++  }catch{socket.destroy();}
++ });
++ server.closeAcceptance=async()=>{
++  closing=true;for(const request of requests)request.destroy();for(const socket of sockets)socket.destroy();
++  await new Promise((resolve,reject)=>{const deadline=setTimeout(()=>reject(Error('Acceptance proxy close exceeded 2000ms')),2000);server.close(error=>{clearTimeout(deadline);error?reject(error):resolve();});server.closeAllConnections();});
++ };
++ await new Promise((resolve,reject)=>{server.once('error',reject);server.listen(PRODUCTION_PORTS.origin,'127.0.0.1',resolve);});return server;
++}
+diff --git a/tests/yard-production-contract.test.mjs b/tests/yard-production-contract.test.mjs
+new file mode 100644
+index 0000000..629629b
+--- /dev/null
++++ b/tests/yard-production-contract.test.mjs
+@@ -0,0 +1,120 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import {readFileSync} from 'node:fs';
++import {spawnSync} from 'node:child_process';
++import {assertProductionAcceptance,verifyImageIdentity,verifyCompatibility,DATABASE_URL,FIXTURE_BOT_TOKEN} from './helpers/yard-production-guard.mjs';
++const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
++const A='a'.repeat(40),B='b'.repeat(40),digest='sha256:'+'c'.repeat(64),repository='ghcr.io/le-who/cc-gh';
++const env={CI:'true',YARD_PRODUCTION_ACCEPTANCE:'1',YARD_ACTIVE_COMMIT:B,YARD_CLOSED_COMMIT:A,YARD_CLOSED_DIGEST:digest,YARD_IMAGE_REPOSITORY:repository};
++test('production lane requires exact explicit identities and rejects overrides or external storage',()=>{
++ assert.doesNotThrow(()=>assertProductionAcceptance(env));assert.doesNotThrow(()=>assertProductionAcceptance({...env,DATABASE_URL}));
++ for(const [key,value]of Object.entries({CI:'false',YARD_PRODUCTION_ACCEPTANCE:'',YARD_ACTIVE_COMMIT:'latest',YARD_CLOSED_COMMIT:B,YARD_CLOSED_DIGEST:'latest',YARD_IMAGE_REPOSITORY:'other/image',DATABASE_URL:'postgres://host/production',NODE_OPTIONS:'--import loader',DEV_AUTH_ENABLED:'true',TELEGRAM_BOT_TOKEN:'real-token',REDIS_URL:'redis://localhost',YARD_CANDIDATE_CI:'1',YARD_PLAYER_WIRING_TEST:'1',YARD_EIGHT_PLAYER_CANDIDATE_TEST:'1'}))assert.throws(()=>assertProductionAcceptance({...env,[key]:value}),key);
++ assert.match(FIXTURE_BOT_TOKEN,/not-a-real-bot/);
++});
++const image=()=>({Id:'sha256:'+'d'.repeat(64),RepoDigests:[`${repository}@${digest}`],Config:{Cmd:['node','server.js'],Labels:{'org.opencontainers.image.revision':A},Env:['NODE_ENV=production',`APP_BUILD_ID=${A}`]}});
++test('ordinary final Docker identity pins command, build, registry digest and production environment',()=>{
++ assert.equal(verifyImageIdentity(image(),{commit:A,digest,repository}),image().Id);
++ for(const mutate of [x=>x.Config.Cmd=['node','test-server.js'],x=>x.RepoDigests=[],x=>x.Config.Labels['org.opencontainers.image.revision']=B,x=>x.Config.Env.push('NODE_OPTIONS=--import evil'),x=>x.Config.Env[0]='NODE_ENV=test',x=>x.Config.Env[1]=`APP_BUILD_ID=${B}`]){const value=image();mutate(value);assert.throws(()=>verifyImageIdentity(value,{commit:A,digest,repository}));}
++});
++const compatibility=()=>[{format:'cc-gh-yard-release-compatibility/v1',buildId:A,playerRolloutEnabled:false,closedQuarantineVerified:true,readableStorageFormats:['yard-persistent/v1']},{format:'cc-gh-yard-release-compatibility/v1',buildId:B,playerRolloutEnabled:true,requiredClosedPredecessor:{buildId:A,imageDigest:digest},readableStorageFormats:['yard-persistent/v1']}];
++test('active B cannot be tested against a guessed, unproven, active or different predecessor',()=>{
++ const inputs=assertProductionAcceptance(env);assert.doesNotThrow(()=>verifyCompatibility(...compatibility(),inputs));
++ for(const mutate of [(a,b)=>b.requiredClosedPredecessor=null,(a,b)=>b.requiredClosedPredecessor.imageDigest='sha256:'+'e'.repeat(64),(a,b)=>b.playerRolloutEnabled=false,a=>a.playerRolloutEnabled=true,a=>a.closedQuarantineVerified=false,a=>a.buildId=B,a=>a.readableStorageFormats=[]]){const [a,b]=compatibility();mutate(a,b);assert.throws(()=>verifyCompatibility(a,b,inputs));}
++});
++test('missing opt-in fails before Docker, PostgreSQL or Playwright starts',()=>{
++ const result=spawnSync(process.execPath,['scripts/yard-production-acceptance.mjs'],{cwd:new URL('..',import.meta.url),env:{...process.env,NODE_OPTIONS:'',YARD_PRODUCTION_ACCEPTANCE:''},encoding:'utf8',timeout:5000});
++ assert.notEqual(result.status,0);assert.match(result.stderr,/Explicit production acceptance opt-in required/);assert.doesNotMatch(result.stderr,/ERR_MODULE_NOT_FOUND|spawnSync docker/);
++});
++test('new six-case lane leaves the 59-case evidence intact and runs real production boundaries',()=>{
++ const script=read('scripts/yard-production-acceptance.mjs'),config=read('playwright.yard-production.config.js'),spec=read('tests/yard-production-e2e/production.spec.js'),fixtures=read('tests/helpers/yard-production-fixtures.mjs'),workflow=read('.github/workflows/yard-production-acceptance.yml');
++ assert.match(script,/verifyActiveRuntime\('\/app'\)/);assert.match(script,/yard-release-compatibility\.mjs/);assert.match(script,/postgres:15/);assert.match(script,/report\.stats\.expected,6/);
++ assert.match(config,/workers:1,retries:0/);assert.match(config,/serviceWorkers:'allow'/);assert.match(config,/globalTimeout:12\*60\*1000/);
++ assert.doesNotMatch(config,/webServer|vite/);assert.doesNotMatch(script+spec+fixtures,/--import|registerHooks|Date\.now\s*=|page\.clock|AUTHORED_CLOCK|createEightAcceptanceOptions|ensurePersistentPlayerYard|route\.fulfill|route\.abort|setSnapshot|useGameHub\.getState|dist-yard-eight/);
++ assert.match(fixtures,/const now=Date\.now\(\),opportunity=Math\.floor\(now\/HOUR\)\*HOUR/);assert.match(fixtures,/drawNativeSeed\(candidate,context\)/);assert.match(fixtures,/No authored runtime\/plan fixture allowed/);
++ assert.match(spec,/window\.__APP_BUILD_ID__/);assert.match(spec,/gh_build_reload_guard/);assert.match(spec,/navigator\.serviceWorker\.controller/);assert.match(spec,/attributedDraw/);assert.match(spec,/\['restart',containerB\]/);assert.match(spec,/YARD_ROLLOUT_PAUSED/);assert.match(spec,/SOCKET|socketProof/);
++ assert.match(workflow,/workflow_dispatch:/);assert.doesNotMatch(workflow,/push:|workflow_run:|workflow_call:|packages: write|ssh|deploy.yml|continue-on-error/);assert.match(workflow,/docker build --file Dockerfile/);assert.match(workflow,/closed_digest:/);
++});
++
++test('proxy passes genuine response bytes and injects one committed lost reply at the transport boundary',async()=>{
++ const {createServer}=await import('node:http'),{mkdtemp,readFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
++ const {startProductionProxy,setProxyState}=await import('./helpers/yard-production-proxy.mjs'),{PRODUCTION_PORTS}=await import('./helpers/yard-production-guard.mjs');
++ const dir=await mkdtemp(join(tmpdir(),'yard-production-proxy-test-')),statePath=join(dir,'state.json'),evidencePath=join(dir,'lost.json');
++ let writes=0,proxy;const server=createServer(async(req,res)=>{for await(const chunk of req)void chunk;if(req.method==='POST')writes++;res.writeHead(200,{'content-type':'application/json','x-upstream':'genuine'});res.end(JSON.stringify({duplicate:false,writes}));});
++ try{
++  await new Promise(resolve=>server.listen(PRODUCTION_PORTS.B,'127.0.0.1',resolve));await setProxyState(statePath,{target:'B'});proxy=await startProductionProxy({statePath,evidencePath});
++  const origin=`http://127.0.0.1:${PRODUCTION_PORTS.origin}`;const response=await fetch(origin+'/read');assert.equal(response.headers.get('x-upstream'),'genuine');assert.deepEqual(await response.json(),{duplicate:false,writes:0});
++  await setProxyState(statePath,{target:'B',dropCollect:true});
++  const options={method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({action:'yard.collectGifts',clientActionId:'fixture-nonce'})};
++  await assert.rejects(fetch(origin+'/api/player/mutate',options));assert.equal(writes,1);
++  const evidence=JSON.parse(await readFile(evidencePath,'utf8'));assert.equal(evidence.status,200);assert.equal(evidence.body.writes,1);assert.equal(evidence.command.clientActionId,'fixture-nonce');
++  await assert.rejects(fetch(origin+'/api/player/mutate',options));assert.equal(writes,1);
++  await setProxyState(statePath,{target:'B'});assert.equal((await fetch(origin+'/api/player/mutate',options)).status,200);assert.equal(writes,2);
++ }finally{proxy?.closeAllConnections();await new Promise(resolve=>proxy?proxy.close(resolve):resolve());server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
++});
++
++test('proxy teardown closes real upgraded peers and a hanging upstream within its bound',{timeout:5000},async()=>{
++ const {createServer}=await import('node:http'),net=await import('node:net'),{mkdtemp,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
++ const {startProductionProxy,setProxyState}=await import('./helpers/yard-production-proxy.mjs'),{PRODUCTION_PORTS}=await import('./helpers/yard-production-guard.mjs');
++ const dir=await mkdtemp(join(tmpdir(),'yard-production-proxy-close-')),statePath=join(dir,'state.json');
++ const peers=new Set();let markHanging,markUpgraded,client,proxy;
++ const hanging=new Promise(resolve=>markHanging=resolve),upgraded=new Promise(resolve=>markUpgraded=resolve);
++ const server=createServer((_req,_res)=>markHanging());server.on('connection',peer=>{peers.add(peer);peer.once('close',()=>peers.delete(peer));});
++ server.on('upgrade',(_req,peer)=>{peer.once('end',()=>peer.destroy());peer.resume();peer.write('HTTP/1.1 101 Switching Protocols\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n');markUpgraded();});
++ try{
++  await new Promise(resolve=>server.listen(PRODUCTION_PORTS.B,'127.0.0.1',resolve));await setProxyState(statePath,{target:'B'});proxy=await startProductionProxy({statePath,evidencePath:join(dir,'lost.json')});
++  client=net.createConnection(PRODUCTION_PORTS.origin,'127.0.0.1');client.on('error',()=>{});client.resume();const clientClosed=new Promise(resolve=>client.once('close',resolve));
++  client.write('GET /socket.io/ HTTP/1.1\r\nHost: localhost\r\nConnection: Upgrade\r\nUpgrade: websocket\r\n\r\n');await upgraded;
++  const request=fetch(`http://127.0.0.1:${PRODUCTION_PORTS.origin}/hanging`).catch(error=>error);await hanging;
++  const started=Date.now();await proxy.closeAcceptance();await clientClosed;await request;assert.ok(Date.now()-started<2500);proxy=null;
++  await new Promise(resolve=>setTimeout(resolve,20));assert.equal(peers.size,0,'Both upstream HTTP and upgraded peers must close');
++ }finally{client?.destroy();if(proxy)await proxy.closeAcceptance();for(const peer of peers)peer.destroy();await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
++});
++
++test('proxy rejects a nonresponding upstream on an absolute request deadline',{timeout:5000},async()=>{
++ const {createServer}=await import('node:http'),{mkdtemp,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
++ const {startProductionProxy,setProxyState}=await import('./helpers/yard-production-proxy.mjs'),{PRODUCTION_PORTS}=await import('./helpers/yard-production-guard.mjs');
++ const dir=await mkdtemp(join(tmpdir(),'yard-production-proxy-timeout-')),statePath=join(dir,'state.json');let proxy;
++ const server=createServer(()=>{});try{await new Promise(resolve=>server.listen(PRODUCTION_PORTS.B,'127.0.0.1',resolve));await setProxyState(statePath,{target:'B'});proxy=await startProductionProxy({statePath,evidencePath:join(dir,'lost.json'),timeoutMs:100});
++  const started=Date.now(),result=await fetch(`http://127.0.0.1:${PRODUCTION_PORTS.origin}/hang`).catch(error=>error);assert.ok(result instanceof Error||result.status===502);assert.ok(Date.now()-started<2000);
++ }finally{await proxy?.closeAcceptance();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await rm(dir,{recursive:true,force:true});}
++});
++
++test('owned process groups stop on timeout and abort, including children that ignore TERM',async()=>{
++ const {runBoundedCommand}=await import('./helpers/yard-production-process.mjs');
++ const normal=await runBoundedCommand(process.execPath,['-e','console.log("bounded")'],{timeoutMs:2000});assert.equal(normal.stdout.trim(),'bounded');
++ const stubborn=['-e','process.on("SIGTERM",()=>{});setInterval(()=>{},1000)'];let started=Date.now();
++ await assert.rejects(runBoundedCommand(process.execPath,stubborn,{timeoutMs:100}),/deadline/);assert.ok(Date.now()-started<3500);
++ const controller=new AbortController();started=Date.now();setTimeout(()=>controller.abort(Error('fixture cancellation')),100);
++ await assert.rejects(runBoundedCommand(process.execPath,stubborn,{timeoutMs:10000,signal:controller.signal}),/fixture cancellation/);assert.ok(Date.now()-started<3500);
++});
++
++test('runner owns probes before launch and requires actual browser paused-nonce handling',()=>{
++ const script=read('scripts/yard-production-acceptance.mjs'),spec=read('tests/yard-production-e2e/production.spec.js');
++ assert.ok(script.indexOf('try{')<script.indexOf('const inspectImage='));assert.match(script,/created\.push\(name\);return JSON\.parse\(await docker\(\['run','--name'/);
++ assert.match(script,/created\.push\(names\[mode\]\);await docker/);assert.match(script,/created\.push\(names.db\);await docker/);
++ assert.match(script,/AbortSignal\.timeout\(5000\)/);assert.match(script,/15\*60\*1000/);assert.match(script,/process\.on\('SIGINT'/);assert.match(script,/process\.on\('SIGTERM'/);assert.match(script,/closeAcceptance/);
++ assert.match(spec,/page\.waitForResponse/);assert.match(spec,/command\?\.clientActionId!==lost\.command\.clientActionId/);assert.match(spec,/await response\.json\(\)\)\.error==='YARD_ROLLOUT_PAUSED'/);assert.match(spec,/toBe\('rollout-paused'\)/);
++ assert.match(spec,/Object\.hasOwn\(committed\._yardV2\.runtime\.commandReceipts,lost\.command\.clientActionId\)/);
++});
++
++test('process deadline kills a stubborn wrapper and its same-group grandchild',async()=>{
++ const {runBoundedCommand}=await import('./helpers/yard-production-process.mjs'),{mkdtemp,readFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
++ const dir=await mkdtemp(join(tmpdir(),'yard-process-group-test-')),path=join(dir,'pids.json');
++ try{
++  const source=`const {spawn}=require('node:child_process'),fs=require('node:fs');process.on('SIGTERM',()=>{});const child=spawn(process.execPath,['-e','process.on("SIGTERM",()=>{});setInterval(()=>{},1000)'],{stdio:'ignore'});fs.writeFileSync(${JSON.stringify(path)},JSON.stringify([process.pid,child.pid]));setInterval(()=>{},1000);`;
++  await assert.rejects(runBoundedCommand(process.execPath,['-e',source],{timeoutMs:200}),/deadline/);
++  const pids=JSON.parse(await readFile(path,'utf8'));
++  for(const pid of pids){try{const status=await readFile(`/proc/${pid}/status`,'utf8');assert.match(status,/State:\s+Z/,'No live descendant after process-group termination');}catch(error){if(error.code!=='ENOENT')throw error;}}
++ }finally{await rm(dir,{recursive:true,force:true});}
++});
++
++test('a nonzero wrapper exit cannot leave an inherited-stdio process group running',async()=>{
++ const {runBoundedCommand}=await import('./helpers/yard-production-process.mjs'),{mkdtemp,readFile,rm}=await import('node:fs/promises'),{tmpdir}=await import('node:os'),{join}=await import('node:path');
++ const dir=await mkdtemp(join(tmpdir(),'yard-failed-wrapper-test-')),path=join(dir,'child.json');
++ try{
++  const source=`const {spawn}=require('node:child_process'),fs=require('node:fs');const child=spawn(process.execPath,['-e','process.on("SIGTERM",()=>{});setInterval(()=>{},1000)'],{stdio:'ignore'});fs.writeFileSync(${JSON.stringify(path)},JSON.stringify(child.pid));setTimeout(()=>process.exit(7),100);`;
++  await assert.rejects(runBoundedCommand(process.execPath,['-e',source],{inherit:true,timeoutMs:2000}),/failed \(7\)/);
++  const pid=JSON.parse(await readFile(path,'utf8'));await new Promise(resolve=>setTimeout(resolve,20));
++  try{const status=await readFile(`/proc/${pid}/status`,'utf8');assert.match(status,/State:\s+Z/,'Failed wrapper descendant must be terminated');}catch(error){if(error.code!=='ENOENT')throw error;}
++ }finally{await rm(dir,{recursive:true,force:true});}
++});
+diff --git a/tests/yard-production-e2e/production.spec.js b/tests/yard-production-e2e/production.spec.js
+new file mode 100644
+index 0000000..1b2eea8
+--- /dev/null
++++ b/tests/yard-production-e2e/production.spec.js
+@@ -0,0 +1,170 @@
++import {test,expect} from '@playwright/test';
++import assert from 'node:assert/strict';
++import {randomUUID,createHash} from 'node:crypto';
++import {readFile} from 'node:fs/promises';
++import {resolve} from 'node:path';
++import {execFileSync} from 'node:child_process';
++import postgres from 'postgres';
++import {sign} from '@tma.js/init-data-node';
++import {io} from 'socket.io-client';
++import {assertProductionAcceptance,ACTORS,PRODUCTION_PORTS,FIXTURE_BOT_TOKEN,DATABASE_URL} from '../helpers/yard-production-guard.mjs';
++import {productionFixture,insertFixture,readFixture,SPECS} from '../helpers/yard-production-fixtures.mjs';
++import {setProxyState} from '../helpers/yard-production-proxy.mjs';
++import {installEightCanvasWitness} from '../helpers/yard-eight-canvas-witness.mjs';
++import {actorAtlasPages,attributedDraw} from '../helpers/yard-eight-atlas-attribution.mjs';
++import {MOCHI_RUNTIME_MEDIA_REVISION} from '../../game-logic/yard-v2/mochi-actor-profile.mjs';
++import {PEBBLE_MEDIA_REVISION} from '../../game-logic/yard-v2/pebble-actor-profile.mjs';
++const inputs=assertProductionAcceptance(),runId=process.env.YARD_PRODUCTION_RUN_ID,out=resolve(process.env.YARD_PRODUCTION_EVIDENCE||''),fixtures=new Map();
++assert.match(runId||'',/^[a-f0-9-]{36}$/);
++const statePath=resolve(process.env.YARD_PRODUCTION_STATE||''),faultPath=resolve(process.env.YARD_PRODUCTION_FAULT||'');
++const containerB=process.env.YARD_PRODUCTION_CONTAINER_B;assert.match(containerB||'',/^ccgh-yard-prod-[a-f0-9]{8}-b$/);
++for(const path of [statePath,faultPath])assert.equal(path.startsWith(out+'/'),true,'Owned evidence paths required');
++const origin=mode=>`http://127.0.0.1:${PRODUCTION_PORTS[mode]}`,sha=bytes=>createHash('sha256').update(bytes).digest('hex');
++const actorPath=actor=>`/assets/${['mika','mochi','pebble','pip'].includes(actor)?`yard-${actor}`:`yard-family/${actor}`}/`;
++let sql,metadata;
++const auth=f=>sign({user:{id:Number(f.externalId),first_name:'Disposable fixture'}},FIXTURE_BOT_TOKEN,new Date());
++const headers=f=>({Authorization:`tma ${auth(f)}`});
++const saved=f=>readFixture(sql,f,runId);
++async function seed(actor=null,marker){const f=productionFixture(actor);if(arguments.length===2)f.initial._yardV2=marker;await insertFixture(sql,f,runId);return f;}
++async function snapshot(request,f,mode='B'){
++ const before=Date.now(),response=await request.get(origin(mode)+'/api/player/snapshot',{headers:headers(f)}),after=Date.now();expect(response.status()).toBe(200);
++ const body=await response.json();if(body.yardRuntime){expect(body.yardRuntime.serverNow).toBeGreaterThanOrEqual(before-2000);expect(body.yardRuntime.serverNow).toBeLessThanOrEqual(after+2000);}return body;
++}
++async function mutation(request,f,data,mode='B'){const response=await request.post(origin(mode)+'/api/player/mutate',{headers:headers(f),data});return {status:response.status(),body:await response.json()};}
++async function boot(page,f){
++ await page.addInitScript(installEightCanvasWitness);
++ await page.addInitScript(({initData,user})=>{window.Telegram={WebApp:{initData,initDataUnsafe:{user}}};localStorage.setItem('garden_shelf_language','en');},{initData:auth(f),user:{id:Number(f.externalId),first_name:'Disposable fixture'}});
++ await page.goto(origin('origin')+'/?tab=room');await expect(page.locator('.status-dot.ready')).toHaveCount(1,{timeout:30000});
++ await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller),{timeout:30000}).toBe(true);
++}
++async function socketProof(f,invalid=false){
++ const socket=io(origin('B'),{auth:{initData:invalid?'tampered':auth(f)},transports:['websocket'],forceNew:true,reconnection:false,timeout:10000});
++ try{return await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(Error('Socket authentication timed out')),12000);socket.once('authenticated',value=>{clearTimeout(timer);resolve({authenticated:value});});socket.once('connect_error',error=>{clearTimeout(timer);resolve({error:error.message});});});}finally{socket.disconnect();}
++}
++async function outbox(page,id){return page.evaluate(async accountId=>{
++ const key=`game_hub_yard_outbox_v2:${encodeURIComponent(accountId)}`,local=localStorage.getItem(key);if(local)return JSON.parse(local);
++ return new Promise((resolve,reject)=>{const r=indexedDB.open('keyval-store');r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result;if(!db.objectStoreNames.contains('keyval')){db.close();resolve(null);return;}const q=db.transaction('keyval','readonly').objectStore('keyval').get(key);q.onsuccess=()=>{db.close();resolve(q.result??null);};q.onerror=()=>{db.close();reject(q.error);};};});
++},id);}
++async function inspectPixels(page,request,info,actor){
++ await expect(page.locator('.cy-app')).toBeVisible();
++ const manifest=JSON.parse(metadata.B[actorPath(actor).slice(1)+'runtime-media.json']);
++ const pages=actorAtlasPages(manifest,actorPath(actor));
++ await expect.poll(async()=>{const rows=await page.evaluate(()=>window.__yardEightDrawWitness);return rows.some(row=>attributedDraw(row,pages));},{timeout:30000}).toBe(true);
++ await expect(page.locator('.cy-status')).not.toContainText('The courtyard could not load.');
++ const draws=await page.evaluate(()=>window.__yardEightDrawWitness),selected=draws.filter(row=>attributedDraw(row,pages));
++ const manifestResponse=await request.get(origin('B')+actorPath(actor)+'runtime-media.json');expect(manifestResponse.status()).toBe(200);
++ expect(await manifestResponse.text()).toBe(metadata.B[actorPath(actor).slice(1)+'runtime-media.json']);
++ const media=[];
++ for(const path of [...new Set(selected.map(row=>new URL(row.url).pathname))]){
++  expect(path).toMatch(/^\/assets\/yard-[a-z0-9_/-]+\/[a-zA-Z0-9_.-]+\.webp$/);expect(path).not.toContain('..');
++  const response=await request.get(origin('B')+path);expect(response.status()).toBe(200);expect(response.headers()['content-type']).toContain('image/webp');
++  const bytes=await response.body(),disk=execFileSync('docker',['exec',containerB,'cat',`dist${path}`],{timeout:15000,maxBuffer:20*1024*1024});expect(bytes.equals(disk)).toBe(true);
++  media.push({path,bytes:bytes.length,sha256:sha(bytes)});
++ }
++ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
++ await info.attach(`${actor}-actual-image-media-and-pixels`,{body:Buffer.from(JSON.stringify({actor,manifestSha256:sha(metadata.B[actorPath(actor).slice(1)+'runtime-media.json']),draws:selected,media},null,2)),contentType:'application/json'});
++ await info.attach(`${actor}-ordinary-production`,{body:await page.screenshot(),contentType:'image/png'});
++}
++test.beforeAll(async()=>{
++ sql=postgres(DATABASE_URL,{max:2,prepare:false});const [db]=await sql`SELECT current_database() AS name,current_setting('server_version_num')::int AS version`;
++ expect(db.name).toBe('ccgh_yard_production_ci');expect(db.version).toBeGreaterThanOrEqual(150000);expect(db.version).toBeLessThan(160000);
++ const [count]=await sql`SELECT count(*)::int AS n FROM players`;expect(count.n).toBe(0);
++ metadata={A:JSON.parse(await readFile(resolve(out,'metadata-A.json'),'utf8')),B:JSON.parse(await readFile(resolve(out,'metadata-B.json'),'utf8'))};
++});
++test.afterAll(async()=>{await sql?.end({timeout:5});});
++
++test('ordinary production: eight current-time admissions, migration once, real auth/socket and fresh-process nonce durability',async({request},info)=>{
++ const witnesses=[];
++ for(const actor of ACTORS){
++  const f=await seed(actor);fixtures.set(actor,f);expect((await saved(f))._yardV2).toBeUndefined();
++  const s=await snapshot(request,f),p=await saved(f);expect(s.yardRuntime.mutable).toBe(true);expect(s.yardRuntime.actionProtocol).toBe('yard-v2:');expect(s.yardRuntime.visits).toHaveLength(1);
++  const visit=s.yardRuntime.visits[0];expect(visit.visitorId).toBe(SPECS[actor].visitorId);expect(visit.source).toBe('yard-v2');expect(visit.arrivedAt).toBe(f.opportunity);expect(visit.leavesAt-Date.now()).toBeGreaterThan(25*60000);expect(visit.renderCompatible).toBe(true);
++  expect(p._yardV2.migration.rawBackup.yard).toEqual(f.initial.yard);expect(p.yard.placedGoodies[0].uses).toBe(1);expect(p.yard.bowls[0].servings).toBe(0);expect(p.yard.pendingGifts).toEqual(f.initial.yard.pendingGifts);
++  await snapshot(request,f);const again=await saved(f);expect(again._yardV2.migration).toEqual(p._yardV2.migration);expect(again._yardV2.runtime.visits).toEqual(p._yardV2.runtime.visits);
++  witnesses.push({actor,accountId:f.id,serverNow:s.yardRuntime.serverNow,opportunity:f.opportunity,visit,migration:p._yardV2.migration.receipt});
++ }
++ const f=fixtures.get('mochi');
++ expect((await socketProof(f)).authenticated).toMatchObject({success:true,provider:'telegram',accountId:f.id});expect((await socketProof(f,true)).error).toBeTruthy();
++ for(const authorization of ['', 'dev synthetic', 'tma tampered', `tma ${sign({user:{id:Number(f.externalId),first_name:'Disposable fixture'}},'9000000001:different-disposable-bot',new Date())}`])expect((await request.get(origin('B')+'/api/player/snapshot',{headers:{Authorization:authorization}})).status()).toBe(401);
++ const before=await saved(f),nonce=`yard-v2:production:${randomUUID()}`,data={accountId:f.id,action:'yard.collectGifts',payload:{},clientActionId:nonce};
++ const foreign=await mutation(request,f,{...data,accountId:fixtures.get('pebble').id});expect(foreign.status).toBe(409);expect(foreign.body.error).toBe('ACCOUNT_CHANGED');
++ expect((await saved(f)).yard).toEqual(before.yard);
++ const first=await mutation(request,f,data);expect(first.status).toBe(200);expect(first.body.duplicate).toBe(false);
++ const committed=await saved(f);expect(committed.yard.currencies.treats).toBe(before.yard.currencies.treats+17);expect(Object.keys(committed._yardV2.runtime.commandReceipts)).toEqual([nonce]);
++ execFileSync('docker',['restart',containerB],{timeout:30000});
++ await expect.poll(async()=>{try{return (await (await request.get(origin('B')+'/api/health')).json()).status;}catch{return ''; }},{timeout:60000}).toBe('ok');
++ const replay=await mutation(request,f,data);expect(replay.status).toBe(200);expect(replay.body.duplicate).toBe(true);
++ const after=await saved(f);expect(after.yard).toEqual(committed.yard);expect(after._yardV2).toEqual(committed._yardV2);
++ const conflict=await mutation(request,f,{...data,payload:{unexpected:true}});expect(conflict.status).toBe(409);expect(conflict.body.error).toBe('ACTION_ID_PAYLOAD_CONFLICT');
++ await info.attach('real-clock-admissions-and-durable-receipt',{body:Buffer.from(JSON.stringify({witnesses,nonce,receipt:after._yardV2.runtime.commandReceipts[nonce]},null,2)),contentType:'application/json'});
++});
++
++for(const actor of ['mochi','pebble','basil'])test(`ordinary production pixels and reload: ${actor}`,async({page,request},info)=>{
++ await setProxyState(statePath,{target:'B'});const f=fixtures.get(actor);expect(f).toBeTruthy();const errors=[];page.on('pageerror',error=>errors.push(error.message));
++ await boot(page,f);await inspectPixels(page,request,info,actor);const before=await saved(f);
++ await page.reload();await expect(page.locator('.cy-app')).toBeVisible();await inspectPixels(page,request,info,actor);
++ const after=await saved(f);expect(after._yardV2.migration).toEqual(before._yardV2.migration);expect(after._yardV2.runtime.visits).toEqual(before._yardV2.runtime.visits);expect(errors).toEqual([]);
++});
++
++const metadataUrls=[['mochi',MOCHI_RUNTIME_MEDIA_REVISION],['pebble',PEBBLE_MEDIA_REVISION]].map(([id,revision])=>`${actorPath(id)}runtime-media.json?v=${encodeURIComponent(revision)}`);
++async function browserMetadata(page,mode){
++ const actual=await page.evaluate(async urls=>Promise.all(urls.map(async url=>({url,text:await(await fetch(url)).text()}))),metadataUrls);
++ for(const row of actual){const path=new URL(row.url,origin('origin')).pathname.slice(1);expect(row.text).toBe(metadata[mode][path]);}
++ return actual.map(row=>({url:row.url,sha256:sha(row.text),manifest:JSON.parse(row.text)}));
++}
++async function waitUpdated(page,build){
++ await expect.poll(()=>page.evaluate(()=>window.__APP_BUILD_ID__).catch(()=>''),{timeout:85000,intervals:[500,1000]}).toBe(build);
++ expect(new URL(page.url()).searchParams.get('build')).toBe(build);
++ expect(await page.evaluate(()=>JSON.parse(sessionStorage.getItem('gh_build_reload_guard'))?.buildId)).toBe(build);
++ await expect.poll(()=>page.evaluate(()=>!!navigator.serviceWorker.controller),{timeout:30000}).toBe(true);
++}
++test('same-origin warm SW A to B to A: real updater, metadata, durable lost-reply outbox and quarantine',async({page,request},info)=>{
++ test.setTimeout(240000);const f=await seed();await setProxyState(statePath,{target:'A'});await boot(page,f);
++ await expect(page.locator('.companion-yard-stage')).toBeVisible();expect((await saved(f))._yardV2).toBeUndefined();
++ await page.evaluate(()=>localStorage.setItem('yard-production-preserve','same-browser-storage'));
++ const warmA=await browserMetadata(page,'A');for(const row of warmA)expect(row.manifest.playbackReady).toBe(false);
++ expect((await page.evaluate(()=>caches.keys())).length).toBeGreaterThan(0);
++ const history=[];page.on('response',response=>{if(new URL(response.url()).pathname==='/api/config')history.push(response.url());});
++ await setProxyState(statePath,{target:'B'});await waitUpdated(page,inputs.activeCommit);await expect(page.locator('.cy-app')).toBeVisible();
++ const warmB=await browserMetadata(page,'B');for(const row of warmB)expect(row.manifest.playbackReady).toBe(true);
++ expect(warmB[0].manifest.runtimeActivated).toBe(true);expect(warmB[1].manifest.runtimeActivated).toBe(false);
++ expect(warmA.map(row=>row.sha256)).not.toEqual(warmB.map(row=>row.sha256));
++ const before=await saved(f);expect(before._yardV2.format).toBe('yard-persistent/v1');
++ await setProxyState(statePath,{target:'B',dropCollect:true});
++ await page.locator('.cy-actions button').nth(2).click();await page.getByRole('button',{name:'Collect',exact:true}).click();
++ await expect.poll(async()=>{try{return JSON.parse(await readFile(faultPath,'utf8')).status;}catch{return 0;}},{timeout:30000}).toBe(200);
++ const lost=JSON.parse(await readFile(faultPath,'utf8'));expect(lost.body.duplicate).toBe(false);expect(lost.command.clientActionId).toMatch(/^yard-v2:/);
++ await expect.poll(async()=>(await outbox(page,f.id))?.items?.some(row=>row.clientActionId===lost.command.clientActionId)).toBe(true);
++ const committed=await saved(f);expect(committed.yard.currencies.treats).toBe(before.yard.currencies.treats+17);
++ expect(Object.hasOwn(committed._yardV2.runtime.commandReceipts,lost.command.clientActionId)).toBe(true);
++ const browserPausedReply=page.waitForResponse(async response=>{
++  if(new URL(response.url()).pathname!=='/api/player/mutate'||response.status()!==409)return false;
++  const command=response.request().postDataJSON();if(command?.clientActionId!==lost.command.clientActionId)return false;
++  return (await response.json()).error==='YARD_ROLLOUT_PAUSED';
++ },{timeout:90000});
++ // Restore ordinary A responses; its genuine 409 must retain the pending intent.
++ await setProxyState(statePath,{target:'A'});const pausedResponse=await browserPausedReply;
++ expect(pausedResponse.request().postDataJSON()).toMatchObject({accountId:f.id,clientActionId:lost.command.clientActionId,action:lost.command.action,payload:lost.command.payload});
++ await expect.poll(async()=>(await outbox(page,f.id))?.items?.find(row=>row.clientActionId===lost.command.clientActionId)?.status,{timeout:15000}).toBe('rollout-paused');
++ await waitUpdated(page,inputs.closedCommit);await expect(page.locator('[data-yard-read-only=true]')).toBeVisible();
++ const warmAgain=await browserMetadata(page,'A');expect(warmAgain.map(row=>row.sha256)).toEqual(warmA.map(row=>row.sha256));
++ await expect.poll(async()=>(await outbox(page,f.id))?.items?.find(row=>row.clientActionId===lost.command.clientActionId)?.status,{timeout:15000}).toBe('rollout-paused');
++ const pending=await outbox(page,f.id),retained=pending?.items?.find(row=>row.clientActionId===lost.command.clientActionId);expect(retained).toMatchObject({accountId:f.id,clientActionId:lost.command.clientActionId,action:lost.command.action,payload:lost.command.payload});
++ const paused=await mutation(request,f,lost.command,'A');expect(paused.status).toBe(409);expect(paused.body.error).toBe('YARD_ROLLOUT_PAUSED');
++ const after=await saved(f);expect(after.yard).toEqual(committed.yard);expect(after._yardV2).toEqual(committed._yardV2);expect(after._yardV2.migration).toEqual(before._yardV2.migration);
++ expect(await page.evaluate(()=>localStorage.getItem('yard-production-preserve'))).toBe('same-browser-storage');expect(history.some(url=>url.includes('buildCheck='))).toBe(true);
++ await info.attach('same-origin-A-B-A',{body:Buffer.from(JSON.stringify({origin:origin('origin'),builds:[inputs.closedCommit,inputs.activeCommit,inputs.closedCommit],metadata:[warmA,warmB,warmAgain].map(rows=>rows.map(({url,sha256})=>({url,sha256}))),configChecks:history,browserPausedReply:{status:pausedResponse.status(),body:await pausedResponse.json()},retained,receipt:after._yardV2.runtime.commandReceipts[lost.command.clientActionId]},null,2)),contentType:'application/json'});
++ await info.attach('rolled-back-read-only-shell',{body:await page.screenshot(),contentType:'image/png'});
++});
++
++test('frozen closed A quarantines every marker class and keeps untouched accounts legacy',async({request},info)=>{
++ const rows=[];
++ for(const marker of [null,false,0,'future',[],{}, {format:'future',version:99}, {format:'yard-persistent/v1',version:1}]){
++  const f=await seed(null,marker),before=await saved(f),s=await snapshot(request,f,'A');expect(s.yardRuntime.mutable).toBe(false);expect(s.yardRuntime.error).toBe('YARD_ROLLOUT_PAUSED');
++  const result=await mutation(request,f,{accountId:f.id,action:'yard.collectGifts',payload:{},clientActionId:`yard-v2:${randomUUID()}`},'A');expect(result.status).toBe(409);
++  const after=await saved(f);expect(after.yard).toEqual(before.yard);expect(after._yardV2).toEqual(marker);rows.push({marker,status:result.status});
++ }
++ const legacy=await seed(),s=await snapshot(request,legacy,'A');expect(s.yardRuntime).toBeUndefined();expect((await saved(legacy))._yardV2).toBeUndefined();
++ const result=await mutation(request,legacy,{accountId:legacy.id,action:'yard.buyFood',payload:{foodId:'kibble',qty:1},clientActionId:`legacy:${randomUUID()}`},'A');expect(result.status).toBe(200);expect((await saved(legacy))._yardV2).toBeUndefined();
++ await info.attach('closed-all-marker-classes',{body:Buffer.from(JSON.stringify(rows,null,2)),contentType:'application/json'});
++});

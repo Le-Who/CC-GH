@@ -1,0 +1,31 @@
+{
+  "format": "yard-family-verified-runtime-roots/v1",
+  "runtimeActivated": false,
+  "roots": {
+    "route": {
+      "path": "/assets/yard-fox/route/",
+      "assetRevision": "7e540981094a8b40ab504d161045004c9c9523b31513e00ba8481bbed9b3b89b",
+      "files": 145
+    },
+    "interactions": {
+      "path": "/assets/yard-fox/interactions/",
+      "assetRevision": "66a1192b3e5e168049cfb6a2010eccf0be3b5e721ab161c5193b28988a76fcfe",
+      "files": 197
+    },
+    "curl": {
+      "path": "/assets/yard-fox/curl/",
+      "assetRevision": "37fec4aa91e466b300cc1a9aac73e1f2161dce64a25ff20b7b2d0d02ea554f9e",
+      "files": 33
+    },
+    "moon": {
+      "path": "/assets/yard-fox/shared-props/moon/",
+      "assetRevision": "e0c02c68c72374b552379d59cb2fff2fa122450d5b081b2018313491a11838e2",
+      "files": 4
+    },
+    "turtles": {
+      "path": "/assets/yard-turtles/",
+      "assetRevision": "9184b1b222e411dd405687fac9c273fd37d5b8b86f7337edbb0661e2b0be6f0a",
+      "files": 332
+    }
+  }
+}

@@ -873,6 +873,7 @@
   width: 100%;
   height: 100%;
   min-height: 0;
+  container-type: size;
   overflow: hidden;
   touch-action: none;
   border: 0;
@@ -886,7 +887,7 @@
 
 .companion-yard-layout .yard-bowls {
   left: max(12px, env(safe-area-inset-left, 0px));
-  top: 108px;
+  top: calc(var(--safe-top, 0px) + 108px);
   max-width: min(260px, 44%);
   pointer-events: auto;
 }
@@ -1018,9 +1019,21 @@
 .yard-side-tools {
   position: absolute;
   right: max(10px, env(safe-area-inset-right, 0px));
-  top: calc(max(10px, var(--safe-top)) + 78px);
+  --yard-tools-top: calc(max(10px, var(--safe-top, 0px)) + 78px);
+  top: var(--yard-tools-top);
   display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 7px;
+  /* Translate is visual-only; subtract the registered offset as well as the
+     safe insets and bottom reserve from this stage-relative scroll surface. */
+  max-height: calc(100% - var(--yard-tools-top) - var(--hud-region-y, 0px) - var(--safe-bottom, 0px) - var(--hud-safe-bottom));
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 .yard-side-tools.open {
@@ -1759,7 +1772,7 @@
 
 @media (max-width: 780px) {
   .companion-yard-layout .yard-bowls {
-    top: 84px;
+    top: calc(var(--safe-top, 0px) + 84px);
     left: 9px;
     max-width: 44%;
   }
@@ -1770,7 +1783,7 @@
   }
 
   .yard-currency-chip {
-    min-width: 76px;
+    min-width: 84px;
     min-height: 46px;
     grid-template-columns: 30px minmax(0, 1fr);
     padding: 5px 7px 5px 5px;
@@ -1796,7 +1809,7 @@
   }
 
   .yard-side-tools {
-    top: 76px;
+    --yard-tools-top: calc(var(--safe-top, 0px) + 76px);
     right: 8px;
     gap: 5px;
   }
@@ -2021,7 +2034,6 @@
 
 .companion-yard-layout {
   --yard-generated-panel-art: url("/games/hud-redesign/room/screen-panel.png");
-  --yard-generated-dialog-art: url("/games/ui-surfaces/yard-panel.webp");
   --yard-generated-dock-art: url("/games/hud-redesign/room/dock-panel.webp");
   --yard-generated-button-art: url("/games/hud-redesign/room/primary-button.png");
   --yard-generated-icon-art: url("/games/hud-redesign/room/icon-badge.webp");
@@ -2038,7 +2050,7 @@
 
 .companion-yard-layout .yard-game-screen {
   background:
-    var(--yard-screen-panel-art, var(--yard-generated-dialog-art)) center / 100% 100% no-repeat !important;
+    var(--yard-screen-panel-art) center / 100% 100% no-repeat !important;
   border: 0;
   padding: clamp(14px, 3vw, 20px);
   -webkit-backdrop-filter: none;
@@ -2148,7 +2160,7 @@
   --yard-panel-title-top: 6.7%;
   --yard-panel-content-inset: 17.8% 9.2% 8.4% 9.2%;
   --yard-screen-bottom-reserve: calc(var(--safe-bottom) + clamp(84px, 11dvh, 104px));
-  --yard-screen-available-height: calc(100dvh - var(--yard-screen-bottom-reserve) - max(8px, var(--safe-top)));
+  --yard-screen-available-height: calc(100cqh - var(--yard-screen-bottom-reserve) - max(8px, var(--safe-top)));
   width: min(580px, calc(100vw - 44px), calc(var(--yard-screen-available-height) * 0.6667)) !important;
   height: auto !important;
   max-height: var(--yard-screen-available-height) !important;
@@ -3064,8 +3076,8 @@
 
 @media (max-height: 430px) and (orientation: landscape) {
   .companion-yard-layout .yard-game-screen {
-    width: min(500px, calc(100vw - 28px), calc((100dvh - max(72px, var(--safe-bottom) + 72px)) * 0.6667)) !important;
-    max-height: calc(100dvh - max(72px, var(--safe-bottom) + 72px)) !important;
+    width: min(500px, calc(100vw - 28px), calc((100cqh - max(72px, var(--safe-bottom) + 72px)) * 0.6667)) !important;
+    max-height: calc(100cqh - max(72px, var(--safe-bottom) + 72px)) !important;
     bottom: max(72px, calc(var(--safe-bottom) + 72px)) !important;
     padding: 0 !important;
   }
@@ -3531,4 +3543,12 @@
   line-height: 1.05;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Phone HUD uses two rows: original horizontal metric art above activity and
+   controls. Region defaults own the row offsets and the following bowl/flyout
+   clearance; editor translations remain additive. */
+.yard-activity-pill[data-hud-profile^="phone-"][data-hud-profile$="-portrait"] {
+  left: max(10px, env(safe-area-inset-left, 0px));
+  transform: none;
 }

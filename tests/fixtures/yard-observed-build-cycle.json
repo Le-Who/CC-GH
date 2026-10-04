@@ -1,0 +1,82 @@
+{
+  "format": "yard-observed-build-cycle/v1",
+  "runId": 37177098501,
+  "artifactId": 11293937381,
+  "artifactSha256": "05dd033812f7b5e7e696d9237f92d6368f294c8c29e752ce9772484c697e62ef",
+  "entry": "assets/CourtyardGame-CkHfoARU.js",
+  "chunks": [
+    {
+      "file": "assets/yard-renderer-CXqc5Uuz.js",
+      "imports": [
+        "assets/index-CFqa5eYi.js",
+        "assets/CourtyardGame-CkHfoARU.js",
+        "assets/yard-playzones-CpK0-dpX.js"
+      ],
+      "modules": [
+        "src/games/companion-yard-v2/atlas.mjs",
+        "src/games/companion-yard-v2/atlas-policy.mjs",
+        "src/games/companion-yard-v2/projection.mjs",
+        "src/games/companion-yard-v2/pose-selection.mjs",
+        "src/games/companion-yard-v2/telemetry.mjs",
+        "src/games/companion-yard-v2/presentation-clock.mjs",
+        "src/games/companion-yard-v2/edge-opacity.mjs",
+        "src/games/companion-yard-v2/actor-media.mjs",
+        "src/games/companion-yard-v2/presentation.mjs",
+        "src/games/companion-yard-v2/scene.mjs"
+      ],
+      "rawBytes": 34618
+    },
+    {
+      "file": "assets/CourtyardGame-CkHfoARU.js",
+      "imports": [
+        "assets/yard-data/yard-data-pebble-ground-motion-C4gCekkT.js",
+        "assets/yard-data/yard-data-pebble-combined-binding-B83N2ZCH.js",
+        "assets/yard-data/yard-data-pip-snack-combined-binding-DEoA3mGt.js",
+        "assets/yard-data/yard-data-family-actor-profiles-DRmP_z_S.js",
+        "assets/yard-data/yard-data-shared-props-r2-evidence-moon-source-identities-DfdHmRJs.js",
+        "assets/yard-data/yard-data-shared-props-r2-evidence-fountain-source-contract-ByurIf8e.js",
+        "assets/react-vendor-B_yBPd9e.js",
+        "assets/index-CFqa5eYi.js",
+        "assets/yard-playzones-CpK0-dpX.js",
+        "assets/yard-renderer-CXqc5Uuz.js",
+        "assets/yard-data/yard-data-clip-contracts-PRumA4Bn.js",
+        "assets/yard-data/yard-data-shared-props-source-identities-CE2j4lz2.js",
+        "assets/yard-data/yard-data-turn-contracts-LY_oIf5k.js",
+        "assets/yard-data/yard-data-ground-footprints-BvQsWxIH.js",
+        "assets/YardReleaseGame-DUltXC09.js"
+      ],
+      "modules": [
+        "game-logic/yard-v2/sha256.mjs",
+        "game-logic/yard-v2/util.mjs",
+        "game-logic/yard-v2/actor-profiles.mjs",
+        "game-logic/yard-v2/media/walk-phase-lookup.mjs",
+        "game-logic/yard-v2/media/stride-routes.mjs",
+        "game-logic/yard-v2/media/stay-schedule.mjs",
+        "game-logic/yard-v2/catalog.mjs",
+        "game-logic/yard-v2/geometry.mjs",
+        "game-logic/yard-v2/intrinsic-props.mjs",
+        "game-logic/yard-v2/prop-obstacles.mjs",
+        "game-logic/yard-v2/media/ground-rest.mjs",
+        "game-logic/yard-v2/media/settled-mouse.mjs",
+        "game-logic/yard-v2/media/mika-actor-assets.mjs",
+        "game-logic/yard-v2/motion-ground-guard.mjs",
+        "game-logic/yard-v2/food-media.mjs",
+        "game-logic/yard-v2/mika-media.mjs",
+        "game-logic/yard-v2/mochi-actor-profile.mjs",
+        "game-logic/yard-v2/pebble-actor-profile.mjs",
+        "game-logic/yard-v2/pip-actor-profile.mjs",
+        "game-logic/yard-v2/family-actor-profile.mjs",
+        "game-logic/yard-v2/released-actor-profiles.mjs",
+        "game-logic/yard-v2/pip-prop-profile.mjs",
+        "game-logic/yard-v2/released-prop-profiles.mjs",
+        "game-logic/yard-v2/media/mika-clips.mjs",
+        "game-logic/yard-v2/media/runtime-version.mjs",
+        "src/games/companion-yard-v2/feedback.mjs",
+        "src/games/companion-yard-v2/CourtyardGame.jsx"
+      ],
+      "rawBytes": 66182
+    }
+  ],
+  "requestedHeadCommit": "cc50760934e85f0b8c312f15ff30cc87b4a8cfa8",
+  "artifactName": "game-hub-media-budget-41aace4c66428de9a6fa15fece800e3cfebe4429-1"
+}

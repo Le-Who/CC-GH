@@ -21,6 +21,21 @@ const unsavedOutboxes = new Map();
 // Departing a verified account retires every async request, including A-B-A.
 let snapshotAccountSession = {};
 let latestSnapshotRequest = null;
+// A paused receipt is unresolved, not rejected. Only a fresh HTTP observation
+// after the pause may authorize replay, including after journal hydration.
+let yardOutboxPauseEpoch = {};
+let yardOutboxResumeSession = null;
+
+function writableYardSnapshot(snapshot) {
+  const runtime = snapshot?.yardRuntime;
+  return runtime?.version === 1 && runtime.status === "ready"
+    && runtime.mutable === true && runtime.actionProtocol === "yard-v2:" && !runtime.error;
+}
+
+function canDrainOutboxItem(item, snapshot) {
+  return item.status !== "failed" && (!(item.requiresYardResume || item.status === "rollout-paused")
+    || (yardOutboxResumeSession === snapshotAccountSession && writableYardSnapshot(snapshot)));
+}
 
 export function normalizeActiveTab(value) {
   const tab = String(value || "").trim();
@@ -103,6 +118,8 @@ function normalizeOutboxItems(items) {
   if (!Array.isArray(items)) return [];
   return items.filter((item) => item?.clientActionId && shouldUseDurableOutbox(item.action)).map((item) => ({
     ...item,
+    // The resume fence survives sending/pending normalization and failed writes.
+    ...(item.status === "rollout-paused" ? { requiresYardResume: true } : {}),
     accountId: item.accountId,
     clientActionId: String(item.clientActionId),
     action: String(item.action),
@@ -171,10 +188,11 @@ export const useGameHub = create((set, get) => ({
     set((state) => ({ snapshot: normalizeSnapshot(protectHubSnapshot(state.snapshot, snapshot)), status: "ready" }));
   },
 
-  loadSnapshot: async () => {
+  loadSnapshot: async (options = {}) => {
     const requestAccountId = get().snapshot?.player?.id;
     const requestSession = snapshotAccountSession;
     const requestToken = latestSnapshotRequest = {};
+    const requestYardPauseEpoch = yardOutboxPauseEpoch;
     set({ status: "syncing", snapshotRequestPending: true });
     try {
       const result = await api("/api/player/snapshot", undefined, { isCurrent: () => snapshotAccountSession === requestSession
@@ -194,6 +212,15 @@ export const useGameHub = create((set, get) => ({
         if (latestSnapshotRequest !== requestToken) return { error: "SNAPSHOT_SUPERSEDED" };
         set({ status: "offline", message: result.error });
         return result;
+      }
+      // Inspect the actual response, not a protected snapshot that can retain a
+      // pre-rollback writable runtime. An older/in-flight read cannot unpause.
+      if (latestSnapshotRequest === requestToken) {
+        yardOutboxResumeSession = options.resumeYardOutbox !== false && requestYardPauseEpoch === yardOutboxPauseEpoch
+          && Number.isSafeInteger(result.serverTime) && result.serverTime >= 0
+          && Number.isSafeInteger(result.player?.syncSeq) && result.player.syncSeq >= 0
+          && compareSnapshotFreshness(result, get().snapshot) >= 0 && writableYardSnapshot(result)
+          ? requestSession : null;
       }
       const snapshot = normalizeSnapshot(protectHubSnapshot(get().snapshot, result));
       set({ snapshot, status: "ready", message: "" });
@@ -321,7 +348,10 @@ export const useGameHub = create((set, get) => ({
       if (existingIndex >= 0 && pendingActions[existingIndex].attempts > 0) {
         queuedItem = pendingActions[existingIndex];
       } else
-      if (action === "yard.configureCompanion" && existingIndex >= 0) {
+      // A v2 action ID signs its original payload, including after a reload/retry.
+      if (action === "yard.configureCompanion" && existingIndex >= 0
+        && !pendingActions[existingIndex].clientActionId.startsWith("yard-v2:")
+        && !String(options.clientActionId || "").startsWith("yard-v2:")) {
         queuedItem = {
           accountId,
           ...pendingActions[existingIndex],
@@ -387,7 +417,7 @@ export const useGameHub = create((set, get) => ({
       if (get().outboxStorageError === "OUTBOX_STORAGE_INVALID") return { error: get().outboxStorageError };
       const now = Date.now();
       const pending = normalizeOutboxItems(get().pendingActions)
-        .filter((item) => item.status !== "failed")
+        .filter((item) => canDrainOutboxItem(item, get().snapshot))
         .sort((a, b) => a.createdAt - b.createdAt);
       const nextReady = pending
         .filter((item) => item.nextAttemptAt > now)
@@ -413,13 +443,15 @@ export const useGameHub = create((set, get) => ({
       if (saved.error) return saved;
 
       const sending = get().pendingActions.find((candidate) => candidate.clientActionId === item.clientActionId) || item;
+      const canSend = () => isCurrent() && canDrainOutboxItem(sending, get().snapshot);
+      if (!canSend()) return null;
       let result = await api("/api/player/mutate", {
         accountId,
         action: sending.action,
         payload: sending.payload,
         clientActionId: sending.clientActionId,
         intentServerTime: sending.intentServerTime,
-      }, { timeoutMs: 9000, isCurrent });
+      }, { timeoutMs: 9000, isCurrent: canSend });
 
       if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
       if (result.snapshot && !gardenR2AccountMatches(get().snapshot, result.snapshot, accountId)) result = { error: "ACCOUNT_CHANGED" };
@@ -448,6 +480,31 @@ export const useGameHub = create((set, get) => ({
         return result;
       }
 
+      if (isYardAction(sending.action) && result.error === "YARD_ROLLOUT_PAUSED") {
+        // Closed rollback returns before receipt lookup. Keep the signed intent
+        // and its busy lock: a lost reply on B may already have spent/granted.
+        yardOutboxPauseEpoch = {};
+        yardOutboxResumeSession = null;
+        set((state) => ({
+          pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
+            candidate.clientActionId === sending.clientActionId
+              ? { ...candidate, status: "rollout-paused", requiresYardResume: true, nextAttemptAt: 0 }
+              : candidate
+          )),
+          lastResult: result,
+          status: "ready",
+          message: result.error,
+        }));
+        const retained = await persistOutbox(accountId, get().pendingActions);
+        if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
+        set({ outboxStorageError: retained.error || null });
+        // A mixed rollout may serve writable GETs alongside paused POSTs. The
+        // reconciliation caused by this denial must not create its own loop.
+        await get().loadSnapshot({ resumeYardOutbox: false });
+        if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
+        return result;
+      }
+
       const transient = result.error === "ACCOUNT_CHANGED" || result.error === "TIMEOUT" || result.error === "NETWORK_ERROR" || Number(result._httpStatus || 0) >= 500;
       if (transient) {
         set((state) => ({
@@ -468,7 +525,7 @@ export const useGameHub = create((set, get) => ({
         if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
         set({ outboxStorageError: retained.error || null });
         const retryAt = get().pendingActions.find((candidate) => candidate.clientActionId === sending.clientActionId)?.nextAttemptAt;
-        if (retryAt) scheduleOutboxDrain(get, retryAt - Date.now());
+        if (retryAt && canDrainOutboxItem(sending, get().snapshot)) scheduleOutboxDrain(get, retryAt - Date.now());
         return result;
       }
 
@@ -507,8 +564,9 @@ export const useGameHub = create((set, get) => ({
       return result;
     })().finally(() => {
       outboxDrainPromise = null;
-      if (get().snapshot?.player?.id && get().pendingActions.length) {
-        const nextAt = Math.min(...get().pendingActions.map(item => item.nextAttemptAt || 0));
+      const pending = get().pendingActions.filter(item => canDrainOutboxItem(item, get().snapshot));
+      if (get().snapshot?.player?.id && pending.length) {
+        const nextAt = Math.min(...pending.map(item => item.nextAttemptAt || 0));
         if (!get().outboxStorageError) scheduleOutboxDrain(get, nextAt - Date.now());
       }
     });
@@ -546,6 +604,16 @@ export const useGameHub = create((set, get) => ({
         merge: payload.merge ? { ...prev.merge, ...payload.merge } : prev.merge,
         garden: payload.garden ? { ...prev.garden, ...payload.garden } : prev.garden,
         yard: payload.yard ? { ...prev.yard, ...payload.yard } : prev.yard,
+        // Runtime is an authoritative projection. Replace it in this same store
+        // transaction so prop commits, visit plans and released reservations agree.
+        yardRuntime: Object.hasOwn(payload, "yardRuntime") ? payload.yardRuntime : prev.yardRuntime,
+        // Normalization prefers snapshot.inventory. Refresh only the Yard aliases
+        // supplied in this delta so an old alias cannot overwrite new server counts.
+        inventory: payload.yard ? {
+          ...prev.inventory,
+          ...(Object.hasOwn(payload.yard, "foodInventory") ? { yardFood: payload.yard.foodInventory } : {}),
+          ...(Object.hasOwn(payload.yard, "goodieInventory") ? { yardGoodies: payload.yard.goodieInventory } : {}),
+        } : prev.inventory,
         pet: payload.pet || prev.pet,
         achievements: payload.achievements
           ? { ...prev.achievements, raw: payload.achievements }
@@ -590,6 +658,10 @@ export const useGameHub = create((set, get) => ({
 // The first account binds an unscoped boot. Any departure from a bound account
 // starts a new session, including clearing it or switching away and back.
 useGameHub.subscribe((state, previous) => {
+  if (state.snapshot !== previous.snapshot && !writableYardSnapshot(state.snapshot)) {
+    yardOutboxResumeSession = null;
+    yardOutboxPauseEpoch = {};
+  }
   const previousAccountId = previous.snapshot?.player?.id;
   const accountId = state.snapshot?.player?.id;
   if (accountId === previousAccountId) return;

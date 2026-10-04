@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
+import { createHash } from "node:crypto";
+import yardDelivery from "./yard-public-media.json" with { type: "json" };
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
@@ -8,6 +10,9 @@ import { GAME_DATA_MODULES } from './game-loading-graph.mjs';
 
 const REPORT_PATH = path.resolve("artifacts", "perf", "perf-build-report.json");
 const DEFAULT_DIST_DIR = path.resolve("dist");
+
+// Reviewed 706-file expansion: deployment bytes only, never a startup/decode allowance.
+export const FROZEN_YARD_DELIVERY_RAW_BYTES = 192_653_433;
 
 export const DEFAULT_BUILD_BUDGETS = {
   initialScriptRawBytes: 575_000,
@@ -20,15 +25,17 @@ export const DEFAULT_BUILD_BUDGETS = {
   runtimeManifestGzipBytes: 5_000,
   runtimeAssetsTotalRawBytes: 12_000_000,
   runtimeAssetMaxRawBytes: 2_500_000,
-  // Current direct-copy packs: games 172.5 MB; assets 70.6 MB, including
-  // 70.56 MB of preserved future canonical Yard media. ~5% growth allowance.
+  // Preserve the previous slack and the previous non-family ceilings.
+  // Exactly 192,653,433 bytes of frozen family media may expand shipped totals.
   publicGamesTotalRawBytes: 181_000_000,
-  publicAssetsTotalRawBytes: 75_000_000,
-  publicMediaTotalRawBytes: 263_000_000,
+  publicAssetsTotalRawBytes: 75_000_000 + FROZEN_YARD_DELIVERY_RAW_BYTES,
+  publicMediaTotalRawBytes: 263_000_000 + FROZEN_YARD_DELIVERY_RAW_BYTES,
+  nonFamilyPublicAssetsTotalRawBytes: 75_000_000,
+  nonFamilyPublicMediaTotalRawBytes: 263_000_000,
 };
 
 const PIXI_CHUNK_RE = /(LazyPixiSceneHost|pixi|WebGLRenderer|WebGPURenderer|CanvasRenderer|BitmapFont|BufferResource|RenderTargetSystem|browserAll|webworkerAll|Filter|animation)/i;
-const GAME_CHUNK_RE = /(BloxGame|Match3Game|MergeGame|MergeLabGame|BubboGame|TriviaGame|GardenShelfGame|CompanionYardGame|SettlementGame)/;
+const GAME_CHUNK_RE = /(BloxGame|Match3Game|MergeGame|MergeLabGame|BubboGame|TriviaGame|GardenShelfGame|CompanionYardGame|YardReleaseGame|CourtyardGame|SettlementGame)/;
 const RUNTIME_ASSET_MANIFEST_PATH = "assets-runtime/manifest.json";
 const HASHED_RUNTIME_ASSET_RE = /^assets-runtime\/.+\.[a-f0-9]{8}\.(?:png|webp|avif|svg|json|webm|mp3|wav)$/i;
 
@@ -127,7 +134,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     if (listed.size !== graph.chunks.length || actual.some(file => !listed.has(file)) || [...listed].some(file => !byPath.has(file))) throw new Error('Loading graph does not cover every generated JS file');
     for (const chunk of graph.chunks) {
       if (![...chunk.imports, ...chunk.dynamicImports].every(file => listed.has(file))) throw new Error(`Unlisted dependency of ${chunk.file}`);
-      if (chunk.dataOnly && (!chunk.dataModules.length || !chunk.dataModules.every(source => GAME_DATA_MODULES.has(source)) || chunk.gameModules.some(source => !GAME_DATA_MODULES.has(source)))) throw new Error(`Invalid data-only exemption: ${chunk.file}`);
+      if (chunk.dataOnly && ((chunk.renderedModuleCount !== undefined && chunk.renderedModuleCount !== chunk.dataModules.length) || !chunk.dataModules.length || !chunk.dataModules.every(source => GAME_DATA_MODULES.has(source)) || chunk.gameModules.some(source => !GAME_DATA_MODULES.has(source)))) throw new Error(`Invalid data-only exemption: ${chunk.file}`);
     }
   } catch (error) {
     if (requireLoadingGraph || graph || error.code !== 'ENOENT') graphFailures.push({id:'games.loading-graph.complete', actual:String(error.message), budget:'complete generated graph', message:`Game loading graph: ${error.message}`});
@@ -177,6 +184,27 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     publicMedia: summarize([...publicGameFiles, ...publicAssetFiles, ...runtimePayloads]),
   };
 
+  // The allowance belongs only to the exact reviewed family files. Missing,
+  // modified or extra files fail; unrelated media retains the former ceilings.
+  const familyFiles = assetFiles.filter(file => /^assets\/yard-(?:family|fox|turtles)\//.test(file)).map(file => byPath.get(file));
+  const expectedFamily = new Map(yardDelivery.files.map(row => [row.path, row]));
+  const approvedFamily = new Set(), familyFailures = [];
+  for (const file of familyFiles) {
+    const expected = expectedFamily.get(file.path);
+    if (!expected || expected.bytes !== file.rawBytes || createHash('sha256').update(await fs.readFile(path.join(distDir, file.path))).digest('hex') !== expected.sha256) {
+      familyFailures.push(file.path);
+    } else approvedFamily.add(file.path);
+  }
+  if ((familyFiles.length || requireLoadingGraph) && (familyFailures.length || approvedFamily.size !== expectedFamily.size
+      || yardDelivery.totalBytes !== FROZEN_YARD_DELIVERY_RAW_BYTES)) graphFailures.push({
+    id: 'public-assets.frozen-yard-exact', actual: { approved: approvedFamily.size, invalid: familyFailures },
+    budget: { files: 706, bytes: FROZEN_YARD_DELIVERY_RAW_BYTES },
+    message: 'Frozen Yard delivery must contain exactly the reviewed 706 paths, sizes and SHA-256 hashes',
+  });
+  metrics.frozenYard = summarize(publicAssetFiles.filter(file => approvedFamily.has(file.path)));
+  metrics.nonFamilyPublicAssets = summarize(publicAssetFiles.filter(file => !approvedFamily.has(file.path)));
+  metrics.nonFamilyPublicMedia = summarize([...publicGameFiles, ...publicAssetFiles.filter(file => !approvedFamily.has(file.path)), ...runtimePayloads]);
+
   const loadingGraphs = Object.fromEntries(Object.entries(graph?.entries || {}).map(([game, entry]) => {
     const staticFiles = closure([entry]);
     const allFiles = closure([entry], true);
@@ -213,6 +241,8 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     budgetFailure('public-games.total.raw', metrics.publicGames.rawBytes, effectiveBudgets.publicGamesTotalRawBytes),
     budgetFailure('public-assets.total.raw', metrics.publicAssets.rawBytes, effectiveBudgets.publicAssetsTotalRawBytes),
     budgetFailure('public-media.total.raw', metrics.publicMedia.rawBytes, effectiveBudgets.publicMediaTotalRawBytes),
+    budgetFailure('public-assets.non-family.raw', metrics.nonFamilyPublicAssets.rawBytes, effectiveBudgets.nonFamilyPublicAssetsTotalRawBytes),
+    budgetFailure('public-media.non-family.raw', metrics.nonFamilyPublicMedia.rawBytes, effectiveBudgets.nonFamilyPublicMediaTotalRawBytes),
   ].filter(Boolean);
 
   const retiredPaths = allFiles.filter(isRetiredAssetPath);
