@@ -6,7 +6,7 @@ import {pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 const buildExtensionUrl=new URL('./yard-active-build-transition.mjs',import.meta.url);
-assert.equal(createHash('sha256').update(readFileSync(buildExtensionUrl)).digest('hex'),'227c357d051733b85b621e28541884f83d4c24ae062d577bfb0f5696fc7a6a0b','Reviewed build extension bytes changed');
+assert.equal(createHash('sha256').update(readFileSync(buildExtensionUrl)).digest('hex'),'cccc795564ffc3fa1f3eae60347107fbf2c141d2ffd9b18555565cb93deb2580','Reviewed build extension bytes changed');
 const buildExtension=await import(buildExtensionUrl.href);
 import {ACTIVE_CONTRACT_PATH,PROMOTED_PATHS,verifyPromotionContract,verifyActiveRuntime} from './yard-active-contract.mjs';
 export const CLOSED_VERIFIERS=Object.freeze(['preview/yard-persistent-candidate/base-contract.json','preview/yard-persistent-candidate/verify-production.mjs','preview/yard-persistent-candidate/verify-closed-rollout.mjs','preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs']);

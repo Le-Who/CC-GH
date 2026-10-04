@@ -129,3 +129,43 @@ test('cross-game production coverage uses owned signed fixtures and real UI resu
  assert.match(spec,/fixtureAssisted:true/);assert.match(spec,/seededScore:3498/);
  assert.doesNotMatch(spec,/route\.fulfill\s*\(|window\.__.*setState\s*\(|test\.skip\s*\(/);
 });
+
+test('internal relay destinations require exact owned network, running container and image',async()=>{
+ const {ownedRelayEndpoint}=await import('../scripts/yard-production-acceptance.mjs');
+ const networkName='ccgh-yard-prod-1234abcd',networkId='d'.repeat(64),containerId='e'.repeat(64),imageId='sha256:'+'f'.repeat(64),containerName=networkName+'-a';
+ const fixture=()=>({networkName,containerName,imageId,mode:'A',network:{Id:networkId,Name:networkName,Driver:'bridge',Internal:true,IPAM:{Config:[{Subnet:'172.20.0.0/16'}]},Containers:{[containerId]:{Name:containerName,IPv4Address:'172.20.0.2/16'}}},container:{Id:containerId,Name:'/'+containerName,Image:imageId,State:{Running:true},Config:{Env:['SECRET=never-include']},NetworkSettings:{Ports:{'8080/tcp':null},Networks:{[networkName]:{NetworkID:networkId,IPAddress:'172.20.0.2'}}}}});
+ const endpoint=ownedRelayEndpoint(fixture());assert.equal(endpoint.hostPort,3231);assert.equal(endpoint.targetPort,8080);assert.equal(endpoint.targetHost,'172.20.0.2');assert.equal(endpoint.diagnostic.internal,true);assert.doesNotMatch(JSON.stringify(endpoint),/SECRET|Config|Env/);
+ for(const mutate of [f=>f.network.Internal=false,f=>f.network.Driver='host',f=>f.network.Name='foreign',f=>f.container.Name='/foreign',f=>f.container.State.Running=false,f=>f.container.Image='sha256:'+'a'.repeat(64),f=>f.container.NetworkSettings.Networks.extra={},f=>f.container.NetworkSettings.Networks[networkName].NetworkID='a'.repeat(64),f=>f.container.NetworkSettings.Networks[networkName].IPAddress='8.8.8.8',f=>f.network.Containers[containerId].IPv4Address='172.20.0.3/16',f=>f.network.IPAM.Config[0].Subnet='172.21.0.0/16',f=>delete f.network.Containers[containerId]]){const f=fixture();mutate(f);assert.throws(()=>ownedRelayEndpoint(f));}
+});
+
+test('loopback relay preserves large duplex bytes and half-close; cannot bind a public interface',{timeout:5000},async()=>{
+ const net=await import('node:net'),{startLoopbackTcpRelay}=await import('../scripts/yard-production-acceptance.mjs');
+ const bytes=Buffer.alloc(2*1024*1024,0x6b),server=net.createServer({allowHalfOpen:true},peer=>{const chunks=[];peer.on('data',chunk=>chunks.push(chunk));peer.on('end',()=>{assert.deepEqual(Buffer.concat(chunks),bytes);peer.end(Buffer.concat(chunks));});});let relay;
+ try{await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));relay=await startLoopbackTcpRelay({hostPort:0,targetHost:'127.0.0.1',targetPort:server.address().port});
+  const result=await new Promise((resolve,reject)=>{const client=net.createConnection({host:'127.0.0.1',port:relay.port}),chunks=[];client.on('error',reject);client.on('data',chunk=>chunks.push(chunk));client.on('end',()=>resolve(Buffer.concat(chunks)));client.on('connect',()=>client.end(bytes));});assert.deepEqual(result,bytes);
+ }finally{await relay?.close();await new Promise(resolve=>server.close(resolve));}
+ const source=read('scripts/yard-production-acceptance.mjs');assert.match(source,/server\.listen\(hostPort,'127\.0\.0\.1'/);assert.doesNotMatch(source,/'-p',/);assert.match(source,/\['network','create','--internal',prefix\]/);
+});
+
+test('relay rejects connection failure, times out idle peers and closes live upgraded bytes',{timeout:5000},async()=>{
+ const net=await import('node:net'),{startLoopbackTcpRelay}=await import('../scripts/yard-production-acceptance.mjs');
+ const peers=new Set(),server=net.createServer(peer=>{peers.add(peer);peer.on('error',()=>{});peer.on('data',()=>peer.write('HTTP/1.1 101 Switching Protocols\r\n\r\n'));peer.on('close',()=>peers.delete(peer));});let relay,client;
+ try{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));const targetPort=server.address().port;
+  relay=await startLoopbackTcpRelay({hostPort:0,targetHost:'127.0.0.1',targetPort},{idleTimeoutMs:75});
+  let at=Date.now();await new Promise(resolve=>{client=net.createConnection({host:'127.0.0.1',port:relay.port});client.on('error',()=>{});client.resume();client.on('close',resolve);});assert.ok(Date.now()-at<1500);await relay.close();relay=null;
+  relay=await startLoopbackTcpRelay({hostPort:0,targetHost:'127.0.0.1',targetPort});
+  client=net.createConnection({host:'127.0.0.1',port:relay.port});client.on('error',()=>{});const closed=new Promise(resolve=>client.on('close',resolve));await new Promise(resolve=>{client.once('data',resolve);client.write('upgrade bytes');});
+  at=Date.now();await relay.close();relay=null;await closed;assert.ok(Date.now()-at<2500);
+  for(const peer of peers)peer.destroy();await new Promise(resolve=>server.close(resolve));
+  relay=await startLoopbackTcpRelay({hostPort:0,targetHost:'127.0.0.1',targetPort});
+  at=Date.now();await new Promise(resolve=>{client=net.createConnection({host:'127.0.0.1',port:relay.port});client.on('error',()=>{});client.resume();client.once('close',resolve);});assert.ok(Date.now()-at<1500);
+ }finally{client?.destroy();await relay?.close();for(const peer of peers)peer.destroy();if(server.listening)await new Promise(resolve=>server.close(resolve));}
+});
+
+test('health diagnostics omit arbitrary response/credential text and keep useful failure codes',async()=>{
+ const {healthDiagnostic}=await import('../scripts/yard-production-acceptance.mjs');
+ const row=healthDiagnostic({attempt:2,at:123,httpStatus:503,body:{status:'degraded',postgres:false,buildId:'a'.repeat(40),secret:'never-include'},error:{name:'TypeError',message:'secret-password',cause:{code:'ECONNREFUSED'}}});
+ assert.deepEqual(row,{attempt:2,at:123,httpStatus:503,status:'degraded',postgres:false,buildId:'a'.repeat(40),errorName:'TypeError',errorCode:'ECONNREFUSED'});assert.doesNotMatch(JSON.stringify(row),/secret|password|never-include/);
+ const source=read('scripts/yard-production-acceptance.mjs');assert.match(source,/network-endpoints\.json/);assert.match(source,/health-\$\{mode\}\.json/);assert.match(source,/await attachRelay\(mode\);await ready\(mode\)/);assert.match(source,/for\(const relay of relays\.reverse\(\)\)try\{await relay\.close\(\)/);
+});
