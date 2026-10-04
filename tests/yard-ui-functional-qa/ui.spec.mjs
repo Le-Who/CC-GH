@@ -1,4 +1,5 @@
 import {test,expect} from '@playwright/test';
+import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFile,writeFile} from 'node:fs/promises';
 import {YARD_FOODS,YARD_GOODIES,YARD_REMODELS} from '../../game-logic/yard-v2/catalog.mjs';
@@ -20,6 +21,22 @@ function expectAdjacent(actual,expected){
   expect(next===prior||(next>=window.startedAt&&next<=window.finishedAt)).toBe(true);
   expect(actual.resources).toEqual({...expected.resources,energy:{...expected.resources.energy,lastRegenTimestamp:next}});
 }
+function assertReloadClockOnly(actual,expected,witnesses,{startedAt,finishedAt}){
+  const prior=expected.yard.lastSimulatedAt,next=actual.yard.lastSimulatedAt;
+  for(const value of [prior,next,startedAt,finishedAt])assert.ok(Number.isSafeInteger(value),'Integer observed Yard clocks required');
+  assert.equal(expected._yardV2.runtime.cursorMs,prior);assert.equal(actual._yardV2.runtime.cursorMs,next);
+  assert.ok(next>=prior,'Yard clock must not rewind');assert.ok(finishedAt>=startedAt,'Ordered observation window required');
+  for(const row of witnesses.filter(row=>row.accountId===actual.id&&row.status===200)){assert.deepEqual(row.visits,[]);assert.deepEqual(row.reservations,[]);}
+  if(next!==prior){
+    assert.ok(next>=startedAt&&next<=finishedAt,'Advanced Yard clock must lie inside the observed reload/read window');
+    assert.ok(witnesses.some(row=>row.accountId===actual.id&&row.status===200&&row.lastSimulatedAt===next&&row.cursorMs===next&&row.receivedAt>=next&&row.receivedAt<=finishedAt),'Advanced clock must match an actual snapshot GET response');
+  }
+  // This fixture has no visits. Preserve every runtime field, including the
+  // next opportunity, events, command receipts, gift ledger and migration.
+  assert.deepEqual(expected.yard.activeVisitors,[]);assert.deepEqual(expected._yardV2.runtime.visits,{});
+  assert.deepEqual(actual.yard,{...expected.yard,lastSimulatedAt:next});
+  assert.deepEqual(actual._yardV2,{...expected._yardV2,runtime:{...expected._yardV2.runtime,cursorMs:next}});
+}
 async function fixture(kind){currentFixture=await h.seed(kind);return currentFixture;}
 const data=(f,action,payload={})=>({accountId:f.id,action,payload,clientActionId:`yard-v2:ui-qa:${randomUUID()}`});
 test.beforeAll(async()=>{h=await createUiQaHarness();});
@@ -39,7 +56,7 @@ test.afterEach(async({},info)=>{
   let persisted,readError;
   if(currentFixture)try{const p=await h.saved(currentFixture);persisted={accountId:p.id,yard:p.yard,resources:p.resources,commandReceipts:p._yardV2?.runtime?.commandReceipts,giftLedger:p._yardV2?.runtime?.giftLedger,migrationReceipt:p._yardV2?.migration?.receipt};}catch(error){readError=String(error.message);}
   const consoleErrors=observed.consoleErrors.map(row=>({...row,expected:info.title==='lost-response-reload'&&new URL(row.url||h.origin,h.origin).pathname==='/api/player/mutate'&&/^Failed to load resource: net::ERR_(EMPTY_RESPONSE|FAILED|CONNECTION_RESET)$/.test(row.text)}));
-  await writeFile(info.outputPath('ordinary-C-requests-and-ledger.json'),JSON.stringify({scope,commit:h.commit,runId:h.runId,mutations:observed.mutations.map(({request,...row})=>row),directApiMutations:currentFixture?h.requestsFor(currentFixture):[],pageErrors:observed.pageErrors,consoleErrors,persisted,readError},null,2));
+  await writeFile(info.outputPath('ordinary-C-requests-and-ledger.json'),JSON.stringify({scope,commit:h.commit,runId:h.runId,mutations:observed.mutations.map(({request,...row})=>row),directApiMutations:currentFixture?h.requestsFor(currentFixture):[],pageErrors:observed.pageErrors,consoleErrors,persisted,reloadClockEvidence:observed.reloadClockEvidence,readError},null,2));
   expect(readError).toBeUndefined();expect(observed.pageErrors).toEqual([]);expect(consoleErrors.filter(row=>!row.expected)).toEqual([]);
 });
 
@@ -192,12 +209,23 @@ test('lost-response-reload',async({page},info)=>{
     const lost=JSON.parse(await readFile(process.env.YARD_UI_QA_FAULT,'utf8'));expect(lost.captureError).toBeUndefined();expect(lost.command.accountId).toBe(f.id);expect(lost.body.duplicate).toBe(false);
     await expect.poll(async()=>(await outbox(page,f.id))?.items?.some(p=>p.clientActionId===lost.command.clientActionId)).toBe(true);
     const committed=await h.saved(f);expect(committed.yard.currencies).toEqual({...before.yard.currencies,treats:before.yard.currencies.treats+17});expect(committed.yard.album).toEqual(before.yard.album);
+    const clockWindow={startedAt:Date.now()},snapshotReads=[],snapshotJobs=[];
+    observed.reloadClockEvidence={window:clockWindow,snapshotReads,before:{yard:committed.yard,persistent:committed._yardV2}};
+    page.on('response',response=>{
+      if(response.request().method()!=='GET'||new URL(response.url()).pathname!=='/api/player/snapshot')return;
+      snapshotJobs.push(response.json().then(body=>{snapshotReads.push({status:response.status(),accountId:body.player?.id,lastSimulatedAt:body.yard?.lastSimulatedAt,cursorMs:body.yardRuntime?.cursorMs,serverNow:body.yardRuntime?.serverNow,visits:body.yardRuntime?.visits,reservations:body.yardRuntime?.reservations,receivedAt:Date.now()});}).catch(error=>{snapshotReads.push({status:response.status(),readError:String(error.message)});}));
+    });
     await page.reload();await expect(page.locator('.cy-app')).toBeVisible();
     const retained=(await outbox(page,f.id)).items.find(p=>p.clientActionId===lost.command.clientActionId);expect(retained).toMatchObject({accountId:f.id,action:lost.command.action,payload:lost.command.payload,clientActionId:lost.command.clientActionId});
     const replay=page.waitForResponse(async r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.clientActionId===lost.command.clientActionId&&r.status()===200&&(await r.json()).duplicate===true);
     await setProxyState(process.env.YARD_UI_QA_PROXY_STATE,{target:'B'});const replayBody=await(await replay).json();await emptyOutbox(page,f.id);
     expect(new Set(requests.map(r=>r.clientActionId))).toEqual(new Set([lost.command.clientActionId]));expect(requests.length).toBeGreaterThanOrEqual(2);
-    const after=await h.saved(f);expect(after.yard).toEqual(committed.yard);expect(after._yardV2).toEqual(committed._yardV2);expectAdjacent(after,before);
+    const after=await h.saved(f);await Promise.all(snapshotJobs);clockWindow.finishedAt=Date.now();
+    observed.reloadClockEvidence.after={yard:after.yard,persistent:after._yardV2};
+    expect(snapshotReads.filter(row=>row.readError)).toEqual([]);
+    assertReloadClockOnly(after,committed,snapshotReads,clockWindow);expectAdjacent(after,before);
+    for(const command of requests)expect(command).toEqual(lost.command);
+    expect(replayBody.receipt).toEqual(lost.body.receipt);expect(replayBody.collected).toEqual(lost.body.collected);
     expect(Object.keys(after._yardV2.runtime.commandReceipts)).toEqual([lost.command.clientActionId]);expect(Object.values(after._yardV2.runtime.giftLedger).filter(g=>g.status==='claimed')).toHaveLength(1);
     await expectWallet(page,after.yard.currencies);await evidence(page,info,'lost-response-reload',{requests,retained,replayBody,currencies:after.yard.currencies});
   }finally{await setProxyState(process.env.YARD_UI_QA_PROXY_STATE,{target:'B'});}
