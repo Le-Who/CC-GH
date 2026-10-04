@@ -6,5 +6,5 @@ export default defineConfig({
  metadata:{candidateCommit:process.env.CANDIDATE_COMMIT,candidateTree:process.env.CANDIDATE_TREE,requestSha256:process.env.REQUEST_SHA256},
  reporter:[['list'],['json',{outputFile:proof+'/home-results.json'}]],outputDir:proof+'/browser-artifacts',
  use:{baseURL:'http://127.0.0.1:3287',trace:'retain-on-failure',screenshot:'only-on-failure'},projects:[{name:'chromium',use:{browserName:'chromium'}}],
- webServer:{command:'node server.js',url:'http://127.0.0.1:3287',reuseExistingServer:false,timeout:60000,env:{NODE_ENV:'test',PORT:'3287',DEV_AUTH_ENABLED:'true',DATABASE_URL:'',REDIS_URL:''}},
+ webServer:{command:'node server.js',url:'http://127.0.0.1:3287',reuseExistingServer:false,timeout:60000,env:{APP_BUILD_ID:process.env.CANDIDATE_COMMIT,NODE_ENV:'test',PORT:'3287',DEV_AUTH_ENABLED:'true',DATABASE_URL:'',REDIS_URL:''}},
 });
