@@ -55,3 +55,18 @@ A separate native background-tab test records actual visibility events. If Chrom
 Suggested CI command: `pnpm exec playwright test tests/e2e/bubbo-casual-motion.spec.js tests/e2e/bubbo-marine-art.spec.js --project=chromium --workers=1`. Retain `test-results`, screenshots, WebM videos and the Playwright report. Root integration owns CI/package/workflow changes.
 
 Local dependency installation was blocked by network policy. Therefore full build, browser execution, video review and physical Telegram WebView acceptance remain pending. Review the videos independently of functional pass/fail, looking for subtle non-synchronous sway, calm aiming, legible marine motifs, unobscured guide/cannon and a readable hit → pop → drop hierarchy. Passing assertions alone do not establish top-tier visual quality.
+
+## CI3 observation-race correction (2026-10-04)
+
+[CI run 37162250609](https://github.com/Le-Who/CC-GH/actions/runs/37162250609), PR head `995d2d2e68cbd4e12c33e35073a5e1d020bd979c`, completed with two failed Bubbo wide-screen checks. The shot/capture assertions succeeded; sequential observation of the short FX/reward windows failed. This is not recorded as an all-green browser run.
+
+The retained retry traces directly establish the burst observation race:
+
+- Mouse: `call@82` reads `shots=1, effects=3` at monotonic 1084670.260 ms. The snapshot at 1084681.278 ms already has `effects=0`.
+- Touch: `call@84` reads `shots=1, effects=3` at 1124311.078 ms. Its snapshot at 1124313.427 ms has `effects=0`.
+- Both result snapshots contain the actual `Bomb +100` reward node. Inspected screencast frames also show the painted burst rings and visible reward; the reaction was not missing.
+- Initial/retry2 failures asked for the reward only after awaiting a full-page DPR2 screenshot. This ordering can consume the natural 1800 ms reward TTL. First-attempt traces were not retained, so no exact screenshot-duration claim is made.
+
+The correction changes tests only. `tests/e2e/helpers/bubboMotionObservation.js` installs a read-only MutationObserver before release. It atomically retains the first matching result frame, peak effect count, and visibility/text/bounds of the new reward node. A previous reward still within its TTL cannot satisfy a subsequent shot. Effects must be present in the first result frame, and the budget, positive feedback, exact one-shot count, cancellation and trusted outside-release contracts remain in force. Runtime TTLs, motion timing, clocks, gestures and game state are unchanged. The later full-page capture is accurately labelled “after-shot”; always-on video retains the real sequence.
+
+Five added native tests cover delayed reads after burst/TTL expiry, stale reward rejection, missing/invisible/offscreen feedback, wrong shot/hidden document, bounded history and observer cleanup. The expanded local command, adding `tests/bubbo-motion-observation.test.js` to the earlier list, passes 87 tests with no failures. Browser helper/spec syntax and scoped diff checks pass. A fresh CI browser run and final video review are still required for this correction.

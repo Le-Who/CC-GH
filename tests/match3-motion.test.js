@@ -1,10 +1,40 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { createMatch3MotionPlan, sampleMatch3Motion, MATCH3_MOTION } from '../src/game-core/match3/motion.js';
+import { createMatch3MotionPlan, sampleMatch3Motion, MATCH3_MOTION, createMatch3MotionClock, advanceMatch3MotionClock } from '../src/game-core/match3/motion.js';
 import { applyMatch3Booster, attemptMatch3Move } from '../src/game-core/match3/engine.js';
 const board = () => Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ['fire','water','earth','air','light','dark'][(x + y * 2) % 6]));
 function seeded(seed, fn) { const old = Math.random; let n = seed; Math.random = () => { n ^= n << 13; n ^= n >>> 17; n ^= n << 5; return (n >>> 0) / 4294967296; }; try { return fn(); } finally { Math.random = old; } }
 const normalized = poses => poses.filter(p => p.alpha > .999).map(p => ({ type:p.type,x:Math.round(p.x),y:Math.round(p.y) })).sort((a,b)=>a.y-b.y||a.x-b.x);
+
+test('motion clock counts all active wall time and excludes exact pause/hidden intervals', () => {
+  let clock = createMatch3MotionClock(100, true);
+  clock = advanceMatch3MotionClock(clock, 780);
+  assert.equal(clock.elapsed, 680, 'foreground stall is not capped');
+  clock = advanceMatch3MotionClock(clock, 800, false);
+  assert.equal(clock.elapsed, 700, 'active fraction before pause is counted');
+  clock = advanceMatch3MotionClock(clock, 10800, true);
+  assert.equal(clock.elapsed, 700, 'hidden/paused wall time is excluded');
+  clock = advanceMatch3MotionClock(clock, 10850);
+  assert.equal(clock.elapsed, 750, 'first resumed frame includes its active time');
+  clock = advanceMatch3MotionClock(clock, 10840);
+  assert.equal(clock.elapsed, 750, 'time never runs backwards');
+});
+
+test('dead-board reconciliation always has visible artwork in every occupied cell', () => {
+  const before = board(), after = before.map(row => [...row].reverse());
+  for (const reduced of [false, true]) {
+    const plan = createMatch3MotionPlan({ startBoard: before, finalBoard: after }, [], reduced);
+    for (let age = 0; age < plan.duration; age += 2) {
+      const sample = sampleMatch3Motion(plan, age);
+      for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+        const layers = sample.poses.filter(pose => pose.x === x && pose.y === y);
+        assert.ok(layers.some(pose => pose.alpha >= .5));
+        assert.ok(Math.abs(layers.reduce((sum, pose) => sum + pose.alpha, 0) - 1) < 1e-9);
+      }
+    }
+    assert.deepEqual(sampleMatch3Motion(plan, plan.duration).board, after);
+  }
+});
 
 test('swap has two opaque moving originals and no duplicate static copies', () => {
   const start = board(), from = { x: 2, y: 3 }, to = { x: 3, y: 3 };

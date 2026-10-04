@@ -36,3 +36,11 @@ Three existing Match-3 touch cases also failed all retries. The trace showed the
 A root run covering the corrected Match-3 suites and Blox verifier passed 75/75. The performance diagnosis and fix still require a fresh browser CI run and video review before acceptance.
 
 The second CI run passed all 1186 Node tests and the existing touch suite. Its next gate rejected the changed package.json because inactive Yard intentionally pins production entry files. package.json is restored byte-for-byte to the production base; the five additional motion files run in an explicit CI step instead. No Yard isolation hash or guard was relaxed.
+
+## Recorded-motion acceptance findings
+
+CI run 37162250609 completed 282 browser checks successfully, with two Bubbo failures, six flaky Match-3 cases and five skips. Touch, Mochi, standard/motion Node and PostgreSQL gates passed. Trace review separated test observation races (late Bubbo screenshot/polling; transient fixture status; Socket.IO consuming a global seeded RNG) from a real Match-3 presentation defect.
+
+Dense recorded frames showed slow Match-3 phase progression and an approximately 0.84-second empty-board interval. The next candidate removes the capped-delta presentation clock, uses active monotonic time with explicit pause/hidden accounting, keeps dead-board reconciliation nonempty, and limits Match-3-only renderer backing pixels/MSAA. The backing-pixel ceiling is a design choice, not a measured device benchmark; native device-scale PNG and fresh recorded wall-time evidence are required before visual acceptance. Other games' renderer settings and DOM HUD density are preserved.
+
+Test fixtures now observe fast effects before release without extending runtime lifetimes, wait for authenticated fixture snapshots rather than transient socket status, and scope refill RNG to the real scoring input event. Existing score, cascade, reward and input expectations remain enforced. Trivia receives narrow text-wrapping fixes for baseline readability defects; Garden gains an actual scroll-to-end expansion reachability test without changing its layout.

@@ -14,6 +14,7 @@ const { createPixiMock, loadClosure } = require('./fixtures/pixi-mock.cjs');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const boardFixture = () => Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ['fire', 'water', 'earth', 'air', 'light', 'dark'][(x + y * 2) % 6]));
 function harness(width = 390, height = 844, reduced = false) {
+  let now = 0;
   const env = createPixiMock({ width, height, publicRoot: root + 'public', coarse: reduced });
   env.app.ticker.started = true;
   env.app.start = () => { env.app.ticker.started = true; };
@@ -26,7 +27,7 @@ function harness(width = 390, height = 844, reduced = false) {
   const imports = ast.acorn.parse(source, { ecmaVersion: 'latest', sourceType: 'module' }).body.filter(n => n.type === 'ImportDeclaration');
   const names = imports.find(n => n.source.value === './shared/runtime.js').specifiers.map(n => n.imported.name);
   const runtime = loadClosure(root + 'src/game-runtime/scenes/shared/runtime.js', names, { ...env.ctx, ...geometry, ...pointer, ...engine, ...animation, resolveAssetUrl: x => x }, ast);
-  const ctx = { ...env.ctx, ...runtime, ...art, ...layout, ...motion };
+  const ctx = { ...env.ctx, ...runtime, ...art, ...layout, ...motion, performance: { now: () => now } };
   const code = ast.extract(root + 'src/game-runtime/scenes/match3Scene.js', ['match3GemAsset', 'createMatch3BoardFrame', 'buildMatch3Scene']);
   const build = vm.runInNewContext(code + ';buildMatch3Scene', ctx), log = [];
   const composition = layout.composeMatch3({ width, height, safe: {} });
@@ -35,9 +36,10 @@ function harness(width = 390, height = 844, reduced = false) {
     onMatch3AnimationComplete: id => log.push(['complete', id]), onMatch3MotionPhase: info => log.push(['phase', info]) };
   const scene = build(env.app, data); env.flush();
   return { env, scene, composition, log, get data() { return data; },
+    elapse: ms => { now += ms; },
     targets: () => env.app.stage.children[0].children.filter(node => node.eventMode === 'static'),
     gems: () => env.app.stage.children[1].children.filter(node => node.visible),
-    tick: (ms = 1000 / 60) => { for (const tick of env.tickers) tick({ deltaTime: ms * .06, deltaMS: ms }); env.flush(); },
+    tick: (ms = 1000 / 60) => { now += ms; for (const tick of env.tickers) tick({ deltaTime: Math.min(100, ms) * .06, deltaMS: Math.min(100, ms) }); env.flush(); },
     update: patch => { data = { ...data, ...patch }; scene.update(data); env.flush(); },
   };
 }
@@ -113,14 +115,45 @@ test('pause and hidden time freeze poses and keep completion pending until resum
   h.update({ match3: { ...h.data.match3, gameActive: false } });
   for (let n = 0; n < 100; n++) h.tick(1000);
   assert.deepEqual(poseSnapshot(h), before); assert.equal(h.log.filter(item => item[0] === 'complete').length, 0);
-  h.update({ match3: { ...h.data.match3, gameActive: true } }); h.tick(1000);
-  assert.deepEqual(poseSnapshot(h), before, 'first resumed delta is rebased');
+  h.update({ match3: { ...h.data.match3, gameActive: true } }); h.tick(0);
+  assert.deepEqual(poseSnapshot(h), before, 'resume rebases at the actual boundary');
   h.env.document.visibilityState = 'hidden'; h.env.document.emit('visibilitychange'); h.tick(10000);
   assert.deepEqual(poseSnapshot(h), before);
-  h.env.document.visibilityState = 'visible'; h.env.document.emit('visibilitychange'); h.tick(1000);
+  h.env.document.visibilityState = 'visible'; h.env.document.emit('visibilitychange'); h.tick(0);
   assert.deepEqual(poseSnapshot(h), before);
   for (let n = 0; n < 1000 && !h.log.some(item => item[0] === 'complete'); n++) h.tick();
   assert.equal(h.log.filter(item => item[0] === 'complete').length, 1);
+  h.scene.destroy(); h.env.flush();
+});
+
+test('a slow foreground frame uses real elapsed time rather than capped Pixi deltaMS', () => {
+  const h = harness(); startAnimation(h, 'invalid');
+  h.tick(250); // Pixi reports only 100 ms; the 180 ms animation is already due.
+  assert.deepEqual(h.log.filter(item => item[0] === 'complete'), [['complete', 'invalid-1']]);
+  assert.equal(h.env.app.canvas.dataset.match3MotionPhase, 'idle');
+  assert.equal(h.env.app.ticker.started, false);
+  h.scene.destroy(); h.env.flush();
+});
+
+test('active state-update rendering is counted, rather than becoming an artificial pause', () => {
+  const h = harness(); startAnimation(h, 'invalid');
+  const chrome = h.env.app.stage.children[0], remove = chrome.removeChildren.bind(chrome);
+  chrome.removeChildren = () => { h.elapse(250); return remove(); };
+  h.update({ selectedGem: { x: 2, y: 2 } });
+  h.tick(0);
+  assert.deepEqual(h.log.filter(item => item[0] === 'complete'), [['complete', 'invalid-1']]);
+  chrome.removeChildren = remove;
+  h.scene.destroy(); h.env.flush();
+});
+
+test('phase changes retain pooled Sprite objects and HUD-only updates retain board chrome', () => {
+  const h = harness(); startAnimation(h);
+  const sprites = h.env.app.stage.children[1].children.map(view => view.art);
+  const chrome = [...h.env.app.stage.children[0].children];
+  h.update({ onMatch3MotionPhase: () => {} });
+  assert.deepEqual(h.env.app.stage.children[0].children, chrome);
+  for (let i = 0; i < 30; i++) h.tick(16);
+  sprites.forEach((sprite, i) => assert.equal(h.env.app.stage.children[1].children[i].art, sprite));
   h.scene.destroy(); h.env.flush();
 });
 

@@ -2,7 +2,7 @@ import { Texture, NineSliceSprite } from 'pixi.js';
 import { Container, Graphics, Rectangle, makeRafScheduler, createPointerSession, match3TargetFromGesture, clear, isAdjacentMatch3Cell, strokedRect, spriteFit, label, GEM_ICONS, DROP_ICONS, GEM_COLORS, BOARD_SIZE, cellCenter, MATCH3_ASSET_KEYS, AMBER, SKY, viewWidth, viewHeight, publishCanvasLayout, rect, publishCanvasAssetLayout, applyHudAssetRegion, setupStage, gameAsset, POTION_PIECE_ASSETS } from './shared/runtime.js';
 import { MATCH3_GEM_ART, MATCH3_NINE_SLICE, match3ArtUrl } from '../../games/match3/match3Art.js';
 import { composeMatch3 } from '../../games/match3/match3Composition.js';
-import { createMatch3MotionPlan, sampleMatch3Motion, boardPoses } from '../../game-core/match3/motion.js';
+import { createMatch3MotionPlan, sampleMatch3Motion, boardPoses, createMatch3MotionClock, advanceMatch3MotionClock } from '../../game-core/match3/motion.js';
 
 function match3GemAsset(gem) {
   return MATCH3_GEM_ART[gem] ? match3ArtUrl(MATCH3_GEM_ART[gem]) : gameAsset(POTION_PIECE_ASSETS[gem]);
@@ -35,12 +35,14 @@ function buildMatch3Scene(app, initial = {}) {
   boardMask.eventMode = 'none';
   boardMask.visible = false;
   let data = initial, layout, drag = null, plan = null, elapsed = 0;
-  let lastAnimationId = null, disposed = false, skipNextTick = false, lastPhase = -1;
+  let lastAnimationId = null, disposed = false, lastPhase = -1;
+  let clock = createMatch3MotionClock(performance.now());
   const gemPool = [], burstPool = [];
   const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   let reduced = !!motionQuery?.matches;
   const dragVisual = makeRafScheduler(() => render());
   const playing = () => data.match3?.gameActive === true;
+  const canAnimate = () => !!plan && playing() && !document.hidden && document.visibilityState !== 'hidden';
   const locked = () => !!plan || !!data.match3?.inputLocked;
   const currentBoard = () => data.match3?.board || data.fallbackBoard || [];
   const pointer = createPointerSession({
@@ -77,11 +79,19 @@ function buildMatch3Scene(app, initial = {}) {
       gems.addChild(view); gemPool.push(view);
     }
     if (view.gemType !== type || view.cell !== layout.cell) {
-      clear(view);
       view.gemType = type; view.cell = layout.cell;
       const asset = match3GemAsset(type);
-      if (asset) view.addChild(spriteFit(asset, 0, 0, layout.cell * .86, layout.cell * .86, .98));
-      else view.addChild(label(DROP_ICONS[type] || GEM_ICONS[type] || '', 0, 0, layout.cell * .34, GEM_COLORS[type] || AMBER));
+      if (asset) {
+        // Reorder/retype pooled actors by changing their cached texture rather
+        // than allocating and deferred-destroying dozens of Sprites per phase.
+        if (!view.art?.texture) { clear(view); view.art = spriteFit(asset, 0, 0, 1, 1, .98); view.addChild(view.art); }
+        view.art.texture = Texture.from(asset);
+        const dimensions = view.art.texture.orig;
+        const scale = Math.min(layout.cell * .86 / dimensions.width, layout.cell * .86 / dimensions.height);
+        view.art.width = dimensions.width * scale; view.art.height = dimensions.height * scale;
+      } else {
+        clear(view); view.art = label(DROP_ICONS[type] || GEM_ICONS[type] || '', 0, 0, layout.cell * .34, GEM_COLORS[type] || AMBER); view.addChild(view.art);
+      }
     }
     return view;
   }
@@ -103,6 +113,7 @@ function buildMatch3Scene(app, initial = {}) {
       app.canvas.dataset.match3MotionPhase = sample.kind;
       app.canvas.dataset.match3MotionId = plan?.id || '';
       app.canvas.dataset.match3MotionElapsed = String(plan ? Math.round(elapsed) : 0);
+      app.canvas.dataset.match3MotionDuration = String(plan?.duration || 0);
       app.canvas.dataset.match3InputLocked = String(locked());
       app.canvas.dataset.match3ReducedMotion = String(reduced);
     }
@@ -142,17 +153,19 @@ function buildMatch3Scene(app, initial = {}) {
   function complete() {
     const id = plan?.id;
     plan = null; elapsed = 0; lastPhase = -1;
+    clock = createMatch3MotionClock(performance.now());
     render();
     if (id && !disposed) data.onMatch3AnimationComplete?.(id);
   }
 
   function syncAnimation() {
     const animation = data.match3Animation;
-    if (!animation?.id) { plan = null; lastAnimationId = null; elapsed = 0; lastPhase = -1; return; }
+    if (!animation?.id) { plan = null; lastAnimationId = null; elapsed = 0; lastPhase = -1; clock = createMatch3MotionClock(performance.now()); return; }
     if (animation.id === lastAnimationId) return;
     lastAnimationId = animation.id;
     plan = createMatch3MotionPlan(animation, currentBoard(), reduced);
     elapsed = 0; lastPhase = -1;
+    clock = createMatch3MotionClock(performance.now(), canAnimate());
   }
 
   function drawChrome() {
@@ -194,10 +207,16 @@ function buildMatch3Scene(app, initial = {}) {
 
   const detachStage = setupStage(app, pointer.move, pointer.end, () => pointer.cancel('stage'));
   function syncTicker() {
-    if (plan && playing() && !document.hidden && document.visibilityState !== 'hidden') app.start?.();
+    const running = canAnimate();
+    if (clock.running !== running) advanceClock(running);
+    if (running) app.start?.();
     else app.stop?.();
   }
-  const onVisibility = () => { skipNextTick = true; syncTicker(); };
+  function advanceClock(running = canAnimate()) {
+    clock = advanceMatch3MotionClock(clock, performance.now(), running);
+    elapsed = clock.elapsed;
+  }
+  const onVisibility = () => { advanceClock(); syncTicker(); if (!canAnimate()) render(); };
   const onPreference = () => {
     reduced = !!motionQuery?.matches;
     // A preference change settles an accepted move exactly once, never replays it.
@@ -205,23 +224,23 @@ function buildMatch3Scene(app, initial = {}) {
   };
   document.addEventListener('visibilitychange', onVisibility);
   motionQuery?.addEventListener?.('change', onPreference);
-  const tick = ticker => {
-    if (!plan || !playing() || document.hidden || document.visibilityState === 'hidden') { app.stop?.(); return; }
-    if (skipNextTick) { skipNextTick = false; return; }
-    const delta = Number.isFinite(ticker.deltaMS) ? ticker.deltaMS : (Number(ticker.deltaTime) || 1) * 1000 / 60;
-    elapsed += Math.max(0, Math.min(80, delta));
+  const tick = () => {
+    advanceClock();
+    if (!canAnimate()) { app.stop?.(); return; }
     render();
   };
   app.ticker.add(tick);
   drawChrome(); syncAnimation(); render();
   return {
     update(next = {}) {
-      const wasPlaying = playing();
+      advanceClock();
       const oldBoard = currentBoard(), oldSelected = data.selectedGem, oldLayout = data.match3Composition;
       data = next;
       if (!playing()) pointer.cancel('pause');
-      if (wasPlaying !== playing()) skipNextTick = true;
       syncAnimation();
+      // Commit a genuine pause/resume boundary before drawing. An ordinary
+      // active update must not exclude its own chrome/render work from time.
+      advanceClock();
       if (oldSelected !== data.selectedGem || oldLayout !== data.match3Composition || oldBoard !== currentBoard()) drawChrome();
       render();
     },

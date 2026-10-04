@@ -1,26 +1,32 @@
 import { test, expect } from '@playwright/test';
 import { mountHomePlayerFixture } from './helpers/homePlayerFixture.js';
 import { selectHomeGame, openHome } from './helpers/home.js';
+import { match3MotionBoard as fixtureBoard, armMatch3RefillSeed } from './helpers/match3MotionFixture.js';
+import { MATCH3_RENDER_PIXEL_BUDGET, match3RenderResolution } from '../../src/games/match3/match3RenderBudget.js';
 
 // Real app, renderer, inputs, controller and production action dispatcher.
 // Only the initial player/board and refill RNG are deterministic test inputs.
 // Videos run at normal wall-clock speed; no clock mocking, CSS speed-up, or scene injection.
 test.use({ serviceWorkers: 'block', video: 'on', trace: 'retain-on-failure', deviceScaleFactor: 2, isMobile: true, hasTouch: true });
 const viewports = [[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720],[393,873]];
-const fixtureBoard = () => {
-  const board = Array.from({length:8},(_,y)=>Array.from({length:8},(_,x)=>['fire','water','earth','air','light','dark'][(x+y*2)%6]));
-  board[7][0]='fire'; board[7][1]='water'; board[7][2]='fire'; board[6][1]='fire';
-  return board;
-};
-async function boot(page, viewport, reduced = false, moves = 30) {
+async function loadFixture(page, player) {
+  // The fixture intentionally aborts realtime transport. "ready" is transient:
+  // a successful HTTP snapshot is followed by the expected offline socket state.
+  const [response] = await Promise.all([
+    page.waitForResponse(response => new URL(response.url()).pathname === '/api/player/snapshot'),
+    page.goto('/'),
+  ]);
+  expect(response.status()).toBe(200);
+  expect((await response.json()).player.id).toBe(player.id);
+}
+async function boot(page, viewport, reduced = false, moves = 30, initialBoard = fixtureBoard()) {
   await page.setViewportSize(viewport);
   await page.emulateMedia({ reducedMotion: reduced ? 'reduce' : 'no-preference' });
   await page.addInitScript(() => localStorage.setItem('gh_dev_user_id','match3-motion-ci'));
   const player = await mountHomePlayerFixture(page);
-  player.match3.currentGame = { board:fixtureBoard(),mode:'classic',score:0,movesLeft:moves,combo:0,boosters:{bomb:3,lightning:3,rainbow:2,hammer:3} };
+  player.match3.currentGame = { board:initialBoard,mode:'classic',score:0,movesLeft:moves,combo:0,boosters:{bomb:3,lightning:3,rainbow:2,hammer:3} };
   await page.route('**/api/leaderboard',route=>route.fulfill({contentType:'application/json',body:'[]'}));
-  await page.goto('/');
-  await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});
+  await loadFixture(page, player);
   await selectHomeGame(page,'match3');
   const stage=page.locator('[data-game-shell="match3"]'),canvas=stage.locator('canvas');
   await expect(stage).toHaveAttribute('data-m3-phase','playing');
@@ -28,8 +34,13 @@ async function boot(page, viewport, reduced = false, moves = 30) {
   await expect(canvas).toHaveAttribute('data-match3-input-locked','false');
   await canvas.evaluate(node=>{
     window.__match3MotionPhases=[];
+    window.__match3MotionSamples=[];
     let previous='';
-    const record=()=>{const phase=node.dataset.match3MotionPhase;if(phase!==previous){window.__match3MotionPhases.push(phase);previous=phase;}};
+    const record=()=>{
+      const d=node.dataset,phase=d.match3MotionPhase;
+      window.__match3MotionSamples.push({phase,id:d.match3MotionId,elapsed:Number(d.match3MotionElapsed),duration:Number(d.match3MotionDuration),at:performance.now()});
+      if(phase!==previous){window.__match3MotionPhases.push(phase);previous=phase;}
+    };
     record();new MutationObserver(record).observe(node,{attributes:true,attributeFilter:['data-match3-motion-phase']});
   });
   return {stage,canvas,player};
@@ -40,15 +51,19 @@ async function cell(page,canvas,x,y) {
 }
 async function swap(page,canvas,from,to,seed=null) {
   await cell(page,canvas,from.x,from.y);
-  if(seed!==null) await page.evaluate(seed=>{let n=seed;window.__match3OriginalRandom??=Math.random;Math.random=()=>{n^=n<<13;n^=n>>>17;n^=n<<5;return(n>>>0)/4294967296;};},seed);
+  if(seed!==null) await page.evaluate(armMatch3RefillSeed,seed);
   await cell(page,canvas,to.x,to.y);
+  if(seed!==null) await expect.poll(()=>page.evaluate(()=>window.__match3RefillSeed.used && window.__match3RefillSeed.restored)).toBe(true);
 }
 async function settled(canvas) {
   await expect(canvas).toHaveAttribute('data-match3-motion-phase','idle',{timeout:10000});
   await expect(canvas).toHaveAttribute('data-match3-input-locked','false');
 }
 async function attachFrame(page,testInfo,name) {
-  await testInfo.attach(name,{body:await page.screenshot(),contentType:'image/png'});
+  // Explicit device-scale PNGs are preserved separately from downscaled video.
+  const path=testInfo.outputPath(`${name}.png`);
+  await page.screenshot({path,scale:'device'});
+  await testInfo.attach(name,{path,contentType:'image/png'});
 }
 
 for(const [width,height] of viewports) test(`Match3 1x swap invalid cascade and refill ${width}x${height}`,async({page},testInfo)=>{
@@ -67,12 +82,38 @@ for(const [width,height] of viewports) test(`Match3 1x swap invalid cascade and 
   expect(phases.filter(p=>p==='fall').length).toBeGreaterThanOrEqual(2);
   await expect.poll(()=>player.match3.currentGame.movesLeft).toBe(29);
   expect(player.match3.currentGame.score).toBe(90);
+  const timing=await page.evaluate(()=>{
+    const samples=window.__match3MotionSamples,start=samples.findIndex(s=>s.id?.startsWith('cascade_'));
+    const end=samples.slice(start+1).find(s=>s.phase==='idle');
+    return {wallMs:end.at-samples[start].at,plannedMs:samples[start].duration};
+  });
+  // Allow one late recording frame, never the old 6–7 second slow-motion plan.
+  expect(timing.wallMs).toBeLessThanOrEqual(timing.plannedMs+500);
+  await testInfo.attach('motion-timing',{body:JSON.stringify(timing),contentType:'application/json'});
   const bounds=await canvas.evaluate(node=>{const r=node.getBoundingClientRect(),d=node.dataset;return {left:r.x+Number(d.match3BoardLeft),top:r.y+Number(d.match3BoardTop),size:Number(d.match3BoardSize),overflow:document.documentElement.scrollWidth>innerWidth};});
   expect(bounds.overflow).toBe(false);expect(bounds.left).toBeGreaterThanOrEqual(0);expect(bounds.left+bounds.size).toBeLessThanOrEqual(width+1);
   const hud=await stage.locator('.m3-hud').boundingBox();
   expect(bounds.top>=hud.y+hud.height || bounds.left+bounds.size<=hud.x || hud.x+hud.width<=bounds.left).toBe(true);
   await attachFrame(page,testInfo,'after-cascade');
   expect(errors).toEqual([]);
+});
+
+for(const [width,height] of [[320,568],[390,844],[1280,720]]) test(`Match3 native-DPR crystal frame and special-art sharpness ${width}x${height}`,async({page},testInfo)=>{
+  const board=fixtureBoard();
+  ['special_row','special_column','special_blast','special_colour'].forEach((type,x)=>{board[2][x]=type;});
+  ['drop_gold','drop_seeds','drop_energy'].forEach((type,x)=>{board[4][x]=type;});
+  const {canvas}=await boot(page,{width,height},false,30,board);
+  await settled(canvas);
+  const render=await canvas.evaluate(node=>{
+    const r=node.getBoundingClientRect(),gl=node.getContext('webgl2')||node.getContext('webgl');
+    return {cssWidth:r.width,cssHeight:r.height,pixelWidth:node.width,pixelHeight:node.height,dpr:devicePixelRatio,antialias:gl.getContextAttributes().antialias};
+  });
+  expect(render.dpr).toBe(2);expect(render.antialias).toBe(false);
+  expect(render.pixelWidth/render.cssWidth).toBeCloseTo(match3RenderResolution(render.cssWidth,render.cssHeight,2),2);
+  expect(render.pixelWidth*render.pixelHeight).toBeLessThanOrEqual(MATCH3_RENDER_PIXEL_BUDGET+4000);
+  if(width<500) expect(render.pixelWidth/render.cssWidth).toBeCloseTo(2,2);
+  await attachFrame(page,testInfo,'native-dpr-specials-ready');
+  await testInfo.attach('render-policy',{body:JSON.stringify(render),contentType:'application/json'});
 });
 
 test('Match3 live cascade pauses across Home reentry and resize then resumes without early input',async({page},testInfo)=>{
@@ -120,7 +161,7 @@ test('Match3 reload of a final accepted zero-move save cannot grant an extra sco
   player.match3.currentGame={mode:'classic',score:90,movesLeft:0,combo:2};
   player.match3.savedModes=JSON.stringify({classic:{board:fixtureBoard(),score:90,movesLeft:0,combo:2}});
   const mutations=[];page.on('request',request=>{if(request.url().endsWith('/api/player/mutate'))mutations.push(request.postDataJSON());});
-  await page.goto('/');await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:15000});
+  await loadFixture(page, player);
   await selectHomeGame(page,'match3');
   const stage=page.locator('[data-game-shell="match3"]');
   await expect(stage).toHaveAttribute('data-m3-phase','menu');

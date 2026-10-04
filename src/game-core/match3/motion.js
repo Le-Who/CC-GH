@@ -116,11 +116,29 @@ export function sampleMatch3Motion(plan, elapsedMs = 0) {
     remove(phase.collected);
     for (const item of phase.collected) poses.push({ ...item, y: item.y - (reduced ? 0 : .3 * match3Smooth(progress)), scaleX: 1, scaleY: 1, alpha: 1 - match3Smooth(progress) });
   } else if (phase.kind === 'reconcile') {
-    poses = boardPoses(progress < .5 ? phase.before : phase.after).map(pose => ({ ...pose, alpha: Math.abs(1 - 2 * progress) }));
+    // A dead-board reshuffle dissolves between two complete boards. Never fade
+    // the only board to zero: one delayed frame would hold an empty playfield.
+    const blend = match3Smooth(progress);
+    poses = [
+      ...boardPoses(phase.before).map(pose => ({ ...pose, alpha: 1 - blend })),
+      ...boardPoses(phase.after).map(pose => ({ ...pose, alpha: blend })),
+    ];
   }
   return { done: false, phaseIndex, kind: phase.kind, combo: phase.combo, progress, board: phase.before, poses, bursts };
 }
 
 export function boardPoses(board = []) {
   return board.flatMap((row, y) => row.flatMap((type, x) => type ? [{ type, x, y, scaleX: 1, scaleY: 1, alpha: 1 }] : []));
+}
+
+export function createMatch3MotionClock(now = 0, running = false) {
+  return { elapsed: 0, lastAt: now, running };
+}
+
+/** The previous running state owns the interval ending at now. Visibility and
+ * pause boundaries call this too, so only actual active wall time is counted.
+ * Pixi deltaMS is deliberately unused: minFPS caps it and speed scales it. */
+export function advanceMatch3MotionClock(clock, now, running = clock.running) {
+  const at = Number.isFinite(now) ? Math.max(clock.lastAt, now) : clock.lastAt;
+  return { elapsed: clock.elapsed + (clock.running ? at - clock.lastAt : 0), lastAt: at, running };
 }

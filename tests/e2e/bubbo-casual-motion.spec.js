@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { selectHomeGame, openHome } from './helpers/home.js';
+import { observeBubboShot } from './helpers/bubboMotionObservation.js';
 
 // Always retain the real interaction sequence. Screenshots cannot establish motion quality.
 test.use({ video: 'on' });
@@ -114,14 +115,29 @@ for (const kind of ['mouse','touch']) test.describe(`Bubbo wide captured ${kind}
       await page.getByTestId(`bb-${power}`).click();
       const gesture = await beginGesture(page, field, kind);
       await expect.poll(async () => (await fx(field)).gain).toBe(0);
+      // Observe in the browser before release; remote polling and DPR2 capture
+      // must not race a short burst or consume the reward label's natural TTL.
+      await field.evaluate(observeBubboShot, index + 1);
       await gesture.release();
       await expect(field).toHaveAttribute('data-shots', String(index + 1));
-      await expect.poll(async () => (await fx(field)).effects, { intervals: [16,32,50] }).toBeGreaterThan(0);
-      expect((await fx(field)).effects).toBeLessThanOrEqual(32);
-      await info.attach(`${power}-reaction`, { body: await page.screenshot(), contentType: 'image/png' });
-      await expect(page.locator('.bb-reward-feedback')).toBeVisible();
+      await page.waitForFunction(() => {
+        const result = window.__bubboShotObservation.data;
+        return result.firstResultFrame?.effects > 0 && result.reward?.visible;
+      }, null, { timeout: 5000 });
+      const observed = await page.evaluate(() => window.__bubboShotObservation.data);
+      expect(observed.firstResultFrame.effects).toBeGreaterThan(0);
+      expect(observed.firstResultFrame.playing).toBe(true);
+      expect(observed.maxEffects).toBeLessThanOrEqual(32);
+      expect(observed.positiveSamples).toBeGreaterThan(0);
+      expect(observed.reward.visible).toBe(true);
+      expect(observed.reward.text).toMatch(new RegExp(`^${power === 'bomb' ? 'Bomb' : 'Lightning'} \\+[1-9]`));
+      await info.attach(`${power}-atomic-reaction`, { body: Buffer.from(JSON.stringify(observed, null, 2)), contentType: 'application/json' });
+      // This screenshot may follow the reaction; the always-on video records
+      // its actual timing, and the atomic evidence above proves it was visible.
+      await info.attach(`${power}-after-shot`, { body: await page.screenshot(), contentType: 'image/png' });
       await expect.poll(async () => (await fx(field)).effects).toBe(0);
       expect(await field.getAttribute('data-shots')).toBe(String(index + 1));
+      await page.evaluate(() => window.__bubboShotObservation.stop());
     }
     const events = await page.evaluate(() => window.__bubboPointerEvidence);
     const releases = events.filter(event => event.type === 'pointerup' && event.outside && event.isTrusted && event.pointerType === kind);
