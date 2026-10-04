@@ -24,5 +24,7 @@ export function resolveTriviaLayout(viewport = {}, regions = {}) {
   const hudHeight = Number(regions.gameplayHud?.height ?? 68);
   const gap = Number(spec.gap ?? 12);
   const landscape = Number(viewport.width || 390) > Number(viewport.height || 844);
+  // answerColumns is the landscape maximum; the CSS panel uses auto-fit to
+  // reduce to one column whenever two readable answer labels cannot fit.
   return { width, height, gutter, gap, hudHeight, contentHeight: Math.max(0, height - hudHeight - gap), landscape, answerColumns: landscape ? 2 : 1, answerMinHeight: 58, controlMinSize: 44, minContentHeight: landscape ? 360 : 480, boundedScroll: height < (landscape ? 360 : 480) };
 }

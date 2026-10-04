@@ -1,3 +1,4 @@
+import {installPresentationMotion} from '../shared/presentationMotion.js';
 import {makeLivingPlantArt,supportsLivingPlant,notifyPlantTouch,getLivingPlantMotionState,LIVING_MOTION_CHANGE,listenToMotionPreference} from './living/living-plant-art.mjs';
 import React, { createContext, useContext, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -53,13 +54,32 @@ function Progress({
 
 function usePlantTapAcknowledgement() {
   const [active, setActive] = useState(false);
+  const [sequence, setSequence] = useState(0);
+  const mounted = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => () => { if (timer.current) clearTimeout(timer.current); }, []);
-  return { active, acknowledge: () => {
+  useEffect(() => {
+    mounted.current = true;
+    const cancel = () => { if (timer.current) clearTimeout(timer.current); timer.current = null; setActive(false); };
+    window.addEventListener('blur', cancel);
+    document.addEventListener('visibilitychange', cancel);
+    return () => {
+      mounted.current = false;
+      if (timer.current) clearTimeout(timer.current);
+      window.removeEventListener('blur', cancel);
+      document.removeEventListener('visibilitychange', cancel);
+    };
+  }, []);
+  return { active, sequence, acknowledge: () => {
+    if (!mounted.current || document.hidden) return;
     if (timer.current) clearTimeout(timer.current);
     setActive(true);
+    setSequence(value => value + 1);
     timer.current = setTimeout(() => setActive(false), 450);
   } };
+}
+
+function PlantTapFeedback({ acknowledgement, mature }: any) {
+  return acknowledgement.active ? <span key={acknowledgement.sequence} className="gs2-tap-feedback" aria-hidden="true"><Art name={mature ? 'coin' : 'leaf'} /></span> : null;
 }
 
 const LivingPlantArt=makeLivingPlantArt(React,LegacyPlantArt);
@@ -108,7 +128,8 @@ function Dialog({
     return layer?.parentElement === document.body ? makeDialogSiblingsInert(layer) : undefined;
   }, []);
   useEscapeDismiss(true, onClose);
+  useEffect(() => installPresentationMotion(ref.current?.parentElement), []);
   return createPortal(<div className="gs2-modal-layer"><button type="button" tabIndex={-1} className="gs2-scrim" data-menu-blocker="true" aria-label={t('ui.close')} onClick={onClose} /><section ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="gs2-dialog" data-garden-panel={kind} data-hud-region={kind === 'quests' ? 'gardenQuestSheet' : 'gardenSheet'}><header className="gs2-dialog-heading"><div className="gs2-dialog-title"><h2>{title}</h2><span className="gs2-pending" role="status" aria-live="polite">{feedback.busy ? t('ui.pending') : ''}</span></div><Button className="gs2-close" onClick={onClose} aria-label={t('ui.close')}><X size={22} /></Button></header><div className="gs2-dialog-scroll">{children}</div>{feedback.error && <div className="gs2-error-banner gs2-dialog-error" role="alert"><span tabIndex={0}>{feedback.error}</span><Button aria-label={t('ui.close')} onClick={feedback.onDismiss}><X size={18} /></Button></div>}</section></div>, document.body);
 }
 
-export { Art, Button, Dialog, FeedbackContext, PlantArt, Progress, art, remaining, usePlantTapAcknowledgement };
+export { Art, Button, Dialog, FeedbackContext, PlantArt, Progress, art, remaining, usePlantTapAcknowledgement, PlantTapFeedback };

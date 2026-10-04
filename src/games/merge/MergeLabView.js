@@ -3,6 +3,7 @@
  * See evidence/recovery.json and scripts/recover-source.mjs. No framework/runtime is embedded.
  */
 import * as React from 'react';
+import {installPresentationMotion,settlePresentationMotion,sampleWellAtPoint} from '../shared/presentationMotion.js';
 import * as jsxRuntime from 'react/jsx-runtime';
 import {BookOpen, ChevronLeft, CircleQuestionMark, FlaskConical, House, Leaf, PackageOpen, Pause, Search, Sparkles, Star, Volume2, VolumeX, X as LabCloseIcon} from 'lucide-react';
 import {audioManager} from '../../services/audioManager.js';
@@ -1627,6 +1628,8 @@ function MergeLabView({
   }
 }){
   const M=React.useMemo(()=>translateMergeLab(c),[c]),Z=React.useRef(null),X=React.useRef(null),J=React.useRef([]),G=React.useRef(!0),k=useLabLayout(Z,E),[ie,b]=React.useState(null),[K,V]=React.useState(_.slots||[null,null]),[te,w]=React.useState(_.activeSlot===1?1:0),[ue,q]=React.useState(_.result||null),[B,Ee]=React.useState(_.panel||null),[Qe,dt]=React.useState(null),[Je,pt]=React.useState(!1),z=React.useRef(!1),Q=React.useRef(null),le=React.useRef(null),[Te,Ne]=React.useState(Date.now()),[x,H]=React.useState([]),[I,F]=React.useState([]),[ce,de]=React.useState(null),me=React.useRef(null),$e=React.useRef(!1),qe=`merge-lab-favorites:${s?.player?.id||s?.id||s?.playerId||"local"}`,[Dl,na]=React.useState(()=>readPreference(qe,[])),[ia,ji]=React.useState(()=>readPreference("merge-lab-reduced-motion",!1)),[Ut,Tn]=React.useState(!1),[sl,Ku]=React.useState(()=>audioManager.isEnabled()),el=ie?.merge?.serverEpoch===s?.merge?.serverEpoch && ie?.merge?.mergeRevision>(s?.merge?.mergeRevision??-1)?ie:s,za=estimateServerTime(v,Te),Lt=el?.merge,ua=React.useMemo(()=>indexCatalogItems(g),[g]),ca=React.useMemo(()=>catalogNameFor(g,c),[g,c]);
+  React.useEffect(()=>installPresentationMotion(Z.current),[]);
+  React.useEffect(()=>{settlePresentationMotion(Z.current);},[B]);
   React.useEffect(()=>{
     G.current=!0;
     const R=setInterval(()=>Ne(Date.now()),1e3);
@@ -1747,7 +1750,7 @@ function MergeLabView({
       }
     }
   }),ht=(R,$)=>{
-    vt||R.button!==0||(me.current={
+    vt||R.button!==0||($e.current=!1,me.current={
       id:$,
       pointerId:R.pointerId,
       x:R.clientX,
@@ -1761,22 +1764,16 @@ function MergeLabView({
     !$||R.pointerId!==$.pointerId||(!$.active&&Math.hypot(R.clientX-$.x,R.clientY-$.y)>8&&($.active=!0),$.active&&(R.preventDefault(),de({
       id:$.id,
       x:R.clientX,
-      y:R.clientY
+      y:R.clientY,
+      target:sampleWellAtPoint(J.current,R.clientX,R.clientY)
     })))
   }
   ,Ju=R=>{
     const $=me.current;
     if(!(!$||R.pointerId!==$.pointerId)){
       if($.active){
-        $e.current=!0,setTimeout(()=>{
-          $e.current=!1
-        }
-        ,0);
-        const Se=J.current.findIndex(we=>{
-          const fl=we?.getBoundingClientRect();
-          return fl&&R.clientX>=fl.left&&R.clientX<=fl.right&&R.clientY>=fl.top&&R.clientY<=fl.bottom
-        }
-        );
+        $e.current=!0;
+        const Se=sampleWellAtPoint(J.current,R.clientX,R.clientY);
         Se>=0&&Cn($.id,Se)
       }
       $t()
@@ -1813,6 +1810,7 @@ function MergeLabView({
     "data-orientation":k.landscape?"landscape":"portrait",
     "data-compact":k.compact?"true":"false",
     "data-reduced-motion":ia||Ut?"true":"false",
+    "data-motion-blocked":B?"true":"false",
     "data-scroll-fallback":k.requiresScroll?"true":"false",
     children:[p||jsxRuntime.jsx("div",{
       className:"ml-background",
@@ -1891,6 +1889,7 @@ function MergeLabView({
             children:K.map((R,$)=>jsxRuntime.jsxs("div",{
               className:"ml-slot",
               "data-active":te===$?"true":"false",
+              "data-drop-target":ce?.target===$?"true":"false",
               children:[jsxRuntime.jsxs("button",{
                 ref:Se=>{
                   J.current[$]=Se
@@ -1917,7 +1916,7 @@ function MergeLabView({
                   }),R?jsxRuntime.jsx(LabItemArt,{
                     id:R,
                     catalog:g
-                  }):jsxRuntime.jsx("span",{
+                  },R):jsxRuntime.jsx("span",{
                     className:"ml-well-plus",
                     "aria-hidden":"true",
                     children:"+"
@@ -1962,7 +1961,7 @@ function MergeLabView({
               }),ue?.itemId?jsxRuntime.jsx(LabItemArt,{
                 id:ue.itemId,
                 catalog:g
-              }):Je?jsxRuntime.jsx("span",{
+              },`${ue.itemId}:${ue.outcome}`):Je?jsxRuntime.jsx("span",{
                 className:"ml-pending-mark",
                 "aria-hidden":"true",
                 children:jsxRuntime.jsx(Sparkles,{
@@ -2056,8 +2055,9 @@ function MergeLabView({
               onPointerUp:Ju,
               onPointerCancel:$t,
               onLostPointerCapture:$t,
-              onClick:()=>{
-                $e.current||ra(R)
+              onClick:event=>{
+                if(event.detail===0||!$e.current)ra(R);
+                $e.current=!1;
               }
               ,
               "aria-label":`${ca(R)} · ${M("sample")}`,
@@ -2228,8 +2228,9 @@ function MergeLabView({
     }),ce&&jsxRuntime.jsx("div",{
       className:"ml-drag-ghost",
       style:{
-        left:ce.x,
-        top:ce.y
+        left:0,
+        top:0,
+        transform:`translate3d(${ce.x}px,${ce.y}px,0) translate(-50%,-62%)`
       },
       "aria-hidden":"true",
       children:jsxRuntime.jsx(LabItemArt,{

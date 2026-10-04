@@ -110,3 +110,8 @@
 .bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] [data-testid=bb-resume]{grid-row:3;grid-column:1}
 .bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] [data-testid=bb-exit]{grid-row:3;grid-column:2}
 .bb-stage[data-bb-arrangement=side][data-bb-compact=true][data-bb-phase=paused] .bb-two-actions{grid-row:4;gap:8px}
+
+/* Local reward acknowledgement inside the existing reserved status lane. */
+.bb-reward-feedback{color:#fff1bd;font-weight:800;animation:bb-reward-arrive 360ms cubic-bezier(.2,.7,.2,1) both}
+.bb-stage:not([data-bb-phase=playing]) .bb-reward-feedback{animation:none}
+@keyframes bb-reward-arrive{from{opacity:.65;transform:translateY(3px)}to{opacity:1;transform:translateY(0)}}

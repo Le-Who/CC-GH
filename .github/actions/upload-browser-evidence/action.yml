@@ -1,0 +1,230 @@
+name: Bounded browser evidence
+description: Preserve original browser evidence in separately retrievable review, video and trace artifacts.
+inputs:
+  group:
+    description: Validated browser CI group
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: Partition evidence without dropping bytes
+      shell: bash
+      env:
+        BROWSER_GROUP: ${{ inputs.group }}
+      run: node scripts/collect-browser-ci-evidence.mjs "$BROWSER_GROUP"
+    - name: Preserve review-01
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-01-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-01/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve review-02
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-02-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-02/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve review-03
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-03-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-03/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve review-04
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-04-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-04/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve review-05
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-05-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-05/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve review-06
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-06-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-06/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve review-07
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-07-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-07/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve review-08
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-review-08-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/review-08/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-01
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-01-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-01/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-02
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-02-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-02/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-03
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-03-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-03/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-04
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-04-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-04/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-05
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-05-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-05/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-06
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-06-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-06/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-07
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-07-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-07/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve videos-08
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-videos-08-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/videos-08/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-01
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-01-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-01/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-02
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-02-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-02/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-03
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-03-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-03/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-04
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-04-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-04/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-05
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-05-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-05/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-06
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-06-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-06/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-07
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-07-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-07/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
+    - name: Preserve traces-08
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: game-hub-browser-${{ inputs.group }}-traces-08-${{ github.sha }}-${{ github.run_attempt }}
+        path: browser-evidence/traces-08/
+        if-no-files-found: ignore
+        compression-level: 0
+        retention-days: 14
