@@ -70,7 +70,8 @@ if(process.env.YARD_FAMILY_PG_TEST!=='1'){
     const {id}=await seed('sage',0);success(await processes.separate(id,advance(NOW+H)));
     const visit=Object.values((await load(id))._yardV2.runtime.visits)[0];success(await processes.separate(id,advance(visit.leavesAt)));
     const before=await load(id),gift=copy(before.yard.pendingGifts[0]),balance=copy(before.yard.currencies),neighbors=copy(adjacent(before)),command=collect(visit.leavesAt+1);
-    assert.equal(before._yardV2.runtime.commandReceipts[command.clientActionId],undefined);
+    // No command has committed yet; production creates the receipt map lazily.
+    assert.equal(before._yardV2.runtime.commandReceipts?.[command.clientActionId],undefined);
     const first=await processes.separate(id,command,{loseResponse:true});assert.equal(first.outcome,undefined);
     await closeDb();assert.ok(initDb());await ensureDbSchema();const committed=await load(id);
     assert.equal(committed.yard.pendingGifts.length,0);for(const key of ['treats','shinyTreats'])assert.equal(committed.yard.currencies[key],balance[key]+gift[key]);
