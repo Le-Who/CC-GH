@@ -28,10 +28,10 @@ import { formatGardenGoldAmount as formatGardenDisplayGold, getGardenLevelReward
 import { formatR2Gold } from "./games/garden-shelf/lib/gardenR2View.js";
 import { useGameHub } from "./game-state/useGameHub.js";
 import { useGameEvents } from "./game-state/gameEvents.js";
-import { ActiveGame } from "./app/gameChunks.jsx";
+import { ActiveGame, GameEntryFallback } from "./app/gameChunks.jsx";
 import { useSnapshot } from "./app/gameHooks.js";
 import { AppI18nContext, appTranslate, playerFeedbackText, useAppI18n } from "./app/i18n.jsx";
-import { VISIBLE_GAME_IDS } from "./app/gameRegistry.js";
+import { VISIBLE_GAME_IDS, getGameDefinition } from "./app/gameRegistry.js";
 import { Stat, formatCount, semanticHudIconPath } from "./app/shell.jsx";
 import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
 import { useEscapeDismiss } from "./app/useDismissableLayer.js";
@@ -306,6 +306,9 @@ export default function App() {
   const activeGameShellId = typeof activeGameShell === "string" ? activeGameShell : activeGameShell?.id;
   const activeGameControls = activeGameShell && typeof activeGameShell === "object" ? activeGameShell : null;
   const shellActive = activeGameShellId === activeTab;
+  // Presentation belongs to the selected route, not to an asynchronously
+  // mounted controller. Controller readiness still gates navigation/saving.
+  const immersivePresentation = getGameDefinition(activeTab)?.shell === "game" || shellActive;
   const gameHudDescriptors = useGameHudDescriptors(activeTab, snapshot, activeGameControls?.hudState || null);
   useTelegramGameNavigation({
     activeGame: activeTab,
@@ -397,7 +400,7 @@ export default function App() {
       <HudLayoutProvider gameId={activeTab} buildId={config?.buildId || ""}>
         <HudPreviewSurface>
           <main
-            className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || shellActive ? " play-mode" : ""}${shellActive ? " immersive-mode" : ""}`}
+            className={`telegram-app theme-${uiTheme}${PLAY_TABS.has(activeTab) || immersivePresentation ? " play-mode" : ""}${immersivePresentation ? " immersive-mode" : ""}`}
             data-ui-theme={uiTheme}
             data-active-tab={activeTab}
           >
@@ -430,10 +433,10 @@ export default function App() {
                 />
               ))}
             </HudEditableRegion>
-            <GameEventOverlay hidden={shellActive} />
+            <GameEventOverlay hidden={immersivePresentation} />
             {message && <button type="button" className="notice" role="alert" aria-label={`${playerMessage} · ${t("common.close")}`} onClick={() => useGameHub.setState({ message: "" })}>{playerMessage}</button>}
             {!snapshot ? (
-              <div className="loading-panel">{t("app.loading")}</div>
+              <GameEntryFallback label={t("app.loading")} onRetry={status === "offline" ? () => loadSnapshot() : null} />
             ) : (
               <HudRegion id="activeGameFrame" as="section" key={activeTab} className="active-game-frame">
                 <HomeVisibilityContext.Provider value={homeOpen}><ActiveGame activeTab={activeTab} /></HomeVisibilityContext.Provider>

@@ -28,11 +28,11 @@
     },
     "games": {
       "bubboBubbo": {
-        "source": "assets-source/games/bubbo-bubbo/raw-assets/ (not served)",
+        "source": "Retired upstream art removed; current renderer uses /games/bubbo-v2/",
         "license": "/games/bubbo-bubbo/LICENSE"
       },
       "puzzlingPotions": {
-        "source": "assets-source/games/puzzling-potions/raw-assets/ (not served)",
+        "source": "assets-source/imagegen/match3/ (current production source, not served)",
         "images": "/games/puzzling-potions/images/",
         "license": "/games/puzzling-potions/LICENSE"
       },

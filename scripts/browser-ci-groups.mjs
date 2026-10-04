@@ -15,7 +15,7 @@ export const BROWSER_GROUPS = Object.freeze({
   'hud-layout': ['glass-ui.spec.js', 'hud-art-visual-regressions.spec.js', 'hud-editor.spec.js', 'hud-redesign-runtime-coverage.spec.js'],
   'mobile-ui': ['mobile-ui-extended.spec.js', 'mobile-ui-matrix.spec.js'],
   'navigation-input': ['gestures.spec.js', 'home-navigation.spec.js', 'minigames.spec.js', 'pause-paint-regression.spec.js'],
-  'assets-performance': ['asset-retirement.spec.js', 'assets-runtime.spec.js', 'perf-guard.spec.js', 'split-game-loading.spec.js'],
+  'assets-performance': ['asset-retirement.spec.js', 'game-entry-flash.spec.js', 'assets-runtime.spec.js', 'perf-guard.spec.js', 'split-game-loading.spec.js'],
   'auth-cache-smoke': ['auth.spec.js', 'multi-game-logic-smoke.spec.js', 'player-copy.spec.js', 'sw-api-cache.spec.js'],
 });
 const specPattern = /\.(spec|test)\.[cm]?[jt]sx?$/;

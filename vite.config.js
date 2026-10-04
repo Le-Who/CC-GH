@@ -5,14 +5,17 @@ import path from "path";
 import { createShellPrecache } from "./scripts/sw-shell-precache.mjs";
 import { gameLoadingGraph } from "./scripts/game-loading-graph.mjs";
 
+import { yardRendererChunk } from "./scripts/yard-renderer-chunk.mjs";
 import { yardContractData, yardContractChunk, yardChunkFileNames } from "./scripts/yard-contract-data.mjs";
 import { yardPublicMedia } from "./scripts/yard-public-media.mjs";
+import { retiredPublicAssets } from "./scripts/retired-public-assets.mjs";
 
 const shellPrecache = createShellPrecache();
 
 export default defineConfig({
   plugins: [
     yardPublicMedia(),
+    retiredPublicAssets(),
     yardContractData(),
     react(),
     gameLoadingGraph(),
@@ -129,6 +132,8 @@ export default defineConfig({
         onlyExplicitManualChunks: true,
         chunkFileNames: yardChunkFileNames,
         manualChunks(id) {
+          const yardRenderer = yardRendererChunk(id, import.meta.dirname);
+          if (yardRenderer) return yardRenderer;
           const yardData = yardContractChunk(id, import.meta.dirname);
           if (yardData) return yardData;
           // Immutable bilingual game data is shared by the Lab view/transport.

@@ -47,11 +47,15 @@ jobs:
       - name: Build Telegram Mini App client
         run: pnpm run build
 
+      - name: Summarize emitted code chunks even after build failure
+        if: always()
+        run: node scripts/summarize-emitted-chunks.mjs
+
       - name: Verify exact frozen Yard runtime delivery
         env:
           NODE_ENV: test
         run: |
-          node --test tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
+          node --test tests/yard-renderer-chunk.test.mjs tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
           pnpm run perf:guard:build
 
       - name: Run platform cleanup guard
@@ -163,6 +167,8 @@ jobs:
           path: |
             artifacts/perf/perf-build-report.json
             artifacts/perf/yard-lazy-build-report.json
+            artifacts/perf/emitted-chunks.json
+            dist/game-loading-graph.json
           if-no-files-found: ignore
           retention-days: 14
 

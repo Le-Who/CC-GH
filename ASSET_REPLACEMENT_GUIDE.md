@@ -254,7 +254,7 @@ or with a manifest override:
 
 Manifest values win when present; missing keys fall back to generated `/assets-runtime/companion-yard/**` entries, then committed `public/games/companion-yard/**` paths.
 
-The current Cozy Yard HUD icon atlas is a direct CSS sprite at `public/games/companion-yard/HUD.png` with `HUD.svg` as the editable/source reference. It is not collected by `scripts/assets-pipeline.config.mjs` today; add it to the pipeline before treating it as a generated runtime key.
+The current Cozy Yard HUD icon atlas is a direct CSS sprite at `public/games/companion-yard/HUD.png` with `assets-source/games/companion-yard/source-svg/HUD.svg` as the editable/source reference. It is not collected by `scripts/assets-pipeline.config.mjs` today; add it to the pipeline before treating it as a generated runtime key.
 
 Recommended formats:
 

@@ -8,6 +8,9 @@ import { isRetiredAssetPath, MATCH3_SEMANTIC_FILES } from '../scripts/asset-reti
 import { loadAssetPipelineEntries } from '../scripts/assets-pipeline.config.mjs';
 import { LEGACY_ASSET_PATHS, GAME_ASSET_BUNDLES, runtimeAssetSources } from '../src/game-runtime/assetBundles.js';
 import { analyzeDist } from '../scripts/perf-build-guard.mjs';
+import { createHash } from 'node:crypto';
+import { SOURCE_ONLY_PUBLIC_ASSETS, RETIRED_UNUSED_PUBLIC_FILES, sourceOnlyAssetDestination, isObsoleteImportedAssetPath } from '../scripts/asset-source-only-policy.mjs';
+import { assertNoRetiredPublicAssets, retiredPublicAssets } from '../scripts/retired-public-assets.mjs';
 
 async function files(root, prefix = '') {
   const result = [];
@@ -91,4 +94,82 @@ test('build guard counts direct-copy public media and rejects retired files even
     assert.equal(report.failures.find(f => f.id === 'public-assets.retired-references').actual.length, 2);
     for (const file of ['games/bubbo-bubbo/LICENSE', 'games/garden-shelf/assets_transparent.png', 'games/garden-shelf/quest_panel.png', ...MATCH3_SEMANTIC_FILES.map(file => `games/puzzling-potions/images/${file}`)]) assert.equal(isRetiredAssetPath(file), false, file);
   } finally { await fs.rm(dir, { recursive: true, force: true }); }
+});
+
+test('unused upstream imports are removed and required source-only exports keep their exact image bytes', async () => {
+  const inventory = JSON.parse(await fs.readFile('docs/unused-legacy-assets-inventory.json', 'utf8'));
+  const deleted = inventory.files.filter(row => row.action === 'delete-unused');
+  const moved = inventory.files.filter(row => row.action === 'move-source-only');
+  assert.equal(deleted.length, inventory.deletedFiles);
+  assert.equal(deleted.reduce((sum, row) => sum + row.bytes, 0), inventory.deletedBytes);
+  assert.equal(moved.length, inventory.sourceOnlyMoves);
+  for (const row of inventory.files) {
+    await assert.rejects(fs.access(row.path), { code: 'ENOENT' }, row.path);
+    if (row.action !== 'move-source-only') continue;
+    assert.equal(SOURCE_ONLY_PUBLIC_ASSETS[row.path], row.to);
+    const bytes = await fs.readFile(row.to);
+    // Extraction manifests receive destination metadata; image bytes do not change.
+    if (/\.(?:png|svg)$/.test(row.path)) {
+      assert.equal(bytes.length, row.bytes, row.to);
+      assert.equal(createHash('sha256').update(bytes).digest('hex'), row.sha256, row.to);
+    }
+  }
+  assert.deepEqual((await files('assets-source')).map(file => `assets-source/${file}`).filter(isObsoleteImportedAssetPath), []);
+  for (const { source } of await loadAssetPipelineEntries()) await fs.access(source);
+  // All frozen delivery inputs stay available; this is independent of rollout state.
+  const frozen = JSON.parse(await fs.readFile('scripts/yard-public-media.json', 'utf8'));
+  for (const row of frozen.files) await fs.access(`recovery-tools/yard-family-frozen/${row.path}`);
+});
+
+test('current source, manual manifest, and preload entry do not call source-only or deleted public art', async () => {
+  const sourceFiles = ['index.html', 'server.js', 'vite.config.js', 'public/assets/manifest.json'];
+  for (const root of ['src', 'game-logic', 'routes']) {
+    for (const file of await files(root)) if (/\.(?:js|jsx|ts|tsx|mjs|css|json)$/.test(file)) sourceFiles.push(`${root}/${file}`);
+  }
+  const retiredUrls = [...Object.keys(SOURCE_ONLY_PUBLIC_ASSETS), ...RETIRED_UNUSED_PUBLIC_FILES].map(file => file.slice('public'.length));
+  for (const file of sourceFiles) {
+    const content = await fs.readFile(file, 'utf8');
+    for (const url of retiredUrls) assert.equal(content.includes(url), false, `${file} still references ${url}`);
+  }
+});
+
+test('normal Vite build and dist guard reject stale source-only exports before shipping', async () => {
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'ccgh-source-only-'));
+  const stale = 'games/hud-redesign/blox/tool-slot.png';
+  try {
+    await fs.mkdir(path.join(dir, path.dirname(stale)), { recursive: true });
+    await fs.writeFile(path.join(dir, stale), 'old source-only output');
+    await assert.rejects(assertNoRetiredPublicAssets(dir), /Retired\/source-only assets/);
+    await assert.rejects(retiredPublicAssets().configResolved({ publicDir: dir }), /tool-slot\.png/);
+    await fs.writeFile(path.join(dir, 'index.html'), '<html></html>');
+    const report = await analyzeDist({ distDir: dir });
+    assert.ok(report.failures.find(row => row.id === 'public-assets.retired-paths')?.actual.includes(stale));
+    await fs.rm(path.join(dir, stale));
+    assert.deepEqual(await assertNoRetiredPublicAssets(dir), { checked: true, retired: 0 });
+  } finally { await fs.rm(dir, { recursive: true, force: true }); }
+  assert.equal(sourceOnlyAssetDestination('/games/hud-redesign/blox/tool-slot.png?v=old'), SOURCE_ONLY_PUBLIC_ASSETS[`public/${stale}`]);
+  const config = await fs.readFile('vite.config.js', 'utf8');
+  assert.match(config, /retiredPublicAssets\(\)/);
+  const ignore = await fs.readFile('.dockerignore', 'utf8');
+  assert.match(ignore, /^assets-source\/\*$/m);
+  await assertNoRetiredPublicAssets('public');
+});
+
+test('HUD generator routes source-only QA exports and metadata outside public', async () => {
+  const generator = await fs.readFile('scripts/generate-hud-redesign-pack.mjs', 'utf8');
+  assert.match(generator, /sourceOnlyAssetDestination\(path\.relative\(root, publicPath\)\)/);
+  for (const name of ['screen-surface-extract-manifest.json', 'portrait-panel-extract-manifest.json']) {
+    assert.ok(generator.includes(`path.join(sourceRoot, "${name}")`));
+    const manifest = JSON.parse(await fs.readFile(`assets-source/imagegen/hud-redesign/${name}`, 'utf8'));
+    for (const row of manifest.outputs) {
+      assert.equal(row.path.startsWith('public/'), row.runtime);
+      await fs.access(row.path);
+    }
+  }
+  const manifest = JSON.parse(await fs.readFile('assets-source/imagegen/hud-redesign/hud-redesign-manifest.json', 'utf8'));
+  for (const game of Object.values(manifest.games)) for (const asset of game.assets) {
+    assert.equal(asset.runtimePath.startsWith('public/'), asset.runtime !== false);
+    await fs.access(asset.sourcePath);
+    await fs.access(asset.runtimePath);
+  }
 });

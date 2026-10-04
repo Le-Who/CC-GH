@@ -28,8 +28,8 @@
     },
     {
       "path": "src/app/gameChunks.jsx",
-      "bytes": 1487,
-      "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2"
+      "bytes": 2108,
+      "sha256": "50d85d75c7db865dd3a4cdeffe68d5efd952a5850f9db150a0e8539f503b0187"
     },
     {
       "path": "src/app/hud-layout/registry.js",
@@ -43,13 +43,13 @@
     },
     {
       "path": "package.json",
-      "bytes": 8794,
-      "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
+      "bytes": 8833,
+      "sha256": "a8eba1c765ea830445bd1ec918865501ba8133f8965ba7c35dc28ad7da55c1fd"
     },
     {
       "path": "src/App.jsx",
-      "bytes": 20935,
-      "sha256": "66acf7d411133bc973a0c7b598be00fe271f252413fdb1ff7a4dd1e0f1560aba"
+      "bytes": 21301,
+      "sha256": "8fa7e95a2b0135201aa39aae61182c9a6124cb140a4a3a8d1653f6830609883a"
     },
     {
       "path": "src/app/i18n.jsx",
@@ -58,8 +58,8 @@
     },
     {
       "path": "src/index.css",
-      "bytes": 47044,
-      "sha256": "ab8267dd47af2184610263248d526e79e5e5f5d0247566306e76f1a4b8f94b70"
+      "bytes": 48988,
+      "sha256": "39b941da50773d12dabbbb3e94136c0846ca926ea314280ed6929924a2b5b8e9"
     },
     {
       "path": "tests/unit.test.js",
@@ -815,6 +815,173 @@
         "path": "history/pre-rollback-guard/production/package.json",
         "bytes": 8650,
         "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21"
+      }
+    ]
+  },
+  "reviewedPresentationChangeSet": {
+    "id": "game-entry-presentation-20261004",
+    "approvedCommit": "9e856bda5c5a36325d7cae90c2c3c32ac0ee8243",
+    "approvedPatchSha256": "77212fc088f4ec2120cbc46d0e576bf8f82c9f0268c981dcd73c8f3a77f1ee01",
+    "integrationBaseCommit": "a8b3a937bfcda7f88157899204809fc4934cba0c",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "transitions": [
+      {
+        "path": "src/App.jsx",
+        "before": {
+          "bytes": 20935,
+          "sha256": "66acf7d411133bc973a0c7b598be00fe271f252413fdb1ff7a4dd1e0f1560aba",
+          "archive": "history/pre-entry-presentation/production/src/App.jsx"
+        },
+        "after": {
+          "bytes": 21301,
+          "sha256": "8fa7e95a2b0135201aa39aae61182c9a6124cb140a4a3a8d1653f6830609883a"
+        }
+      },
+      {
+        "path": "src/app/gameChunks.jsx",
+        "before": {
+          "bytes": 1487,
+          "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2",
+          "archive": "history/pre-entry-presentation/production/src/app/gameChunks.jsx"
+        },
+        "after": {
+          "bytes": 2108,
+          "sha256": "50d85d75c7db865dd3a4cdeffe68d5efd952a5850f9db150a0e8539f503b0187"
+        }
+      },
+      {
+        "path": "src/index.css",
+        "before": {
+          "bytes": 47044,
+          "sha256": "ab8267dd47af2184610263248d526e79e5e5f5d0247566306e76f1a4b8f94b70",
+          "archive": "history/pre-entry-presentation/production/src/index.css"
+        },
+        "after": {
+          "bytes": 48988,
+          "sha256": "39b941da50773d12dabbbb3e94136c0846ca926ea314280ed6929924a2b5b8e9"
+        }
+      },
+      {
+        "path": "package.json",
+        "before": {
+          "bytes": 8794,
+          "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1",
+          "archive": "history/pre-entry-presentation/production/package.json"
+        },
+        "after": {
+          "bytes": 8833,
+          "sha256": "a8eba1c765ea830445bd1ec918865501ba8133f8965ba7c35dc28ad7da55c1fd"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": "docs/game-entry-flash-fix.md",
+        "bytes": 5903,
+        "sha256": "6becac87be4ac4494fabfebc7b219df13019231f10a5ef2033dca6f6ba5ef12e"
+      },
+      {
+        "path": "package.json",
+        "bytes": 8833,
+        "sha256": "a8eba1c765ea830445bd1ec918865501ba8133f8965ba7c35dc28ad7da55c1fd"
+      },
+      {
+        "path": "scripts/browser-ci-groups.mjs",
+        "bytes": 6244,
+        "sha256": "b2c953ab8d20792b7048210896092efdf9f1f9ef2413f3b637c0a99425b3a720"
+      },
+      {
+        "path": "src/App.jsx",
+        "bytes": 21301,
+        "sha256": "8fa7e95a2b0135201aa39aae61182c9a6124cb140a4a3a8d1653f6830609883a"
+      },
+      {
+        "path": "src/app/gameChunks.jsx",
+        "bytes": 2108,
+        "sha256": "50d85d75c7db865dd3a4cdeffe68d5efd952a5850f9db150a0e8539f503b0187"
+      },
+      {
+        "path": "src/index.css",
+        "bytes": 48988,
+        "sha256": "39b941da50773d12dabbbb3e94136c0846ca926ea314280ed6929924a2b5b8e9"
+      },
+      {
+        "path": "tests/e2e/game-entry-flash.spec.js",
+        "bytes": 8909,
+        "sha256": "53e0689aa9d3e05cf9459f51d80281dce3395c57ba22e99fe21758605a6a8e48"
+      },
+      {
+        "path": "tests/e2e/helpers/entryFrames.js",
+        "bytes": 3159,
+        "sha256": "51f252b6fadb73ce4bfc91d873df2194ffb41b7151ca4fedb0c5c482e3c85149"
+      },
+      {
+        "path": "tests/e2e/helpers/resourceGate.mjs",
+        "bytes": 894,
+        "sha256": "3cd8c36a598e7baffa13ba01e68617fbdad1bf01916b14ee328a6caed67b8894"
+      },
+      {
+        "path": "tests/e2e/helpers/swFixture.mjs",
+        "bytes": 10550,
+        "sha256": "8cce432e0d393ee631bb7b34a6ad2eb78349f4939284386905489824b048f47a"
+      },
+      {
+        "path": "tests/game-entry-presentation.test.mjs",
+        "bytes": 3401,
+        "sha256": "4495e89d0c7040ea0360c1bc245caa8401044c8e22ec14940d552415facd0ad2"
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-entry-presentation/approved-flash.patch",
+        "bytes": 43939,
+        "sha256": "77212fc088f4ec2120cbc46d0e576bf8f82c9f0268c981dcd73c8f3a77f1ee01"
+      },
+      {
+        "path": "history/pre-entry-presentation/base-contract.json",
+        "bytes": 35466,
+        "sha256": "507a21409eecd13358464b7503db96e3d56c323d4413cf17edd36fbf6f6fe1b1"
+      },
+      {
+        "path": "history/pre-entry-presentation/checks/closed-rollout-guard.checks.mjs",
+        "bytes": 7110,
+        "sha256": "aef6b4f56f6125f5af7dfee32a7707585f75fec1ee47fb2c2ab6aaa50e7be959"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/package.json",
+        "bytes": 8794,
+        "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/src/App.jsx",
+        "bytes": 20935,
+        "sha256": "66acf7d411133bc973a0c7b598be00fe271f252413fdb1ff7a4dd1e0f1560aba"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/src/app/gameChunks.jsx",
+        "bytes": 1487,
+        "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2"
+      },
+      {
+        "path": "history/pre-entry-presentation/production/src/index.css",
+        "bytes": 47044,
+        "sha256": "ab8267dd47af2184610263248d526e79e5e5f5d0247566306e76f1a4b8f94b70"
+      },
+      {
+        "path": "history/pre-entry-presentation/verify-boundary-transfer.mjs",
+        "bytes": 5962,
+        "sha256": "933e96a3b7a9186117bba5e637939515f7c5df25d6f4db7d88284b09384d8786"
+      },
+      {
+        "path": "history/pre-entry-presentation/verify-production.mjs",
+        "bytes": 2130,
+        "sha256": "6430238dffdcd9eabb633a6b627e0aaf12381a9af95fc10f6bfa1d45edec8fb9"
+      },
+      {
+        "path": "history/pre-entry-presentation/verify-rollback-transfer.mjs",
+        "bytes": 3500,
+        "sha256": "6cf61255f159db05a612568cc65bd726aacda1d66b77f2a05c1959f606410c12"
       }
     ]
   }

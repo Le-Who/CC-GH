@@ -3,6 +3,7 @@ import { copyFile, mkdir, rm, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import { sourceOnlyAssetDestination } from "./asset-source-only-policy.mjs";
 import { GAME_REGISTRY, VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -323,8 +324,8 @@ const SEMANTIC_ICON_SOURCES = {
   ],
   merge: [
     ["stat-essence", "public/games/gacha-merge/ui/hudIconEssence.png"],
-    ["stat-free-taps", "public/games/gacha-merge/ui/actionIconFreeTaps.png"],
-    ["stat-fuel", "public/games/gacha-merge/ui/actionIconFuel.png"],
+    ["stat-free-taps", "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFreeTaps.png"],
+    ["stat-fuel", "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFuel.png"],
   ],
   bubbo: [
     ["stat-score", "public/games/bubbo-bubbo/fx/score-pop.png"],
@@ -349,7 +350,7 @@ const SEMANTIC_ICON_SOURCES = {
     ["dock-album", "public/games/companion-yard/ui/photo_frame.png"],
     ["dock-gifts", "public/games/companion-yard/ui/gift_ready.png"],
     ["action-daily", "public/games/companion-yard/ui/stamp.png"],
-    ["action-close", "public/games/gacha-merge/ui/actionIconClose.png"],
+    ["action-close", "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconClose.png"],
   ],
   settlement: [
     ["stat-gold", "public/games/settlement/icon-resource-gold.webp"],
@@ -608,7 +609,10 @@ async function writeAssetSet(gameId, spec) {
   const assets = [];
   for (const kind of ASSET_KINDS) {
     const chromaPath = path.join(dir, `${kind.id}.chromakey.png`);
-    const runtimePath = path.join(runtimeDir, `${kind.id}.${hudRuntimeExtension(gameId, kind.id)}`);
+    const publicPath = path.join(runtimeDir, `${kind.id}.${hudRuntimeExtension(gameId, kind.id)}`);
+    const sourceOnly = sourceOnlyAssetDestination(path.relative(root, publicPath));
+    const runtimePath = sourceOnly ? path.join(root, sourceOnly) : publicPath;
+    await mkdir(path.dirname(runtimePath), { recursive: true });
     await renderAssetFromSourceAsset(gameId, kind.id, kind.width, kind.height, chromaPath, { chromakey: true });
     await renderAssetFromSourceAsset(gameId, kind.id, kind.width, kind.height, runtimePath, { chromakey: false });
     assets.push({
@@ -618,6 +622,7 @@ async function writeAssetSet(gameId, spec) {
       sourcePath: path.relative(root, sourceAssetPathFor(gameId, kind.id)).replaceAll(path.sep, "/"),
       path: path.relative(root, chromaPath).replaceAll(path.sep, "/"),
       runtimePath: path.relative(root, runtimePath).replaceAll(path.sep, "/"),
+      ...(sourceOnly ? { runtime: false } : {}),
       width: kind.width,
       height: kind.height,
       chromaKey: chromaKeyFor(gameId),
@@ -673,11 +678,16 @@ async function writePublicSurface(fileName, sourceId, kind) {
   const config = kind === "dialog-panel"
     ? { width: 512, height: 768, id: "dialog-panel" }
     : { width: 512, height: 512, id: "screen-panel" };
-  const outputPath = path.join(publicSurfaceRoot, fileName);
+  const publicPath = path.join(publicSurfaceRoot, fileName);
+  const sourceOnly = sourceOnlyAssetDestination(path.relative(root, publicPath));
+  const outputPath = sourceOnly ? path.join(root, sourceOnly) : publicPath;
+  await mkdir(path.dirname(outputPath), { recursive: true });
   await renderAssetFromSourceAsset(sourceId, config.id, config.width, config.height, outputPath, { chromakey: false });
   return {
     name: fileName.replace(/\.(?:png|webp)$/, ""),
     file: fileName,
+    path: path.relative(root, outputPath).replaceAll(path.sep, "/"),
+    runtime: !sourceOnly,
     width: config.width,
     height: config.height,
     source: "imagegen-source-art-data-free",
@@ -748,7 +758,7 @@ async function copyAiReferenceIfRequested() {
 
 async function writeSurfaceManifests(panelOutputs, dialogOutputs) {
   await writeFile(
-    path.join(publicSurfaceRoot, "screen-surface-extract-manifest.json"),
+    path.join(sourceRoot, "screen-surface-extract-manifest.json"),
     `${JSON.stringify({
       source: "assets-source/imagegen/hud-redesign",
       generatedBy: "scripts/generate-hud-redesign-pack.mjs",
@@ -756,7 +766,7 @@ async function writeSurfaceManifests(panelOutputs, dialogOutputs) {
     }, null, 2)}\n`,
   );
   await writeFile(
-    path.join(publicSurfaceRoot, "portrait-panel-extract-manifest.json"),
+    path.join(sourceRoot, "portrait-panel-extract-manifest.json"),
     `${JSON.stringify({
       source: "assets-source/imagegen/hud-redesign",
       generatedBy: "scripts/generate-hud-redesign-pack.mjs",
@@ -844,7 +854,7 @@ async function main() {
     hiddenLegacy: {
       farm: {
         visible: GAME_REGISTRY.farm.visible,
-        reason: "Farm remains hidden legacy in the registry; a new panel surface is kept for compatibility only.",
+        reason: "Retired from runtime; source/export reference stays outside public for QA only.",
       },
     },
   };

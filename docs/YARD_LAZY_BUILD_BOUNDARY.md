@@ -65,3 +65,34 @@ ordinary startup/service-worker installation fetches no Yard data, opening Yard
 loads only the selected view, and accepted Yard actor playback remains lazy and
 within existing decode/request limits. Source-level long-run evidence is
 preserved, but it does not replace this built-delivery verification.
+
+
+## Executable renderer boundary after the first real build
+
+The first JSON-only split successfully cleared Workbox, but the actual built
+regression reported `CourtyardGame-CHS6eeVi.js` at 100,319 executable bytes, above
+the unchanged 75,000-byte limit. That failure is retained as evidence; source
+JSON separation alone was not sufficient.
+
+The next build-only change assigns the existing canvas-renderer subsystem to
+`assets/yard-renderer-[hash].js`: scene, atlas/cache policy, actor-media,
+presentation, projection, pose selection, edge opacity, clock and telemetry.
+These ten modules are the exact local static `.mjs` closure of `scene.mjs`,
+50,324 source bytes before bundling. React panels/controls remain in the Yard
+entry; conditional family/Mochi/Pip adapters retain their separate import paths.
+No source imports, behavior, gates, frozen identities or media bytes are edited.
+
+The renderer is executable game code, never data-only. Shared executable
+`game-logic/yard-v2/*.mjs` helpers are also explicitly classified as gameplay
+code if Rollup emits them separately, closing a possible accidental omission
+from the per-chunk cap. The post-build test applies the same 75 KB ceiling to
+the entry, renderer and all such helpers, verifies the renderer stays outside
+startup and does not statically depend back on its React entry. All reachable
+bytes remain in the loading-graph report; no total transfer is concealed.
+
+CI must establish the new actual sizes and run built/browser delivery checks.
+The old 100,319-byte artifact is not a measurement of this new split. To make
+any further failure diagnosable, an `always()` step records at most 2,048 emitted
+JS/CSS filenames and raw lengths, and the always-preserved evidence artifact
+includes this small summary and the complete emitted loading graph. No media,
+source code, or full-dist payload archive is added.

@@ -38,7 +38,10 @@ export function gameLoadingGraph() {
           .filter(([id]) => !id.includes('node_modules') && !id.startsWith('\0'))
           .map(([id]) => path.relative(root, id.split('?')[0]).replaceAll('\\', '/'));
         for (const [game, source] of Object.entries(GAME_ENTRIES)) if (sources.includes(source)) entries[game] = chunk.fileName;
-        const gameModules = sources.filter(source => source.startsWith('src/games/'));
+        // Yard calibration/planning helpers remain executable gameplay code even
+        // if Rollup places a shared helper outside a src/games chunk.
+        const gameModules = sources.filter(source => source.startsWith('src/games/')
+          || (source.startsWith('game-logic/yard-v2/') && source.endsWith('.mjs')));
         const dataOnly = sources.length > 0 && rendered.length === sources.length && sources.every(source => GAME_DATA_MODULES.has(source));
         return {
           file: chunk.fileName, imports: chunk.imports, dynamicImports: chunk.dynamicImports,

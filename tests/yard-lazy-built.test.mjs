@@ -5,6 +5,7 @@ import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import test from 'node:test';
 import { YARD_CONTRACT_DATA_MODULES, YARD_DATA_OUTPUT_PREFIX } from '../scripts/yard-contract-data.mjs';
+import { YARD_RENDERER_MODULES } from '../scripts/yard-renderer-chunk.mjs';
 import { DEFAULT_BUILD_BUDGETS } from '../scripts/perf-build-guard.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -23,6 +24,12 @@ test('actual Vite Yard metadata stays out of startup/precache and executable chu
   const yard = closure([graph.entries['companion-yard-v2']], true);
   const data = graph.chunks.filter(chunk => chunk.file.startsWith(YARD_DATA_OUTPUT_PREFIX));
   assert.ok(data.length > 0, 'immutable data must be separately reported, not embedded in executable chunks');
+  const renderer = graph.chunks.find(chunk => chunk.modules.includes('src/games/companion-yard-v2/scene.mjs'));
+  assert.ok(renderer && renderer.file !== graph.entries['companion-yard-v2'], 'canvas renderer must have its own executable boundary');
+  assert.equal(renderer.dataOnly, false); assert.equal(startup.has(renderer.file), false);
+  assert.equal(closure([renderer.file]).has(graph.entries['companion-yard-v2']), false, 'renderer must not form a static cycle back into its React entry');
+  assert.ok(renderer.modules.every(id => YARD_RENDERER_MODULES.has(id)), 'manual renderer chunk must not absorb other dependencies');
+  assert.ok(renderer.gameModules.length > 0);
   const report = { data: [], gameCode: [], startupYardData: [] };
   for (const chunk of data) {
     assert.equal(startup.has(chunk.file), false, chunk.file); assert.ok(yard.has(chunk.file), chunk.file);
@@ -33,7 +40,7 @@ test('actual Vite Yard metadata stays out of startup/precache and executable chu
     const bytes = await readFile(path.join(dist, chunk.file));
     report.data.push({ file: chunk.file, modules: chunk.modules, rawBytes: bytes.length, gzipBytes: gzipSync(bytes).length });
   }
-  for (const chunk of graph.chunks.filter(chunk => chunk.gameModules.some(id => id.startsWith('src/games/companion-yard-v2/')))) {
+  for (const chunk of graph.chunks.filter(chunk => chunk.gameModules.some(id => id.startsWith('src/games/companion-yard-v2/') || id.startsWith('game-logic/yard-v2/')))) {
     assert.equal(chunk.dataOnly, false, chunk.file);
     const rawBytes = (await stat(path.join(dist, chunk.file))).size;
     assert.ok(rawBytes <= DEFAULT_BUILD_BUDGETS.maxGameChunkRawBytes, `${chunk.file}: ${rawBytes} > 75000 executable bytes`);

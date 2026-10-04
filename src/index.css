@@ -2155,3 +2155,54 @@ button.stat-chip {
 .telegram-app[data-active-tab="trivia"] .stats-row {
   display: none;
 }
+
+/* Entry surfaces are shell-owned and available before any lazy game CSS.
+ * They deliberately contain no prior-generation artwork or gradient skin.
+ * Current game art can decode over its own solid base without revealing Hub
+ * chrome, including while a scene is being unmounted during navigation. */
+#root { background: #101923; }
+.telegram-app[data-active-tab] {
+  --game-entry-surface: #101923;
+  --game-entry-ink: #f6f2e7;
+  background: var(--game-entry-surface);
+}
+.telegram-app[data-active-tab="garden"] { --game-entry-surface: #d5dec6; --game-entry-ink: #243e2b; }
+.telegram-app[data-active-tab="blox"] { --game-entry-surface: #050b1c; }
+.telegram-app[data-active-tab="match3"] { --game-entry-surface: #100a1f; }
+.telegram-app[data-active-tab="bubbo"] { --game-entry-surface: #032632; }
+.telegram-app[data-active-tab="merge"] { --game-entry-surface: #211b15; }
+.telegram-app[data-active-tab="trivia"] { --game-entry-surface: #06152a; }
+.telegram-app[data-active-tab="room"] { --game-entry-surface: #20320f; }
+.telegram-app[data-active-tab="settlement"] { --game-entry-surface: #07130c; }
+.telegram-app .game-entry-status {
+  min-width: 0;
+  min-height: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  color: var(--game-entry-ink);
+  background: var(--game-entry-surface);
+  text-align: center;
+  font-weight: 800;
+}
+main.telegram-app[data-active-tab] .active-game-frame {
+  background-color: var(--game-entry-surface);
+}
+
+.game-entry-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
+.game-entry-actions button {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid currentColor;
+  border-radius: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.game-entry-actions button:focus-visible { outline: 3px solid currentColor; outline-offset: 3px; }

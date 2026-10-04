@@ -8,13 +8,16 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {verifyRollbackTransfer} from './verify-rollback-transfer.mjs';
+import {verifyPresentationTransfer,readBeforePresentation} from './verify-presentation-transfer.mjs';
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const hash=bytes=>createHash('sha256').update(bytes).digest('hex');
 export function verifyBoundaryTransfer({rootDir=root}={}) {
   const candidate=resolve(rootDir,'preview/yard-persistent-candidate');
   const read=path=>readFileSync(resolve(candidate,path));
   const contract=JSON.parse(read('base-contract.json')),reviewed=contract.reviewedPlayerWiringChangeSet;
-  const rollback=verifyRollbackTransfer({rootDir,contract});
+  const presentation=verifyPresentationTransfer({rootDir,contract});
+  const proofContract=presentation.priorContract;
+  const rollback=verifyRollbackTransfer({rootDir,contract,presentation});
   assert.equal(reviewed?.rolloutEnabled,false);assert.equal(reviewed.sourceAcceptanceChanged,false);
   assert.equal(reviewed.integrationBaseCommit,contract.baseCommit);
   const historical=JSON.parse(read('history/pre-player-rollout/base-contract.json'));
@@ -25,7 +28,7 @@ export function verifyBoundaryTransfer({rootDir=root}={}) {
   assert.equal(approved.length,9);assert.equal(reviewed.transitions.length,9);
   assert.equal(new Set(reviewed.transitions.map(x=>x.path)).size,9);
   for(const transition of reviewed.transitions){
-    const path=transition.path,previous=historical.productionFiles.find(p=>p.path===path),entry=contract.productionFiles.find(p=>p.path===path),signed=approved.find(p=>p.path===path);
+    const path=transition.path,previous=historical.productionFiles.find(p=>p.path===path),entry=proofContract.productionFiles.find(p=>p.path===path),signed=approved.find(p=>p.path===path);
     assert.ok(previous&&entry&&signed,path);
     assert.deepEqual({bytes:previous.bytes,sha256:previous.sha256},signed.before,path);
     assert.deepEqual({bytes:transition.before.bytes,sha256:transition.before.sha256},signed.before,path);
@@ -33,13 +36,13 @@ export function verifyBoundaryTransfer({rootDir=root}={}) {
     assert.equal(hash(read(transition.before.archive)),previous.sha256,path);
     const later=rollback.transitions.find(row=>row.path===path);
     if(later)assert.deepEqual({bytes:later.before.bytes,sha256:later.before.sha256},transition.after,path);
-    const expected=later?.after||transition.after,current=readFileSync(resolve(rootDir,path));
+    const expected=later?.after||transition.after,current=readBeforePresentation({rootDir,presentation,path});
     assert.deepEqual({bytes:current.length,sha256:hash(current)},expected,path);
     assert.deepEqual({bytes:entry.bytes,sha256:entry.sha256},expected,path);
   }
   const changed=new Set(reviewed.transitions.map(x=>x.path));
-  assert.equal(contract.productionFiles.length,historical.productionFiles.length);
-  for(const item of historical.productionFiles.filter(x=>!changed.has(x.path)))assert.deepEqual(contract.productionFiles.find(x=>x.path===item.path),item,'Unrelated production pin changed');
+  assert.equal(proofContract.productionFiles.length,historical.productionFiles.length);
+  for(const item of historical.productionFiles.filter(x=>!changed.has(x.path)))assert.deepEqual(proofContract.productionFiles.find(x=>x.path===item.path),item,'Unrelated production pin changed');
   // Historical source-input attestations remain literal history, including the
   // inherited stale store pin. Do not silently replace them with current bytes.
   assert.deepEqual(contract.sourceInputs,historical.sourceInputs);
@@ -66,7 +69,7 @@ export function verifyBoundaryTransfer({rootDir=root}={}) {
       return {path,originalDeltaSha256:original,preIntegrationDeltaSha256:prior,preIntegrationMatchesOriginal:prior===original};
     });
     return {approvedWiringCommit:reviewed.approvedWiringCommit,integrationBaseCommit:reviewed.integrationBaseCommit,
-      reviewedProductionTransitions:9,unchangedProductionPins:15,rollbackGuard:{approvedCommit:rollback.approvedCommit,reviewedFiles:rollback.reviewedFiles,reviewedPinTransitions:rollback.reviewedPinTransitions},historicalProvenance:provenance,
+      reviewedProductionTransitions:9,unchangedProductionPins:15,rollbackGuard:{approvedCommit:rollback.approvedCommit,reviewedFiles:rollback.reviewedFiles,reviewedPinTransitions:rollback.reviewedPinTransitions},presentationGuard:{approvedCommit:presentation.approvedCommit,approvedPatchSha256:presentation.approvedPatchSha256,reviewedFiles:presentation.reviewedFiles,reviewedPinTransitions:presentation.reviewedPinTransitions},historicalProvenance:provenance,
       historicalStoreMismatch:'preserved and disclosed; not a current integration test'};
   } finally {rmSync(temporary,{recursive:true,force:true});}
 }

@@ -114,10 +114,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/dialog-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/garden/dialog-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/garden/dialog-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/garden/dialog-panel.png",
           "width": 512,
           "height": 768,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         },
         {
           "id": "dock-panel",
@@ -136,10 +137,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/screen-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/garden/screen-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/garden/screen-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/garden/screen-panel.png",
           "width": 512,
           "height": 512,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         },
         {
           "id": "primary-button",
@@ -180,10 +182,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/garden/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/garden/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/garden/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/garden/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -312,10 +315,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/dialog-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/blox/dialog-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/blox/dialog-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/blox/dialog-panel.png",
           "width": 512,
           "height": 768,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "dock-panel",
@@ -334,10 +338,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/screen-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/blox/screen-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/blox/screen-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/blox/screen-panel.png",
           "width": 512,
           "height": 512,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "primary-button",
@@ -378,10 +383,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/blox/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/blox/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/blox/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -525,10 +531,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/dialog-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/match3/dialog-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/match3/dialog-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/match3/dialog-panel.png",
           "width": 512,
           "height": 768,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "dock-panel",
@@ -547,10 +554,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/screen-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/match3/screen-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/match3/screen-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/match3/screen-panel.png",
           "width": 512,
           "height": 512,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "primary-button",
@@ -591,10 +599,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/match3/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/match3/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/match3/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -778,10 +787,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/screen-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/merge/screen-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/merge/screen-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/merge/screen-panel.png",
           "width": 512,
           "height": 512,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         },
         {
           "id": "primary-button",
@@ -822,10 +832,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/merge/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/merge/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/merge/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -844,7 +855,7 @@
           "source": "production-source-art-data-free",
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/merge/stat-free-taps.source.png",
-          "originalSourcePath": "public/games/gacha-merge/ui/actionIconFreeTaps.png",
+          "originalSourcePath": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFreeTaps.png",
           "runtimePath": "public/games/hud-redesign/merge/semantic-icons/stat-free-taps.png",
           "width": 96,
           "height": 96
@@ -854,7 +865,7 @@
           "source": "production-source-art-data-free",
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/merge/stat-fuel.source.png",
-          "originalSourcePath": "public/games/gacha-merge/ui/actionIconFuel.png",
+          "originalSourcePath": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFuel.png",
           "runtimePath": "public/games/hud-redesign/merge/semantic-icons/stat-fuel.png",
           "width": 96,
           "height": 96
@@ -956,10 +967,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/dialog-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/bubbo/dialog-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/bubbo/dialog-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/dialog-panel.png",
           "width": 512,
           "height": 768,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "dock-panel",
@@ -978,10 +990,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/screen-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/bubbo/screen-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/bubbo/screen-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/screen-panel.png",
           "width": 512,
           "height": 512,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "primary-button",
@@ -1022,10 +1035,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/bubbo/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/bubbo/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -1187,10 +1201,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/dialog-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/trivia/dialog-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/trivia/dialog-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/trivia/dialog-panel.png",
           "width": 512,
           "height": 768,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "dock-panel",
@@ -1209,10 +1224,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/screen-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/trivia/screen-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/trivia/screen-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/trivia/screen-panel.png",
           "width": 512,
           "height": 512,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "primary-button",
@@ -1253,10 +1269,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/trivia/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/trivia/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/trivia/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/trivia/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -1410,10 +1427,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/dialog-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/room/dialog-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/room/dialog-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/room/dialog-panel.png",
           "width": 512,
           "height": 768,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         },
         {
           "id": "dock-panel",
@@ -1476,10 +1494,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/room/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/room/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/room/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -1558,7 +1577,7 @@
           "source": "production-source-art-data-free",
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/semantic-icons/room/action-close.source.png",
-          "originalSourcePath": "public/games/gacha-merge/ui/actionIconClose.png",
+          "originalSourcePath": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconClose.png",
           "runtimePath": "public/games/hud-redesign/room/semantic-icons/action-close.png",
           "width": 96,
           "height": 96
@@ -1686,10 +1705,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/screen-panel.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/settlement/screen-panel.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/settlement/screen-panel.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/settlement/screen-panel.png",
           "width": 512,
           "height": 512,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         },
         {
           "id": "primary-button",
@@ -1730,10 +1750,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/settlement/tool-slot.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/settlement/tool-slot.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/settlement/tool-slot.png",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/settlement/tool-slot.png",
           "width": 128,
           "height": 128,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         }
       ],
       "semanticIcons": [
@@ -1783,7 +1804,7 @@
   "hiddenLegacy": {
     "farm": {
       "visible": false,
-      "reason": "Farm remains hidden legacy in the registry; a new panel surface is kept for compatibility only."
+      "reason": "Retired from runtime; source/export reference stays outside public for QA only."
     }
   }
 }
