@@ -161,7 +161,7 @@ describe("Pixi scene geometry helpers", () => {
     assert.equal(Object.keys(BLOX_BLOCK_ART).length, 9, "Blox v2 should retain all color-to-generated-tile mappings");
     assert.ok(BLOX_PIXI_ASSETS.includes(BLOX_ART.energy), "Blox v2 must preload generated row/column energy art");
     assert.ok(BLOX_PIXI_ASSETS.includes(BLOX_ART.burst), "Blox v2 must preload generated clear burst art");
-    assert.ok(bloxScene.includes('bloxArtUrl("energy")'), "Blox clear effects should resolve generated energy art");
+    assert.ok(bloxScene.includes("bloxTileAsset(color)"), "Blox clear effects should retain the actual generated tile art");
     assert.ok(bloxScene.includes("drawTrayPiece"), "Blox tray previews should render from live piece cells");
     assert.ok(!bloxScene.includes("BLOX_PIECE_ASSET_BY_ID"), "Blox tray previews should not use mismatched fixed preview sprites");
   });
@@ -173,9 +173,8 @@ describe("Pixi scene geometry helpers", () => {
     const dragPreview = bloxScene.slice(bloxScene.indexOf("function updateDragVisualNow"), bloxScene.indexOf("function g()"));
     assert.match(dragPreview, /\?\.clear\.rows/, "Blox drag preview should inspect predicted row clears");
     assert.match(dragPreview, /\?\.clear\.cols/, "Blox drag preview should inspect predicted column clears");
-    assert.ok(dragPreview.includes('bloxArtUrl("energy")'), "Blox row preview should use generated energy art");
-    assert.ok(dragPreview.includes("createBloxEnergyLine("), "Blox column preview should rotate the generated energy art");
-    assert.match(bloxScene, /rotation\s*=\s*Math\.PI\s*\/\s*2/, "Blox column-clear art must be vertical");
+    assert.ok(dragPreview.includes("strokedRect(layout.left+col*layout.cell+2"), "predicted clears should mark individual board cells");
+    assert.ok(!bloxScene.includes('bloxArtUrl("energy")'), "clears should not render disconnected full-line beams");
   });
 
   it("fits Blox v2 cells inside the nine-slice frame without shrinking gameplay to the legacy opening", () => {
