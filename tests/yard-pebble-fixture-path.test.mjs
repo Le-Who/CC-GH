@@ -1,13 +1,21 @@
+import {resolve} from 'node:path';
 import test from 'node:test';import assert from 'node:assert/strict';
 import {resolvePebbleFixturePath} from '../scripts/yard-pebble-fixture-path.mjs';
 const allowedSources=new Set(['src/scene.mjs','game-logic/contract.json']),root='/fixture/root/';
 const path=pathname=>resolvePebbleFixturePath({root,pathname,allowedSources});
 test('CI root normalization accepts valid source and public paths even with a trailing slash',()=>{
- assert.equal(path('/__yard_qa__/index.html').path,'/fixture/root/index.html');assert.equal(path('/__yard_qa__/').path,'/fixture/root/index.html');
- assert.equal(path('/__yard_source__/src/scene.mjs').path,'/fixture/root/source/src/scene.mjs');
- assert.equal(path('/assets/yard-pebble/atlases/walk-0-00.webp').path,'/fixture/root/public/assets/yard-pebble/atlases/walk-0-00.webp');
+ assert.equal(path('/__yard_qa__/index.html').path,resolve('/fixture/root/index.html'));assert.equal(path('/__yard_qa__/').path,resolve('/fixture/root/index.html'));
+ assert.equal(path('/__yard_source__/src/scene.mjs').path,resolve('/fixture/root/source/src/scene.mjs'));
+ assert.equal(path('/assets/yard-pebble/atlases/walk-0-00.webp').path,resolve('/fixture/root/public/assets/yard-pebble/atlases/walk-0-00.webp'));
  assert.equal(path('/assets/yard-mika/background.webp').mime,'image/webp');
 });
+test('canonical browser source and pixels resolve to the current checkout, with the same allowlist and namespace guards',()=>{
+ const options={root,sourceRoot:'/checkout',publicRoot:'/checkout/public/assets',allowedSources};
+ assert.equal(resolvePebbleFixturePath({...options,pathname:'/__yard_source__/src/scene.mjs'}).path,resolve('/checkout/src/scene.mjs'));
+ assert.equal(resolvePebbleFixturePath({...options,pathname:'/assets/yard-pebble/atlases/page.webp'}).path,resolve('/checkout/public/assets/yard-pebble/atlases/page.webp'));
+ for(const pathname of ['/__yard_source__/src/private.mjs','/__yard_source__/../fixture.json','/assets/yard-pebble/%2e%2e%2fyard-mika%2fbackground.webp'])assert.equal(resolvePebbleFixturePath({...options,pathname}),null);
+});
+
 test('CI helper rejects traversal, cross-namespace escapes, malformed encodings and unlisted files without a socket',()=>{
  for(const p of ['/__yard_qa__/../fixture.json','/__yard_qa__/%2e%2e%2fsecret.json','/__yard_source__/../fixture.json','/__yard_source__/src/private.mjs',
  '/assets/yard-pebble/%2e%2e%2fyard-mika%2fbackground.webp','/assets/yard-pebble/%2fetc%2fsecret.json','/assets/yard-pebble/%ZZ.webp','/assets/yard-pip/thing.webp','/assets/yard-pebble/a.exe'])assert.equal(path(p),null,p);

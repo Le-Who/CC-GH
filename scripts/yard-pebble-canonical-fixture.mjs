@@ -6,8 +6,8 @@ import {ensurePersistentPlayerYard,publicPersistentYard} from '../game-logic/yar
 import {createPebbleAcceptanceOptions} from '../tests/fixtures/yard-pebble-canonical/acceptance.mjs';
 import {getYardServerOptions} from '../game-logic/yard-v2/yard-media.mjs';
 import {YARD_GOODIES} from '../game-logic/yard-v2/catalog.mjs';
-import {mkdir,readFile,writeFile,link,readdir,stat} from 'node:fs/promises';
-import {resolve,dirname,relative,extname} from 'node:path';
+import {mkdir,readFile,writeFile} from 'node:fs/promises';
+import {resolve,dirname,relative,extname,sep,isAbsolute} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 const root=resolve(fileURLToPath(new URL('..',import.meta.url))),out=resolve(root,'recovery-tools/yard-canonical-pebble-qa'),NOW=Date.UTC(2026,9,3,12),H=3600000;
@@ -32,8 +32,8 @@ const data={synthetic:{generator:'scripts/yard-pebble-canonical-fixture.mjs',pla
 await writeFile(resolve(out,'fixture.json'),JSON.stringify(data)+'\n');
 const visited=new Set(),files=[];
 async function collect(path){path=resolve(path);if(visited.has(path))return;visited.add(path);
- if(!path.startsWith(root+'/'))throw Error('Source closure escaped project');
- const bytes=await readFile(path),name=relative(root,path);await mkdir(dirname(resolve(out,'source',name)),{recursive:true});await writeFile(resolve(out,'source',name),bytes);
+ const local=relative(root,path);if(local==='..'||local.startsWith('..'+sep)||isAbsolute(local))throw Error('Source closure escaped project');
+ const bytes=await readFile(path),name=local.split(sep).join('/');
  files.push({path:name,sha256:createHash('sha256').update(bytes).digest('hex')});
  if(!['.mjs','.js'].includes(extname(path)))return;
  for(const match of bytes.toString().matchAll(/(?:\bfrom\s*|\bimport\s*(?:\(\s*)?)['"]([^'"]+)['"]/g)){
@@ -43,6 +43,4 @@ async function collect(path){path=resolve(path);if(visited.has(path))return;visi
 await collect(resolve(root,'src/games/companion-yard-v2/scene.mjs'));
 await collect(resolve(root,'src/games/companion-yard-v2/courtyard.css'));
 await writeFile(resolve(out,'SOURCE-CLOSURE.json'),JSON.stringify({runtimeActivated:false,files:files.sort((a,b)=>a.path.localeCompare(b.path))},null,2)+'\n');
-async function linkAssets(a,b){await mkdir(b,{recursive:true});for(const name of await readdir(a)){const from=resolve(a,name),to=resolve(b,name);if((await stat(from)).isDirectory())await linkAssets(from,to);else try{await link(from,to);}catch(e){if(e.code!=='EEXIST')throw e;const [x,y]=await Promise.all([readFile(from),readFile(to)]);if(!x.equals(y))throw Error(`Stale fixture asset ${to}; regenerate in a new bounded output directory`);}}}
-for(const id of ['yard-mika','yard-pebble'])await linkAssets(resolve(root,'public/assets',id),resolve(out,'public/assets',id));
 console.log(JSON.stringify({modules:files.length,visit:visit.visitId,durationMinutes:(visit.leavesAt-visit.arrivedAt)/60000,releaseAccepted:false}));

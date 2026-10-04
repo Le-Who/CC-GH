@@ -1,5 +1,6 @@
 /** Calibrated Mika media and deterministic full-stay preflight. Missing coverage rejects admission before serving or wear consumption. */
 import {planningSceneWithObstacles,obstacleContextRevision} from './prop-obstacles.mjs';
+import {presentationReservationsConflict} from './visit-reservations.mjs';
 import { routeProgram } from './media/stride-routes.mjs';
 import { buildStaySchedule } from './media/stay-schedule.mjs';
 import { MIKA_ACTOR_ASSETS } from './media/mika-actor-assets.mjs';
@@ -112,8 +113,9 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=MIKA
       if(!restApproach)return{ok:false,code:'NO_SAFE_GROUND_REST_SITE'};
     }
     if(!incoming.ok||!outgoing.ok)return{ok:false,code:'CALIBRATED_ROUTE_UNAVAILABLE',incomingReason:incoming.reason||null,outgoingReason:outgoing.reason||null};
-    // Conservative whole-route plus interaction ownership prevents two independent composites crossing.
-    const boxes=[actorBox,...(restBox?[restBox]:[]),...[incoming,outgoing,...(restApproach?[restApproach]:[])].flatMap(path=>path.legs.map(leg=>{
+    // Keep the same conservative per-leg geometry, but reserve it only while
+    // that authored leg is traversed. Rest/clip envelopes keep their full phase.
+    const routeBox=leg=>{
       if(leg.kind==='turn'){
         const env=turns.variants[`${leg.fromFacing}:${leg.direction}:${leg.angleSteps}`].actorEnvelope;
         return{x:leg.position.x+env.min[0]*unitsPerWorld,y:leg.position.y+env.min[1]*unitsPerWorld,
@@ -121,9 +123,9 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=MIKA
       }
       const r=scene.walkReservationRadius??3.44;return{x:Math.min(leg.from.x,leg.to.x)-r,y:Math.min(leg.from.y,leg.to.y)-r,
         width:Math.abs(leg.to.x-leg.from.x)+2*r,height:Math.abs(leg.to.y-leg.from.y)+2*r};
-    }))];
-    if((candidate.active||candidate.reserved).some(r=>(r.mediaAdmission?.plan?.reservationBoxes||[]).some(old=>boxes.some(box=>overlaps(old,box)))))
-      return{ok:false,code:'PRESENTATION_REGION_RESERVED'};
+    };
+    // Preserve the legacy projection/order for existing placement consumers.
+    const boxes=[actorBox,...(restBox?[restBox]:[]),...[incoming,outgoing,...(restApproach?[restApproach]:[])].flatMap(path=>path.legs.map(routeBox))];
     const plan={version:2,clipId:c.id,clipDurationMs:c.durationMs,contactAtMs:c.contactAtMs,
       propFinalAtMs:c.finalTransformAtMs,startRoot,endRoot,initialPlacement:clone(p),finalTransform:final,
       propReleaseAfterMs:c.durationMs,incoming,outgoing,restApproach,restOrigin,reservationBoxes:boxes,
@@ -133,6 +135,16 @@ export function createMikaMedia(clips,turns,{scene=MIKA_SCENE,unitsPerWorld=MIKA
     const schedule=buildStaySchedule(candidate,plan,c,groundRest,{actorProfile});
     if(!schedule.ok)return schedule;
     Object.assign(plan,{schedule,segments:schedule.segments,propCommits:schedule.propCommits,propReleaseAt:schedule.propReleaseAt,arrivalAt:candidate.at,departureAt:schedule.departureAt});
+    const phaseReservations=schedule.segments.flatMap(seg=>seg.kind==='hidden'||seg.startAt===seg.endAt?[]:
+      seg.kind==='route'?seg.route.legs.filter(l=>l.durationMs>0).map(l=>({startMs:seg.startAt+l.startMs,endMs:seg.startAt+l.endMs,rect:routeBox(l)})):
+      [{startMs:seg.startAt,endMs:seg.endAt,rect:seg.clipId===c.id?actorBox:restBox}]);
+    // Settle/rest/wake share one envelope continuously. Merge only the same
+    // phase-box object; geometrically equal, distinct route legs stay distinct.
+    const reservations=[];
+    for(const row of phaseReservations){const last=reservations.at(-1);if(last?.rect===row.rect&&last.endMs===row.startMs)last.endMs=row.endMs;else reservations.push(row);}
+    if([...(candidate.active||[]),...(candidate.reserved||[])].some(r=>presentationReservationsConflict(reservations,r)))
+      return{ok:false,code:'PRESENTATION_REGION_RESERVED'};
+    plan.reservations=reservations;
     if(planning.receipt)plan.obstacleReceipt=planning.receipt;
     return{ok:true,plan};
   };

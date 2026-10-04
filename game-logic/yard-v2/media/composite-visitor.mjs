@@ -1,6 +1,7 @@
 /** Reusable closed visitor binding for source-owned static-prop composites.
  * Every identity, footprint, sample, timing and rest cycle comes from its input.
  * It grants no actor readiness and never mutates a save. */
+import {presentationReservationsConflict} from '../visit-reservations.mjs';
 import {planningSceneWithObstacles,obstacleContextRevision} from '../prop-obstacles.mjs';
 import {clone,deepFreeze,digest} from '../util.mjs';
 import {footprint,overlaps,buildNavigation} from '../geometry.mjs';
@@ -19,21 +20,24 @@ export function createCompositeVisitorCandidate({clip,strideContract,motionContr
  const loop=c.restLoop,period=loop.endMs-loop.startMs;
  if(!Number.isSafeInteger(period)||period<=0||loop.startMs<0||loop.endMs>c.durationMs||period!==loop.frames*c.sourceSampleMs)throw new TypeError('Validated source rest cycle required');
  deepFreeze(c);deepFreeze(s);const u=c.unitsPerWorld;
+ const condition=c.conditions?.length===1?c.conditions[0]:'new';
+ if(!['new','worn','broken'].includes(condition))throw new TypeError('Explicit source prop condition required');
  const calibration=digest({clip:c,scene:s,motionId:motion.id,rootContract:strideContract});
- const binding=deepFreeze({id:c.id,revision:c.revision,visitorId:c.visitorId,goodieId:c.goodieId,activityIds:clone(c.activityIds),conditions:['new'],
+ const binding=deepFreeze({id:c.id,revision:c.revision,visitorId:c.visitorId,goodieId:c.goodieId,activityIds:clone(c.activityIds),conditions:[condition],
   propMode:'composited',calibrationHash:calibration,playbackReady:false,requiredPhases:clone(c.requiredPhases),validatedPhases:clone(c.validatedPhases),
   unavailableReason:'BROWSER_VISUAL_QA_AND_ACTOR_REGISTRATION_REQUIRED'});
  const atRoot=(anchor,root)=>({x:anchor.x+root[0]*u,y:anchor.y+root[1]*u,z:root[2]});
  const box=(e,origin)=>({x:origin.x+e.minimum[0]*u,y:origin.y+e.minimum[1]*u,width:(e.maximum[0]-e.minimum[0])*u,height:(e.maximum[1]-e.minimum[1])*u});
  const requestedRows=candidate=>[...(candidate.active||[]),...(candidate.reserved||[])];
  const calibratedScene=s;
+ const routeCache=new Map();
  function preflightCandidate(candidate,obstacleContext){
   const p=candidate?.placement,yard=candidate?.yard;
   const planning=planningSceneWithObstacles(calibratedScene,yard,obstacleContext);if(!planning.ok)return planning;const s=planning.scene;
   if(!p||p.goodieId!==c.goodieId||typeof p.slotId!=='string'||!p.slotId||![p.x,p.y].every(finite))return{ok:false,code:'TARGET_PROP_UNAVAILABLE'};
   if(candidate.visitor&&candidate.visitor.id!==c.visitorId)return{ok:false,code:'ACTOR_PROFILE_UNAVAILABLE'};
   if(!Number.isSafeInteger(candidate.at)||!Number.isSafeInteger(candidate.leavesAt)||candidate.leavesAt<=candidate.at)return{ok:false,code:'INVALID_VISIT_TIME'};
-  if(p.condition!=='new'||!near(p.rotationZ??0,c.supportedPropYaw))return{ok:false,code:'TARGET_PROP_STATE_UNSUPPORTED'};
+  if(p.condition!==condition||!near(p.rotationZ??0,c.supportedPropYaw))return{ok:false,code:'TARGET_PROP_STATE_UNSUPPORTED'};
   if(!yard||!Array.isArray(yard.placedGoodies)||yard.placedGoodies.filter(q=>q.slotId===p.slotId).length!==1
    ||yard.placedGoodies.some(q=>![q.x,q.y].every(finite)||!s.footprints?.[q.goodieId]))return{ok:false,code:'PLACEMENT_CALIBRATION_UNAVAILABLE'};
   const stored=yard.placedGoodies.find(q=>q.slotId===p.slotId);
@@ -49,10 +53,19 @@ export function createCompositeVisitorCandidate({clip,strideContract,motionContr
   // the target in both sole and body obstacles, with no blanket exemption.
   const soles=c.groundFootprints.map(f=>paddedConvexPolygon(f.polygon,c.groundPaddingWorld));
   if(!groundCoverageAllowed(soles,origin,yard.remodel,{unitsPerWorld:u,obstacles:outside}))return{ok:false,code:'COMPOSITE_GROUND_UNSAFE'};
-  const guard=createAuthoredMotionGround(motion,{remodel:yard.remodel,obstacles});
-  const nav=buildNavigation(yard,{...s,actorRadius:.05,exclusions:s.exclusions||[]});
-  const incoming=routes.plan({navigation:nav,guard,anchor:startRoot,entry:s.entry,incoming:true,initialFacing:c.entry.facing,atMs:candidate.at,portalHalfSize:s.entryClearance??4});
-  const outgoing=routes.plan({navigation:nav,guard,anchor:endRoot,entry:s.entry,incoming:false,initialFacing:c.exit.facing,atMs:candidate.at,portalHalfSize:s.entryClearance??4});
+  const routeKey=digest({scene:s,remodel:yard.remodel,origin,startRoot,endRoot,obstacles});
+  let cached=routeCache.get(routeKey),guard,incoming,outgoing;
+  if(cached){
+   guard=cached.guard;const shift=candidate.at-cached.at;
+   const rebase=route=>({...clone(route),reservations:route.reservations.map(r=>({...clone(r),startMs:r.startMs+shift,endMs:r.endMs+shift}))});
+   incoming=rebase(cached.incoming);outgoing=rebase(cached.outgoing);
+  }else{
+   guard=createAuthoredMotionGround(motion,{remodel:yard.remodel,obstacles});
+   const nav=buildNavigation(yard,{...s,actorRadius:.05,exclusions:s.exclusions||[]});
+   incoming=routes.plan({navigation:nav,guard,anchor:startRoot,entry:s.entry,incoming:true,initialFacing:c.entry.facing,atMs:candidate.at,portalHalfSize:s.entryClearance??4});
+   outgoing=routes.plan({navigation:nav,guard,anchor:endRoot,entry:s.entry,incoming:false,initialFacing:c.exit.facing,atMs:candidate.at,portalHalfSize:s.entryClearance??4});
+   if(incoming.ok&&outgoing.ok){if(routeCache.size>=16)routeCache.delete(routeCache.keys().next().value);routeCache.set(routeKey,{guard,incoming,outgoing,at:candidate.at});}
+  }
   if(!incoming.ok||!outgoing.ok)return{ok:false,code:'AUTHORED_ROUTE_UNAVAILABLE',incomingReason:incoming.reason,outgoingReason:outgoing.reason};
   const fixed=incoming.durationMs+c.durationMs-period+outgoing.durationMs,cycles=Math.floor((candidate.leavesAt-candidate.at-fixed)/period);
   if(cycles<1)return{ok:false,code:'STAY_TOO_SHORT_FOR_AUTHORED_MOTION'};
@@ -68,8 +81,7 @@ export function createCompositeVisitorCandidate({clip,strideContract,motionContr
    ...incoming.legs.map(l=>guard.reservation(l,candidate.at+delay+l.startMs)),...outgoing.legs.map(l=>guard.reservation(l,combinedEnd+l.startMs))];
   for(const r of requestedRows(candidate)){
    const end=Number.isSafeInteger(r.leavesAt)?r.leavesAt:Number.MAX_SAFE_INTEGER,start=Number.isSafeInteger(r.arrivedAt)?r.arrivedAt:-Number.MAX_SAFE_INTEGER;
-   const boxes=r.mediaAdmission?.plan?.reservationBoxes||r.reservationBoxes||[];
-   if(reservations.some(n=>n.startMs<end&&n.endMs>start&&boxes.some(old=>overlaps(n.rect,old))))return{ok:false,code:'PRESENTATION_REGION_RESERVED'};
+   if(presentationReservationsConflict(reservations,r))return{ok:false,code:'PRESENTATION_REGION_RESERVED'};
    if(r.slotId===p.slotId&&candidate.at<end&&candidate.leavesAt>start)return{ok:false,code:'TARGET_PROP_RESERVED'};
   }
   const schedule={version:COMPOSITE_VISITOR_SCHEDULE,arrivalAt:candidate.at,enterAt:candidate.at+delay,leavesAt:candidate.leavesAt,

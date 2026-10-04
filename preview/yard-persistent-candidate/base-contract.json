@@ -43,8 +43,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 7032,
-      "sha256": "0859479c6b08ce42751b23e8317d2585e9050656ec0b40025aee7f0802e017d1"
+      "bytes": 8513,
+      "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445"
     },
     {
       "path": "src/App.jsx",

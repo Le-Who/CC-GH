@@ -42,6 +42,9 @@ scripts/yard-pip-fixture-path.mjs
 recovery-tools/yard-canonical-pebble-qa/
 recovery-tools/yard-canonical-pip-qa/
 recovery-tools/yard-mixed-obstacles/
+# Frozen family pixels and native eight-scene fixtures are CI-only inputs.
+recovery-tools/yard-family-frozen/
+recovery-tools/yard-canonical-eight-qa/
 playwright.yard-pebble.config.js
 playwright.pip-canonical.config.js
 scripts/yard-pebble-ci-server.mjs
