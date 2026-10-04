@@ -4,7 +4,7 @@ import { readFileSync, writeFileSync, mkdirSync, mkdtempSync, symlinkSync, renam
 import { tmpdir } from 'node:os';
 import { fingerprint, PROMOTED_PATHS } from '../scripts/yard-active-contract.mjs';
 import { execFileSync } from 'node:child_process';
-import { deriveDispatcher, normalizeBuildTree, verifyBuildTransition, gitBlob, TOOL_PINS, CLOSED_BUILD, CLOSED_DISPATCHER_BLOB, REVIEWED_BUILD_PATHS, REVIEWED_ACCEPTANCE_PATHS, REVIEWED_TOOL_PATHS, EXTENSION_PATH, DISPATCHER_PATH } from '../scripts/yard-active-build-transition.mjs';
+import { deriveDispatcher, normalizeBuildTree, verifyBuildTransition, gitBlob, TRANSITION_PINS, CLOSED_BUILD, CLOSED_DISPATCHER_BLOB, REVIEWED_BUILD_PATHS, REVIEWED_ACCEPTANCE_PATHS, REVIEWED_TRANSITION_PATHS, REVIEWED_PLAYER_UI_PATHS, EXTENSION_PATH, DISPATCHER_PATH } from '../scripts/yard-active-build-transition.mjs';
 import { assertExactPromotionTree, ADDED_PROMOTION_PATHS } from '../scripts/yard-ci-dispatch.mjs';
 import path from 'node:path';
 import test from 'node:test';
@@ -157,15 +157,15 @@ function buildTreeFixture() {
   const after = new Map(PROMOTED_PATHS.map(p => [p, entry('b'.repeat(40))]));
   for (const p of ADDED_PROMOTION_PATHS) after.set(p, entry('c'.repeat(40)));
   before.set('routes/player.js', entry('d'.repeat(40))); after.set('routes/player.js', entry('d'.repeat(40)));
-  for (const [p, pin] of Object.entries(TOOL_PINS)) { before.set(p, entry(pin.before)); after.set(p, entry(pin.after)); }
+  for (const [p, pin] of Object.entries(TRANSITION_PINS)) { before.set(p, entry(pin.before)); after.set(p, entry(pin.after)); }
   before.set(DISPATCHER_PATH, entry(CLOSED_DISPATCHER_BLOB)); after.set(DISPATCHER_PATH, entry(gitBlob(deriveDispatcher(originalDispatcher()))));
   after.set(EXTENSION_PATH, entry(gitBlob(readFileSync(path.join(authorRoot, EXTENSION_PATH)))));
   return { before, after };
 }
-test('build extension preserves the exact21 source fence and adds separately pinned build and production-acceptance tooling', () => {
+test('build extension preserves the exact21 source fence and adds separately pinned build, acceptance and player-focus changes', () => {
   const { before, after } = buildTreeFixture();
-  assert.deepEqual(assertExactPromotionTree(before, after), { changedFiles: 21, reviewedBuildToolingFiles: 4, reviewedAcceptanceToolingFiles: 8, totalChangedFiles: 33, unchangedFiles: 1 });
-  for (const p of REVIEWED_TOOL_PATHS) {
+  assert.deepEqual(assertExactPromotionTree(before, after), { changedFiles: 21, reviewedBuildToolingFiles: 4, reviewedAcceptanceToolingFiles: 8, reviewedPlayerUiFiles: 1, totalChangedFiles: 34, unchangedFiles: 1 });
+  for (const p of REVIEWED_TRANSITION_PATHS) {
     const bad = new Map(after); bad.set(p, { ...bad.get(p), objectId: 'f'.repeat(40) }); assert.throws(() => assertExactPromotionTree(before, bad));
     const mode = new Map(after); mode.set(p, { ...mode.get(p), mode: '100755' }); assert.throws(() => assertExactPromotionTree(before, mode));
   }
@@ -179,10 +179,12 @@ test('dispatcher extension is derived exactly from A rather than accepting arbit
   const dir = mkdtempSync(path.join(tmpdir(), 'yard-build-wiring-'));
   const gitDir = execFileSync('git', ['rev-parse', '--absolute-git-dir'], { cwd: root, encoding: 'utf8' }).trim();
   writeOwned(dir, '.git', `gitdir: ${gitDir}\n`);
-  for (const file of REVIEWED_TOOL_PATHS) writeOwned(dir, file, readFileSync(path.join(authorRoot, file)));
+  for (const file of REVIEWED_TRANSITION_PATHS) writeOwned(dir, file, readFileSync(path.join(authorRoot, file)));
   const proof = verifyBuildTransition({ rootDir: dir, closedCommit: CLOSED_BUILD });
-  assert.equal(proof.changedFiles, 12); assert.equal(proof.buildTransition.paths.length, 4);
+  assert.equal(proof.changedFiles, 13); assert.equal(proof.buildTransition.paths.length, 4);
   assert.deepEqual(proof.acceptanceTransition.paths, REVIEWED_ACCEPTANCE_PATHS); assert.equal(proof.acceptanceTransition.requiredTotalCases, 9);
+  assert.deepEqual(proof.playerUiTransition, { mode: 'reviewed-placement-focus/v1', paths: REVIEWED_PLAYER_UI_PATHS });
+  assert.deepEqual(REVIEWED_PLAYER_UI_PATHS, ['src/games/companion-yard-v2/CourtyardGame.jsx']);
   writeOwned(dir, DISPATCHER_PATH, derived + '\n// unreviewed dispatcher change\n');
   assert.throws(() => verifyBuildTransition({ rootDir: dir, closedCommit: CLOSED_BUILD }), /exact reviewed transformation/);
 });

@@ -51,7 +51,7 @@ export default function CourtyardGame() {
     return ()=>{clearInterval(interval);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);renderer.dispose();scene.current=null;};
   },[cancel]);
   useEffect(()=>{scene.current?.update(snapshot);if(ghostRef.current){const g=ghostRef.current;const result=checkPlacement(snapshot,g,{placing:g.placing});const next={...g,valid:result.ok};ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);}},[snapshot]);
-  useEffect(()=>{if(panel && !dialog.current.open)dialog.current.showModal();else if(!panel && dialog.current.open)dialog.current.close();},[panel]);
+  useEffect(()=>{if(panel && !dialog.current.open)dialog.current.showModal();else if(!panel && dialog.current.open){dialog.current.close();if(ghostRef.current)canvas.current.focus();}},[panel]);
   useEffect(()=>{if(panel==='guests')setCompanionName(yard.companion?.name || '');},[panel,yard.companion?.name]);
   const act=async(action,payload={})=>{
     if(busy || !current.mutable)return;

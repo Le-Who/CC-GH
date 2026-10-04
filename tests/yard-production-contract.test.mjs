@@ -6,6 +6,21 @@ import {assertProductionAcceptance,verifyImageIdentity,verifyCompatibility,DATAB
 const read=path=>readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const A='a'.repeat(40),B='b'.repeat(40),digest='sha256:'+'c'.repeat(64),repository='ghcr.io/le-who/cc-gh';
 const env={CI:'true',YARD_PRODUCTION_ACCEPTANCE:'1',YARD_ACTIVE_COMMIT:B,YARD_CLOSED_COMMIT:A,YARD_CLOSED_DIGEST:digest,YARD_IMAGE_REPOSITORY:repository};
+test('warm outbox polls retry only updater navigation loss and still require the persisted exact nonce',async()=>{
+ const spec=read('tests/yard-production-e2e/production.spec.js'),match=spec.match(/async function outboxForPoll\(page,id\)\{[\s\S]*?\n\}/);assert.ok(match);
+ const createPoll=readOutbox=>new Function('outbox',`${match[0]};return outboxForPoll;`)(readOutbox);
+ const page={},id='owned-account',nonce='yard-v2:owned-nonce',persisted={items:[{accountId:id,clientActionId:nonce,action:'yard.collectGifts',payload:{},status:'rollout-paused'}]};let reads=0;
+ const poll=createPoll(async(actualPage,actualId)=>{assert.equal(actualPage,page);assert.equal(actualId,id);if(++reads===1)throw Error('page.evaluate: Execution context was destroyed, most likely because of a navigation');return persisted;});
+ assert.equal(await poll(page,id),null,'The interrupted read is not evidence of persistence');assert.equal(await poll(page,id),persisted);assert.equal(reads,2);
+ assert.equal(await createPoll(async()=>{throw Error('Error: page.evaluate: Execution context was destroyed, most likely because of a navigation');})(page,id),null,'The recorded trace error has the same narrow retry classification');
+ for(const message of ['page.evaluate: Target page, context or browser has been closed','page.evaluate: SecurityError: IndexedDB unavailable','Unexpected token in JSON','Execution context was destroyed by an unrelated operation']){
+  const error=Error(message);await assert.rejects(createPoll(async()=>{throw error;})(page,id),actual=>actual===error);
+ }
+ const interrupted=createPoll(async()=>{throw Error('page.evaluate: Execution context was destroyed, most likely because of a navigation\nCall log:');});
+ for(let i=0;i<3;i++)assert.equal((await interrupted(page,id))?.items?.find(row=>row.clientActionId===nonce)?.status,undefined,'Repeated navigation cannot satisfy rollout-paused');
+ assert.equal((spec.match(/\(await outboxForPoll\(page,f.id\)\)/g)||[]).length,3);
+ assert.match(spec,/const pending=await outbox\(page,f.id\)/);assert.match(spec,/timeout:15000\}\)\.toBe\('rollout-paused'\)/);
+});
 test('production lane requires exact explicit identities and rejects overrides or external storage',()=>{
  assert.doesNotThrow(()=>assertProductionAcceptance(env));assert.doesNotThrow(()=>assertProductionAcceptance({...env,DATABASE_URL}));
  for(const [key,value]of Object.entries({CI:'false',YARD_PRODUCTION_ACCEPTANCE:'',YARD_ACTIVE_COMMIT:'latest',YARD_CLOSED_COMMIT:B,YARD_CLOSED_DIGEST:'latest',YARD_IMAGE_REPOSITORY:'other/image',DATABASE_URL:'postgres://host/production',NODE_OPTIONS:'--import loader',DEV_AUTH_ENABLED:'true',TELEGRAM_BOT_TOKEN:'real-token',REDIS_URL:'redis://localhost',YARD_CANDIDATE_CI:'1',YARD_PLAYER_WIRING_TEST:'1',YARD_EIGHT_PLAYER_CANDIDATE_TEST:'1'}))assert.throws(()=>assertProductionAcceptance({...env,[key]:value}),key);
@@ -372,4 +387,36 @@ test('final published proof uses committed HEAD and fails on missing mode, outco
   }
   await writeFile(pass,'malformed');assert.notEqual(run(values).status,0);await rm(pass);assert.notEqual(run(values).status,0,'Missing PASS cannot succeed');
  }finally{await rm(dir,{recursive:true,force:true});}
+});
+
+test('placement restores canvas focus only after the native modal has closed',()=>{
+ const source=read('src/games/companion-yard-v2/CourtyardGame.jsx');
+ const effect=source.match(/useEffect\(\(\)=>\{(if\(panel && !dialog\.current\.open\)[\s\S]*?)\},\[panel\]\);/);
+ assert.ok(effect,'The production modal lifecycle must remain testable');
+ const run=new Function('panel','dialog','ghostRef','canvas',effect[1]);
+ for(const placing of [true,false]){
+  const events=[],dialog={current:{open:true,close(){events.push('close');this.open=false;}}};
+  const canvas={current:{focus(){assert.equal(dialog.current.open,false,'Native modal makes the canvas inert until close');events.push('focus');}}};
+  run(null,dialog,{current:placing?{}:null},canvas);
+  assert.deepEqual(events,placing?['close','focus']:['close']);
+ }
+ const events=[],dialog={current:{open:false,showModal(){events.push('show');this.open=true;}}};
+ run('items',dialog,{current:null},{current:{focus(){events.push('focus');}}});assert.deepEqual(events,['show']);
+});
+
+test('cross-game Home dispatch waits for lazy entry and uses the owned Yard route',async()=>{
+ const spec=read('tests/yard-production-e2e/production.spec.js');
+ const helper=spec.match(/async function crossHome\(page\)\{([\s\S]*?)\n\}/);assert.ok(helper);
+ const AsyncFunction=Object.getPrototypeOf(async function(){}).constructor;
+ for(const route of ['room','merge']){
+  const events=[];let mounted=false;
+  const page={getByTestId:()=>({count:async()=>0}),locator:selector=>{
+   if(selector==='.game-entry-status')return {loading:true};
+   if(selector==='.telegram-app')return {getAttribute:async()=>{assert.ok(mounted);return route;}};
+   throw Error(`Unsupported eager DOM route guess: ${selector}`);
+  },getByRole:(role,options)=>({click:async()=>{assert.equal(options.name,'Back to games');assert.ok(mounted);events.push('yard');}})};
+  const expect=locator=>({toHaveCount:async count=>{assert.ok(locator.loading);assert.equal(count,0);mounted=true;events.push('mounted');}});
+  await new AsyncFunction('page','expect','openHome',helper[1])(page,expect,async()=>events.push('generic'));
+  assert.deepEqual(events,['mounted',route==='room'?'yard':'generic']);
+ }
 });
