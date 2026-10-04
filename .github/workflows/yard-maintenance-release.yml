@@ -1,5 +1,7 @@
 name: Exact ACTIVE maintenance release
 on:
+  push:
+    branches: ['qa/yard-maintenance-release/*']
   workflow_dispatch:
     inputs:
       request_json:
@@ -31,6 +33,7 @@ jobs:
       commit: ${{ steps.request.outputs.commit }}
       digest: ${{ steps.request.outputs.digest }}
       record_sha256: ${{ steps.request.outputs.record_sha256 }}
+      deploy_authorized: ${{ steps.request.outputs.deploy_authorized }}
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
@@ -57,12 +60,15 @@ jobs:
           REQUEST_JSON: ${{ inputs.request_json }}
           REQUEST_SHA256: ${{ inputs.request_sha256 }}
           EXPECTED_TOOL_COMMIT: ${{ github.sha }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_REQUESTED: ${{ inputs.deploy }}
         run: |
           node --input-type=module <<'JS'
           import {writeFileSync,appendFileSync} from 'node:fs';
           import assert from 'node:assert/strict';
-          import {parseMaintenanceRequest} from './tools/tests/helpers/yard-maintenance-guard.mjs';
-          const bytes=process.env.REQUEST_JSON;
+          import {parseMaintenanceRequest,resolveMaintenanceWorkflowRequest} from './tools/tests/helpers/yard-maintenance-guard.mjs';
+          const resolved=await resolveMaintenanceWorkflowRequest({purpose:'release'});
+          const bytes=resolved.bytes;process.env.REQUEST_SHA256=resolved.sha256;
           assert.ok(Buffer.byteLength(bytes)<=131072);
           const request=parseMaintenanceRequest(bytes,process.env.REQUEST_SHA256);
           assert.equal(request.toolCommit,process.env.EXPECTED_TOOL_COMMIT);
@@ -70,7 +76,7 @@ jobs:
           const path=process.env.RUNNER_TEMP+'/yard-maintenance-request.json';
           writeFileSync(path,bytes,{flag:'wx',mode:0o600});
           appendFileSync(process.env.GITHUB_ENV,`YARD_MAINTENANCE_REQUEST=${path}\nYARD_MAINTENANCE_REQUEST_SHA256=${process.env.REQUEST_SHA256}\nYARD_MAINTENANCE_PROOF_DIR=${process.env.RUNNER_TEMP}/yard-maintenance-proof\n`);
-          appendFileSync(process.env.GITHUB_OUTPUT,`commit=${request.candidateCommit}\ndigest=${request.candidateDigest}\nrecord_sha256=${request.recordSha256}\n`);
+          appendFileSync(process.env.GITHUB_OUTPUT,`commit=${request.candidateCommit}\ndigest=${request.candidateDigest}\nrecord_sha256=${request.recordSha256}\ndeploy_authorized=${resolved.deployAuthorized}\n`);
           JS
       - name: Checkout exact candidate for bounded source comparison
         uses: actions/checkout@v6
@@ -163,7 +169,7 @@ jobs:
   deploy:
     name: Deploy accepted ACTIVE maintenance
     needs: maintenance-acceptance
-    if: inputs.deploy == true && github.ref == 'refs/heads/codex/telegram-pixi-vps-migration'
+    if: needs.maintenance-acceptance.outputs.deploy_authorized == 'true'
     permissions:
       contents: read
       packages: read
@@ -182,15 +188,22 @@ jobs:
           CANDIDATE_COMMIT: ${{ needs.maintenance-acceptance.outputs.commit }}
           CANDIDATE_DIGEST: ${{ needs.maintenance-acceptance.outputs.digest }}
           APPROVED_RECORD_SHA: ${{ needs.maintenance-acceptance.outputs.record_sha256 }}
+          REQUEST_JSON: ${{ inputs.request_json }}
+          REQUEST_SHA256: ${{ inputs.request_sha256 }}
+          DEPLOY_REQUESTED: ${{ inputs.deploy }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           node --input-type=module <<'JS'
           import assert from 'node:assert/strict';
           import {readFileSync} from 'node:fs';
           import {execFileSync} from 'node:child_process';
           import {sha256,parseMaintenanceRecord} from './scripts/yard-active-maintenance.mjs';
+          import {resolveMaintenanceWorkflowRequest} from './tests/helpers/yard-maintenance-guard.mjs';
+          const current=await resolveMaintenanceWorkflowRequest({purpose:'release'});assert.equal(current.deployAuthorized,true);
+          assert.equal(current.request.candidateCommit,process.env.CANDIDATE_COMMIT);assert.equal(current.request.candidateDigest,process.env.CANDIDATE_DIGEST);assert.equal(current.request.recordSha256,process.env.APPROVED_RECORD_SHA);
           assert.equal(execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),process.env.CANDIDATE_COMMIT);
           const proof=JSON.parse(readFileSync('maintenance-proof/PASS.json'));
-          assert.equal(proof.format,'cc-gh-yard-maintenance-acceptance/v1');assert.equal(proof.activeCommit,process.env.CANDIDATE_COMMIT);assert.equal(proof.activeDigest,process.env.CANDIDATE_DIGEST);assert.equal(proof.recordSha256,process.env.APPROVED_RECORD_SHA);assert.equal(proof.retries,0);
+          assert.equal(proof.format,'cc-gh-yard-maintenance-acceptance/v1');assert.equal(proof.activeCommit,process.env.CANDIDATE_COMMIT);assert.equal(proof.activeDigest,process.env.CANDIDATE_DIGEST);assert.equal(proof.recordSha256,process.env.APPROVED_RECORD_SHA);assert.equal(proof.retries,0);assert.equal(proof.requestSha256,current.sha256);
           const bytes=readFileSync('maintenance-proof/preflight/record.json'),record=parseMaintenanceRecord(bytes,process.env.APPROVED_RECORD_SHA);
           assert.equal(sha256(readFileSync('maintenance-proof/preflight/predecessor-receipt.json')),record.predecessor.acceptanceReceiptSha256);
           assert.equal(proof.tests,6+record.affectedGames.length);
@@ -220,6 +233,20 @@ jobs:
           port: ${{ secrets.VPS_PORT || '22' }}
           source: "docker-compose.yml,scripts/yard-maintenance-pre-switch-guard.sh,maintenance-proof/preflight/record.json,maintenance-proof/preflight/predecessor-receipt.json"
           target: "/opt/game-hub/releases/${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
+
+      - name: Recheck current reviewed release immediately before switch
+        env:
+          REQUEST_JSON: ${{ inputs.request_json }}
+          REQUEST_SHA256: ${{ inputs.request_sha256 }}
+          DEPLOY_REQUESTED: ${{ inputs.deploy }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+          import {resolveMaintenanceWorkflowRequest} from './tests/helpers/yard-maintenance-guard.mjs';
+          const current=await resolveMaintenanceWorkflowRequest({purpose:'release'}),proof=JSON.parse(readFileSync('maintenance-proof/PASS.json'));
+          assert.equal(current.deployAuthorized,true);assert.equal(current.request.candidateCommit,proof.activeCommit);assert.equal(current.request.candidateDigest,proof.activeDigest);assert.equal(current.request.recordSha256,proof.recordSha256);assert.equal(current.sha256,proof.requestSha256);
+          JS
 
       - name: Verify exact live predecessor and switch accepted digest
         uses: appleboy/ssh-action@v1.0.3

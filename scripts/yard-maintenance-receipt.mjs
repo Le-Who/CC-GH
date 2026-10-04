@@ -18,7 +18,7 @@ export function receiptInventory(kind){
   ['deploy',['Deploy isolated CC-GH stack']],
  ]:[
   ['Accept published ACTIVE maintenance',['Verify exact maintenance source and authoritative predecessor','Run ordinary build and affected-game checks','Require published P-C-P production acceptance']],
-  ['Deploy accepted ACTIVE maintenance',['Verify exact live predecessor and switch accepted digest']],
+  ['Deploy accepted ACTIVE maintenance',['Recheck current reviewed release immediately before switch','Verify exact live predecessor and switch accepted digest']],
  ];
 }
 export function validateReceiptRun(run,locator,release){

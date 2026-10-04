@@ -1,5 +1,7 @@
 name: Build reviewed ACTIVE maintenance image
 on:
+  push:
+    branches: ['qa/yard-maintenance-image/*']
   workflow_dispatch:
     inputs:
       build_request_json:
@@ -31,11 +33,18 @@ jobs:
         env:
           CI: 'true'
           YARD_MAINTENANCE_ACCEPTANCE: '1'
-          YARD_MAINTENANCE_REQUEST_JSON: ${{ inputs.build_request_json }}
-          YARD_MAINTENANCE_REQUEST_SHA256: ${{ inputs.build_request_sha256 }}
+          REQUEST_JSON: ${{ inputs.build_request_json }}
+          REQUEST_SHA256: ${{ inputs.build_request_sha256 }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NODE_OPTIONS: ''
-        run: node scripts/yard-maintenance-cli.mjs --build-plan "$PWD" "$RUNNER_TEMP/maintenance-build-plan"
+        run: |
+          node --input-type=module <<'JS'
+          import {resolveMaintenanceWorkflowRequest} from './tests/helpers/yard-maintenance-guard.mjs';
+          import {execFileSync} from 'node:child_process';
+          const resolved=await resolveMaintenanceWorkflowRequest({purpose:'image'});
+          process.env.YARD_MAINTENANCE_REQUEST_JSON=resolved.bytes.toString('utf8');process.env.YARD_MAINTENANCE_REQUEST_SHA256=resolved.sha256;
+          execFileSync(process.execPath,['scripts/yard-maintenance-cli.mjs','--build-plan',process.cwd(),process.env.RUNNER_TEMP+'/maintenance-build-plan'],{stdio:'inherit',timeout:120000});
+          JS
       - uses: docker/login-action@v4
         with:
           registry: ghcr.io
