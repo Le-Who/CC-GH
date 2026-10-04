@@ -1,0 +1,130 @@
+/* Settlement-only illustrated kit. Uses existing standalone imagegen sources.
+ * This layer composes real art, never screenshot crops or drawn replacement art.
+ * Layout regions/anchor adapters retain ownership of outer geometry/reserves.
+ * Material borders are nine-sliced in CSS to preserve corners at phone widths.
+ */
+.settlement-game-root {
+  --settlement-parchment-art: url('/games/hud-redesign/settlement/dialog-panel.png');
+  --settlement-command-art: url('/games/hud-redesign/settlement/primary-button.png');
+  --settlement-parchment-ink: #352616;
+  --settlement-parchment-muted: #594129;
+}
+
+/* The live production/orders/growth sheet is the first screen players see.
+ * Keep its registered position and height; only compose material/content here. */
+.settlement-game-root .settlement-illustrated-life {
+  container-type: inline-size;
+  background-image: none !important;
+  border-style: solid;
+  border-width: 0;
+  border-image-source: var(--settlement-parchment-art);
+  border-image-slice: 104 80 92 80 fill;
+  border-image-width: 10px 12px;
+  border-image-repeat: stretch;
+  color: var(--settlement-parchment-ink);
+  text-shadow: none;
+}
+.settlement-game-root .settlement-illustrated-life .settlement-cycle-copy > span,
+.settlement-game-root .settlement-illustrated-life .settlement-cycle-feedback {
+  color: var(--settlement-parchment-muted);
+  text-shadow: none;
+}
+.settlement-game-root .settlement-illustrated-life .settlement-cycle-chips .short {
+  color: #8b251c;
+  font-weight: 800;
+}
+.settlement-game-root .settlement-cycle-illustration {
+  display: none;
+  width: 60px;
+  height: 66px;
+  object-fit: contain;
+  pointer-events: none;
+}
+@container (min-width: 340px) {
+  .settlement-game-root .settlement-illustrated-life .settlement-cycle-body {
+    grid-template-columns: 60px minmax(0, 1fr) 80px;
+  }
+  .settlement-game-root .settlement-cycle-illustration { display: block; }
+}
+
+/* Standalone building art makes the detail screen about the selected object.
+ * Never derive an art filename from a constructed-record id such as built:slot. */
+.settlement-game-root .settlement-building-hero {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-style: solid;
+  border-width: 0;
+  border-image-source: var(--settlement-parchment-art);
+  border-image-slice: 104 80 92 80 fill;
+  border-image-width: 8px 10px;
+  border-image-repeat: stretch;
+  color: var(--settlement-parchment-ink);
+  text-shadow: none;
+}
+.settlement-game-root .settlement-building-hero img {
+  width: 76px;
+  height: 76px;
+  object-fit: contain;
+  pointer-events: none;
+}
+.settlement-game-root .settlement-building-hero > div { min-width: 0; }
+.settlement-game-root .settlement-building-hero strong {
+  display: block;
+  font-size: 14px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.settlement-game-root .settlement-building-hero p {
+  margin: 4px 0 0;
+  color: var(--settlement-parchment-muted);
+  font-size: 11px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+/* Screen actions share generated material, while native DOM state stays live.
+ * Nine-slicing avoids distorting the rounded end caps on narrow actions.
+ * Destructive demolition keeps its distinct legacy treatment. */
+.settlement-game-root .right-panel-fancy :is(
+  .building-upgrade-button:not(.demolition-ready),
+  .goals-claim-button,
+  .inventory-action-button-v2,
+  .council-follow-button,
+  .council-action-button-v2,
+  .research-action-button-v2,
+  .world-expedition-action-v2
+),
+.settlement-game-root .settlement-illustrated-life .settlement-cycle-action {
+  background-image: none !important;
+  background-color: transparent !important;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 0;
+  border-image-source: var(--settlement-command-art);
+  border-image-slice: 30 48 fill;
+  border-image-width: 13px 18px;
+  border-image-repeat: stretch;
+  color: #fff0bd;
+  text-shadow: 0 1px 2px #07130c;
+  min-height: 44px;
+}
+.settlement-game-root .right-panel-fancy :is(
+  .building-upgrade-button:not(.demolition-ready),
+  .goals-claim-button,
+  .inventory-action-button-v2,
+  .council-follow-button,
+  .council-action-button-v2,
+  .research-action-button-v2,
+  .world-expedition-action-v2
+):disabled,
+.settlement-game-root .settlement-illustrated-life .settlement-cycle-action:disabled {
+  filter: grayscale(0.8);
+  cursor: default;
+}
+.settlement-game-root .settlement-illustrated-life button:focus-visible {
+  outline: 3px solid #163f30;
+  outline-offset: 1px;
+}

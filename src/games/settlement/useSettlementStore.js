@@ -1,3 +1,4 @@
+import { matchesExpectedExpedition } from './settlementExpeditionActions.js';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, RESEARCH_PANEL_DATA, STAGE_THRESHOLDS, WORLD_MAP_PANEL_DATA } from './gameData.js';
@@ -763,8 +764,10 @@ export function createSettlementStore({ storage = availableStorage(), lock = loc
           selectedExpeditionId: expedition.id
         };
       }),
-      startSelectedExpedition: () => {
+      startSelectedExpedition: (expectedExpeditionId = null) => {
         const state = get();
+        // The command lock has refreshed state; never launch a stale route.
+        if (!matchesExpectedExpedition(state.selectedExpeditionId, expectedExpeditionId)) return false;
         const expedition = WORLD_EXPEDITIONS_BY_ID[state.selectedExpeditionId];
         if (!expedition) return false;
         const stage = getStage(state.resources, state.levels);

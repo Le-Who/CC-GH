@@ -7,6 +7,9 @@ import { AssetIcon, ProgressBar, ResourceIcon, formatDurationMs, formatNumber, f
 function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, onDemolish }) {
   const t = useSettlementText();
   const detail = building.detail ?? {};
+  const illustratedBuildingId = building.constructionItem?.assetBuildingId ?? building.id;
+  const illustratedLevel = building.constructionItem?.assetLevel ?? level;
+  const illustration = trimmedAsset(buildingAsset(illustratedBuildingId, illustratedLevel));
   const cost = upgradeCost(building, level);
   const affordable = canPay(resources, cost);
   const progress = { current: level, max: building.max };
@@ -30,7 +33,13 @@ function BuildingPanel({ building, level, resources, activeUpgrade, onUpgrade, o
 
   return (
     <div className="building-screen">
-      <p className="building-description" style={frameStyle(UI_ASSETS.buildingDescription)}>{t(detail.body ?? building.description)}</p>
+      <section className="settlement-building-hero">
+        <img src={illustration} alt="" draggable={false} />
+        <div>
+          <strong>{t(building.name)}</strong>
+          <p>{t(detail.body ?? building.description)}</p>
+        </div>
+      </section>
 
       <div className="building-level-row" style={frameStyle(UI_ASSETS.buildingLevelRow)}>
         <span>{t("Уровень ")}{t(level)}</span>

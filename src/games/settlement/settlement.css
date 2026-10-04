@@ -8577,8 +8577,21 @@
   border-radius: 8px; background: #33261b; color: #fff0bd; font-weight: 800;
   font-size: 12px; touch-action: manipulation; cursor: pointer;
 }
-.settlement-game-root .settlement-cycle-tabs button[aria-pressed='true'],
-.settlement-game-root .settlement-cycle-action { background: #315335; }
+.settlement-game-root .settlement-cycle-tabs button[aria-pressed='true'] { background: #315335; }
+/* Existing standalone imagegen material, no geometry or gameplay changes. */
+.settlement-game-root .settlement-cycle-action {
+  background: url('/games/hud-redesign/settlement/primary-button.png') center / 100% 100% no-repeat;
+  border-color: transparent;
+  color: #fff0bd;
+  text-shadow: 0 1px 2px #07130c;
+}
+.settlement-game-root .settlement-cycle-action:disabled {
+  filter: grayscale(0.75);
+}
+.settlement-game-root .settlement-store-unavailable .card-copy {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
 .settlement-game-root .settlement-cycle-tabs .settlement-compact-detail-open {
   width: auto; min-width: 0; min-height: 44px; grid-column: auto; background: #33261b;
   font-size: 11px; padding: 4px;

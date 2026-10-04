@@ -1,7 +1,8 @@
+import { getStage, useSettlementStore } from './useSettlementStore.js';
 import { useSettlementText } from './useSettlementText.js';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA, getSettlementPlacementSlotLayout } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
-import { AssetIcon, HudFrame, ProgressBar, ResourceIcon, RewardBadge, formatNumber, frameStyle } from './settlementViewShared.jsx';
+import { AssetIcon, HudFrame, ProgressBar, ResourceIcon, RewardBadge, formatNumber, frameStyle, resourceLabel } from './settlementViewShared.jsx';
 
 const GOAL_ICON_SOURCES = {
   shield: ICONS.shield,
@@ -22,12 +23,23 @@ function GoalIcon({ icon, size = 22 }) {
 function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
   const t = useSettlementText();
   const claimed = new Set(claimedGoalRewardIds);
-  const longTermGoals = GOAL_PANEL_DATA.longTermGoals;
+  const resources = useSettlementStore((state) => state.resources);
+  const levels = useSettlementStore((state) => state.levels);
+  const population = useSettlementStore((state) => state.population);
+  // Only display targets supported by current state. There is no persisted
+  // settlement-level or combat-progress metric, so do not imply those exist.
+  const progressById = {
+    'town-hall-level-10': levels['hearth-hall'] ?? 1,
+    'population-600': population,
+    'prestige-5000': getStage(resources, levels).computedPrestige
+  };
+  const longTermGoals = GOAL_PANEL_DATA.longTermGoals
+    .filter((goal) => Object.hasOwn(progressById, goal.id))
+    .map((goal) => ({ ...goal, progress: { ...goal.progress, current: progressById[goal.id] } }));
   const dailyTasks = GOAL_PANEL_DATA.dailyTasks.map((task) => ({
     ...task,
     claimed: claimed.has(task.id),
-    ready: task.progress.current >= task.progress.max,
-    rewardLabel: `${formatNumber(task.progress.current)} / ${formatNumber(task.progress.max)}`
+    ready: task.progress.current >= task.progress.max
   }));
   const claimableDailyTasks = dailyTasks.filter((task) => task.ready && !task.claimed);
   const readyCount = claimableDailyTasks.length;
@@ -48,9 +60,10 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
       </HudFrame>
 
       <div className="goals-section-head">
-        <span>{t("Долгосрочные цели")}</span>
+        <span>{t("Развитие поселения")}</span>
         <b>{t(longTermGoals.length)}{t(" задачи")}</b>
       </div>
+      <p className="settlement-goal-disclosure">{t("Текущий прогресс поселения. Награды за эти цели пока не подключены.")}</p>
       <div className="goal-card-list goals-longterm-list">
         {longTermGoals.map((goal) => (
           <HudFrame key={goal.id} className="goal-card goal-card-v2" frame={UI_ASSETS.goalsLongtermRow}>
@@ -67,28 +80,25 @@ function GoalsPanel({ claimedGoalRewardIds = [], onClaimRewards }) {
                 label={t(`${formatNumber(goal.progress.current)} / ${formatNumber(goal.progress.max)}`)}
               />
             </div>
-            <div className="goal-card-reward">
-              <span>{t("Награда")}</span>
-              <RewardBadge type={goal.reward.type} amount={goal.reward.amount} frame={UI_ASSETS.goalsRewardBadge} />
-            </div>
+
           </HudFrame>
         ))}
       </div>
 
       <div className="goals-section-head">
-        <span>{t("Ежедневные задачи")}</span>
-        <b>{t("Обновление через: ")}{t(GOAL_PANEL_DATA.dailyRefreshLabel)}</b>
+        <span>{t("Сохранённые разовые награды")}</span>
+        <b>{t("Один раз")}</b>
       </div>
+      <p className="settlement-goal-disclosure">{t("Награды из прежней версии доступны один раз. Они не означают выполнение текущих заданий и не обновляются ежедневно.")}</p>
       <div className="daily-task-list daily-task-list-v2">
         {dailyTasks.map((task) => (
           <HudFrame key={task.id} className={`daily-task-card daily-task-card-v2 ${task.ready ? 'done' : ''} ${task.claimed ? 'claimed' : ''}`} frame={UI_ASSETS.goalsDailyRow}>
             <div className="daily-task-icon" style={frameStyle(UI_ASSETS.goalsIconSlot)}>
-              <GoalIcon icon={task.icon} size={20} />
+              <ResourceIcon type={task.reward.type} size={20} />
             </div>
             <div className="daily-task-copy">
-              <strong>{t(task.title)}</strong>
-              <span>{t(task.description)}</span>
-              <ProgressBar value={task.progress.current} max={task.progress.max} fill="green" label={t(task.rewardLabel)} />
+              <strong>{t(resourceLabel(task.reward.type))}</strong>
+              <span>{t(task.claimed ? 'Получено' : task.ready ? 'Доступно' : 'Недоступно')}</span>
             </div>
             <div className="daily-task-reward">
               <span>{t("Награда")}</span>

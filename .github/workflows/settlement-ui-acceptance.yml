@@ -1,0 +1,80 @@
+name: Settlement UI acceptance
+
+on:
+  pull_request:
+    paths:
+      - 'src/games/settlement/**'
+      - 'src/app/hud-layout/**'
+      - 'src/app/hud-redesign.css'
+      - 'tests/settlement-*.test.*'
+      - 'scripts/verify-settlement-illustrated-ui.mjs'
+      - '.github/workflows/settlement-ui-acceptance.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: settlement-ui-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  illustrated-screens:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_ENV: test
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: 'true'
+      PORT: '3287'
+      SETTLEMENT_QA_URL: http://127.0.0.1:3287
+      SETTLEMENT_QA_OUTPUT: output/playwright/settlement-illustrated
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+      - name: Record exact candidate source
+        run: |
+          mkdir -p output/playwright/settlement-illustrated
+          git rev-parse HEAD > output/playwright/settlement-illustrated/source-sha.txt
+          echo "Settlement capture source: $(git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+      - name: Install locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Run new source and sequencing regressions
+        run: |
+          node --test tests/settlement-secondary-truthfulness.test.mjs tests/settlement-illustrated-kit.test.mjs tests/settlement-goal-presentation.test.mjs tests/settlement-expedition-ui.test.mjs
+          node scripts/hud-layout-validate.mjs
+      - name: Build actual production client
+        env:
+          NODE_ENV: production
+        run: pnpm run build
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Capture actual Settlement screens and enforce mobile controls
+        run: |
+          node server.js > output/playwright/settlement-illustrated/server.log 2>&1 &
+          server_pid=$!
+          trap 'kill "$server_pid" 2>/dev/null || true' EXIT
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3287/ > /dev/null; then break; fi
+            sleep 1
+          done
+          curl --fail --silent http://127.0.0.1:3287/ > /dev/null
+          node scripts/verify-settlement-illustrated-ui.mjs
+      - name: Preserve actual screenshots and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: settlement-ui-${{ github.event.pull_request.head.sha || github.sha }}-${{ github.run_attempt }}
+          path: output/playwright/settlement-illustrated/
+          if-no-files-found: error
+          retention-days: 14

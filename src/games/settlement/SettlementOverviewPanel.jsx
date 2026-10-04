@@ -18,27 +18,8 @@ function OverviewPanel({ resources, levels, population, stage, setPanel, constru
   }, [levels, constructedBuildings, development]);
   const morale = Math.round(resources.morale ?? 0);
   const hallLevel = levels['hearth-hall'] ?? 1;
-  const cottageProgress = Math.max(0, (levels['cottage-ring'] ?? 1) - 1);
-  const goals = [
-    {
-      id: 'lumber',
-      title: 'Постройте Лесопилку',
-      icon: ICONS.wood,
-      value: 0,
-      max: 1,
-      rewardType: 'gems',
-      reward: 150
-    },
-    {
-      id: 'house',
-      title: 'Улучшите Дом до ур. 3',
-      icon: ICONS.store,
-      value: Math.min(3, cottageProgress),
-      max: 3,
-      rewardType: 'gems',
-      reward: 250
-    }
-  ];
+  const cycle = useSettlementStore((s) => s.settlementCycle);
+  const nextDevelopment = DEVELOPMENTS[cycle.development];
 
   return (
     <div className="overview-screen">
@@ -78,16 +59,20 @@ function OverviewPanel({ resources, levels, population, stage, setPanel, constru
       <section className="overview-section overview-goals-section" style={frameStyle(UI_ASSETS.overviewSectionCard)}>
         <h3>{t("Текущие цели")}</h3>
         <div className="overview-goal-list">
-          {goals.map((goal) => (
-            <div key={goal.id} className="overview-goal-row" style={frameStyle(UI_ASSETS.overviewGoalRow)}>
-              <AssetIcon src={goal.icon} alt="" size={22} />
-              <div>
-                <span>{t(goal.title)}</span>
-                <ProgressBar value={goal.value} max={goal.max} fill="green" label={t(`${goal.value} / ${goal.max}`)} />
-              </div>
-              <RewardBadge type={goal.rewardType} amount={goal.reward} />
+          <div className="overview-goal-row" style={frameStyle(UI_ASSETS.overviewGoalRow)}>
+            <AssetIcon src={ICONS.store} alt="" size={22} />
+            <div>
+              <span>{t("Доставленные заказы")}</span>
+              <strong>{t(cycle.deliveries)}</strong>
             </div>
-          ))}
+          </div>
+          <div className="overview-goal-row" style={frameStyle(UI_ASSETS.overviewGoalRow)}>
+            <AssetIcon src={ICONS.shield} alt="" size={22} />
+            <div>
+              <span>{t(nextDevelopment ? "Развивайте поселение во вкладке «Развитие»." : "Деревня процветает")}</span>
+              <ProgressBar value={cycle.development} max={DEVELOPMENTS.length} fill="green" label={t(`${cycle.development} / ${DEVELOPMENTS.length}`)} />
+            </div>
+          </div>
         </div>
         <button className="overview-all-goals-button" type="button" onClick={() => setPanel('goals')}>{t("Все цели")}</button>
       </section>

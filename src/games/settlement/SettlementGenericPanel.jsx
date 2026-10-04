@@ -1,26 +1,22 @@
+import { useSettlementStore } from './useSettlementStore.js';
 import { useSettlementText } from './useSettlementText.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
 import { AssetIcon, HudFrame, ProgressBar, RewardBadge, formatNumber, frameStyle } from './settlementViewShared.jsx';
 
 function GenericPanel({ activePanel, stage, resources, population }) {
   const t = useSettlementText();
+  const notices = useSettlementStore((state) => state.notices);
   if (activePanel === 'inbox') {
     return (
       <div className="panel-body">
         <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.mail} alt="" size={16} /><span>{t("Вести деревни")}</span></div>
         <div className="message-list">
-          <HudFrame className="message-card" frame={UI_ASSETS.panel}>
-            <AssetIcon src={ICONS.calendar} alt="" size={24} />
-            <div className="card-copy"><strong>{t("Сезонный рынок")}</strong><span>{t("Караван прибудет после накопления товаров.")}</span></div>
-          </HudFrame>
-          <HudFrame className="message-card" frame={UI_ASSETS.panel}>
-            <AssetIcon src={ICONS.gift} alt="" size={24} />
-            <div className="card-copy"><strong>{t("Подарок готов")}</strong><span>{t("Можно забрать малый бонус ресурсов.")}</span></div>
-          </HudFrame>
-          <HudFrame className="message-card" frame={UI_ASSETS.panel}>
-            <AssetIcon src={ICONS.event} alt="" size={24} />
-            <div className="card-copy"><strong>{t("Событие деревни")}</strong><span>{t("Следите за моралью и культурой.")}</span></div>
-          </HudFrame>
+          {notices.length ? notices.map((notice) => (
+            <HudFrame key={notice.id} className="message-card" frame={UI_ASSETS.panel}>
+              <AssetIcon src={ICONS.mail} alt="" size={24} />
+              <div className="card-copy"><span>{t(notice.text)}</span></div>
+            </HudFrame>
+          )) : <p role="status">{t("Сейчас новых вестей нет.")}</p>}
         </div>
       </div>
     );
@@ -46,18 +42,13 @@ function GenericPanel({ activePanel, stage, resources, population }) {
     return (
       <div className="panel-body">
         <div className="panel-subtitle panel-subtitle-row"><AssetIcon src={ICONS.store} alt="" size={16} /><span>{t("Магазин и предложения")}</span></div>
-        <div className="offer-list">
-          <HudFrame className="offer-card" frame={UI_ASSETS.panel}>
-            <AssetIcon src={ICONS.starterPack} alt="" size={32} />
-            <div className="card-copy"><strong>{t("Стартовый набор")}</strong><span>{t("Сундук, золото, товары")}</span></div>
-            <button type="button" className="offer-action" style={frameStyle(UI_ASSETS.iconButton)}>+</button>
-          </HudFrame>
-          <HudFrame className="offer-card" frame={UI_ASSETS.panel}>
-            <AssetIcon src={ICONS.gift} alt="" size={32} />
-            <div className="card-copy"><strong>{t("Ежедневный подарок")}</strong><span>{t("Бесплатная награда")}</span></div>
-            <button type="button" className="offer-action" style={frameStyle(UI_ASSETS.iconButton)}>+</button>
-          </HudFrame>
-        </div>
+        <HudFrame className="message-card settlement-store-unavailable" frame={UI_ASSETS.panel}>
+          <AssetIcon src={ICONS.store} alt="" size={32} />
+          <div className="card-copy">
+            <strong>{t("Магазин пока недоступен")}</strong>
+            <span>{t("Покупки и ежедневные подарки ещё не подключены. Ресурсы можно получать во вкладке «Выпуск» и за заказы жителей.")}</span>
+          </div>
+        </HudFrame>
       </div>
     );
   }
