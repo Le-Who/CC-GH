@@ -173,3 +173,38 @@ test('HUD generator routes source-only QA exports and metadata outside public', 
     await fs.access(asset.runtimePath);
   }
 });
+
+test('five unreachable entry HUD skins are archived byte-exactly and absent from current source and output metadata', async () => {
+  const inventory = JSON.parse(await fs.readFile('docs/entry-hud-retirement-inventory.json', 'utf8'));
+  const proof = JSON.parse(await fs.readFile('tests/fixtures/shared-hud-webp-proof.json', 'utf8'));
+  assert.equal(inventory.files.length, 5);
+  assert.equal(inventory.removedFromPublicBytes, 371894);
+  assert.deepEqual(proof.files.filter(asset => sourceOnlyAssetDestination(asset.runtimePath)).map(asset => asset.runtimePath).sort(), inventory.files.map(row => row.path).sort());
+  const hud = await fs.readFile('src/app/hud-redesign.css', 'utf8');
+  const yard = await fs.readFile('src/games/companion-yard/companion-yard.css', 'utf8');
+  const manifest = JSON.parse(await fs.readFile('assets-source/imagegen/hud-redesign/hud-redesign-manifest.json', 'utf8'));
+  const surfaces = JSON.parse(await fs.readFile('assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json', 'utf8'));
+  for (const row of inventory.files) {
+    const original = proof.files.find(asset => asset.runtimePath === row.path);
+    assert.ok(original, row.path); assert.equal(sourceOnlyAssetDestination(row.path), row.to);
+    assert.equal(isRetiredAssetPath(row.path), true);
+    await assert.rejects(fs.access(row.path), { code: 'ENOENT' });
+    const bytes = await fs.readFile(row.to);
+    assert.equal(bytes.length, original.runtimeBytes);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'), original.runtimeSha256);
+    assert.equal(hud.includes(row.path.slice('public'.length)), false);
+    assert.equal(yard.includes(row.path.slice('public'.length)), false);
+  }
+  for (const id of ['blox','bubbo','match3','merge']) {
+    const row = manifest.games[id].assets.find(asset => asset.id === 'metric-chip');
+    assert.equal(row.runtime, false); assert.equal(row.runtimePath, sourceOnlyAssetDestination(`public/games/hud-redesign/${id}/metric-chip.webp`));
+  }
+  const panel = surfaces.outputs.find(row => row.name === 'yard-panel');
+  assert.equal(panel.runtime, false); assert.equal(panel.path, sourceOnlyAssetDestination('public/games/ui-surfaces/yard-panel.webp'));
+  // Every supported Yard dialog provides an owned screen skin; no generic
+  // fallback is needed, including when the HUD editor changes geometry.
+  for (const id of ['food','goodies','shop','petbook','album','gifts','settings','repair','remodel','expansion','daily','companion']) {
+    assert.ok(yard.includes(`.yard-game-screen[data-yard-screen="${id}"] { --yard-screen-panel-art:`), id);
+  }
+  assert.doesNotMatch(yard, /--yard-generated-dialog-art/);
+});

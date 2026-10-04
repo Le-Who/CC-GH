@@ -1,5 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
+import { formatYardCurrencyBalance } from "../src/games/companion-yard/currencyDisplay.js";
 import { VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
 import {
   EXACT_PREVIEW_PRESETS,
@@ -341,4 +342,50 @@ describe("HUD editor map-placement selection", () => {
     assert.equal(getHudRegionBoxZIndex({ capabilities: { mode: "custom" } }), 2147483001);
     assert.equal(getHudRegionBoxZIndex({ capabilities: { mode: "custom", control: true } }), 2147483004, "A header control must remain selectable over its background artwork");
   });
+});
+
+
+describe("legacy Yard small-phone currency budget", () => {
+  it("reserves toolbar space in the small portrait profile and existing tall fallback", () => {
+    for (const [width, height, maxWidth] of [[320, 568, 120], [360, 800, 120], [390, 844, undefined], [414, 896, 120], [430, 932, 120], [568, 320, undefined], [768, 1024, undefined], [1024, 768, undefined]]) {
+      const layout = resolveHudLayout({ repoLayout: HUD_LAYOUT_DEFAULTS.room, viewport: { width, height } });
+      assert.equal(layout.regions.yardCurrencyStack.maxWidth, maxWidth, `${width}x${height}`);
+      const style = getHudRegionRuntimeStyle(layout.regions.yardCurrencyStack);
+      assert.equal(style.maxWidth, maxWidth === undefined ? undefined : "120px");
+    }
+  });
+
+  it("preserves authorized editor offsets and sizing without enabling player overrides", () => {
+    const input = {
+      repoLayout: HUD_LAYOUT_DEFAULTS.room,
+      viewport: { width: 320, height: 568 },
+      localOverrides: { profiles: { "phone-small-portrait": { regions: { yardCurrencyStack: { x: 5, y: 7, maxWidth: 112 } } } } },
+    };
+    const player = resolveHudLayout(input).regions.yardCurrencyStack;
+    assert.deepEqual([player.x, player.y, player.maxWidth], [0, 0, 120]);
+    const editor = resolveHudLayout({ ...input, allowLocalOverrides: true }).regions.yardCurrencyStack;
+    assert.deepEqual([editor.x, editor.y, editor.maxWidth], [5, 7, 112]);
+    const style = getHudRegionRuntimeStyle(editor);
+    assert.equal(style["--hud-region-x"], "5px");
+    assert.equal(style["--hud-region-y"], "7px");
+    assert.equal(style.maxWidth, "112px");
+  });
+});
+
+
+describe("legacy Yard localized currency presentation", () => {
+  for (const language of ["en", "ru"]) {
+    it(`keeps exact ${language} balances accessible and visible units bounded through legal maxima`, () => {
+      for (const amount of [0, 3, 999, 1000, 9999, 10000, 99949, 99999, 100000, 999000, 999499, 999500, 999999, 1000000, 999000000, 999499999, 999999999, 1000000000]) {
+        const balance = formatYardCurrencyBalance(amount, language);
+        assert.equal(balance.exact.replace(/[^0-9]/g, ""), String(amount));
+        assert.ok(balance.compact.length <= 8, `${language} ${amount}: ${balance.compact}`);
+        assert.doesNotMatch(balance.compact, /…|\.\.\.|e[+-]\d/);
+        if (amount < 10000) assert.equal(balance.compact, String(amount));
+      }
+      assert.equal(formatYardCurrencyBalance(1000000000, language).compact, language === "ru" ? "1 млрд" : "1B");
+      assert.equal(formatYardCurrencyBalance(1000000, language).compact, language === "ru" ? "1 млн" : "1M");
+      assert.equal(formatYardCurrencyBalance(999000, language).compact, language === "ru" ? "999 тыс." : "999K");
+    });
+  }
 });

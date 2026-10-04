@@ -1,0 +1,439 @@
+From ae4d7400c103a80559f143fcdb92ae03d8b7d454 Mon Sep 17 00:00:00 2001
+From: dot <dot@local.invalid>
+Date: Sun, 4 Oct 2026 08:50:32 +0300
+Subject: [PATCH] Retire five unreachable entry HUD exports from public assets
+
+---
+ .../hud-redesign/hud-redesign-manifest.json   |  20 +++---
+ .../qa-exports}/blox/metric-chip.webp         | Bin
+ .../qa-exports}/bubbo/metric-chip.webp        | Bin
+ .../qa-exports}/match3/metric-chip.webp       | Bin
+ .../qa-exports}/merge/metric-chip.webp        | Bin
+ .../qa-exports}/ui-surfaces/yard-panel.webp   | Bin
+ .../screen-surface-extract-manifest.json      |   4 +-
+ docs/entry-hud-retirement-inventory.json      |  47 +++++++++++++
+ docs/unreachable-entry-hud-art.md             |  64 ++++++++++++++++++
+ scripts/asset-source-only-policy.mjs          |   5 ++
+ src/app/hud-redesign.css                      |  10 +--
+ src/games/companion-yard/companion-yard.css   |   3 +-
+ tests/asset-retirement.test.js                |  35 ++++++++++
+ tests/assets-pipeline.test.js                 |   7 +-
+ tests/e2e/assets-runtime.spec.js              |  14 ++--
+ 15 files changed, 185 insertions(+), 24 deletions(-)
+ rename {public/games/hud-redesign => assets-source/imagegen/hud-redesign/qa-exports}/blox/metric-chip.webp (100%)
+ rename {public/games/hud-redesign => assets-source/imagegen/hud-redesign/qa-exports}/bubbo/metric-chip.webp (100%)
+ rename {public/games/hud-redesign => assets-source/imagegen/hud-redesign/qa-exports}/match3/metric-chip.webp (100%)
+ rename {public/games/hud-redesign => assets-source/imagegen/hud-redesign/qa-exports}/merge/metric-chip.webp (100%)
+ rename {public/games => assets-source/imagegen/hud-redesign/qa-exports}/ui-surfaces/yard-panel.webp (100%)
+ create mode 100644 docs/entry-hud-retirement-inventory.json
+ create mode 100644 docs/unreachable-entry-hud-art.md
+
+diff --git a/assets-source/imagegen/hud-redesign/hud-redesign-manifest.json b/assets-source/imagegen/hud-redesign/hud-redesign-manifest.json
+index 05ff80a..1c3c295 100644
+--- a/assets-source/imagegen/hud-redesign/hud-redesign-manifest.json
++++ b/assets-source/imagegen/hud-redesign/hud-redesign-manifest.json
+@@ -361,10 +361,11 @@
+           "dataFree": true,
+           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/metric-chip.source.chromakey.png",
+           "path": "assets-source/imagegen/hud-redesign/assets/blox/metric-chip.chromakey.png",
+-          "runtimePath": "public/games/hud-redesign/blox/metric-chip.webp",
++          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
+           "width": 220,
+           "height": 86,
+-          "chromaKey": "#00ff00"
++          "chromaKey": "#00ff00",
++          "runtime": false
+         },
+         {
+           "id": "icon-badge",
+@@ -577,10 +578,11 @@
+           "dataFree": true,
+           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/metric-chip.source.chromakey.png",
+           "path": "assets-source/imagegen/hud-redesign/assets/match3/metric-chip.chromakey.png",
+-          "runtimePath": "public/games/hud-redesign/match3/metric-chip.webp",
++          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
+           "width": 220,
+           "height": 86,
+-          "chromaKey": "#00ff00"
++          "chromaKey": "#00ff00",
++          "runtime": false
+         },
+         {
+           "id": "icon-badge",
+@@ -810,10 +812,11 @@
+           "dataFree": true,
+           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/metric-chip.source.chromakey.png",
+           "path": "assets-source/imagegen/hud-redesign/assets/merge/metric-chip.chromakey.png",
+-          "runtimePath": "public/games/hud-redesign/merge/metric-chip.webp",
++          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
+           "width": 220,
+           "height": 86,
+-          "chromaKey": "#ff00ff"
++          "chromaKey": "#ff00ff",
++          "runtime": false
+         },
+         {
+           "id": "icon-badge",
+@@ -1013,10 +1016,11 @@
+           "dataFree": true,
+           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/metric-chip.source.chromakey.png",
+           "path": "assets-source/imagegen/hud-redesign/assets/bubbo/metric-chip.chromakey.png",
+-          "runtimePath": "public/games/hud-redesign/bubbo/metric-chip.webp",
++          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
+           "width": 220,
+           "height": 86,
+-          "chromaKey": "#00ff00"
++          "chromaKey": "#00ff00",
++          "runtime": false
+         },
+         {
+           "id": "icon-badge",
+diff --git a/public/games/hud-redesign/blox/metric-chip.webp b/assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp
+similarity index 100%
+rename from public/games/hud-redesign/blox/metric-chip.webp
+rename to assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp
+diff --git a/public/games/hud-redesign/bubbo/metric-chip.webp b/assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp
+similarity index 100%
+rename from public/games/hud-redesign/bubbo/metric-chip.webp
+rename to assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp
+diff --git a/public/games/hud-redesign/match3/metric-chip.webp b/assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp
+similarity index 100%
+rename from public/games/hud-redesign/match3/metric-chip.webp
+rename to assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp
+diff --git a/public/games/hud-redesign/merge/metric-chip.webp b/assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp
+similarity index 100%
+rename from public/games/hud-redesign/merge/metric-chip.webp
+rename to assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp
+diff --git a/public/games/ui-surfaces/yard-panel.webp b/assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp
+similarity index 100%
+rename from public/games/ui-surfaces/yard-panel.webp
+rename to assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp
+diff --git a/assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json b/assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json
+index f5404eb..1c79bf6 100644
+--- a/assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json
++++ b/assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json
+@@ -79,8 +79,8 @@
+       "height": 512,
+       "source": "imagegen-source-art-data-free",
+       "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/screen-panel.source.chromakey.png",
+-      "path": "public/games/ui-surfaces/yard-panel.webp",
+-      "runtime": true
++      "path": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
++      "runtime": false
+     },
+     {
+       "name": "farm-panel",
+diff --git a/docs/entry-hud-retirement-inventory.json b/docs/entry-hud-retirement-inventory.json
+new file mode 100644
+index 0000000..e2ed0de
+--- /dev/null
++++ b/docs/entry-hud-retirement-inventory.json
+@@ -0,0 +1,47 @@
++{
++  "baseCommit": "53e5fbf6b7b774ccf35ade0244dc6690519ea15f",
++  "removedFromPublicFiles": 5,
++  "removedFromPublicBytes": 371894,
++  "files": [
++    {
++      "path": "public/games/hud-redesign/blox/metric-chip.webp",
++      "action": "move-source-only",
++      "to": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
++      "bytes": 13466,
++      "sha256": "cd3623a8e8c625e10aed7b0b325e83fff2571aab238c8dee030f6336f78526ae",
++      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
++    },
++    {
++      "path": "public/games/hud-redesign/bubbo/metric-chip.webp",
++      "action": "move-source-only",
++      "to": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
++      "bytes": 14996,
++      "sha256": "9b81a3c03939847bd8a5127f3c281a866fdd4df91d90f76f011c6be45a801d2e",
++      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
++    },
++    {
++      "path": "public/games/hud-redesign/match3/metric-chip.webp",
++      "action": "move-source-only",
++      "to": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
++      "bytes": 15512,
++      "sha256": "9ab3cb6c1fe533313e5581c9c8dc1c733243d531ff53474bfe70564ae13077a3",
++      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
++    },
++    {
++      "path": "public/games/hud-redesign/merge/metric-chip.webp",
++      "action": "move-source-only",
++      "to": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
++      "bytes": 16126,
++      "sha256": "94ae4af74835e36c4e419f1a2e31b9780965dbf1e769b91e2b750b427d45d7af",
++      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
++    },
++    {
++      "path": "public/games/ui-surfaces/yard-panel.webp",
++      "action": "move-source-only",
++      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
++      "bytes": 311794,
++      "sha256": "a8eef4f545962b71749e3123f54bc5b485acded6dec42609914a2dbc58633c83",
++      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
++    }
++  ]
++}
+diff --git a/docs/unreachable-entry-hud-art.md b/docs/unreachable-entry-hud-art.md
+new file mode 100644
+index 0000000..05195db
+--- /dev/null
++++ b/docs/unreachable-entry-hud-art.md
+@@ -0,0 +1,64 @@
++# Retire five unreachable shared HUD exports
++
++Base: `53e5fbf6b7b774ccf35ade0244dc6690519ea15f`, following the bounded entry
++fixture correction. This supersedes the proposed compatibility-only HTTP 200
++classification; retaining unused files only for a historical proof was not
++justified.
++
++## Exact consumer audit
++
++| Retired public path | Why no supported live consumer remains |
++| --- | --- |
++| `/games/hud-redesign/blox/metric-chip.webp` | Current Blox renders its `bx-*` HUD. The shared metric variable only feeds global `.stat-chip`, generic game stats and generic event-log CSS. Immersive global stats are hidden from route selection onward. `GamePlayHud` and `GameEventLog` have no runtime callers. |
++| `/games/hud-redesign/bubbo/metric-chip.webp` | Current Bubbo renders its `bb-*` HUD; the same unused shared consumers apply. |
++| `/games/hud-redesign/match3/metric-chip.webp` | Current Match3 renders its `m3-*` HUD; the same unused shared consumers apply. |
++| `/games/hud-redesign/merge/metric-chip.webp` | Merge v3 renders `ml-*` controls. The retained `LegacyMergeGame` fallback also renders custom `merge-hud-*` controls, not shared metric chips or generic event-log components. |
++| `/games/ui-surfaces/yard-panel.webp` | This is an unused generic dialog fallback, not the live Yard dock. Every one of the twelve supported `.yard-game-screen[data-yard-screen]` states supplies its own `--yard-screen-panel-art`; the base rule also provides the Shop panel. The live dock uses `room/dock-panel.webp`. |
++
++Relevant runtime sources: `src/App.jsx`, `src/app/gameChunks.jsx`,
++`src/app/shell.jsx`, current game presentations, `LegacyMergeGame.jsx`,
++`CompanionYardGame.jsx`, and `companion-yard.css`.
++
++The HUD editor changes visibility/geometry/style parameters; it does not render
++these files as asset thumbnails, choose these URLs, or override the immersive
++CSS rule that hides global stats. No non-game screen, selected Yard dialog,
++closed legacy Yard route or Legacy Merge state was found to consume the five
++exports. Mere remaining CSS-variable declarations were not counted as use.
++
++## Retirement and preservation
++
++Five byte-identical WebP exports move from `public/` to the established
++`assets-source/imagegen/hud-redesign/qa-exports/` archive. This removes 371,894
++bytes from the published asset set. Original standalone source art and Git
++history remain intact.
++
++The source-only policy now prevents publishing or regenerating these five
++paths. The source generator already honors that policy. Generator/source
++inventories mark the archived outputs `runtime: false`; the public manual
++manifest already contains none of these five references. Dead CSS URLs and the
++unused Yard dialog fallback are removed. Current Yard panel selection,
++controllers, state, saves and assets remain unchanged.
++
++`docs/entry-hud-retirement-inventory.json` records each exact old/new path, byte
++count and SHA-256. The historical twelve-file WebP proof JSON is unchanged.
++Its native pixel check reads archived paths for these five exports and current
++public paths for the other seven. The browser proof now requires no runtime
++request plus HTTP 404 (never SPA HTML) for the retired paths, then verifies the
++archived bytes and browser decode dimensions. The other seven exports still
++require actual page requests.
++
++## Evidence and limits
++
++- The new focused retirement test passes: exact five-path classification,
++  archive SHA-256/length, absent public files, source URL removal, source-only
++  generator metadata and all twelve current Yard screen skins.
++- All five archived images decode with installed Pillow to the exact width,
++  height, RGBA length and RGBA SHA-256 in the unchanged historical proof.
++- 49 focused entry/browser-contract/Home/runtime-URL/HUD tests pass.
++- HUD validation passes for eight games/fifteen presets, with the same existing
++  Blox/Match3 reserve warnings. Syntax/diff checks pass.
++- Full asset-pipeline/Sharp, build and genuine browser retirement/404 validation
++  require the next CI run. No local dependency install or browser restriction
++  was bypassed, and no full-suite pass is claimed.
++
++The rejected compatibility-only patch must not be applied alongside this one.
+diff --git a/scripts/asset-source-only-policy.mjs b/scripts/asset-source-only-policy.mjs
+index 0da4a44..90f6f68 100644
+--- a/scripts/asset-source-only-policy.mjs
++++ b/scripts/asset-source-only-policy.mjs
+@@ -1,6 +1,11 @@
+ // Reviewed exports used only by source-art QA, never by a current renderer.
+ // Keep the bytes and their provenance outside Vite's unconditional public copy.
+ export const SOURCE_ONLY_PUBLIC_ASSETS = Object.freeze({
++  "public/games/hud-redesign/blox/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
++  "public/games/hud-redesign/bubbo/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
++  "public/games/hud-redesign/match3/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
++  "public/games/hud-redesign/merge/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
++  "public/games/ui-surfaces/yard-panel.webp": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
+   "public/games/hud-redesign/garden/tool-slot.png": "assets-source/imagegen/hud-redesign/qa-exports/garden/tool-slot.png",
+   "public/games/hud-redesign/garden/screen-panel.png": "assets-source/imagegen/hud-redesign/qa-exports/garden/screen-panel.png",
+   "public/games/hud-redesign/garden/dialog-panel.png": "assets-source/imagegen/hud-redesign/qa-exports/garden/dialog-panel.png",
+diff --git a/src/app/hud-redesign.css b/src/app/hud-redesign.css
+index f45ed34..66d39f7 100644
+--- a/src/app/hud-redesign.css
++++ b/src/app/hud-redesign.css
+@@ -33,7 +33,7 @@
+   --hud-redesign-dialog-art: url("/games/ui-surfaces/blox-dialog-panel.png");
+   --hud-redesign-dock-art: url("/games/hud-redesign/blox/dock-panel.png");
+   --hud-redesign-button-art: url("/games/hud-redesign/blox/primary-button.png");
+-  --hud-redesign-metric-art: url("/games/hud-redesign/blox/metric-chip.webp");
++  --hud-redesign-metric-art: none;
+   --hud-redesign-icon-art: url("/games/hud-redesign/blox/icon-badge.png");
+   --hud-redesign-ink: #efe9ff;
+   --hud-redesign-muted: rgba(239, 233, 255, 0.72);
+@@ -47,7 +47,7 @@
+   --hud-redesign-dialog-art: url("/games/ui-surfaces/match3-dialog-panel.png");
+   --hud-redesign-dock-art: url("/games/hud-redesign/match3/dock-panel.png");
+   --hud-redesign-button-art: url("/games/hud-redesign/match3/primary-button.png");
+-  --hud-redesign-metric-art: url("/games/hud-redesign/match3/metric-chip.webp");
++  --hud-redesign-metric-art: none;
+   --hud-redesign-icon-art: url("/games/hud-redesign/match3/icon-badge.png");
+   --hud-redesign-ink: #fff4ff;
+   --hud-redesign-muted: rgba(255, 244, 255, 0.72);
+@@ -61,7 +61,7 @@
+   --hud-redesign-dialog-art: url("/games/ui-surfaces/merge-dialog-panel.png");
+   --hud-redesign-dock-art: url("/games/hud-redesign/merge/dock-panel.png");
+   --hud-redesign-button-art: url("/games/hud-redesign/merge/primary-button.png");
+-  --hud-redesign-metric-art: url("/games/hud-redesign/merge/metric-chip.webp");
++  --hud-redesign-metric-art: none;
+   --hud-redesign-icon-art: url("/games/hud-redesign/merge/icon-badge.png");
+   --hud-redesign-ink: #fff0cf;
+   --hud-redesign-muted: rgba(255, 240, 207, 0.72);
+@@ -75,7 +75,7 @@
+   --hud-redesign-dialog-art: url("/games/ui-surfaces/bubbo-dialog-panel.png");
+   --hud-redesign-dock-art: url("/games/hud-redesign/bubbo/dock-panel.png");
+   --hud-redesign-button-art: url("/games/hud-redesign/bubbo/primary-button.png");
+-  --hud-redesign-metric-art: url("/games/hud-redesign/bubbo/metric-chip.webp");
++  --hud-redesign-metric-art: none;
+   --hud-redesign-icon-art: url("/games/hud-redesign/bubbo/icon-badge.png");
+   --hud-redesign-ink: #e8fbff;
+   --hud-redesign-muted: rgba(232, 251, 255, 0.74);
+@@ -100,7 +100,7 @@
+ .telegram-app[data-active-tab="room"],
+ .companion-yard-layout {
+   --hud-redesign-panel-art: url("/games/hud-redesign/room/hud-panel.webp");
+-  --hud-redesign-dialog-art: url("/games/ui-surfaces/yard-panel.webp");
++  --hud-redesign-dialog-art: none;
+   --hud-redesign-dock-art: url("/games/hud-redesign/room/dock-panel.webp");
+   --hud-redesign-button-art: url("/games/hud-redesign/room/primary-button.png");
+   --hud-redesign-metric-art: url("/games/hud-redesign/room/metric-chip.webp");
+diff --git a/src/games/companion-yard/companion-yard.css b/src/games/companion-yard/companion-yard.css
+index f01bca0..74e1ec9 100644
+--- a/src/games/companion-yard/companion-yard.css
++++ b/src/games/companion-yard/companion-yard.css
+@@ -2021,7 +2021,6 @@
+ 
+ .companion-yard-layout {
+   --yard-generated-panel-art: url("/games/hud-redesign/room/screen-panel.png");
+-  --yard-generated-dialog-art: url("/games/ui-surfaces/yard-panel.webp");
+   --yard-generated-dock-art: url("/games/hud-redesign/room/dock-panel.webp");
+   --yard-generated-button-art: url("/games/hud-redesign/room/primary-button.png");
+   --yard-generated-icon-art: url("/games/hud-redesign/room/icon-badge.webp");
+@@ -2038,7 +2037,7 @@
+ 
+ .companion-yard-layout .yard-game-screen {
+   background:
+-    var(--yard-screen-panel-art, var(--yard-generated-dialog-art)) center / 100% 100% no-repeat !important;
++    var(--yard-screen-panel-art) center / 100% 100% no-repeat !important;
+   border: 0;
+   padding: clamp(14px, 3vw, 20px);
+   -webkit-backdrop-filter: none;
+diff --git a/tests/asset-retirement.test.js b/tests/asset-retirement.test.js
+index c014a00..705e7ee 100644
+--- a/tests/asset-retirement.test.js
++++ b/tests/asset-retirement.test.js
+@@ -173,3 +173,38 @@ test('HUD generator routes source-only QA exports and metadata outside public',
+     await fs.access(asset.runtimePath);
+   }
+ });
++
++test('five unreachable entry HUD skins are archived byte-exactly and absent from current source and output metadata', async () => {
++  const inventory = JSON.parse(await fs.readFile('docs/entry-hud-retirement-inventory.json', 'utf8'));
++  const proof = JSON.parse(await fs.readFile('tests/fixtures/shared-hud-webp-proof.json', 'utf8'));
++  assert.equal(inventory.files.length, 5);
++  assert.equal(inventory.removedFromPublicBytes, 371894);
++  assert.deepEqual(proof.files.filter(asset => sourceOnlyAssetDestination(asset.runtimePath)).map(asset => asset.runtimePath).sort(), inventory.files.map(row => row.path).sort());
++  const hud = await fs.readFile('src/app/hud-redesign.css', 'utf8');
++  const yard = await fs.readFile('src/games/companion-yard/companion-yard.css', 'utf8');
++  const manifest = JSON.parse(await fs.readFile('assets-source/imagegen/hud-redesign/hud-redesign-manifest.json', 'utf8'));
++  const surfaces = JSON.parse(await fs.readFile('assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json', 'utf8'));
++  for (const row of inventory.files) {
++    const original = proof.files.find(asset => asset.runtimePath === row.path);
++    assert.ok(original, row.path); assert.equal(sourceOnlyAssetDestination(row.path), row.to);
++    assert.equal(isRetiredAssetPath(row.path), true);
++    await assert.rejects(fs.access(row.path), { code: 'ENOENT' });
++    const bytes = await fs.readFile(row.to);
++    assert.equal(bytes.length, original.runtimeBytes);
++    assert.equal(createHash('sha256').update(bytes).digest('hex'), original.runtimeSha256);
++    assert.equal(hud.includes(row.path.slice('public'.length)), false);
++    assert.equal(yard.includes(row.path.slice('public'.length)), false);
++  }
++  for (const id of ['blox','bubbo','match3','merge']) {
++    const row = manifest.games[id].assets.find(asset => asset.id === 'metric-chip');
++    assert.equal(row.runtime, false); assert.equal(row.runtimePath, sourceOnlyAssetDestination(`public/games/hud-redesign/${id}/metric-chip.webp`));
++  }
++  const panel = surfaces.outputs.find(row => row.name === 'yard-panel');
++  assert.equal(panel.runtime, false); assert.equal(panel.path, sourceOnlyAssetDestination('public/games/ui-surfaces/yard-panel.webp'));
++  // Every supported Yard dialog provides an owned screen skin; no generic
++  // fallback is needed, including when the HUD editor changes geometry.
++  for (const id of ['food','goodies','shop','petbook','album','gifts','settings','repair','remodel','expansion','daily','companion']) {
++    assert.ok(yard.includes(`.yard-game-screen[data-yard-screen="${id}"] { --yard-screen-panel-art:`), id);
++  }
++  assert.doesNotMatch(yard, /--yard-generated-dialog-art/);
++});
+diff --git a/tests/assets-pipeline.test.js b/tests/assets-pipeline.test.js
+index 2a8ef05..6461bf3 100644
+--- a/tests/assets-pipeline.test.js
++++ b/tests/assets-pipeline.test.js
+@@ -6,6 +6,7 @@ import path from "node:path";
+ import {createHash} from "node:crypto";
+ import arcadeWebpProof from "./fixtures/arcade-webp-proof.json" with {type:"json"};
+ import sharedHudWebpProof from "./fixtures/shared-hud-webp-proof.json" with {type:"json"};
++import { sourceOnlyAssetDestination } from "../scripts/asset-source-only-policy.mjs";
+ 
+ import sharp from "sharp";
+ import { buildAssetRuntimeManifest } from "../scripts/assets-pipeline.mjs";
+@@ -507,11 +508,13 @@ it('decodes all 39 arcade lossless WebP exports to exact original RGBA including
+   }
+ });
+ 
+-it('decodes all 12 shared HUD WebP exports to exact original RGBA and retires their runtime PNGs', async () => {
++it('decodes all 12 shared HUD WebP exports including source-only archives to exact original RGBA', async () => {
+   assert.equal(sharedHudWebpProof.files.length, 12);
+   const entries = await loadAssetPipelineEntries(process.cwd());
+   for (const asset of sharedHudWebpProof.files) {
+-    const { data, info } = await sharp(path.resolve(asset.runtimePath)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
++    const archivedPath = sourceOnlyAssetDestination(asset.runtimePath);
++    if (archivedPath) await assert.rejects(fs.access(path.resolve(asset.runtimePath)), { code: "ENOENT" });
++    const { data, info } = await sharp(path.resolve(archivedPath || asset.runtimePath)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+     assert.equal(info.width, asset.width, asset.runtimePath);
+     assert.equal(info.height, asset.height, asset.runtimePath);
+     assert.equal(data.length, asset.rgbaBytes, asset.runtimePath);
+diff --git a/tests/e2e/assets-runtime.spec.js b/tests/e2e/assets-runtime.spec.js
+index d639370..cbd8fc2 100644
+--- a/tests/e2e/assets-runtime.spec.js
++++ b/tests/e2e/assets-runtime.spec.js
+@@ -1,5 +1,7 @@
+ import { openHome, selectHomeGame, expectHomeCardsReachable } from './helpers/home.js';
+ import { createHash } from 'node:crypto';
++import { readFile } from 'node:fs/promises';
++import { sourceOnlyAssetDestination } from '../../scripts/asset-source-only-policy.mjs';
+ import { MERGE_LAB_CATALOG as mergeCatalog } from "../../game-logic/merge-lab-catalog.js";
+ import { test, expect } from "@playwright/test";
+ import { mergePanel, closeMergePanel, exitMerge, expectMergeArt } from "./helpers/mergeV3.js";
+@@ -110,11 +112,13 @@ test.describe("generated runtime asset manifest", () => {
+     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");
+     for (const asset of sharedHudWebpProof.files) {
+       const runtimePath = asset.runtimePath.replace(/^public/, '');
+-      if (runtimePath === '/games/ui-surfaces/yard-panel.webp') {
+-        // Historical12-request proof includes the removed global dock. Keep
+-        // its compatibility asset healthy without demanding an unused fetch.
+-        const response = await page.request.get(runtimePath);expect(response.status()).toBe(200);
+-        const bytes = await response.body();expect(bytes.length).toBe(asset.runtimeBytes);
++      const sourceOnly = sourceOnlyAssetDestination(asset.runtimePath);
++      if (sourceOnly) {
++        // Preserve the historical export proof outside published public assets.
++        expect(runtimePaths.has(runtimePath), `${runtimePath} is retired from current rendering`).toBe(false);
++        const response = await page.request.get(runtimePath);expect(response.status()).toBe(404);
++        expect(response.headers()['content-type'] || '').not.toContain('text/html');
++        const bytes = await readFile(new URL(`../../${sourceOnly}`, import.meta.url));expect(bytes.length).toBe(asset.runtimeBytes);
+         expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.runtimeSha256);
+         const decoded = await page.evaluate(async data => {
+           const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type:'image/webp'}));
+-- 
+2.52.0
+

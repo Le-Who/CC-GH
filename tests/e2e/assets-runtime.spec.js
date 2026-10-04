@@ -1,5 +1,7 @@
 import { openHome, selectHomeGame, expectHomeCardsReachable } from './helpers/home.js';
 import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
+import { sourceOnlyAssetDestination } from '../../scripts/asset-source-only-policy.mjs';
 import { MERGE_LAB_CATALOG as mergeCatalog } from "../../game-logic/merge-lab-catalog.js";
 import { test, expect } from "@playwright/test";
 import { mergePanel, closeMergePanel, exitMerge, expectMergeArt } from "./helpers/mergeV3.js";
@@ -110,11 +112,13 @@ test.describe("generated runtime asset manifest", () => {
     await expectRuntimePath(runtimePaths, "/assets-runtime/companion-yard/");
     for (const asset of sharedHudWebpProof.files) {
       const runtimePath = asset.runtimePath.replace(/^public/, '');
-      if (runtimePath === '/games/ui-surfaces/yard-panel.webp') {
-        // Historical12-request proof includes the removed global dock. Keep
-        // its compatibility asset healthy without demanding an unused fetch.
-        const response = await page.request.get(runtimePath);expect(response.status()).toBe(200);
-        const bytes = await response.body();expect(bytes.length).toBe(asset.runtimeBytes);
+      const sourceOnly = sourceOnlyAssetDestination(asset.runtimePath);
+      if (sourceOnly) {
+        // Preserve the historical export proof outside published public assets.
+        expect(runtimePaths.has(runtimePath), `${runtimePath} is retired from current rendering`).toBe(false);
+        const response = await page.request.get(runtimePath);expect(response.status()).toBe(404);
+        expect(response.headers()['content-type'] || '').not.toContain('text/html');
+        const bytes = await readFile(new URL(`../../${sourceOnly}`, import.meta.url));expect(bytes.length).toBe(asset.runtimeBytes);
         expect(createHash('sha256').update(bytes).digest('hex')).toBe(asset.runtimeSha256);
         const decoded = await page.evaluate(async data => {
           const url = URL.createObjectURL(new Blob([new Uint8Array(data)], {type:'image/webp'}));

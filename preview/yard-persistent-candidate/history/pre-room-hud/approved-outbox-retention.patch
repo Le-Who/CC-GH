@@ -1,0 +1,422 @@
+diff --git a/src/game-state/useGameHub.js b/src/game-state/useGameHub.js
+index 628e6d4..ad0ecb0 100644
+--- a/src/game-state/useGameHub.js
++++ b/src/game-state/useGameHub.js
+@@ -21,6 +21,21 @@ const unsavedOutboxes = new Map();
+ // Departing a verified account retires every async request, including A-B-A.
+ let snapshotAccountSession = {};
+ let latestSnapshotRequest = null;
++// A paused receipt is unresolved, not rejected. Only a fresh HTTP observation
++// after the pause may authorize replay, including after journal hydration.
++let yardOutboxPauseEpoch = {};
++let yardOutboxResumeSession = null;
++
++function writableYardSnapshot(snapshot) {
++  const runtime = snapshot?.yardRuntime;
++  return runtime?.version === 1 && runtime.status === "ready"
++    && runtime.mutable === true && runtime.actionProtocol === "yard-v2:" && !runtime.error;
++}
++
++function canDrainOutboxItem(item, snapshot) {
++  return item.status !== "failed" && (!(item.requiresYardResume || item.status === "rollout-paused")
++    || (yardOutboxResumeSession === snapshotAccountSession && writableYardSnapshot(snapshot)));
++}
+ 
+ export function normalizeActiveTab(value) {
+   const tab = String(value || "").trim();
+@@ -103,6 +118,8 @@ function normalizeOutboxItems(items) {
+   if (!Array.isArray(items)) return [];
+   return items.filter((item) => item?.clientActionId && shouldUseDurableOutbox(item.action)).map((item) => ({
+     ...item,
++    // The resume fence survives sending/pending normalization and failed writes.
++    ...(item.status === "rollout-paused" ? { requiresYardResume: true } : {}),
+     accountId: item.accountId,
+     clientActionId: String(item.clientActionId),
+     action: String(item.action),
+@@ -171,10 +188,11 @@ export const useGameHub = create((set, get) => ({
+     set((state) => ({ snapshot: normalizeSnapshot(protectHubSnapshot(state.snapshot, snapshot)), status: "ready" }));
+   },
+ 
+-  loadSnapshot: async () => {
++  loadSnapshot: async (options = {}) => {
+     const requestAccountId = get().snapshot?.player?.id;
+     const requestSession = snapshotAccountSession;
+     const requestToken = latestSnapshotRequest = {};
++    const requestYardPauseEpoch = yardOutboxPauseEpoch;
+     set({ status: "syncing", snapshotRequestPending: true });
+     try {
+       const result = await api("/api/player/snapshot", undefined, { isCurrent: () => snapshotAccountSession === requestSession
+@@ -195,6 +213,15 @@ export const useGameHub = create((set, get) => ({
+         set({ status: "offline", message: result.error });
+         return result;
+       }
++      // Inspect the actual response, not a protected snapshot that can retain a
++      // pre-rollback writable runtime. An older/in-flight read cannot unpause.
++      if (latestSnapshotRequest === requestToken) {
++        yardOutboxResumeSession = options.resumeYardOutbox !== false && requestYardPauseEpoch === yardOutboxPauseEpoch
++          && Number.isSafeInteger(result.serverTime) && result.serverTime >= 0
++          && Number.isSafeInteger(result.player?.syncSeq) && result.player.syncSeq >= 0
++          && compareSnapshotFreshness(result, get().snapshot) >= 0 && writableYardSnapshot(result)
++          ? requestSession : null;
++      }
+       const snapshot = normalizeSnapshot(protectHubSnapshot(get().snapshot, result));
+       set({ snapshot, status: "ready", message: "" });
+       scheduleOutboxDrain(get, 0);
+@@ -390,7 +417,7 @@ export const useGameHub = create((set, get) => ({
+       if (get().outboxStorageError === "OUTBOX_STORAGE_INVALID") return { error: get().outboxStorageError };
+       const now = Date.now();
+       const pending = normalizeOutboxItems(get().pendingActions)
+-        .filter((item) => item.status !== "failed")
++        .filter((item) => canDrainOutboxItem(item, get().snapshot))
+         .sort((a, b) => a.createdAt - b.createdAt);
+       const nextReady = pending
+         .filter((item) => item.nextAttemptAt > now)
+@@ -416,13 +443,15 @@ export const useGameHub = create((set, get) => ({
+       if (saved.error) return saved;
+ 
+       const sending = get().pendingActions.find((candidate) => candidate.clientActionId === item.clientActionId) || item;
++      const canSend = () => isCurrent() && canDrainOutboxItem(sending, get().snapshot);
++      if (!canSend()) return null;
+       let result = await api("/api/player/mutate", {
+         accountId,
+         action: sending.action,
+         payload: sending.payload,
+         clientActionId: sending.clientActionId,
+         intentServerTime: sending.intentServerTime,
+-      }, { timeoutMs: 9000, isCurrent });
++      }, { timeoutMs: 9000, isCurrent: canSend });
+ 
+       if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
+       if (result.snapshot && !gardenR2AccountMatches(get().snapshot, result.snapshot, accountId)) result = { error: "ACCOUNT_CHANGED" };
+@@ -451,6 +480,31 @@ export const useGameHub = create((set, get) => ({
+         return result;
+       }
+ 
++      if (isYardAction(sending.action) && result.error === "YARD_ROLLOUT_PAUSED") {
++        // Closed rollback returns before receipt lookup. Keep the signed intent
++        // and its busy lock: a lost reply on B may already have spent/granted.
++        yardOutboxPauseEpoch = {};
++        yardOutboxResumeSession = null;
++        set((state) => ({
++          pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
++            candidate.clientActionId === sending.clientActionId
++              ? { ...candidate, status: "rollout-paused", requiresYardResume: true, nextAttemptAt: 0 }
++              : candidate
++          )),
++          lastResult: result,
++          status: "ready",
++          message: result.error,
++        }));
++        const retained = await persistOutbox(accountId, get().pendingActions);
++        if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
++        set({ outboxStorageError: retained.error || null });
++        // A mixed rollout may serve writable GETs alongside paused POSTs. The
++        // reconciliation caused by this denial must not create its own loop.
++        await get().loadSnapshot({ resumeYardOutbox: false });
++        if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
++        return result;
++      }
++
+       const transient = result.error === "ACCOUNT_CHANGED" || result.error === "TIMEOUT" || result.error === "NETWORK_ERROR" || Number(result._httpStatus || 0) >= 500;
+       if (transient) {
+         set((state) => ({
+@@ -471,7 +525,7 @@ export const useGameHub = create((set, get) => ({
+         if (!isCurrent()) return { error: "ACCOUNT_CHANGED" };
+         set({ outboxStorageError: retained.error || null });
+         const retryAt = get().pendingActions.find((candidate) => candidate.clientActionId === sending.clientActionId)?.nextAttemptAt;
+-        if (retryAt) scheduleOutboxDrain(get, retryAt - Date.now());
++        if (retryAt && canDrainOutboxItem(sending, get().snapshot)) scheduleOutboxDrain(get, retryAt - Date.now());
+         return result;
+       }
+ 
+@@ -510,8 +564,9 @@ export const useGameHub = create((set, get) => ({
+       return result;
+     })().finally(() => {
+       outboxDrainPromise = null;
+-      if (get().snapshot?.player?.id && get().pendingActions.length) {
+-        const nextAt = Math.min(...get().pendingActions.map(item => item.nextAttemptAt || 0));
++      const pending = get().pendingActions.filter(item => canDrainOutboxItem(item, get().snapshot));
++      if (get().snapshot?.player?.id && pending.length) {
++        const nextAt = Math.min(...pending.map(item => item.nextAttemptAt || 0));
+         if (!get().outboxStorageError) scheduleOutboxDrain(get, nextAt - Date.now());
+       }
+     });
+@@ -603,6 +658,10 @@ export const useGameHub = create((set, get) => ({
+ // The first account binds an unscoped boot. Any departure from a bound account
+ // starts a new session, including clearing it or switching away and back.
+ useGameHub.subscribe((state, previous) => {
++  if (state.snapshot !== previous.snapshot && !writableYardSnapshot(state.snapshot)) {
++    yardOutboxResumeSession = null;
++    yardOutboxPauseEpoch = {};
++  }
+   const previousAccountId = previous.snapshot?.player?.id;
+   const accountId = state.snapshot?.player?.id;
+   if (accountId === previousAccountId) return;
+diff --git a/tests/hub-account-boundaries.test.mjs b/tests/hub-account-boundaries.test.mjs
+index 5b4fcae..5e228d0 100644
+--- a/tests/hub-account-boundaries.test.mjs
++++ b/tests/hub-account-boundaries.test.mjs
+@@ -2,7 +2,7 @@ import test, { beforeEach } from 'node:test';
+ import assert from 'node:assert/strict';
+ import { registerHooks } from 'node:module';
+ import { createDefaultPlayer } from '../game-logic/player.js';
+-import { ensurePersistentPlayerYard, executePersistentYardAction } from '../game-logic/yard-v2/service.mjs';
++import { ensurePersistentPlayerYard, executePersistentYardAction, publicPersistentYard } from '../game-logic/yard-v2/service.mjs';
+ 
+ // Root tests use real Zustand and the API client. Browser IDB and HTTP are
+ // replaced; loss/replay runs the actual persistent Yard domain with JSON reload.
+@@ -326,6 +326,254 @@ test('lost reply and reload replay the same domain receipt with one inventory gr
+   assert.deepEqual(bodies[1], bodies[0]); assert.equal(player.yard.foodInventory.kibble, before + 1); assert.equal(hub.getState().pendingActions.length, 0);
+ });
+ 
++for (const committedBeforeLoss of [false, true]) test(`closed rollback retains unresolved intent across reload and resumes exactly once (${committedBeforeLoss ? 'committed' : 'uncommitted'} lost reply)`, async t => {
++  let now = 2000; t.mock.method(Date, 'now', () => now);
++  let player = createDefaultPlayer('account-a', 'Rollback', now); ensurePersistentPlayerYard(player, { now });
++  const before = player.yard.foodInventory.kibble, bodies = []; let active = true, lost = true, reads = 0;
++  const current = () => ({ ...snap('account-a', 12, now), yard: structuredClone(player.yard), inventory: undefined,
++    yardRuntime: { ...publicPersistentYard(player, { now }), ...(!active ? { status: 'rollout-paused', mutable: false, error: 'YARD_ROLLOUT_PAUSED' } : {}) } });
++  globalThis.fetch = async (path, options) => {
++    if (path === '/api/config') return response({ devAuthEnabled: false });
++    if (new URL(path, 'https://fixture.invalid').pathname === '/api/player/snapshot') { reads++; return response(current()); }
++    assert.equal(path, '/api/player/mutate');
++    const body = JSON.parse(options.body); bodies.push(body);
++    if (lost && !committedBeforeLoss) { lost = false; throw Error('lost before commit'); }
++    // Closed A denies before receipt lookup. Model that HTTP contract without
++    // depending on whether this test checkout itself is the closed or active release.
++    const result = active
++      ? executePersistentYardAction(player, body.action, body.payload, { now, actionId: body.clientActionId })
++      : { status: 409, error: 'YARD_ROLLOUT_PAUSED' };
++    if (lost) { lost = false; throw Error('lost after commit'); }
++    return result.status === 200
++      ? response({ success: true, duplicate: result.replayed, clientActionId: body.clientActionId, snapshot: current() })
++      : response({ error: result.error }, result.status);
++  };
++  await hub.getState().loadSnapshot();
++  await hub.getState().enqueueYardAction('yard.buyFood', { foodId: 'kibble', qty: 1 }, { clientActionId: 'yard-v2:rollback-loss', feedback: false });
++  assert.equal((await hub.getState().drainOutbox()).error, 'NETWORK_ERROR');
++  assert.equal(player.yard.foodInventory.kibble, before + Number(committedBeforeLoss));
++  const committed = JSON.stringify({ yard: player.yard, runtime: player._yardV2 });
++  active = false; now = 5000;
++  assert.equal((await hub.getState().drainOutbox()).error, 'YARD_ROLLOUT_PAUSED');
++  assert.equal(hub.getState().snapshot.yardRuntime.mutable, false);
++  const held = storage.values.get(key('account-a')).items[0];
++  assert.equal(held.status, 'rollout-paused'); assert.equal(held.clientActionId, bodies[0].clientActionId);
++  assert.equal(hub.getState().isBusy(held.entityKey), true);
++  const repeated = await hub.getState().enqueueYardAction('yard.buyFood', { foodId: 'kibble', qty: 2 }, { feedback: false });
++  assert.equal(repeated.clientActionId, held.clientActionId); assert.deepEqual(hub.getState().pendingActions[0].payload, bodies[0].payload);
++  player = JSON.parse(JSON.stringify(player)); reset(); hub.setState({ outboxLoaded: false });
++  await hub.getState().loadSnapshot(); await hub.getState().hydrateOutbox();
++  const requestsAtPause = bodies.length, readsAtPause = reads;
++  t.mock.timers.tick(600000); await hub.getState().drainOutbox();
++  const timeout = globalThis.setTimeout, scheduled = [];
++  t.mock.method(globalThis, 'setTimeout', (fn, delay, ...args) => { scheduled.push(delay); return timeout(fn, delay, ...args); });
++  for (let i = 0; i < 3; i++) await hub.getState().drainOutbox();
++  assert.deepEqual(scheduled, [], 'paused journal must not arm an automatic retry loop');
++  assert.equal(bodies.length, requestsAtPause); assert.equal(reads, readsAtPause);
++  assert.deepEqual(storage.values.get(key('account-a')).items[0], held);
++  assert.equal(JSON.stringify({ yard: player.yard, runtime: player._yardV2 }), committed);
++  active = true; now = 7000;
++  hub.getState().applySnapshot(current()); await hub.getState().drainOutbox();
++  assert.equal(bodies.length, requestsAtPause, 'an applied/cached writable snapshot alone cannot authorize resume');
++  await hub.getState().loadSnapshot();
++  assert.equal((await hub.getState().drainOutbox()).duplicate, committedBeforeLoss);
++  assert.ok(bodies.every(body => JSON.stringify(body) === JSON.stringify(bodies[0])));
++  assert.equal(player.yard.foodInventory.kibble, before + 1);
++  if (committedBeforeLoss) assert.equal(JSON.stringify({ yard: player.yard, runtime: player._yardV2 }), committed);
++  assert.deepEqual(storage.values.get(key('account-a')).items, []); assert.equal(hub.getState().isBusy(held.entityKey), false);
++});
++
++const writableRuntime = { version: 1, status: 'ready', mutable: true, actionProtocol: 'yard-v2:' };
++for (const [reason, runtime] of [
++  ['legacy', undefined], ['future version', { ...writableRuntime, version: 2 }],
++  ['read-only', { ...writableRuntime, mutable: false }], ['not ready', { ...writableRuntime, status: 'review-required' }],
++  ['wrong protocol', { ...writableRuntime, actionProtocol: 'yard-v3:' }], ['runtime error', { ...writableRuntime, error: 'YARD_ROLLOUT_PAUSED' }],
++]) test(`paused journal cannot resume from ${reason} snapshot`, async () => {
++  const held = { ...item(), status: 'rollout-paused', attempts: 2 };
++  storage.values.set(key('account-a'), envelope('account-a', [held])); hub.setState({ outboxLoaded: false });
++  let sends = 0;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (new URL(path, 'https://fixture.invalid').pathname === '/api/player/snapshot') return response({ ...snap(), yardRuntime: runtime });
++    sends++; return response({ success: true, snapshot: snap() });
++  };
++  await hub.getState().loadSnapshot(); await hub.getState().hydrateOutbox(); await hub.getState().drainOutbox();
++  assert.equal(sends, 0); assert.deepEqual(storage.values.get(key('account-a')).items, [held]);
++});
++
++test('paused response cannot reuse a protected pre-rollback writable snapshot as resume authority', async () => {
++  hub.getState().applySnapshot({ ...snap('account-a', 20, 20000), yardRuntime: writableRuntime });
++  hub.setState({ pendingActions: [item()] });
++  let sends = 0;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (path === '/api/player/mutate') { sends++; return response({ error: 'YARD_ROLLOUT_PAUSED' }, 409); }
++    return response({ ...snap('account-a', 19, 19000), yardRuntime: { ...writableRuntime, status: 'rollout-paused', mutable: false, error: 'YARD_ROLLOUT_PAUSED' } });
++  };
++  await hub.getState().drainOutbox();
++  assert.equal(hub.getState().snapshot.yardRuntime.mutable, true, 'newer hub observation remains protected');
++  await hub.getState().drainOutbox(); assert.equal(sends, 1);
++  assert.equal(storage.values.get(key('account-a')).items[0].status, 'rollout-paused');
++});
++
++test('an older in-flight writable refresh cannot unpause after a newer closed refresh', async () => {
++  const oldReply = defer(), oldStarted = defer(); let reads = 0, sends = 0;
++  hub.setState({ pendingActions: [item()] });
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (path === '/api/player/mutate') { sends++; return response({ error: 'YARD_ROLLOUT_PAUSED' }, 409); }
++    if (++reads === 1) { oldStarted.resolve(); return oldReply.promise; }
++    return response({ ...snap('account-a', 12, 3000), yardRuntime: { ...writableRuntime, status: 'rollout-paused', mutable: false } });
++  };
++  const older = hub.getState().loadSnapshot(); await oldStarted.promise;
++  await hub.getState().drainOutbox();
++  oldReply.resolve(response({ ...snap('account-a', 11, 2000), yardRuntime: writableRuntime })); await older;
++  await hub.getState().drainOutbox(); assert.equal(sends, 1);
++  assert.equal(storage.values.get(key('account-a')).items[0].status, 'rollout-paused');
++});
++
++test('fresh writable B snapshot before hydration resumes an owned paused journal', async () => {
++  const held = { ...item(), status: 'rollout-paused', attempts: 2 };
++  storage.values.set(key('account-a'), envelope('account-a', [held])); hub.setState({ outboxLoaded: false });
++  let body;
++  globalThis.fetch = async (path, options) => {
++    if (path === '/api/config') return response({});
++    if (new URL(path, 'https://fixture.invalid').pathname === '/api/player/snapshot') return response({ ...snap(), yardRuntime: writableRuntime });
++    body = JSON.parse(options.body); return response({ success: true, duplicate: true, snapshot: snap() });
++  };
++  await hub.getState().loadSnapshot(); await hub.getState().hydrateOutbox(); await hub.getState().drainOutbox();
++  assert.equal(body.clientActionId, held.clientActionId); assert.deepEqual(body.payload, held.payload);
++  assert.deepEqual(storage.values.get(key('account-a')).items, []);
++});
++
++test('returning to the same account cannot reuse an old session resume observation', async () => {
++  const held = { ...item(), status: 'rollout-paused', attempts: 2 };
++  storage.values.set(key('account-a'), envelope('account-a', [held]));
++  let sends = 0;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (new URL(path, 'https://fixture.invalid').pathname === '/api/player/snapshot') return response({ ...snap(), yardRuntime: writableRuntime });
++    sends++; return response({ success: true, snapshot: snap() });
++  };
++  await hub.getState().loadSnapshot();
++  hub.getState().applySnapshot(snap('account-b'));
++  hub.getState().applySnapshot({ ...snap(), yardRuntime: writableRuntime });
++  await hub.getState().hydrateOutbox(); await hub.getState().drainOutbox();
++  assert.equal(sends, 0); assert.deepEqual(storage.values.get(key('account-a')).items, [held]);
++});
++
++test('failed rollback snapshot refresh retains the paused nonce without a retry loop', async () => {
++  hub.getState().applySnapshot({ ...snap(), yardRuntime: writableRuntime });
++  hub.setState({ pendingActions: [item()] }); let sends = 0, reads = 0;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (path === '/api/player/mutate') { sends++; return response({ error: 'YARD_ROLLOUT_PAUSED' }, 409); }
++    reads++; return response({ error: 'UNAVAILABLE' }, 503);
++  };
++  await hub.getState().drainOutbox(); await hub.getState().drainOutbox();
++  assert.equal(sends, 1); assert.equal(reads, 1);
++  assert.equal(storage.values.get(key('account-a')).items[0].status, 'rollout-paused');
++});
++
++for (const failWrite of [false, true]) test(`a closed observation during pre-send persistence fences resumed transport${failWrite ? ' and a failed write' : ''}`, async () => {
++  const held = { ...item(), status: 'rollout-paused', attempts: 2 };
++  storage.values.set(key('account-a'), envelope('account-a', [held])); hub.setState({ outboxLoaded: false });
++  let sends = 0, active = true;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (new URL(path, 'https://fixture.invalid').pathname === '/api/player/snapshot') return response({ ...snap('account-a', active ? 10 : 11, active ? 1000 : 2000),
++      yardRuntime: active ? writableRuntime : { ...writableRuntime, status: 'rollout-paused', mutable: false } });
++    sends++; return response({ success: true, snapshot: snap() });
++  };
++  await hub.getState().loadSnapshot(); await hub.getState().hydrateOutbox();
++  const started = defer(), release = defer();
++  storage.configure(null, async () => { started.resolve(); await release.promise; if (failWrite) throw Error('IDB failed'); });
++  if (failWrite) localStorage.setItem = () => { throw Error('local storage failed'); };
++  const sending = hub.getState().drainOutbox(); await started.promise;
++  active = false; await hub.getState().loadSnapshot(); release.resolve(); await sending;
++  storage.configure(); await hub.getState().drainOutbox();
++  assert.equal(sends, 0); assert.equal(hub.getState().pendingActions[0].requiresYardResume, true);
++  assert.equal(storage.values.get(key('account-a')).items[0].clientActionId, held.clientActionId);
++  // Recover the private test journal so an unsaved in-memory copy cannot leak
++  // to the next test's intentionally reused account fixture.
++  localStorage.setItem = () => {};
++  await hub.getState().enqueueYardAction(held.action, held.payload, { feedback: false });
++});
++
++test('unversioned writable response cannot authorize replay via a protected old runtime', async () => {
++  const held = { ...item(), status: 'rollout-paused', attempts: 2 };
++  storage.values.set(key('account-a'), envelope('account-a', [held]));
++  hub.getState().applySnapshot({ ...snap(), yardRuntime: writableRuntime }); hub.setState({ outboxLoaded: false });
++  let sends = 0;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (new URL(path, 'https://fixture.invalid').pathname === '/api/player/snapshot') {
++      const result = { ...snap(), yardRuntime: writableRuntime }; delete result.serverTime; delete result.player.syncSeq; return response(result);
++    }
++    sends++; return response({ success: true, snapshot: snap() });
++  };
++  await hub.getState().loadSnapshot(); await hub.getState().hydrateOutbox(); await hub.getState().drainOutbox();
++  assert.equal(sends, 0); assert.deepEqual(storage.values.get(key('account-a')).items, [held]);
++});
++
++for (const realtime of [false, true]) test(`${realtime ? 'realtime' : 'applied'} closure retires a resume grant even when a cached writable view follows`, async () => {
++  const held = { ...item(), status: 'rollout-paused', attempts: 2 };
++  storage.values.set(key('account-a'), envelope('account-a', [held])); hub.setState({ outboxLoaded: false });
++  let sends = 0;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (new URL(path, 'https://fixture.invalid').pathname === '/api/player/snapshot') return response({ ...snap(), yardRuntime: writableRuntime });
++    sends++; return response({ success: true, snapshot: snap() });
++  };
++  await hub.getState().loadSnapshot(); await hub.getState().hydrateOutbox();
++  for (const [seq, mutable] of [[11, false], [12, true]]) {
++    const view = { ...snap('account-a', seq, seq * 1000), yardRuntime: { ...writableRuntime, mutable } };
++    if (realtime) hub.getState().applyRealtimePayload({ accountId: 'account-a', syncSeq: seq, serverTime: view.serverTime, yardRuntime: view.yardRuntime });
++    else hub.getState().applySnapshot(view);
++  }
++  await hub.getState().drainOutbox(); assert.equal(sends, 0);
++  assert.equal(storage.values.get(key('account-a')).items[0].clientActionId, held.clientActionId);
++});
++
++test('a writable refresh already in flight before observed closure cannot restore resume authority', async () => {
++  const held = { ...item(), status: 'rollout-paused', attempts: 2 };
++  storage.values.set(key('account-a'), envelope('account-a', [held])); hub.setState({ outboxLoaded: false });
++  await hub.getState().hydrateOutbox();
++  const req = request('/api/player/snapshot'), loading = hub.getState().loadSnapshot(); await req.ready;
++  hub.getState().applySnapshot({ ...snap(), yardRuntime: { ...writableRuntime, mutable: false } });
++  req.finish({ ...snap(), yardRuntime: writableRuntime }); await loading;
++  let sends = 0; globalThis.fetch = async () => { sends++; return response({ success: true, snapshot: snap() }); };
++  await hub.getState().drainOutbox(); assert.equal(sends, 0);
++  assert.equal(storage.values.get(key('account-a')).items[0].clientActionId, held.clientActionId);
++});
++
++test('writable reconciliation cannot create a replay loop against paused mutation servers', async () => {
++  hub.getState().applySnapshot({ ...snap(), yardRuntime: writableRuntime });
++  hub.setState({ pendingActions: [item()] }); let sends = 0;
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (path === '/api/player/mutate') { sends++; return response({ error: 'YARD_ROLLOUT_PAUSED' }, 409); }
++    return response({ ...snap(), yardRuntime: writableRuntime });
++  };
++  await hub.getState().drainOutbox(); await hub.getState().drainOutbox();
++  assert.equal(sends, 1, 'a pause-triggered refresh cannot grant its own retry');
++  await hub.getState().loadSnapshot(); await hub.getState().drainOutbox(); await hub.getState().drainOutbox();
++  assert.equal(sends, 2, 'a later independent fresh B observation permits only one resumed attempt');
++  assert.equal(storage.values.get(key('account-a')).items[0].status, 'rollout-paused');
++});
++
++test('unrelated permanent outbox errors still retire the rejected intent after reconciliation', async () => {
++  hub.setState({ pendingActions: [item()], busy: { [item().entityKey]: true } });
++  globalThis.fetch = async path => {
++    if (path === '/api/config') return response({});
++    if (path === '/api/player/mutate') return response({ error: 'YARD_NOT_ENOUGH_TREATS' }, 409);
++    return response(snap());
++  };
++  const result = await hub.getState().drainOutbox();
++  assert.equal(result.error, 'YARD_NOT_ENOUGH_TREATS'); assert.equal(hub.getState().message, result.error);
++  assert.deepEqual(storage.values.get(key('account-a')).items, []); assert.equal(hub.getState().isBusy(item().entityKey), false);
++});
++
+ test('an unreadable owned journal remains protected on repeated enqueue attempts', async () => {
+   const saved = envelope('account-a', [item()]);
+   storage.values.set(key('account-a'), saved);

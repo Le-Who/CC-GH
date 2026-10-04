@@ -1,4 +1,5 @@
 import { openHome, selectHomeGame } from './helpers/home.js';
+import { expectLegacyYardToolbarReachable } from './helpers/yard-hud.js';
 import { test, expect } from "@playwright/test";
 import { createDefaultPlayer, isYardPointInPlayzone } from "../../game-logic.js";
 import { buildSnapshot } from "../../routes/player.js";
@@ -380,6 +381,49 @@ test.describe("Cozy Yard movement and assets", () => {
       window.localStorage.setItem("gh_dev_user_id", `yard_${Date.now()}_${Math.random().toString(36).slice(2)}`);
     });
   });
+
+  for (const language of ["en", "ru"]) for (const [width, height] of [[320, 568], [360, 800], [390, 844], [414, 896], [568, 320], [844, 390], [768, 1024], [1024, 768], [1280, 720]]) {
+    test.describe(`legacy Yard toolbar ${language} ${width}x${height}`, () => {
+      test.use({ viewport: { width, height }, deviceScaleFactor: 2, isMobile: width < 1100, hasTouch: width < 1100 });
+      test("keeps maximum balances readable and controls reachable", async ({ page }, info) => {
+        const snapshot = buildHudAuditSnapshot();
+        const labels = language === "ru"
+          ? { settings: "Настройки", close: "Закрыть", tools: "Инструменты", treats: "Лакомства", shinyTreats: "Сияющие" }
+          : { settings: "Settings", close: "Close", tools: "Tools", treats: "Treats", shinyTreats: "Shiny" };
+        const balances = [{ treats: 1000000000, shinyTreats: 1000000 }];
+        // Russian near-boundary units are wider than the legal maxima (1 млрд/1 млн).
+        if (width === 320) balances.push({ treats: 999000000, shinyTreats: 999000 }, { treats: 9999, shinyTreats: 9999 });
+        await page.addInitScript(locale => localStorage.setItem("garden_shelf_language", locale), language);
+        await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: "application/json", body: JSON.stringify(snapshot) }));
+        for (const balance of balances) {
+          snapshot.yard.currencies = balance;
+          await page.goto("/?tab=room");
+          await expectAppReady(page);
+          await expect(page.locator(".companion-yard-stage")).toBeVisible();
+          for (const [kind, value] of Object.entries(balance)) {
+            await expect(page.getByRole("img", { name: `${labels[kind]}: ${new Intl.NumberFormat(language).format(value)}`, exact: true })).toBeVisible();
+          }
+          await expectLegacyYardToolbarReachable(page);
+          await page.getByRole("button", { name: labels.settings, exact: true }).click();
+          await expect(page.getByRole("dialog", { name: labels.settings, exact: true })).toBeVisible();
+          await page.getByRole("dialog").getByRole("button", { name: labels.close, exact: true }).click();
+          await page.getByRole("button", { name: labels.tools, exact: true }).click();
+          await expect(page.locator(".yard-side-tools")).toBeVisible();
+          await expectLegacyYardToolbarReachable(page);
+          await page.getByRole("button", { name: labels.tools, exact: true }).click();
+          await expect(page.locator(".yard-side-tools")).toHaveCount(0);
+          await expectLegacyYardToolbarReachable(page);
+          await info.attach(`legacy-yard-toolbar-${balance.treats}`, { body: await page.screenshot(), contentType: "image/png" });
+          if (width === 320 || width === 390) {
+            await page.setViewportSize({ width: height, height: width });
+            await expectLegacyYardToolbarReachable(page);
+            await page.setViewportSize({ width, height });
+            await expectLegacyYardToolbarReachable(page);
+          }
+        }
+      });
+    });
+  }
 
   test("renders manifest-backed backgrounds, layered visitors, and selected visitor capture", async ({ page }) => {
     const snapshot = buildYardMovementSnapshot();

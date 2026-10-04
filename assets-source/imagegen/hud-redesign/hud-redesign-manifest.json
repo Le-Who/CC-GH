@@ -361,10 +361,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/blox/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/blox/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/blox/metric-chip.webp",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
           "width": 220,
           "height": 86,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "icon-badge",
@@ -577,10 +578,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/match3/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/match3/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/match3/metric-chip.webp",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
           "width": 220,
           "height": 86,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "icon-badge",
@@ -810,10 +812,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/merge/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/merge/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/merge/metric-chip.webp",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
           "width": 220,
           "height": 86,
-          "chromaKey": "#ff00ff"
+          "chromaKey": "#ff00ff",
+          "runtime": false
         },
         {
           "id": "icon-badge",
@@ -1013,10 +1016,11 @@
           "dataFree": true,
           "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/bubbo/metric-chip.source.chromakey.png",
           "path": "assets-source/imagegen/hud-redesign/assets/bubbo/metric-chip.chromakey.png",
-          "runtimePath": "public/games/hud-redesign/bubbo/metric-chip.webp",
+          "runtimePath": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
           "width": 220,
           "height": 86,
-          "chromaKey": "#00ff00"
+          "chromaKey": "#00ff00",
+          "runtime": false
         },
         {
           "id": "icon-badge",

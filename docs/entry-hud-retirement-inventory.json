@@ -1,0 +1,47 @@
+{
+  "baseCommit": "53e5fbf6b7b774ccf35ade0244dc6690519ea15f",
+  "removedFromPublicFiles": 5,
+  "removedFromPublicBytes": 371894,
+  "files": [
+    {
+      "path": "public/games/hud-redesign/blox/metric-chip.webp",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
+      "bytes": 13466,
+      "sha256": "cd3623a8e8c625e10aed7b0b325e83fff2571aab238c8dee030f6336f78526ae",
+      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
+    },
+    {
+      "path": "public/games/hud-redesign/bubbo/metric-chip.webp",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
+      "bytes": 14996,
+      "sha256": "9b81a3c03939847bd8a5127f3c281a866fdd4df91d90f76f011c6be45a801d2e",
+      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
+    },
+    {
+      "path": "public/games/hud-redesign/match3/metric-chip.webp",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
+      "bytes": 15512,
+      "sha256": "9ab3cb6c1fe533313e5581c9c8dc1c733243d531ff53474bfe70564ae13077a3",
+      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
+    },
+    {
+      "path": "public/games/hud-redesign/merge/metric-chip.webp",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
+      "bytes": 16126,
+      "sha256": "94ae4af74835e36c4e419f1a2e31b9780965dbf1e769b91e2b750b427d45d7af",
+      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
+    },
+    {
+      "path": "public/games/ui-surfaces/yard-panel.webp",
+      "action": "move-source-only",
+      "to": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
+      "bytes": 311794,
+      "sha256": "a8eef4f545962b71749e3123f54bc5b485acded6dec42609914a2dbc58633c83",
+      "reason": "No supported live consumer after route-owned entry presentation; preserved only as historical source/export proof."
+    }
+  ]
+}

@@ -7,7 +7,6 @@ import {assertEightCandidateApi,CANDIDATE_PORT,CANDIDATE_DIST,AUTHORED_CLOCK_ORI
 import {assertYardPlayerFixture} from '../helpers/yard-player-api-guard.mjs';
 import {installEightCanvasWitness} from '../helpers/yard-eight-canvas-witness.mjs';
 import {actorAtlasPages,attributedDraw} from '../helpers/yard-eight-atlas-attribution.mjs';
-import {createProjection} from '../../src/games/companion-yard-v2/projection.mjs';
 import {assertEightPlayerGroup,EIGHT_PLAYER_VIEWPORTS} from '../helpers/yard-eight-player-groups.mjs';
 import {createDefaultPlayer} from '../../game-logic/player.js';
 import {ensureMergeLabState} from '../../game-logic/merge-lab-service.js';
@@ -49,21 +48,6 @@ async function boot(page,f){
 const actorPath=id=>id==='mika'?'/assets/yard-mika/':['mochi','pebble','pip'].includes(id)?`/assets/yard-${id}/`:`/assets/yard-family/${id}/`;
 const atlasPages=new Map();function pagesFor(id){if(!atlasPages.has(id)){const path=actorPath(id),manifest=JSON.parse(readFileSync(resolve(root,CANDIDATE_DIST,path.slice(1),'runtime-media.json'),'utf8'));atlasPages.set(id,actorAtlasPages(manifest,path));}return atlasPages.get(id);}
 async function rendered(page,actors,afterAt=0){await expect.poll(async()=>{const rows=await page.evaluate(()=>window.__yardEightDrawWitness);return actors.every(id=>rows.some(row=>row.at>=afterAt&&attributedDraw(row,pagesFor(id))));},{timeout:30000}).toBe(true);await expect(page.locator('.cy-status')).not.toContainText('The courtyard could not load.');}
-async function renderedSavedCushion(page,request,prop){
- const meta=JSON.parse(readFileSync(resolve(root,CANDIDATE_DIST,'assets/yard-mika/still-layer-contract.json'),'utf8'))['sun-cushion-clean'];
- await expect(page.locator('.cy-scene canvas')).toBeVisible();
- await expect.poll(async()=>{
-  const observed=await page.locator('.cy-scene canvas').evaluate(canvas=>({width:canvas.getBoundingClientRect().width,height:canvas.getBoundingClientRect().height,draw:window.__yardEightDrawWitness.find(row=>row.sceneCanvas&&new URL(row.url).pathname==='/assets/yard-mika/sun-cushion-clean.webp'&&row.opacity===1&&row.changedOpaquePixels>=16)}));
-  if(!observed.draw)return false;
-  const projection=createProjection(observed.width,observed.height),p=projection.project(prop),scale=projection.ppu/meta.worldPixelScale;
-  const expected=[p.x-meta.pivotPx[0]*scale,p.y-meta.pivotPx[1]*scale,meta.canvas[0]*scale,meta.canvas[1]*scale];
-  return JSON.stringify(observed.draw.sourceCrop)===JSON.stringify([0,0,...meta.canvas])&&observed.draw.destination.every((v,i)=>Math.abs(v-expected[i])<.01);
- },{timeout:30000}).toBe(true);
- await expect(page.locator('.cy-status')).not.toContainText('The courtyard could not load.');
- const path='/assets/yard-mika/sun-cushion-clean.webp',response=await request.get(base+path);expect(response.status()).toBe(200);
- const bytes=await response.body();expect(bytes.equals(readFileSync(resolve(root,CANDIDATE_DIST,path.slice(1))))).toBe(true);
- return {path,bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')};
-}
 async function evidence(page,request,info,observed,actors){
  await rendered(page,actors);expect(observed.errors).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
  const draws=await page.evaluate(()=>window.__yardEightDrawWitness),bytes=[];
@@ -133,9 +117,6 @@ for(const viewport of EIGHT_PLAYER_VIEWPORTS.filter(v=>v.name===group))test.desc
   expect(after.yard.currencies.treats).toBe(initial.yard.currencies.treats-YARD_FOODS.kibble.cost.treats-YARD_GOODIES.moon_lamp.fixCost.treats-YARD_GOODIES.sun_cushion.cost.treats+12+35);
   await page.keyboard.press('Escape');await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.getByTestId('home-catalogue')).toHaveCount(0);await expect(page.locator('.cy-scene canvas')).toBeVisible();
   await page.getByRole('button',{name:'Back to games',exact:true}).click();await expect(page.getByTestId('home-catalogue')).toBeVisible();await selectHomeGame(page,'room');await expect(page.locator('.cy-app')).toBeVisible();await page.reload();await expect(page.locator('.cy-wallet')).toContainText(String(after.yard.currencies.treats));
-  const reloaded=await saved(f);expect(reloaded.yard.placedGoodies).toEqual(after.yard.placedGoodies);expect(reloaded.yard.currencies).toEqual(after.yard.currencies);expect(adjacent(reloaded)).toEqual(adjacent(after));
-  const cushion=reloaded.yard.placedGoodies.find(p=>p.goodieId==='sun_cushion');expect(cushion).toMatchObject({x:53,condition:'new'});const cushionSource=await renderedSavedCushion(page,request,cushion);
-  await info.attach('reloaded-saved-prop-render',{body:Buffer.from(JSON.stringify({savedProp:cushion,source:cushionSource,draws:await page.evaluate(()=>window.__yardEightDrawWitness.filter(row=>new URL(row.url).pathname==='/assets/yard-mika/sun-cushion-clean.webp'))},null,2)),contentType:'application/json'});
   await info.attach('fourteen-intent-results',{body:Buffer.from(JSON.stringify({positive:seen.map(r=>({action:r.data.action,nonce:r.data.clientActionId})),unavailable,balances:after.yard.currencies},null,2)),contentType:'application/json'});await info.attach('interactive-ui',{body:await page.screenshot(),contentType:'image/png'});expect(observed.errors).toEqual([]);
  });
 });

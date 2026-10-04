@@ -3,7 +3,6 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
-import {verifyRoomHudTransfer,readBeforeRoomHud} from './verify-room-hud-transfer.mjs';
 const fingerprint=bytes=>({bytes:bytes.length,sha256:createHash('sha256').update(bytes).digest('hex')});
 const APPROVED={
   "id": "cold-ground-escape-entry-harness-20261004",
@@ -391,11 +390,10 @@ const APPROVED={
     }
   ]
 };
-export function verifyColdEscapeTransfer({rootDir,contract,roomHud=verifyRoomHudTransfer({rootDir,contract})}) {
-  const proofContract=roomHud.priorContract;
+export function verifyColdEscapeTransfer({rootDir,contract}) {
   const candidate=resolve(rootDir,'preview/yard-persistent-candidate');
   const read=path=>readFileSync(resolve(candidate,path));
-  const reviewed=proofContract.reviewedColdEscapeChangeSet;
+  const reviewed=contract.reviewedColdEscapeChangeSet;
   assert.deepEqual(reviewed,APPROVED,'Cold/Escape transfer must retain independently reviewed identities');
   for(const row of APPROVED.archiveFiles)assert.deepEqual(fingerprint(read(row.path)),{bytes:row.bytes,sha256:row.sha256},row.path);
   for(const input of APPROVED.inputs)assert.equal(fingerprint(read(input.archive)).sha256,input.patchSha256);
@@ -404,8 +402,8 @@ export function verifyColdEscapeTransfer({rootDir,contract,roomHud=verifyRoomHud
   const packageTransition=APPROVED.transitions.find(row=>row.path==='package.json');
   Object.assign(expected.productionFiles.find(row=>row.path==='package.json'),packageTransition.after);
   expected.reviewedColdEscapeChangeSet=reviewed;
-  assert.deepEqual(proofContract,expected,'Cold/Escape transfer must preserve all prior histories, sourceInputs and unrelated pins');
-  for(const row of [...APPROVED.files,...APPROVED.generatedFiles])assert.deepEqual(fingerprint(readBeforeRoomHud({rootDir,roomHud,path:row.path})),{bytes:row.bytes,sha256:row.sha256},`Reviewed cold/Escape file: ${row.path}`);
+  assert.deepEqual(contract,expected,'Cold/Escape transfer must preserve all prior histories, sourceInputs and unrelated pins');
+  for(const row of [...APPROVED.files,...APPROVED.generatedFiles])assert.deepEqual(fingerprint(readFileSync(resolve(rootDir,row.path))),{bytes:row.bytes,sha256:row.sha256},`Reviewed cold/Escape file: ${row.path}`);
   for(const row of APPROVED.transitions)assert.deepEqual(fingerprint(read(row.before.archive)),{bytes:row.before.bytes,sha256:row.before.sha256},row.path);
   const before=JSON.parse(read(packageTransition.before.archive));
   const packageExpected=structuredClone(before);
@@ -419,9 +417,9 @@ export function verifyColdEscapeTransfer({rootDir,contract,roomHud=verifyRoomHud
     ground.sha256=APPROVED.inputs[0].sourceSha256;
     assert.deepEqual(JSON.parse(readFileSync(resolve(rootDir,row.path))),expected,'Source closure may change only the reviewed ground hash');
   }
-  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,generatedFiles:APPROVED.generatedFiles.length,reviewedPinTransitions:1,newNativeDurationEvidenceRequired:true,roomHud};
+  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,generatedFiles:APPROVED.generatedFiles.length,reviewedPinTransitions:1,newNativeDurationEvidenceRequired:true};
 }
 export function readBeforeColdEscape({rootDir,cold,path}) {
   const transition=cold.transitions.find(row=>row.path===path);
-  return transition?readFileSync(resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive)):readBeforeRoomHud({rootDir,roomHud:cold.roomHud,path});
+  return readFileSync(transition?resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive):resolve(rootDir,path));
 }

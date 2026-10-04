@@ -18,6 +18,7 @@ import { openHome } from "../../app/homeNavigation.js";
 import { usePressTooltip } from "../../app/usePressTooltip.js";
 import { loadCompanionYardManifest, resolveCompanionYardAsset, resolveCompanionYardHudSheet } from "./assets.js";
 import { getVisitorMotion, getYardObstacleRects } from "./movement.js";
+import { formatYardCurrencyBalance } from "./currencyDisplay.js";
 import { yardPanelGroupSlotStyle, yardPanelNestedGroupSlotStyle, yardPanelSlotStyle } from "./yardPanelSlots.js";
 import "./i18n.js";
 import "./companion-yard.css";
@@ -242,12 +243,13 @@ function YardActionButton({
   );
 }
 
-function YardCurrencyChip({ icon, label, value }) {
+function YardCurrencyChip({ icon, label, value, language }) {
+  const balance = formatYardCurrencyBalance(value, language);
   return (
-    <div className="yard-currency-chip" aria-label={`${label}: ${value}`}>
+    <div className="yard-currency-chip" role="img" aria-label={`${label}: ${balance.exact}`}>
       <YardIcon name={icon} />
       <span className="yard-currency-label">{label}</span>
-      <strong>{value}</strong>
+      <strong>{balance.compact}</strong>
     </div>
   );
 }
@@ -332,7 +334,7 @@ export default function CompanionYardGame() {
   const snapshot = useGameHub((state) => state.snapshot);
   const performAction = useGameHub((state) => state.performAction);
   const pendingActions = useGameHub((state) => state.pendingActions);
-  const { t } = useAppI18n();
+  const { t, language } = useAppI18n();
   const yard = snapshot?.yard || {};
   const catalog = snapshot?.meta?.yardCatalog || {};
   const foods = catalog.foods || YARD_FOODS;
@@ -1156,8 +1158,8 @@ export default function CompanionYardGame() {
 
         <HudRegion id="yardHudLayer" as="div" className="yard-hud-layer" applyLayout={false}>
           <HudEditableRegion id="yardCurrencyStack" as="div" className="yard-currency-stack">
-            <YardCurrencyChip icon="treats" label={text("yard.treats", "Treats")} value={formatCount(yard.currencies?.treats || 0)} />
-            <YardCurrencyChip icon="shiny" label={text("yard.shiny", "Shiny")} value={formatCount(yard.currencies?.shinyTreats || 0)} />
+            <YardCurrencyChip icon="treats" label={text("yard.treats", "Treats")} value={yard.currencies?.treats || 0} language={language} />
+            <YardCurrencyChip icon="shiny" label={text("yard.shiny", "Shiny")} value={yard.currencies?.shinyTreats || 0} language={language} />
           </HudEditableRegion>
           <div className="yard-corner-actions">
             <YardIconButton compact icon="settings" label={text("yard.screen.settings", "Settings")} active={activeScreen === "settings"} onClick={() => openScreen("settings")} />

@@ -79,8 +79,8 @@
       "height": 512,
       "source": "imagegen-source-art-data-free",
       "sourcePath": "assets-source/imagegen/hud-redesign/asset-sources/room/screen-panel.source.chromakey.png",
-      "path": "public/games/ui-surfaces/yard-panel.webp",
-      "runtime": true
+      "path": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
+      "runtime": false
     },
     {
       "name": "farm-panel",

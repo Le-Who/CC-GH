@@ -2021,7 +2021,6 @@
 
 .companion-yard-layout {
   --yard-generated-panel-art: url("/games/hud-redesign/room/screen-panel.png");
-  --yard-generated-dialog-art: url("/games/ui-surfaces/yard-panel.webp");
   --yard-generated-dock-art: url("/games/hud-redesign/room/dock-panel.webp");
   --yard-generated-button-art: url("/games/hud-redesign/room/primary-button.png");
   --yard-generated-icon-art: url("/games/hud-redesign/room/icon-badge.webp");
@@ -2038,7 +2037,7 @@
 
 .companion-yard-layout .yard-game-screen {
   background:
-    var(--yard-screen-panel-art, var(--yard-generated-dialog-art)) center / 100% 100% no-repeat !important;
+    var(--yard-screen-panel-art) center / 100% 100% no-repeat !important;
   border: 0;
   padding: clamp(14px, 3vw, 20px);
   -webkit-backdrop-filter: none;
@@ -3531,4 +3530,30 @@
   line-height: 1.05;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* Phone currency width is owned by the room HUD profiles, including the tall
+   portrait fallback. Stack the icon above localized units so the full balance
+   fits without shrinking the adjacent 48px controls. */
+@media (max-width: 430px) and (orientation: portrait) {
+  .yard-currency-stack .yard-currency-chip {
+    min-width: 0;
+    flex: 1 1 auto;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 24px auto;
+    column-gap: 0;
+    padding: 3px 1px;
+  }
+
+  .yard-currency-stack .yard-currency-chip .yard-hud-icon {
+    grid-row: 1;
+    justify-self: center;
+    width: 24px;
+    height: 24px;
+  }
+
+  .yard-currency-stack .yard-currency-chip strong {
+    grid-row: 2;
+    max-width: 100%;
+  }
 }

@@ -1,6 +1,11 @@
 // Reviewed exports used only by source-art QA, never by a current renderer.
 // Keep the bytes and their provenance outside Vite's unconditional public copy.
 export const SOURCE_ONLY_PUBLIC_ASSETS = Object.freeze({
+  "public/games/hud-redesign/blox/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/blox/metric-chip.webp",
+  "public/games/hud-redesign/bubbo/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/bubbo/metric-chip.webp",
+  "public/games/hud-redesign/match3/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/match3/metric-chip.webp",
+  "public/games/hud-redesign/merge/metric-chip.webp": "assets-source/imagegen/hud-redesign/qa-exports/merge/metric-chip.webp",
+  "public/games/ui-surfaces/yard-panel.webp": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/yard-panel.webp",
   "public/games/hud-redesign/garden/tool-slot.png": "assets-source/imagegen/hud-redesign/qa-exports/garden/tool-slot.png",
   "public/games/hud-redesign/garden/screen-panel.png": "assets-source/imagegen/hud-redesign/qa-exports/garden/screen-panel.png",
   "public/games/hud-redesign/garden/dialog-panel.png": "assets-source/imagegen/hud-redesign/qa-exports/garden/dialog-panel.png",

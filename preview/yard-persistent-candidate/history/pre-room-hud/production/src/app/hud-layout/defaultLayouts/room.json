@@ -21,7 +21,7 @@
       "match": { "orientation": "portrait", "maxWidth": 360 },
       "regions": {
         "yardBottomDock": { "thickness": 70, "reserve": 88 },
-        "yardCurrencyStack": { "x": 0, "y": 0, "maxWidth": 120 },
+        "yardCurrencyStack": { "x": 0, "y": 0 },
         "yardGameScreen": { "maxWidth": 304 }
       }
     },

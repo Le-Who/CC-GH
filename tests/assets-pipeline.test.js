@@ -6,6 +6,7 @@ import path from "node:path";
 import {createHash} from "node:crypto";
 import arcadeWebpProof from "./fixtures/arcade-webp-proof.json" with {type:"json"};
 import sharedHudWebpProof from "./fixtures/shared-hud-webp-proof.json" with {type:"json"};
+import { sourceOnlyAssetDestination } from "../scripts/asset-source-only-policy.mjs";
 
 import sharp from "sharp";
 import { buildAssetRuntimeManifest } from "../scripts/assets-pipeline.mjs";
@@ -507,11 +508,13 @@ it('decodes all 39 arcade lossless WebP exports to exact original RGBA including
   }
 });
 
-it('decodes all 12 shared HUD WebP exports to exact original RGBA and retires their runtime PNGs', async () => {
+it('decodes all 12 shared HUD WebP exports including source-only archives to exact original RGBA', async () => {
   assert.equal(sharedHudWebpProof.files.length, 12);
   const entries = await loadAssetPipelineEntries(process.cwd());
   for (const asset of sharedHudWebpProof.files) {
-    const { data, info } = await sharp(path.resolve(asset.runtimePath)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const archivedPath = sourceOnlyAssetDestination(asset.runtimePath);
+    if (archivedPath) await assert.rejects(fs.access(path.resolve(asset.runtimePath)), { code: "ENOENT" });
+    const { data, info } = await sharp(path.resolve(archivedPath || asset.runtimePath)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
     assert.equal(info.width, asset.width, asset.runtimePath);
     assert.equal(info.height, asset.height, asset.runtimePath);
     assert.equal(data.length, asset.rgbaBytes, asset.runtimePath);
