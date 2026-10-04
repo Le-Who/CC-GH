@@ -1,5 +1,6 @@
 /** Display translation only; persisted transport/domain codes stay unchanged. */
 export const YARD_FEEDBACK_KEYS={
+  "YARD_ROLLOUT_PAUSED": "yard.persistent.error.save",
   "YARD_SCENE_FAILED": "yard.persistent.error.scene",
   "YARD_BINDING_REQUIRED": "yard.persistent.error.binding",
   "YARD_STATE_REQUIRES_REVIEW": "yard.persistent.error.save",

@@ -321,7 +321,10 @@ export const useGameHub = create((set, get) => ({
       if (existingIndex >= 0 && pendingActions[existingIndex].attempts > 0) {
         queuedItem = pendingActions[existingIndex];
       } else
-      if (action === "yard.configureCompanion" && existingIndex >= 0) {
+      // A v2 action ID signs its original payload, including after a reload/retry.
+      if (action === "yard.configureCompanion" && existingIndex >= 0
+        && !pendingActions[existingIndex].clientActionId.startsWith("yard-v2:")
+        && !String(options.clientActionId || "").startsWith("yard-v2:")) {
         queuedItem = {
           accountId,
           ...pendingActions[existingIndex],
@@ -546,6 +549,16 @@ export const useGameHub = create((set, get) => ({
         merge: payload.merge ? { ...prev.merge, ...payload.merge } : prev.merge,
         garden: payload.garden ? { ...prev.garden, ...payload.garden } : prev.garden,
         yard: payload.yard ? { ...prev.yard, ...payload.yard } : prev.yard,
+        // Runtime is an authoritative projection. Replace it in this same store
+        // transaction so prop commits, visit plans and released reservations agree.
+        yardRuntime: Object.hasOwn(payload, "yardRuntime") ? payload.yardRuntime : prev.yardRuntime,
+        // Normalization prefers snapshot.inventory. Refresh only the Yard aliases
+        // supplied in this delta so an old alias cannot overwrite new server counts.
+        inventory: payload.yard ? {
+          ...prev.inventory,
+          ...(Object.hasOwn(payload.yard, "foodInventory") ? { yardFood: payload.yard.foodInventory } : {}),
+          ...(Object.hasOwn(payload.yard, "goodieInventory") ? { yardGoodies: payload.yard.goodieInventory } : {}),
+        } : prev.inventory,
         pet: payload.pet || prev.pet,
         achievements: payload.achievements
           ? { ...prev.achievements, raw: payload.achievements }

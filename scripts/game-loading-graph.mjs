@@ -17,6 +17,8 @@ const GAME_ENTRIES = {
   bubbo: 'src/games/bubbo/BubboGame.jsx',
   trivia: 'src/games/trivia/TriviaGame.jsx',
   'companion-yard': 'src/games/companion-yard/CompanionYardGame.jsx',
+  'companion-yard-v2': 'src/games/companion-yard-v2/CourtyardGame.jsx',
+  'yard-player-entry': 'src/games/companion-yard-v2/YardReleaseGame.jsx',
 };
 
 // Rollup module ownership makes the budget independent of chunk names.

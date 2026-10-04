@@ -263,6 +263,8 @@ jobs:
         run: pnpm run test:yard-family
       - name: Check required native pair activity eligibility
         run: node --test tests/yard-native-pair-eligibility.test.mjs
+      - name: Check existing Mika mouse native pair witnesses
+        run: node --test tests/yard-mika-supported-pairs.test.mjs
       - name: Validate inactive Mochi media
         run: pnpm exec playwright test -c playwright.mochi.config.js --project=chromium --workers=1
       - name: Validate canonical Yard scene

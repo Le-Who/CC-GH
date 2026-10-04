@@ -11,7 +11,9 @@
       "yardHudLayer": { "mode": "custom", "visible": true },
       "yardCurrencyStack": { "mode": "stack", "direction": "vertical", "gap": 6, "x": 0, "y": 0, "zIndex": 30, "visible": true },
       "yardBottomDock": { "mode": "dock", "edge": "bottom", "offset": 10, "thickness": 76, "reserve": 92, "alignment": "center", "zIndex": 40, "visible": true },
-      "yardGameScreen": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 640, "zIndex": 45, "visible": true }
+      "yardGameScreen": { "mode": "anchored", "anchor": "center", "x": 0, "y": 0, "maxWidth": 640, "zIndex": 45, "visible": true },
+      "yardVisitStatus": { "mode": "custom", "visible": true },
+      "yardBackgroundAsset": { "mode": "freeform", "x": 0, "y": 0, "scale": 1, "opacity": 1, "rotation": 0, "visible": true }
     }
   },
   "profiles": {
@@ -61,6 +63,6 @@
     }
   },
   "editor": {
-    "notes": "Cozy Yard keeps custom activity layers and bottom HUD-launched screens; layout registers the stage, HUD layer, currency stack, dock, and dialog screen."
+    "notes": "Cozy Yard keeps custom activity layers and bottom HUD-launched screens; layout registers the stage, HUD layer, currency stack, dock, and dialog screen. Persistent Mika uses reserved CSS-grid header/status/nav, with the existing yardStage, yardBottomDock and editable background. Its authored camera, world projection, entry/bowl anchors and prop footprints are intentionally fixed calibration inputs shared with server preflight; editing them requires revalidating contact/route media, not a player placement override."
   }
 }

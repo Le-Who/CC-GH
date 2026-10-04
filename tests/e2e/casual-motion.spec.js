@@ -187,8 +187,9 @@ for (const [width,height] of [[390,844],[568,320]]) test.describe(`Blox real lin
     expect(receipt.savedState.board.flat().filter(Boolean)).toHaveLength(0);
     expect(receipt.savedState.gameActive).toBe(true);
     // This is a bounded real-time viewing window, not an accelerated test clock.
-    // The ordinary video records the entire 300ms line response at playback 1x.
-    await page.waitForTimeout(500);
+    // Keep the whole feedback interval free of screenshot/readback interference.
+    // This viewing window does not change the production effect duration or clock.
+    await page.waitForTimeout(1500);
     const after=await snapshot();
     expect(after.blox.savedState.score).toBe(20);expect(after.blox.savedState.linesCleared).toBe(1);
     expect(after.blox.savedState.board.flat().filter(Boolean)).toHaveLength(0);

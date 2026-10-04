@@ -8,11 +8,12 @@ import { checkPlacement, courtyardPresentation, SUPPORTED_PROPS, visibleStatus }
 import { MIKA_CLIPS as clips } from '../../../game-logic/yard-v2/media/mika-clips.mjs';
 import { MIKA_PLACEMENT_SUGGESTIONS } from '../../../game-logic/yard-v2/mika-media.mjs';
 import { yardFeedbackText } from './feedback.mjs';
+import {openHome} from '../../app/homeNavigation.js';
 import './courtyard.css';
 import './i18n.js';
 
 const uuid = () => globalThis.crypto.randomUUID();
-const defaultAnchor = id => ({...MIKA_PLACEMENT_SUGGESTIONS[id]});
+const defaultAnchor = id => ({...(MIKA_PLACEMENT_SUGGESTIONS[id] || {x:50,y:50})});
 
 function Row({title,detail,children}) { return <div className="cy-row"><div><strong>{title}</strong><small>{detail}</small></div><div className="cy-row-actions">{children}</div></div>; }
 
@@ -72,7 +73,7 @@ export default function CourtyardGame() {
   const feedback=yardFeedbackText(playerFeedbackText(language,error || message),t);
   const status=feedback || (busy?t('yard.persistent.saving'):ghost?(ghost.valid?t('yard.persistent.spaceFree'):t('yard.persistent.pathBlocked')):visibleStatus(current,t));
   return <div className="cy-app" data-yard-version="persistent-mika-r1">
-    <header className="cy-header"><button aria-label={t('yard.persistent.back')} onClick={()=>useGameHub.getState().setActiveTab('garden')}>‹</button><h1>{t('yard.title')}</h1><span className="cy-preview">{t('yard.persistent.preview')}</span><span className="cy-wallet" aria-label={t('yard.treats')}>● {yard.currencies?.treats ?? '—'}</span></header>
+    <header className="cy-header"><button aria-label={t('yard.persistent.back')} onClick={openHome}>‹</button><h1>{t('yard.title')}</h1><span className="cy-preview">{t('yard.persistent.preview')}</span><span className="cy-wallet" aria-label={t('yard.treats')}>● {yard.currencies?.treats ?? '—'}</span></header>
     <HudRegion id="yardStage" className="cy-scene" applyLayout={false}>
       <HudEditableRegion id="yardBackgroundAsset" as="img" className="cy-background" src="/assets/yard-mika/background.webp" alt="" />
       <canvas ref={canvas} tabIndex={0} aria-label={t('yard.persistent.canvas')} onPointerDown={pointerDown} onPointerMove={e=>{if(drag.current===e.pointerId)moveGhost(scene.current?.point(e));}} onPointerUp={()=>{drag.current=null;}} onPointerCancel={cancel} onKeyDown={keyDown}/>

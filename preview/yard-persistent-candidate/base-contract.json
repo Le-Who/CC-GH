@@ -1,50 +1,50 @@
 {
-  "baseCommit": "7b4a174738a38462caa9bd460cf2d727334450d1",
+  "baseCommit": "86b5d798842408190c093aa058186ab906779c0d",
   "productionFiles": [
     {
       "path": "routes/player.js",
-      "bytes": 60103,
-      "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
+      "bytes": 61600,
+      "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa"
     },
     {
       "path": "routes/mergeRoutes.js",
-      "bytes": 21618,
-      "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb"
+      "bytes": 22001,
+      "sha256": "56fc38c20a4e7151e931f3206e639191a43516a32aba778b5db5f30906233bb6"
     },
     {
       "path": "playerManager.js",
-      "bytes": 16860,
-      "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
+      "bytes": 17325,
+      "sha256": "fdbc6c9f70c39ce4b760b595b4b2994960a18f323bcde09a350db7e8f50ec2c4"
     },
     {
       "path": "game-logic/merge-lab-service.js",
-      "bytes": 11041,
-      "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973"
+      "bytes": 11606,
+      "sha256": "97e5e6d3ce63a025080e2812a2992e00547a95de72aa5cd83378610e5cd832a7"
     },
     {
       "path": "src/game-state/useGameHub.js",
-      "bytes": 27629,
-      "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf"
+      "bytes": 28619,
+      "sha256": "04591b270ab5eca3eea89730211e138342e14964e9e840c2816639c46eac5d33"
     },
     {
       "path": "src/app/gameChunks.jsx",
-      "bytes": 1486,
-      "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb"
+      "bytes": 1487,
+      "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2"
     },
     {
       "path": "src/app/hud-layout/registry.js",
-      "bytes": 18524,
-      "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
+      "bytes": 18796,
+      "sha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca"
     },
     {
       "path": "src/app/hud-layout/defaultLayouts/room.json",
-      "bytes": 2690,
-      "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
+      "bytes": 3248,
+      "sha256": "c1d704329625ee99c9bdaddd2805a2a11531eb3c481b8d0203addfea90e8a2e3"
     },
     {
       "path": "package.json",
-      "bytes": 8513,
-      "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445"
+      "bytes": 8794,
+      "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
     },
     {
       "path": "src/App.jsx",
@@ -414,5 +414,408 @@
     ],
     "preservationCheck": "Home HUD changes are mirrored in both inactive layout overlays. The Yard-only registry addition and all room layout fields except the retired global bottomDock remain unchanged. Garden R2, account-boundary, intrinsic-prop, media and closed activation gates are preserved.",
     "historyCorrection": "Retired Home entries and the entry finalized by a successful switch retain explicit ownership. Forward/Back repairs only those entries to the still-mounted game URL, with no new navigation or automatic resume. popstate cleanup uses its registered capture flag. Exact App callback and native capture ownership are covered in tests/home-navigation.test.js."
+  },
+  "reviewedPlayerWiringChangeSet": {
+    "id": "closed-player-wiring-20261004",
+    "approvedWiringCommit": "704e6387327a48f51fdc0fac8d8ee6ec66dd0372",
+    "sourceBaselineTree": "b188563cc86dbb3f0bf61ddddffe7cacf8f619a2",
+    "integrationBaseCommit": "86b5d798842408190c093aa058186ab906779c0d",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "transitions": [
+      {
+        "path": "routes/player.js",
+        "before": {
+          "bytes": 60103,
+          "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91",
+          "archive": "history/pre-player-rollout/production/routes/player.js"
+        },
+        "after": {
+          "bytes": 61600,
+          "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa"
+        }
+      },
+      {
+        "path": "routes/mergeRoutes.js",
+        "before": {
+          "bytes": 21618,
+          "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb",
+          "archive": "history/pre-player-rollout/production/routes/mergeRoutes.js"
+        },
+        "after": {
+          "bytes": 22001,
+          "sha256": "56fc38c20a4e7151e931f3206e639191a43516a32aba778b5db5f30906233bb6"
+        }
+      },
+      {
+        "path": "playerManager.js",
+        "before": {
+          "bytes": 16860,
+          "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182",
+          "archive": "history/pre-player-rollout/production/playerManager.js"
+        },
+        "after": {
+          "bytes": 17325,
+          "sha256": "fdbc6c9f70c39ce4b760b595b4b2994960a18f323bcde09a350db7e8f50ec2c4"
+        }
+      },
+      {
+        "path": "game-logic/merge-lab-service.js",
+        "before": {
+          "bytes": 11041,
+          "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973",
+          "archive": "history/pre-player-rollout/production/game-logic/merge-lab-service.js"
+        },
+        "after": {
+          "bytes": 11606,
+          "sha256": "97e5e6d3ce63a025080e2812a2992e00547a95de72aa5cd83378610e5cd832a7"
+        }
+      },
+      {
+        "path": "src/game-state/useGameHub.js",
+        "before": {
+          "bytes": 27629,
+          "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf",
+          "archive": "history/pre-player-rollout/production/src/game-state/useGameHub.js"
+        },
+        "after": {
+          "bytes": 28619,
+          "sha256": "04591b270ab5eca3eea89730211e138342e14964e9e840c2816639c46eac5d33"
+        }
+      },
+      {
+        "path": "src/app/gameChunks.jsx",
+        "before": {
+          "bytes": 1486,
+          "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb",
+          "archive": "history/pre-player-rollout/production/src/app/gameChunks.jsx"
+        },
+        "after": {
+          "bytes": 1487,
+          "sha256": "d4fece2454792e4787f6206e6c5a9487e489a3ebb0d594afcfad7c280ad804f2"
+        }
+      },
+      {
+        "path": "src/app/hud-layout/registry.js",
+        "before": {
+          "bytes": 18524,
+          "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb",
+          "archive": "history/pre-player-rollout/production/src/app/hud-layout/registry.js"
+        },
+        "after": {
+          "bytes": 18796,
+          "sha256": "e0aa83af1048b99eedf1ffc2913cdd085c1749ff42024a8c62fa0972c37e3eca"
+        }
+      },
+      {
+        "path": "src/app/hud-layout/defaultLayouts/room.json",
+        "before": {
+          "bytes": 2690,
+          "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003",
+          "archive": "history/pre-player-rollout/production/src/app/hud-layout/defaultLayouts/room.json"
+        },
+        "after": {
+          "bytes": 3248,
+          "sha256": "c1d704329625ee99c9bdaddd2805a2a11531eb3c481b8d0203addfea90e8a2e3"
+        }
+      },
+      {
+        "path": "package.json",
+        "before": {
+          "bytes": 8513,
+          "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445",
+          "archive": "history/pre-player-rollout/production/package.json"
+        },
+        "after": {
+          "bytes": 8650,
+          "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21"
+        }
+      }
+    ],
+    "closedRolloutFiles": [
+      {
+        "path": "game-logic/yard-v2/release-policy.mjs",
+        "bytes": 1100,
+        "sha256": "dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec"
+      },
+      {
+        "path": "game-logic/yard-v2/player-release.mjs",
+        "bytes": 2122,
+        "sha256": "727cf497cf1a1b8705b341c0d1dfcb084b7986c200cc0ae4ab36e2987fb8452c"
+      },
+      {
+        "path": "src/games/companion-yard-v2/release-presentation.mjs",
+        "bytes": 436,
+        "sha256": "a6d9bc30f82f48e6b35ad43675f274c7dc6e8152573009b668392111cf81afc6"
+      },
+      {
+        "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
+        "bytes": 1364,
+        "sha256": "ae7d2e736a03dfe7b52b2b779c4e1d03ef84db1744d30788e016073401b042cb"
+      },
+      {
+        "path": "game-logic/yard-v2/released-prop-profiles.mjs",
+        "bytes": 2725,
+        "sha256": "23890823031b9fa0556dc8afbc00d7881ae6c6859c39b4c03966e1c1153ecc27"
+      },
+      {
+        "path": "game-logic/yard-v2/released-actor-profiles.mjs",
+        "bytes": 1019,
+        "sha256": "047ac0b060bfce03088d4747c8c2a1c55bb3563675f55cb4cf2ab9dcecad83a1"
+      },
+      {
+        "path": "game-logic/yard-v2/yard-media.mjs",
+        "bytes": 3214,
+        "sha256": "572cc440f5a4f21f327f8fa26ab893512f911934e9a3dee16649d97c6df1d799"
+      },
+      {
+        "path": "game-logic/yard-v2/mochi-actor-profile.mjs",
+        "bytes": 1651,
+        "sha256": "412b43826c380e3f0d3b1d37f30d3b5059bc140d589809e3e539029a06bc4313"
+      },
+      {
+        "path": "game-logic/yard-v2/pebble-actor-profile.mjs",
+        "bytes": 1347,
+        "sha256": "0af9977bbc35da9d9cc7e6120502bf431b093525ca7f1e5b3f24d90d8b562200"
+      },
+      {
+        "path": "game-logic/yard-v2/pip-actor-profile.mjs",
+        "bytes": 2388,
+        "sha256": "818796394a7c91182eebdf4a14243089edcdc90f558f68aeb29e41154f185ddc"
+      },
+      {
+        "path": "game-logic/yard-v2/family-actor-profile.mjs",
+        "bytes": 601,
+        "sha256": "607ea60757995eb66c97261061d49c6f4db1fe2a1221c4656ec91ca0f13c1cb5"
+      },
+      {
+        "path": "game-logic/yard-v2/media/family-actor-profiles.json",
+        "bytes": 11941,
+        "sha256": "6a1bcd9b79891243e86cd2dc47e0af5e2d6f05a4798dfd99391db8184f052bd8"
+      },
+      {
+        "path": "game-logic/yard-v2/mochi-media.mjs",
+        "bytes": 5701,
+        "sha256": "bef5bd3b0d0680c14c731193e5cc421b489a862090a83106f01cdeff6141911e"
+      },
+      {
+        "path": "game-logic/yard-v2/pebble-media.mjs",
+        "bytes": 6053,
+        "sha256": "798cfe34d6cfd1270e1bb18a023bb189641ebc6038ba8169f6ea525dc0b64fc9"
+      },
+      {
+        "path": "game-logic/yard-v2/pip-media.mjs",
+        "bytes": 5595,
+        "sha256": "e6860f1be9a53fb3837961559f01dca9b15b1f0f8584080a55c51bc7288405e3"
+      },
+      {
+        "path": "game-logic/yard-v2/family-media.mjs",
+        "bytes": 908,
+        "sha256": "b71f4c26876ee3067aa5b063d71ee4e50a706ae420fa21a537c8159adbcf652d"
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-player-rollout/base-contract.json",
+        "bytes": 19917,
+        "sha256": "e0665359378c8df006c18587907b864d505c0c3498296be022db31f40347819a"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/overlay/routes/player.js",
+        "bytes": 60653,
+        "sha256": "2c78b4b8e178192ac3245afb022fdda64557dc157bf400fe796184789df6da84"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/overlay/src/game-state/useGameHub.js",
+        "bytes": 28239,
+        "sha256": "3e3d7330f0b3532a389f0ee989ede600ec797ce7afb6ce39af72798239ddbcee"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/production/routes/player.js",
+        "bytes": 60103,
+        "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-original/production/src/game-state/useGameHub.js",
+        "bytes": 27249,
+        "sha256": "11456f02725d77139798aba45900aac81fe5312ffd13fd047717beb42e1e6b40"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-pre-integration-overlay/routes/player.js",
+        "bytes": 60653,
+        "sha256": "2c78b4b8e178192ac3245afb022fdda64557dc157bf400fe796184789df6da84"
+      },
+      {
+        "path": "history/pre-player-rollout/boundary-pre-integration-overlay/src/game-state/useGameHub.js",
+        "bytes": 28538,
+        "sha256": "683272aed5b543b13ed5eec6cf4b0fae8077ffc8b2f2fa0f42a754d24c0232e9"
+      },
+      {
+        "path": "history/pre-player-rollout/checks/candidate-boundary.checks.mjs",
+        "bytes": 2145,
+        "sha256": "4f738941dbec190bcc7aead6f946f5bf07e2f98277bae6af7c281713e486edbd"
+      },
+      {
+        "path": "history/pre-player-rollout/production/game-logic/merge-lab-service.js",
+        "bytes": 11041,
+        "sha256": "babe1f5738ee96c7addaa48084e45ad7722b119d964723fa875ed1236173d973"
+      },
+      {
+        "path": "history/pre-player-rollout/production/package.json",
+        "bytes": 8513,
+        "sha256": "90c5c85d5c54b40a66566fd7a99fe48388e6c0b7f7df12fc994a4b0f0646f445"
+      },
+      {
+        "path": "history/pre-player-rollout/production/playerManager.js",
+        "bytes": 16860,
+        "sha256": "1952032544a3ddd7034a9c81a001606e4fed81876c4c1bb7dd91584d4ae27182"
+      },
+      {
+        "path": "history/pre-player-rollout/production/routes/mergeRoutes.js",
+        "bytes": 21618,
+        "sha256": "d37d275a9c1ea4204596ee8f576a21e2e5b0f4d626d6121fcb5d309affaccaeb"
+      },
+      {
+        "path": "history/pre-player-rollout/production/routes/player.js",
+        "bytes": 60103,
+        "sha256": "2bf070179c2a546edef1a930dc6570383970bff1d02a32cbb28181e43cf79a91"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/app/gameChunks.jsx",
+        "bytes": 1486,
+        "sha256": "75f7839907edc2eea1ed14f3ca2fce56f1417f7dc4cb35b2280db58c94ea43bb"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/app/hud-layout/defaultLayouts/room.json",
+        "bytes": 2690,
+        "sha256": "6a3e05445adf2c81a5399b672c2fd3f91f42f629e71898f10f62aa424ef81003"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/app/hud-layout/registry.js",
+        "bytes": 18524,
+        "sha256": "e9bff691f8d01d23170ee1d1c1704d4c0829ce1db67795a9a5044b9b27a034fb"
+      },
+      {
+        "path": "history/pre-player-rollout/production/src/game-state/useGameHub.js",
+        "bytes": 27629,
+        "sha256": "b8c52f3a7625b10fbb7cb61a0e9f6ea6794a422ac2e85a3c274c276684bf83cf"
+      },
+      {
+        "path": "history/pre-player-rollout/verify-boundary-transfer.mjs",
+        "bytes": 1999,
+        "sha256": "f880dac469027c7af4ffa084f25379e5325f4ad471613d4ed74121e93c1bc5a7"
+      },
+      {
+        "path": "history/pre-player-rollout/verify-production.mjs",
+        "bytes": 1169,
+        "sha256": "7f08587bd1c5ad9d72d43a2d1bfd133c9139585bfea1fd24f9094bcd7483022a"
+      }
+    ],
+    "historicalBoundaryStatus": {
+      "originalPinnedEvidence": "verify against archived original production/overlay inputs",
+      "preIntegrationStoreDelta": "known pre-existing mismatch; never labeled original-delta preservation",
+      "cause": "snapshotRequestPending lifecycle was mirrored into both production and overlay, but the production-only finally comment was not mirrored. The old sourceInputs overlay fingerprint was not refreshed.",
+      "originalStoreDeltaSha256": "32c58e2a016fc0b57ca4c553cac5934ab640cb204893ed78870a59a416f88726",
+      "preIntegrationStoreDeltaSha256": "831aba9467eb6e4df2471c5023a4a7e6223ea19c7e4a712d8c9e94c23c5453c6"
+    }
+  },
+  "reviewedRollbackGuardChangeSet": {
+    "id": "closed-rollback-guard-20261004",
+    "approvedCommit": "6b01f6ce6aaf341e1345e4f244a3e871bd28784a",
+    "approvedPatchSha256": "cbe0fb9eac2ea28f9991fca81608507a3ef41bb089dc35e5f81989eeec62f79c",
+    "rolloutEnabled": false,
+    "sourceAcceptanceChanged": false,
+    "activePredecessorPinned": false,
+    "historicalLegacyIdentityOnly": true,
+    "transitions": [
+      {
+        "path": "package.json",
+        "before": {
+          "bytes": 8650,
+          "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21",
+          "archive": "history/pre-rollback-guard/production/package.json"
+        },
+        "after": {
+          "bytes": 8794,
+          "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
+        }
+      },
+      {
+        "path": "game-logic/yard-v2/release-policy.mjs",
+        "before": {
+          "bytes": 535,
+          "sha256": "643d47263de2d3cb94f6f5bbcf86d2de4485475c57a1b1f3d561c07027454ea0",
+          "archive": "history/pre-rollback-guard/controls/game-logic/yard-v2/release-policy.mjs"
+        },
+        "after": {
+          "bytes": 1100,
+          "sha256": "dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec"
+        }
+      }
+    ],
+    "files": [
+      {
+        "path": ".github/workflows/deploy.yml",
+        "bytes": 15709,
+        "sha256": "ac6aebc4563cda47ff85af1085e543278ee1990f2536e630d7a327e7c9186972"
+      },
+      {
+        "path": "docs/yard-two-phase-release.md",
+        "bytes": 10619,
+        "sha256": "ea319dcb9e7b853a9100436aad01ea6c81aafb7e754a41affd613272dd0cdfed"
+      },
+      {
+        "path": "game-logic/yard-v2/release-policy.mjs",
+        "bytes": 1100,
+        "sha256": "dad5d515d329b4f73d8deed7ef5d48ad15541782e94db0b19f2d90362d5f9eec"
+      },
+      {
+        "path": "package.json",
+        "bytes": 8794,
+        "sha256": "efaaba8f4842511d35de9cab54f875821418a25920ac5cdd21b49169f238ebe1"
+      },
+      {
+        "path": "scripts/verify-yard-rollback-target.mjs",
+        "bytes": 4830,
+        "sha256": "e3f4cebd9af5a7d5538e7ed70c1a87f3a961c8c40342f2e717449357cd0573de"
+      },
+      {
+        "path": "scripts/yard-pre-switch-guard.sh",
+        "bytes": 3942,
+        "sha256": "862fe1dd2d95e6148809f67aaec556f9aeb5548c732c4dcd8107af92a7163d11"
+      },
+      {
+        "path": "scripts/yard-release-compatibility.mjs",
+        "bytes": 2139,
+        "sha256": "cf004946b4cd23da6c7fe2f125fab85741fde8c870a38fdc53d842a301cf2183"
+      },
+      {
+        "path": "tests/yard-rollback-guard.test.mjs",
+        "bytes": 11111,
+        "sha256": "743496d18b6286822cc340e24ac44b53dbee7f639f019b1d0ab3e1cf2a2f4d45"
+      }
+    ],
+    "archiveFiles": [
+      {
+        "path": "history/pre-rollback-guard/approved-ops.patch",
+        "bytes": 47089,
+        "sha256": "cbe0fb9eac2ea28f9991fca81608507a3ef41bb089dc35e5f81989eeec62f79c"
+      },
+      {
+        "path": "history/pre-rollback-guard/base-contract.json",
+        "bytes": 31925,
+        "sha256": "0ec7016e246aef5bcb0395be898cf0b5a909e4417afe9a5c68575c44446cb15e"
+      },
+      {
+        "path": "history/pre-rollback-guard/controls/game-logic/yard-v2/release-policy.mjs",
+        "bytes": 535,
+        "sha256": "643d47263de2d3cb94f6f5bbcf86d2de4485475c57a1b1f3d561c07027454ea0"
+      },
+      {
+        "path": "history/pre-rollback-guard/production/package.json",
+        "bytes": 8650,
+        "sha256": "f3b884c9f78f54fb5a222797855699b334eba5b9412b9fb56cbf362817429b21"
+      }
+    ]
   }
 }

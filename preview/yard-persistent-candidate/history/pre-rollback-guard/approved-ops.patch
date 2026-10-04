@@ -1,0 +1,458 @@
+diff --git a/.github/workflows/deploy.yml b/.github/workflows/deploy.yml
+index dcb8a60..19c3ffe 100644
+--- a/.github/workflows/deploy.yml
++++ b/.github/workflows/deploy.yml
+@@ -88,15 +88,15 @@ jobs:
+               sudo install -d -m 0750 -o "$(id -un)" -g "$(id -gn)" /opt/game-hub
+             fi
+ 
+-      - name: Copy docker-compose to VPS
++      - name: Stage immutable release files on VPS
+         uses: appleboy/scp-action@v0.1.7
+         with:
+           host: ${{ secrets.VPS_HOST }}
+           username: ${{ secrets.VPS_USERNAME }}
+           key: ${{ secrets.VPS_SSH_KEY }}
+           port: ${{ secrets.VPS_PORT || '22' }}
+-          source: "docker-compose.yml"
+-          target: "/opt/game-hub"
++          source: "docker-compose.yml,scripts/yard-pre-switch-guard.sh"
++          target: "/opt/game-hub/releases/${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
+ 
+       - name: Deploy isolated CC-GH stack
+         uses: appleboy/ssh-action@v1.0.3
+@@ -168,6 +168,19 @@ jobs:
+             cd /opt/game-hub
+ 
+             umask 077
++            # Serialize the full server-side release, including rollback. Manual
++            # release procedures must use this same lock; CI concurrency remains.
++            command -v flock >/dev/null || { echo "flock is required for safe deployment"; exit 1; }
++            exec 9>/opt/game-hub/.release.lock
++            flock -n 9 || { echo "Another release owns the deployment lock"; exit 1; }
++            # SCP only writes this run's isolated staging tree. Promote effective
++            # compose/helper files only after acquiring the shared release lock.
++            RELEASE_STAGING_PATH="/opt/game-hub/releases/${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}"
++            test -r "$RELEASE_STAGING_PATH/docker-compose.yml"
++            test -r "$RELEASE_STAGING_PATH/scripts/yard-pre-switch-guard.sh"
++            install -m 0644 "$RELEASE_STAGING_PATH/docker-compose.yml" ./docker-compose.yml
++            install -d -m 0750 ./scripts
++            install -m 0700 "$RELEASE_STAGING_PATH/scripts/yard-pre-switch-guard.sh" ./scripts/yard-pre-switch-guard.sh
+             RELEASE_SWITCH_STARTED=0
+             PREVIOUS_ENV_BACKUP=""
+             if [ -f .env ]; then
+@@ -315,6 +328,10 @@ jobs:
+             }
+ 
+             compose -p ccgh pull app
++            # Refuse unsafe Yard format transitions before the live container is touched.
++            bash scripts/yard-pre-switch-guard.sh "ghcr.io/${REPO_LOWER}@${APP_IMAGE_DIGEST}" "$APP_BUILD_ID" "$PREVIOUS_IMAGE_ID" "$PREVIOUS_BUILD_ID" "$APP_HOST_PORT" "$POSTGRES_USER" "$POSTGRES_DB" "$REPO_LOWER"
++            # Keep the exact checked rollback image reachable by a stable local tag.
++            docker image tag "$PREVIOUS_IMAGE_ID" "ghcr.io/${REPO_LOWER}:yard-rollback-${PREVIOUS_BUILD_ID}"
+ 
+             STALE_APP_CONTAINERS="$(docker ps -a --format '{{.ID}} {{.Names}}' | awk '$2 ~ /_ccgh-app$/ { print $1 }')"
+             if [ -n "$STALE_APP_CONTAINERS" ]; then
+diff --git a/docs/yard-two-phase-release.md b/docs/yard-two-phase-release.md
+new file mode 100644
+index 0000000..7ab03ab
+--- /dev/null
++++ b/docs/yard-two-phase-release.md
+@@ -0,0 +1,155 @@
++# Two-phase Yard deployment and rollback boundary
++
++This is an operational preparation, not permission to deploy either phase now.
++Both phases are internal steps of the final authorized release after all final
++source/media/native-duration/pair acceptance and applicable exact-tree CI.
++
++## Why two images are necessary
++
++The existing deployment rollback restores the captured prior image and prior
++`.env`, without restoring the database. This is correct only if the prior image
++can read or quarantine every state the candidate might persist. Once `_yardV2`
++exists, the old `84d252d4` image is not a safe fallback: it can invoke the legacy
++normalizer/simulator without durable Yard receipt semantics.
++
++The new guard is read-only and runs after the target image is pulled but before
++stale-container cleanup or `RELEASE_SWITCH_STARTED=1`. It does not query real
++production during tests/preparation. At actual deployment it queries only
++`SELECT count(*) FROM players WHERE data ? '_yardV2'`; null/future markers count.
++No player row, save, credential or receipt is output. A query error blocks.
++
++## Phase A: closed, compatible bridge
++
++1. Assemble and independently review the complete closed player wiring, exact
++   owned media delivery, rollback guard and CLOSED preservation contract. Run
++   all required CI/build/browser/HTTP/PostgreSQL checks for this exact image.
++   This is part of the final rollout; do not publish an unfinished bridge merely
++   because implementation exists.
++2. Keep `YARD_PLAYER_RELEASE_POLICY.enabled:false`; source acceptance changes
++   remain separately reviewed. The image-owned compatibility command derives
++   its state from that policy, runs the actual closed adapter against ephemeral
++   malformed/future/null sentinels, and proves no local save bytes change.
++3. Populate `requiredLegacyPredecessor` in the reviewed closed policy only after
++   resolving the actual healthy production registry digest. Its build must be
++   the audited `84d252d4bee6ed75fe8d32c07ebdef4c9270c629`; the verified historical digest is
++   `sha256:729955b34481c629980e5a04606a88531d9ba1691e69312c9dcd366571e4380d`,
++   from successful deploy 37142937097 / deploy job 111267308840 and image job
++   111267028671 (2026-10-03 18:41:59 UTC). This establishes historical identity,
++   not present live state; the guard still checks the running predecessor. An absent probe does not admit an arbitrary image.
++   The guard checks candidate registry digest plus OCI source-revision label,
++   captured prior image identity, and exact healthy prior build. If the prior
++   image lacks a compatibility command, **any** existing `_yardV2` marker
++   blocks the switch, even when the candidate is closed. Do not delete those
++   markers, reinterpret unknown markers as absent or restore a backup to pass.
++   A discovered existing marker requires a reviewed compatible recovery target.
++4. Deploy A using the ordinary verified database backup, switch and local/public
++   health checks. Unmigrated accounts stay legacy; A creates no `_yardV2` records.
++   A failed deployment can safely return to the pinned unaware old image only
++   under the verified known-writer assumption: that audited old image and A
++   cannot create persistent markers, no independent Yard writer exists, and
++   all deployment procedures hold the same server-side release lock. The guard
++   repeats the marker count and running-image check immediately before returning;
++   this reduces observation races but is not an atomic database write fence.
++   If unknown writers cannot be excluded, do not deploy based on this guard.
++5. Verify exact A build/digest, closed mode, a normal authenticated legacy
++   snapshot and ordinary game behavior. Confirm the aggregate marker count is
++   still zero. Record A's actual immutable registry digest and build SHA for B.
++   Do not use a guessed tag, mutable `latest`, local image ID in place of registry
++   digest, or a health payload alone as compatibility evidence.
++
++## Phase B: reviewed activation
++
++1. Build the explicit ACTIVE release contract. The current CLOSED contract and
++   negative controls intentionally reject enabled flags; do not remove those
++   checks, blanket-refresh hashes or try to pass B through the CLOSED contract.
++   Add an independently reviewed active contract tied to exact accepted proof
++   references, final source/media closures, delivery-map digest, roster/prop
++   registrations, expected policy values and the separate gate-transition
++   provenance record described in `yard-player-rollout-integration.md`.
++2. Retain closed-mode counterexamples: a build claiming CLOSED with an enabled
++   player/source gate must fail; an ACTIVE build with missing/unaccepted proof,
++   wrong roster, changed semantic source or missing predecessor must fail. Each
++   mode has its own positive contract, rather than an always-closed assertion
++   or a runtime bypass. Existing test-only acceptance options do not become
++   production wiring and test manifests do not become acceptance records.
++3. Compatibility is inspected by running the pristine previous image ID in an
++   isolated `docker run --network none`, without mounts, database credentials or
++   service environment. It does not execute compatibility code in the mutable
++   running container. Only explicit exit42 from the fixed file-existence probe
++   means the command is absent; all Docker/permission/command errors block.
++   In the reviewed activation commit, set the exact approved source/profile
++   transitions and player policy. Set `requiredClosedPredecessor` in code to
++   `{buildId: A_FULL_COMMIT_SHA, imageDigest: A_REGISTRY_SHA256_DIGEST}` using
++   verified actual values. This is not an environment setting or HTTP input.
++   Defaults remain null; an enabled image without the exact pin is unshippable.
++4. Run full required CI against B and compare final production witness behavior
++   with accepted temporal evidence. A changed gate field is accounted for by
++   explicit non-kinematic transition provenance, not by relabeling an old run.
++   Image build identity, manifests and closed predecessor must be final before
++   B's deployment. Any rebuild with a different A registry digest requires a new
++   reviewed pin rather than substituting the digest during deployment.
++5. Immediately before switching, the guard must find the actual running prior
++   image is A, with the pinned repository digest and matching OCI revision, its
++   image-owned policy is closed, its quarantine check passes, and its current
++   local health reports exactly A and is healthy. An unrelated compatible image,
++   old image, already-enabled predecessor, wrong digest, changed running image,
++   missing proof or failed count blocks before any live switch.
++6. Keep the ordinary fresh checked database backup. The workflow tags the exact
++   verified prior local image `yard-rollback-<A_SHA>` so image pruning cannot
++   discard it merely as dangling. The existing failure trap restores A and its
++   environment, never restores the database, and never returns to 84 directly.
++7. Verify exact B health, actual authenticated persistent snapshot/roster/assets,
++   durable commands and fresh-read persistence. On failure after any migration,
++   rollback A renders persistent accounts read-only and does not replay legacy
++   normalization; unmigrated accounts remain legacy. Do not automatically replay
++   commands with new intent IDs or restore original input archives. Existing
++   pending-outbox/response-loss behavior remains an integration QA requirement.
++
++## Subsequent releases
++
++The initial activation policy pins an exact closed predecessor deliberately.
++A later enabled deployment from an already-enabled image will fail this initial
++activation guard. Plan a separately reviewed steady-state transition contract
++with exact compatible predecessor identities and the same minimum storage
++support, or use a new closed bridge. Do not remove the predecessor requirement
++or make a mutable environment override to get a later deployment through.
++Any manual rollback must respect the same compatibility floor. Application-only
++rollback does not mean database rollback; a data restore is separate and may
++lose subsequent purchases, gifts and adjacent-game progress.
++
++## Files and tests
++
++- `release-policy.mjs`: code-owned verified historical legacy pin and initially-null closed predecessor pin.
++- `scripts/yard-release-compatibility.mjs`: image-owned, zero-network/DB command.
++- `scripts/verify-yard-rollback-target.mjs`: pure input/identity/phase verifier.
++- `scripts/yard-pre-switch-guard.sh`: bounded image/health/count collection; no
++  schema/data mutation; isolated candidate verifier has networking disabled.
++- `.github/workflows/deploy.yml`: copy the helper, invoke before any live switch,
++  retain the verified previous image; existing backup/health/rollback unchanged.
++- `tests/yard-rollback-guard.test.mjs`: identity/mode/count negative cases and the
++  actual shell under hermetic Docker/curl stubs, including query failure and a
++  changed prior image, missing/wrong legacy pin, probe errors and a marker appearing on recheck. No live database, Docker service or website was accessed.
++
++Validation: 26 tests passed (16 new plus all 10 existing release/backup/rollback
++checks), no failures or skips. Live image/DB deployment behavior remains to be
++verified in the authorized release environment; the tests are not a deployment.
++
++The workflow acquires a nonblocking `flock` on `/opt/game-hub/.release.lock`
++before saving environment or switching; it is held through the failure trap and
++rollback. Existing GitHub deployment concurrency remains enabled. Manual release
++procedures must share the lock. This lock serializes deployments, not arbitrary
++SQL writers; its scope must not be overstated.
++
++All Docker client calls made by the pre-switch helper have a 30-second timeout
++with a further 5-second kill deadline. Both PostgreSQL count observations run
++with session `default_transaction_read_only=on`, a 10-second statement timeout
++and a 3-second lock timeout. Missing timeout support, Docker deadline expiry,
++SQL deadline/lock failure or a failed probe blocks the deployment. Curl health
++checks retain their explicit connect/total deadlines.
++
++SCP writes compose/helper files only to
++`/opt/game-hub/releases/<candidate-build>-<workflow-run>-<attempt>/`. The deploy
++step checks both staged files and promotes them into the effective live paths
++only after acquiring the release lock. Uploading a waiting job cannot overwrite
++files belonging to the active lock owner. Staging does not grant permission to
++deploy; all acceptance, identity and compatibility checks still apply.
+diff --git a/game-logic/yard-v2/release-policy.mjs b/game-logic/yard-v2/release-policy.mjs
+index ab340a2..2ddd702 100644
+--- a/game-logic/yard-v2/release-policy.mjs
++++ b/game-logic/yard-v2/release-policy.mjs
+@@ -3,6 +3,15 @@
+ export const YARD_PLAYER_RELEASE_POLICY = Object.freeze({
+   revision: 'yard-player-rollout/closed-r1',
+   enabled: false,
++  // Fill with the verified closed release build/digest in the reviewed activation commit.
++  // Deployment refuses enabled rollout until that exact predecessor is healthy.
++  requiredClosedPredecessor: null,
++  // Historical successful deployment 37142937097, image job 111267028671.
++  // The guard must still verify this exact image is the live healthy predecessor.
++  requiredLegacyPredecessor: Object.freeze({
++    buildId: '84d252d4bee6ed75fe8d32c07ebdef4c9270c629',
++    imageDigest: 'sha256:729955b34481c629980e5a04606a88531d9ba1691e69312c9dcd366571e4380d',
++  }),
+ });
+ export function hasPersistentYardStorage(player) {
+   return !!player && Object.hasOwn(player, '_yardV2');
+diff --git a/package.json b/package.json
+index 771d2dc..e50b848 100644
+--- a/package.json
++++ b/package.json
+@@ -21,7 +21,7 @@
+     "start": "node server.js",
+     "dev:server": "node server.js",
+     "dev": "vite",
+-    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-player-rollout.test.mjs",
++    "test": "node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/ui-screen-surfaces.test.js tests/hud-redesign-pack.test.js tests/hud-bonuses.test.js tests/settlement-assets.test.js tests/settlement-cycle.test.js tests/settlement-save-safety.test.js tests/settlement-persistence-contract.test.js tests/settlement-localization.test.js tests/settlement-overview.test.js tests/settlement-building-detail.test.js tests/settlement-goals-panel.test.js tests/settlement-inventory-council.test.js tests/settlement-construction-panel.test.js tests/settlement-world-map.test.js tests/hud-layout.test.js tests/unit.test.js tests/auth.test.js tests/blox.test.js tests/bubbo.test.js tests/pointerSession.test.js tests/sceneGeometry.test.js tests/match3.test.js tests/game-ux-foundations.test.js tests/engine.test.js tests/db.test.js tests/useToast.test.js tests/useModal.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js tests/game-logic-stress.test.js tests/merge.test.js tests/i18n.test.js tests/useBloxEngine.test.js tests/gameStore.test.js tests/platform-cleanup.test.js tests/update-manager.test.js tests/operational-debt.test.js tests/production-runtime-copy.test.js tests/release-gate.test.js tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/yard-inventory-only.test.mjs tests/yard-merge-v3-preservation.test.mjs tests/dialog-focus.test.js tests/home-navigation.test.js tests/garden-interaction.test.js tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-presentation-contract.test.mjs tests/garden-living-plant-profiles.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-release-integration.test.js tests/merge-lab-recovery.test.mjs tests/merge-lab-service.test.mjs tests/merge-lab-onboarding.test.mjs tests/merge-lab-transport.test.mjs tests/merge-lab-routes.test.mjs tests/merge-lab-ui.test.mjs tests/merge-lab-pg-guard.test.mjs tests/bubbo-recovery-differential.test.js tests/bubbo-controller-recovery.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/arcade-integration-contracts.test.js recovery-tools/verification/blox/verify-blox.cjs recovery-tools/verification/blox/scene-verification.cjs tests/merge-lab-enabled-transition.test.mjs tests/garden-transactions.test.js tests/garden-transaction-ledger.test.js tests/garden-accounting-pg-guard.test.mjs tests/garden-accounting-routes.test.js tests/garden-local-state.test.js tests/telegram-game-gestures.test.js tests/blox-pause-visibility.test.js tests/garden-r2.test.mjs tests/garden-r2-service.test.mjs tests/garden-r2-routes.test.mjs tests/garden-r2-store.test.mjs tests/garden-r2-pg-guard.test.mjs tests/garden-r2-client.test.mjs tests/garden-r2-trajectories.test.mjs tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-player-rollout.test.mjs tests/yard-rollback-guard.test.mjs",
+     "test:perf": "node --test tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/asset-runtime.test.js tests/perf.test.js tests/perf-guard.test.js tests/perf-build-guard.test.js",
+     "perf:guard": "node scripts/perf-guard.mjs",
+     "perf:guard:build": "node scripts/perf-build-guard.mjs",
+@@ -33,7 +33,8 @@
+     "test:yard-current-four": "node --test --test-concurrency=1 tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-actor-profiles.test.mjs tests/yard-mochi-scene-lifecycle.test.mjs tests/yard-pebble-scene-lifecycle.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/yard-pebble-fixture-path.test.mjs",
+     "test:yard-family": "node --test --test-concurrency=1 tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-mixed-obstacles.test.mjs tests/yard-source-owned-routes.test.mjs tests/yard-authored-routes.test.mjs tests/yard-pip-source.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs",
+     "test:yard-family:pg": "node --test --test-concurrency=1 tests/yard-family-postgres.test.mjs",
+-    "test:yard-player-wiring": "node --test --test-concurrency=1 tests/yard-player-rollout.test.mjs"
++    "test:yard-player-wiring": "node --test --test-concurrency=1 tests/yard-player-rollout.test.mjs",
++    "test:yard-rollback-guard": "node --test tests/yard-rollback-guard.test.mjs tests/release-gate.test.js"
+   },
+   "dependencies": {
+     "@esotericsoftware/spine-pixi-v8": "^4.2.112",
+diff --git a/scripts/verify-yard-rollback-target.mjs b/scripts/verify-yard-rollback-target.mjs
+new file mode 100644
+index 0000000..4425276
+--- /dev/null
++++ b/scripts/verify-yard-rollback-target.mjs
+@@ -0,0 +1,51 @@
++/** Read-only pre-switch verification. Inputs are local image metadata, image-owned
++ * capability commands, health, and an aggregate marker count. No player rows. */
++import {readFileSync} from 'node:fs';
++import {join} from 'node:path';
++import {pathToFileURL} from 'node:url';
++// Audited prior release: its live routes/playerManager do not write _yardV2.
++export const KNOWN_LEGACY_YARD_BUILD='84d252d4bee6ed75fe8d32c07ebdef4c9270c629';
++const fullSha=value=>typeof value==='string'&&/^[a-f0-9]{40}$/.test(value);
++const imageDigest=value=>typeof value==='string'&&/^sha256:[a-f0-9]{64}$/.test(value);
++const fail=message=>{throw Error(message);};
++function capability(value,buildId){
++ if(!value||value.format!=='cc-gh-yard-release-compatibility/v1'||value.buildId!==buildId||typeof value.playerRolloutEnabled!=='boolean'||!Array.isArray(value.readableStorageFormats)||!value.readableStorageFormats.includes('yard-persistent/v1'))fail('Invalid image-owned Yard compatibility declaration');
++ if(value.playerRolloutEnabled===false&&value.closedQuarantineVerified!==true)fail('Closed image quarantine proof is missing');
++ return value;
++}
++function identity(image,repository,digest,buildId){
++ if(!image||!imageDigest(image.Id)||!imageDigest(digest)||!Array.isArray(image.RepoDigests)||!image.RepoDigests.includes(`ghcr.io/${repository}@${digest}`))fail('Pinned repository image digest is not present');
++ if(image.Config?.Labels?.['org.opencontainers.image.revision']!==buildId)fail('Image source revision does not match the release build');
++}
++export function verifyYardRollbackTarget(input){
++ const {candidate,previous,previousHealth,candidateImage,previousImage,repository,candidateDigest,candidateBuildId,previousImageId,previousBuildId,persistentYardRows}=input||{};
++ if(typeof repository!=='string'||!/^[a-z0-9_.-]+\/[a-z0-9_.-]+$/.test(repository)||!fullSha(candidateBuildId)||!fullSha(previousBuildId)||!imageDigest(previousImageId))fail('Exact release and rollback identities are required');
++ if(!Number.isSafeInteger(persistentYardRows)||persistentYardRows<0)fail('Valid read-only Yard marker count required');
++ const target=capability(candidate,candidateBuildId);identity(candidateImage,repository,candidateDigest,candidateBuildId);
++ if(previousImage?.Id!==previousImageId)fail('Running prior image identity changed');
++ if(!previousHealth||previousHealth.status!=='ok'||previousHealth.buildId!==previousBuildId)fail('Exact prior application must be healthy before switching');
++ const prior=previous===null?null:capability(previous,previousBuildId);
++ if(!prior){
++  if(persistentYardRows>0)fail('Existing persistent Yard markers forbid rollback to an unaware image');
++  const expected=target.requiredLegacyPredecessor;
++  if(!expected||expected.buildId!==KNOWN_LEGACY_YARD_BUILD||previousBuildId!==KNOWN_LEGACY_YARD_BUILD||!imageDigest(expected.imageDigest))fail('Unaware rollback target must pin the known non-v2-writing legacy release');
++  identity(previousImage,repository,expected.imageDigest,expected.buildId);
++ }
++ if(target.playerRolloutEnabled){
++  const expected=target.requiredClosedPredecessor;
++  if(!expected||!fullSha(expected.buildId)||!imageDigest(expected.imageDigest))fail('Activation requires a code-owned exact closed predecessor');
++  if(!prior||prior.playerRolloutEnabled!==false||prior.closedQuarantineVerified!==true)fail('Activation rollback target must be proven closed and quarantine-aware');
++  if(previousBuildId!==expected.buildId)fail('Prior build is not the reviewed closed predecessor');
++  identity(previousImage,repository,expected.imageDigest,expected.buildId);
++ }
++ return {status:'ready',phase:target.playerRolloutEnabled?'activation':'closed-compatible',persistentYardRows};
++}
++export function readYardPreflightDirectory(directory){
++ const text=name=>readFileSync(join(directory,name),'utf8').trim(),json=name=>JSON.parse(text(name));
++ const count=text('persistent-yard-count.txt');if(!/^(0|[1-9]\d*)$/.test(count))fail('Invalid PostgreSQL aggregate count');
++ return {candidate:json('candidate.json'),previous:json('previous.json'),previousHealth:json('previous-health.json'),candidateImage:json('candidate-image.json'),previousImage:json('previous-image.json'),repository:text('repository.txt'),candidateDigest:text('candidate-digest.txt'),candidateBuildId:text('candidate-build.txt'),previousImageId:text('previous-image-id.txt'),previousBuildId:text('previous-build.txt'),persistentYardRows:Number(count)};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
++ try{if(process.argv.length!==3)fail('One bounded preflight directory required');process.stdout.write(JSON.stringify(verifyYardRollbackTarget(readYardPreflightDirectory(process.argv[2])))+'\n');}
++ catch(error){process.stderr.write('Yard pre-switch guard blocked release: '+error.message+'\n');process.exitCode=1;}
++}
+diff --git a/scripts/yard-pre-switch-guard.sh b/scripts/yard-pre-switch-guard.sh
+new file mode 100755
+index 0000000..4092dee
+--- /dev/null
++++ b/scripts/yard-pre-switch-guard.sh
+@@ -0,0 +1,47 @@
++#!/usr/bin/env bash
++# Read-only app/DB/image preflight. No player rows or service credentials are copied.
++set -euo pipefail
++command -v timeout >/dev/null || { echo 'timeout is required for bounded pre-switch checks' >&2; exit 1; }
++# Bound the client as well as the SQL server; no call can wait indefinitely.
++run_docker() { timeout --foreground --kill-after=5s 30s docker "$@"; }
++if [ "$#" -ne 8 ]; then echo 'Expected exact candidate/prior release identities' >&2; exit 1; fi
++candidate_image="$1"; candidate_build="$2"; previous_image="$3"; previous_build="$4"
++app_port="$5"; db_user="$6"; db_name="$7"; repository="$8"
++case "$candidate_image" in "ghcr.io/${repository}@sha256:"*) ;; *) echo 'Candidate must use the pinned repository digest' >&2; exit 1;; esac
++[[ "$candidate_build" =~ ^[a-f0-9]{40}$ && "$previous_build" =~ ^[a-f0-9]{40}$ && "$previous_image" =~ ^sha256:[a-f0-9]{64}$ && "$app_port" =~ ^[0-9]+$ ]] || exit 1
++scratch="$(mktemp -d "${TMPDIR:-/tmp}/yard-release-preflight.XXXXXX")"
++trap 'rm -rf -- "$scratch"' EXIT
++chmod 0700 "$scratch"
++printf '%s\n' "$repository" > "$scratch/repository.txt"
++printf '%s\n' "${candidate_image##*@}" > "$scratch/candidate-digest.txt"
++printf '%s\n' "$candidate_build" > "$scratch/candidate-build.txt"
++printf '%s\n' "$previous_image" > "$scratch/previous-image-id.txt"
++printf '%s\n' "$previous_build" > "$scratch/previous-build.txt"
++run_docker image inspect "$candidate_image" --format '{{json .}}' > "$scratch/candidate-image.json"
++run_docker image inspect "$previous_image" --format '{{json .}}' > "$scratch/previous-image.json"
++run_docker run --rm --network none -e "APP_BUILD_ID=$candidate_build" "$candidate_image" node scripts/yard-release-compatibility.mjs > "$scratch/candidate.json"
++# Probe the pristine immutable rollback image without mounts, network, DB or secrets.
++# Exit42 is exclusively the shell's explicit absent-command sentinel. Any other
++# Docker/permission/probe failure blocks instead of being mistaken for legacy.
++if run_docker run --rm --network none -e "APP_BUILD_ID=$previous_build" "$previous_image" sh -c \
++  'if [ ! -f /app/scripts/yard-release-compatibility.mjs ]; then exit 42; fi; exec node /app/scripts/yard-release-compatibility.mjs' > "$scratch/previous.json"; then
++  :
++else
++  probe_status="$?"
++  if [ "$probe_status" -ne 42 ]; then echo 'Previous image compatibility probe failed' >&2; exit "$probe_status"; fi
++  printf 'null\n' > "$scratch/previous.json"
++fi
++curl --connect-timeout 5 --max-time 10 -fsS "http://127.0.0.1:${app_port}/api/health" > "$scratch/previous-health.json"
++run_docker exec -e "PGOPTIONS=-c default_transaction_read_only=on -c statement_timeout=10000 -c lock_timeout=3000" ccgh-postgres psql -X -A -t -v ON_ERROR_STOP=1 -U "$db_user" -d "$db_name" \
++  -c "SELECT count(*) FROM players WHERE data ? '_yardV2';" > "$scratch/persistent-yard-count.txt"
++# The pinned candidate supplies the verifier; no host Node installation is needed.
++run_docker run --rm --network none --mount "type=bind,src=$scratch,dst=/yard-preflight,readonly" "$candidate_image" \
++  node scripts/verify-yard-rollback-target.mjs /yard-preflight > "$scratch/provisional-result.json"
++# Re-observe immediately before returning to the locked deployment. This is a
++# bounded recheck, not an atomic database fence against unknown external writers.
++[ "$(run_docker inspect --format '{{.Image}}' ccgh-app)" = "$previous_image" ]
++run_docker exec -e "PGOPTIONS=-c default_transaction_read_only=on -c statement_timeout=10000 -c lock_timeout=3000" ccgh-postgres psql -X -A -t -v ON_ERROR_STOP=1 -U "$db_user" -d "$db_name" \
++  -c "SELECT count(*) FROM players WHERE data ? '_yardV2';" > "$scratch/persistent-yard-count.txt"
++[ "$(run_docker inspect --format '{{.Image}}' ccgh-app)" = "$previous_image" ]
++run_docker run --rm --network none --mount "type=bind,src=$scratch,dst=/yard-preflight,readonly" "$candidate_image" \
++  node scripts/verify-yard-rollback-target.mjs /yard-preflight
+diff --git a/scripts/yard-release-compatibility.mjs b/scripts/yard-release-compatibility.mjs
+new file mode 100644
+index 0000000..9b643eb
+--- /dev/null
++++ b/scripts/yard-release-compatibility.mjs
+@@ -0,0 +1,25 @@
++/** Image-owned compatibility command. No database, filesystem writes or network.
++ * Its closed quarantine check mutates only an ephemeral in-process sentinel. */
++import {pathToFileURL} from 'node:url';
++import {YARD_PLAYER_RELEASE_POLICY} from '../game-logic/yard-v2/release-policy.mjs';
++import {initializeReleasedPlayerYard,executeReleasedYardAction,releasedYardSnapshot} from '../game-logic/yard-v2/player-release.mjs';
++export function yardReleaseCompatibility(buildId){
++ if(typeof buildId!=='string'||!/^[a-f0-9]{40}$/.test(buildId))throw Error('Exact image build identity required');
++ let closedQuarantineVerified=false;
++ if(!YARD_PLAYER_RELEASE_POLICY.enabled){
++  for(const marker of [null,{format:'yard-persistent/v1',version:1},{format:'future',version:99}]){
++   const player={schemaVersion:11,id:'image-compatibility-sentinel',yard:{placedGoodies:{opaque:'retain'},currencies:{treats:'preserve-invalid-evidence'}},_yardV2:marker};
++   const original=JSON.stringify(player),loaded=initializeReleasedPlayerYard(player,{now:0,simulate:true});
++   const action=executeReleasedYardAction(player,'yard.collectGifts',{}, {now:0,actionId:'yard-v2:image-proof'}),snapshot=releasedYardSnapshot(player,{now:0});
++   if(loaded.status!==409||action.status!==409||snapshot.yardRuntime?.mutable!==false||JSON.stringify(player)!==original)throw Error('Image failed its closed quarantine boundary proof');
++  }
++  closedQuarantineVerified=true;
++ }
++ return {format:'cc-gh-yard-release-compatibility/v1',buildId,policyRevision:YARD_PLAYER_RELEASE_POLICY.revision,
++  playerRolloutEnabled:YARD_PLAYER_RELEASE_POLICY.enabled,readableStorageFormats:['yard-persistent/v1'],
++  closedQuarantineVerified,requiredClosedPredecessor:YARD_PLAYER_RELEASE_POLICY.requiredClosedPredecessor,requiredLegacyPredecessor:YARD_PLAYER_RELEASE_POLICY.requiredLegacyPredecessor};
++}
++if(process.argv[1]&&import.meta.url===pathToFileURL(process.argv[1]).href){
++ try{process.stdout.write(JSON.stringify(yardReleaseCompatibility(process.env.APP_BUILD_ID))+'\n');}
++ catch(error){process.stderr.write('Yard image compatibility check failed: '+error.message+'\n');process.exitCode=1;}
++}
+diff --git a/tests/yard-rollback-guard.test.mjs b/tests/yard-rollback-guard.test.mjs
+new file mode 100644
+index 0000000..b8798ac
+--- /dev/null
++++ b/tests/yard-rollback-guard.test.mjs
+@@ -0,0 +1,53 @@
++import test from 'node:test';
++import assert from 'node:assert/strict';
++import fs from 'node:fs';
++import os from 'node:os';
++import path from 'node:path';
++import {spawnSync} from 'node:child_process';
++import {fileURLToPath} from 'node:url';
++import {yardReleaseCompatibility} from '../scripts/yard-release-compatibility.mjs';
++import {verifyYardRollbackTarget,KNOWN_LEGACY_YARD_BUILD} from '../scripts/verify-yard-rollback-target.mjs';
++const root=fileURLToPath(new URL('..',import.meta.url)),build='a'.repeat(40),previousBuild=KNOWN_LEGACY_YARD_BUILD,digest='sha256:'+'c'.repeat(64),priorDigest='sha256:'+'d'.repeat(64),previousId='sha256:'+'e'.repeat(64),repo='le-who/cc-gh';
++const image=(Id,sha,revision)=>({Id,RepoDigests:[`ghcr.io/${repo}@${sha}`],Config:{Labels:{'org.opencontainers.image.revision':revision}}});
++function fixture(){return {candidate:{...yardReleaseCompatibility(build),requiredLegacyPredecessor:{buildId:previousBuild,imageDigest:priorDigest}},previous:null,previousHealth:{status:'ok',buildId:previousBuild},candidateImage:image('sha256:'+'f'.repeat(64),digest,build),previousImage:image(previousId,priorDigest,previousBuild),repository:repo,candidateDigest:digest,candidateBuildId:build,previousImageId:previousId,previousBuildId:previousBuild,persistentYardRows:0};}
++function activation(){const f=fixture(),closedBuild='b'.repeat(40);f.previousBuildId=closedBuild;f.previousHealth.buildId=closedBuild;f.previousImage=image(previousId,priorDigest,closedBuild);f.candidate.playerRolloutEnabled=true;f.candidate.closedQuarantineVerified=false;f.candidate.requiredClosedPredecessor={buildId:closedBuild,imageDigest:priorDigest};f.previous=yardReleaseCompatibility(closedBuild);f.persistentYardRows=7;return f;}
++test('image-owned command derives closed policy and proves quarantine without external state',()=>{const manifest=yardReleaseCompatibility(build);assert.equal(manifest.playerRolloutEnabled,false);assert.equal(manifest.closedQuarantineVerified,true);assert.equal(manifest.requiredClosedPredecessor,null);assert.deepEqual(manifest.requiredLegacyPredecessor,{buildId:KNOWN_LEGACY_YARD_BUILD,imageDigest:'sha256:729955b34481c629980e5a04606a88531d9ba1691e69312c9dcd366571e4380d'});assert.deepEqual(manifest.readableStorageFormats,['yard-persistent/v1']);assert.throws(()=>yardReleaseCompatibility('latest'));const source=fs.readFileSync(path.join(root,'scripts/yard-release-compatibility.mjs'),'utf8');assert.doesNotMatch(source,/DATABASE_URL|fetch\(|getDb\(|writeFile|process\.env\.(?:YARD|ROLLOUT)/);});
++test('phase one permits an unaware rollback image only with exactly zero persistent markers',()=>{assert.deepEqual(verifyYardRollbackTarget(fixture()),{status:'ready',phase:'closed-compatible',persistentYardRows:0});for(const count of [1,100]){const f=fixture();f.persistentYardRows=count;assert.throws(()=>verifyYardRollbackTarget(f),/markers forbid/);}});
++test('phase one rejects absent or arbitrary legacy bootstrap identities despite zero markers',()=>{for(const mutate of [f=>f.candidate.requiredLegacyPredecessor=null,f=>f.candidate.requiredLegacyPredecessor.buildId='8'.repeat(40),f=>f.candidate.requiredLegacyPredecessor.imageDigest='sha256:'+'8'.repeat(64),f=>f.previousBuildId='8'.repeat(40),f=>f.previousImage.RepoDigests=[],f=>f.previousImage.Config.Labels['org.opencontainers.image.revision']='8'.repeat(40)]){const f=fixture();mutate(f);assert.throws(()=>verifyYardRollbackTarget(f));}});
++test('phase two requires the exact healthy closed and quarantine-proven predecessor',()=>{assert.deepEqual(verifyYardRollbackTarget(activation()),{status:'ready',phase:'activation',persistentYardRows:7});for(const mutate of [f=>f.previous=null,f=>f.previous.playerRolloutEnabled=true,f=>f.previous.closedQuarantineVerified=false,f=>f.candidate.requiredClosedPredecessor=null,f=>f.candidate.requiredClosedPredecessor.buildId='9'.repeat(40),f=>f.candidate.requiredClosedPredecessor.imageDigest='sha256:'+'9'.repeat(64),f=>f.previousHealth.status='degraded',f=>f.previousHealth.buildId='9'.repeat(40)]){const f=activation();mutate(f);assert.throws(()=>verifyYardRollbackTarget(f));}});
++test('missing counts and mismatched immutable image/source identities fail closed',()=>{for(const mutate of [f=>f.persistentYardRows=-1,f=>f.persistentYardRows='0',f=>f.persistentYardRows=NaN,f=>f.persistentYardRows=Number.MAX_SAFE_INTEGER+1,f=>f.candidateImage.RepoDigests=[],f=>f.candidateImage.Config.Labels['org.opencontainers.image.revision']='9'.repeat(40),f=>f.previousImage.Id='sha256:'+'9'.repeat(64),f=>f.candidate.format='unknown',f=>f.candidate.closedQuarantineVerified=false,f=>f.repository='../../other']){const f=fixture();mutate(f);assert.throws(()=>verifyYardRollbackTarget(f));}});
++test('deploy checks compatibility and pins rollback image strictly before any live switch',()=>{const deploy=fs.readFileSync(path.join(root,'.github/workflows/deploy.yml'),'utf8'),guard=deploy.indexOf('            bash scripts/yard-pre-switch-guard.sh'),stale=deploy.indexOf('            STALE_APP_CONTAINERS='),switchAt=deploy.indexOf('            RELEASE_SWITCH_STARTED=1');assert.ok(guard>deploy.indexOf('            compose -p ccgh pull app'));assert.ok(guard<stale&&stale<switchAt);assert.ok(deploy.indexOf('flock -n 9')<deploy.indexOf('            RELEASE_SWITCH_STARTED=0'));assert.match(deploy,/yard-rollback-\$\{PREVIOUS_BUILD_ID\}/);assert.match(deploy,/source: "docker-compose.yml,scripts\/yard-pre-switch-guard.sh"/);const shell=fs.readFileSync(path.join(root,'scripts/yard-pre-switch-guard.sh'),'utf8');assert.match(shell,/timeout --foreground --kill-after=5s 30s docker/);assert.equal((shell.match(/default_transaction_read_only=on -c statement_timeout=10000 -c lock_timeout=3000/g)||[]).length,2);assert.match(shell,/SELECT count\(\*\) FROM players WHERE data \? '_yardV2'/);assert.doesNotMatch(shell,/SELECT \* FROM|INSERT INTO|UPDATE players|DELETE FROM|pg_restore|compose.*up|DATABASE_URL|POSTGRES_PASSWORD/);});
++
++const dockerStub=String.raw`#!/usr/bin/env node
++const fs=require('node:fs'),cp=require('node:child_process'),p=process.env.TEST_FIXTURES,f=JSON.parse(fs.readFileSync(p+'/input.json','utf8')),a=process.argv.slice(2);fs.appendFileSync(p+'/calls.jsonl',JSON.stringify(a)+'\n');
++const out=x=>process.stdout.write(JSON.stringify(x)+'\n');
++if(a[0]==='image'&&a[1]==='inspect'){out(a[2]===f.previousImageId?f.previousImage:f.candidateImage);}
++else if(a[0]==='run'&&a.includes('scripts/yard-release-compatibility.mjs'))out(f.candidate);
++else if(a[0]==='run'&&a.includes('sh')){if(f.probeFailure)process.exit(125);if(!a.includes(f.previousImageId)||a.includes('--mount')||!a.includes('none'))process.exit(91);if(f.previous===null)process.exit(42);out(f.previous);}
++else if(a[0]==='run'&&a.includes('scripts/verify-yard-rollback-target.mjs')){const mount=a[a.indexOf('--mount')+1],dir=mount.match(/src=([^,]+)/)[1],r=cp.spawnSync(process.execPath,[process.env.TEST_VERIFY_SCRIPT,dir],{encoding:'utf8'});process.stdout.write(r.stdout);process.stderr.write(r.stderr);process.exit(r.status??1);}
++else if(a[0]==='exec'&&a.includes('ccgh-postgres')){if(!a.includes('PGOPTIONS=-c default_transaction_read_only=on -c statement_timeout=10000 -c lock_timeout=3000'))process.exit(89);if(f.queryFailure)process.exit(7);if(a[a.indexOf('-c')+1]!=="SELECT count(*) FROM players WHERE data ? '_yardV2';")process.exit(8);const countFile=p+'/count-calls',calls=fs.existsSync(countFile)?Number(fs.readFileSync(countFile,'utf8'))+1:1;fs.writeFileSync(countFile,String(calls));process.stdout.write(String(f.lateMarker&&calls>1?1:f.persistentYardRows)+'\n');}
++else if(a[0]==='inspect')process.stdout.write((f.lateImageChange?'sha256:'+'0'.repeat(64):f.previousImageId)+'\n');
++else process.exit(9);
++`;
++const timeoutStub=String.raw`#!/usr/bin/env node
++const fs=require('node:fs'),cp=require('node:child_process'),f=JSON.parse(fs.readFileSync(process.env.TEST_FIXTURES+'/input.json','utf8')),a=process.argv.slice(2);if(a.slice(0,3).join(' ')!=='--foreground --kill-after=5s 30s')process.exit(88);if(f.clientTimeout)process.exit(124);const r=cp.spawnSync(a[3],a.slice(4),{stdio:'inherit'});process.exit(r.status??1);
++`;
++const curlStub=String.raw`#!/usr/bin/env node
++const fs=require('node:fs'),f=JSON.parse(fs.readFileSync(process.env.TEST_FIXTURES+'/input.json','utf8'));process.stdout.write(JSON.stringify(f.previousHealth)+'\n');
++`;
++for(const [name,make,code]of [
++ ['closed-zero',fixture,0],['closed-existing-marker',()=>({...fixture(),persistentYardRows:1}),1],['activation-exact',activation,0],
++ ['activation-direct-from-legacy',()=>({...activation(),previous:null,persistentYardRows:0}),1],
++ ['query-failure',()=>({...fixture(),queryFailure:true}),7],['probe-failure',()=>({...fixture(),probeFailure:true}),125],['docker-client-timeout',()=>({...fixture(),clientTimeout:true}),124],['marker-on-recheck',()=>({...fixture(),lateMarker:true}),1],['late-image-replacement',()=>({...fixture(),lateImageChange:true}),1]
++])test(`actual pre-switch shell is bounded and fail-closed: ${name}`,()=>{
++ const directory=fs.mkdtempSync(path.join(os.tmpdir(),'yard-rollback-shell-test-')),bin=path.join(directory,'bin');
++ try{const input=make();fs.mkdirSync(bin);fs.writeFileSync(path.join(directory,'input.json'),JSON.stringify(input));fs.writeFileSync(path.join(bin,'docker'),dockerStub,{mode:0o700});fs.writeFileSync(path.join(bin,'timeout'),timeoutStub,{mode:0o700});fs.writeFileSync(path.join(bin,'curl'),curlStub,{mode:0o700});const result=spawnSync('bash',[path.join(root,'scripts/yard-pre-switch-guard.sh'),`ghcr.io/${repo}@${digest}`,build,previousId,input.previousBuildId,'18080','fixture-user','fixture-db',repo],{env:{...process.env,PATH:bin+path.delimiter+process.env.PATH,TMPDIR:directory,TEST_FIXTURES:directory,TEST_VERIFY_SCRIPT:path.join(root,'scripts/verify-yard-rollback-target.mjs')},encoding:'utf8',timeout:15000});assert.ifError(result.error);assert.equal(result.status,code,result.stdout+result.stderr);if(code===0){assert.match(result.stdout,/"status":"ready"/);assert.doesNotMatch(result.stdout,/player|username|password|receipt/);}assert.equal(fs.readdirSync(directory).some(s=>s.startsWith('yard-release-preflight.')),false);const calls=fs.existsSync(path.join(directory,'calls.jsonl'))?fs.readFileSync(path.join(directory,'calls.jsonl'),'utf8'):'';assert.doesNotMatch(calls,/"up"|"stop"|"rm"|"tag"|"pg_restore"/);}
++ finally{fs.rmSync(directory,{recursive:true,force:true});}
++});
++
++test('SCP stages by exact build/run and cannot replace effective deployment files before locking',()=>{
++ const deploy=fs.readFileSync(path.join(root,'.github/workflows/deploy.yml'),'utf8');
++ assert.match(deploy,/target: "\/opt\/game-hub\/releases\/\$\{\{ github.sha \}\}-\$\{\{ github.run_id \}\}-\$\{\{ github.run_attempt \}\}"/);
++ const lock=deploy.indexOf('            flock -n 9'),compose=deploy.indexOf('            install -m 0644 "$RELEASE_STAGING_PATH/docker-compose.yml"'),helper=deploy.indexOf('            install -m 0700 "$RELEASE_STAGING_PATH/scripts/yard-pre-switch-guard.sh"');
++ assert.ok(lock>0&&compose>lock&&helper>lock);assert.doesNotMatch(deploy,/target: "\/opt\/game-hub"/);
++});

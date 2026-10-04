@@ -1,0 +1,35 @@
+/** Explicit native fixture interaction variants; no runtime or catalog override. */
+import assert from 'node:assert/strict';
+import {nativePlayer,NOW,H,EIGHT_FIXTURE_SPECS} from './yard-eight-domain-fixtures.mjs';
+import {nativeDrawContext,drawNativeSeed} from './yard-native-draw.mjs';
+import {ensurePersistentPlayerYard,executePersistentYardAction,publicPersistentYard} from '../../game-logic/yard-v2/service.mjs';
+import {createAdmissionPolicy} from '../../game-logic/yard-v2/orchestrator.mjs';
+import {YARD_GOODIES,YARD_VISITORS,YARD_FOODS} from '../../game-logic/yard-v2/catalog.mjs';
+import {visitReservations,presentationReservationsConflict} from '../../game-logic/yard-v2/visit-reservations.mjs';
+export const SPECS=Object.freeze({...EIGHT_FIXTURE_SPECS,mika:{...EIGHT_FIXTURE_SPECS.mika,goodieId:'yarn_mouse',activityId:'chase'}});
+export function sourceCandidate(id,yard,slotId,at,minutes){const spec=SPECS[id],placement=yard.placedGoodies.find(p=>p.slotId===slotId);return{at,leavesAt:at+minutes*60000,slotId,placement,yard,visitor:YARD_VISITORS[spec.visitorId],goodie:YARD_GOODIES[spec.goodieId],activity:{id:spec.activityId},bowl:{id:'bowl-1',foodId:spec.foodId},active:[],reserved:[]};}
+export function projectedAfterFirst(spec,options,minutes=109){const policy=createAdmissionPolicy(options),yard=structuredClone(spec.yard),q=sourceCandidate(spec.first,yard,spec.firstSlot,NOW+H,minutes),one=policy(q);assert.ok(one.ok,JSON.stringify(one));yard.placedGoodies.find(p=>p.slotId===spec.firstSlot).uses++;for(const c of one.binding.plan.propCommits)if(c.at<=NOW+2*H)Object.assign(yard.placedGoodies.find(p=>p.slotId===c.slotId),c.transform);return{yard,record:{original:{visitorId:q.visitor.id},slotId:spec.firstSlot,arrivedAt:q.at,leavesAt:q.leavesAt,status:'active',mediaAdmission:one.binding}};}
+export function searchSupportedPair(spec,options,{limit=100000,requirePositive=false}={}){
+ const next=projectedAfterFirst(spec,options),placement=(yard,id)=>yard.placedGoodies.find(p=>p.slotId===id),first=nativeDrawContext({yard:spec.yard,placement:placement(spec.yard,spec.firstSlot),foodId:SPECS[spec.first].foodId,scene:options.scene,at:NOW+H}),second=nativeDrawContext({yard:next.yard,placement:placement(next.yard,spec.secondSlot),foodId:SPECS[spec.second].foodId,scene:options.scene,at:NOW+2*H}),other=nativeDrawContext({yard:spec.yard,placement:placement(spec.yard,spec.secondSlot),foodId:SPECS[spec.first].foodId,scene:options.scene,at:NOW+H}),policy=createAdmissionPolicy(options);
+ for(const[role,context,id]of[['first',first,spec.first],['second',second,spec.second]])assert.ok(context.ok&&context.activities.some(a=>a.id===SPECS[id].activityId),`${role}: native required activity unavailable`);
+ for(let i=0;i<limit;i++){const seed=`yard-native-mika-supported-${spec.first}-${spec.second}-${i}`,a=drawNativeSeed(seed,first),b=drawNativeSeed(seed,second);if(a?.visitorId!==SPECS[spec.first].visitorId||a.activityId!==SPECS[spec.first].activityId||a.minutes<75||b?.visitorId!==SPECS[spec.second].visitorId||b.activityId!==SPECS[spec.second].activityId)continue;if(spec.secondSlot<spec.firstSlot&&drawNativeSeed(seed,other))continue;if(requirePositive&&(a.minutes<107||b.minutes>46))continue;
+ const projected=projectedAfterFirst(spec,options,a.minutes),out=policy({...sourceCandidate(spec.second,projected.yard,spec.secondSlot,NOW+2*H,b.minutes),active:[projected.record],reserved:[projected.record]});if(requirePositive&&!out.ok)continue;return{seed,firstDraw:a,secondDraw:b,expectedStatus:out.ok?'ACCEPT':'REJECT',expectedReason:out.code||null};}
+ throw Error(`No native supported pair seed in ${limit}: ${spec.first}/${spec.second}`);
+}
+export function runSupportedPair(spec,options){
+ const p=nativePlayer(spec.first,{id:spec.seed});p.yard.placedGoodies=structuredClone(spec.yard.placedGoodies);p.yard.expansion=structuredClone(spec.yard.expansion);p.yard.currencies.treats=240;
+ const initial=structuredClone(p.yard),adjacent=structuredClone({resources:p.resources,garden:p.garden,merge:p.merge,futureAccount:p.futureAccount});
+ for(const now of[NOW,NOW+H])assert.equal(ensurePersistentPlayerYard(p,{now,simulate:now>NOW,...options}).status,200);
+ const firstRecords=Object.values(p._yardV2.runtime.visits),firstRecord=firstRecords.find(r=>r.original.visitorId===SPECS[spec.first].visitorId&&r.slotId===spec.firstSlot);assert.ok(firstRecord);assert.equal(firstRecords.length,1);const firstPlayer=structuredClone(p);
+ // Apply the already scheduled mouse endpoint commit before refilling. This
+ // advances only five native minutes and crosses no new arrival opportunity.
+ const commandNow=NOW+H+5*60000;assert.equal(ensurePersistentPlayerYard(p,{now:commandNow,simulate:true,...options}).status,200);
+ const foodId=SPECS[spec.second].foodId,beforeBuy=structuredClone(p.yard);let buy=null;
+ if(!(p.yard.foodInventory[foodId]>0)){buy=executePersistentYardAction(p,'yard.buyFood',{foodId,qty:1},{now:commandNow,actionId:`yard-v2:supported-${spec.first}-${spec.second}-buy`,...options});assert.equal(buy.status,200);for(const k of['treats','shinyTreats'])assert.equal(p.yard.currencies[k],beforeBuy.currencies[k]-(YARD_FOODS[foodId].cost[k]||0));}
+ const beforeSet=structuredClone(p.yard),set=executePersistentYardAction(p,'yard.setFood',{foodId,bowlId:'bowl-1'},{now:commandNow,actionId:`yard-v2:supported-${spec.first}-${spec.second}-set`,...options});assert.equal(set.status,200);assert.equal(p.yard.foodInventory[foodId]||0,beforeSet.foodInventory[foodId]-1);
+ const beforeSecond=structuredClone(p);assert.equal(ensurePersistentPlayerYard(p,{now:NOW+2*H,simulate:true,...options}).status,200);
+ const records=Object.values(p._yardV2.runtime.visits),secondRecord=records.find(r=>r.original.visitorId===SPECS[spec.second].visitorId&&r.slotId===spec.secondSlot&&r.arrivedAt===NOW+2*H),rejected=p._yardV2.runtime.events.filter(e=>e.type==='admission-blocked-media'&&e.at===NOW+2*H&&e.visitorId===SPECS[spec.second].visitorId&&e.slotId===spec.secondSlot);
+ assert.equal(Boolean(secondRecord),spec.expectedStatus==='ACCEPT');assert.equal(records.length,secondRecord?2:1);if(secondRecord){assert.ok(firstRecord.leavesAt>secondRecord.arrivedAt);assert.equal(presentationReservationsConflict(visitReservations(secondRecord),firstRecord),false);}else{assert.ok(rejected.some(e=>e.reason===spec.expectedReason));for(const key of['placedGoodies','bowls','petbook'])assert.deepEqual(p.yard[key],beforeSecond.yard[key]);}
+ for(const row of p.yard.placedGoodies)assert.equal(row.uses,records.filter(r=>r.slotId===row.slotId).length);assert.deepEqual({resources:p.resources,garden:p.garden,merge:p.merge,futureAccount:p.futureAccount},adjacent);const view=publicPersistentYard(p,{now:NOW+2*H,...options});assert.ok(view.visits.every(v=>v.renderCompatible));
+ return{scope:'Actual native owned-memory service with an existing Mika mouse/chase binding and real endpoint commit. No visual/PG/global maximum/release claim.',spec,initial,firstPlayer,firstRecord,secondRecord:secondRecord||null,rejected,buy,set,beforeSecond,snapshot:{yard:structuredClone(p.yard),yardRuntime:view},player:p};
+}

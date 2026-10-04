@@ -29,6 +29,7 @@ import {
   pickMergeDropChainId,
   TIER_YIELD,
 } from "../game-logic.js";
+import {usesPersistentYard,requireReleasedPlayerYard,inspectReleasedYardTarget} from '../game-logic/yard-v2/player-release.mjs';
 import { withPlayerLock } from "../playerManager.js";
 import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 import {quoteMergeLab} from "../game-logic/merge-lab-service.js";
@@ -134,6 +135,7 @@ export default function mergeRoutes(requireAuth, resolveUser) {
   }
 
   function ensureRouteYard(p, now = Date.now()) {
+    if(usesPersistentYard(p))return requireReleasedPlayerYard(p,{now});
     const legacy = p.room || p.petRoom || {};
     p.yard = normalizeYardState(p.yard, legacy, now);
     return p.yard;
@@ -509,6 +511,8 @@ export default function mergeRoutes(requireAuth, resolveUser) {
       const currentClaims = Math.max(0, Math.floor(Number(claimsToday[offer.id]) || 0));
       if (limit > 0 && currentClaims >= limit) return routeFail(400, { error: "exchange limit reached", limit });
 
+      const yardCheck=inspectReleasedYardTarget(p,{now:Date.now()});
+      if(yardCheck.status!==200)return routeFail(yardCheck.status,{error:yardCheck.error,code:yardCheck.error});
       p.merge.alchemyEssence = currentEssence - offer.cost;
       const reward = grantMergeExchangeReward(p, offer.reward);
       p.merge.exchangeClaims = normalizeMergeExchangeClaims({

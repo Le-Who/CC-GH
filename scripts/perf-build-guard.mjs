@@ -35,7 +35,7 @@ export const DEFAULT_BUILD_BUDGETS = {
 };
 
 const PIXI_CHUNK_RE = /(LazyPixiSceneHost|pixi|WebGLRenderer|WebGPURenderer|CanvasRenderer|BitmapFont|BufferResource|RenderTargetSystem|browserAll|webworkerAll|Filter|animation)/i;
-const GAME_CHUNK_RE = /(BloxGame|Match3Game|MergeGame|MergeLabGame|BubboGame|TriviaGame|GardenShelfGame|CompanionYardGame|SettlementGame)/;
+const GAME_CHUNK_RE = /(BloxGame|Match3Game|MergeGame|MergeLabGame|BubboGame|TriviaGame|GardenShelfGame|CompanionYardGame|YardReleaseGame|CourtyardGame|SettlementGame)/;
 const RUNTIME_ASSET_MANIFEST_PATH = "assets-runtime/manifest.json";
 const HASHED_RUNTIME_ASSET_RE = /^assets-runtime\/.+\.[a-f0-9]{8}\.(?:png|webp|avif|svg|json|webm|mp3|wav)$/i;
 
