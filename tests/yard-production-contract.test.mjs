@@ -420,3 +420,19 @@ test('cross-game Home dispatch waits for lazy entry and uses the owned Yard rout
   assert.deepEqual(events,['mounted',route==='room'?'yard':'generic']);
  }
 });
+
+test('Blox receipt replay permits only bounded full-energy clock metadata and rejects every economic drift',()=>{
+ const source=read('tests/yard-production-e2e/production.spec.js');
+ const body=source.match(/function assertReplayWallet\(actual,expected,\{startedAt,finishedAt\}\)\{([\s\S]*?)\n\}/);assert.ok(body);
+ const check=new Function('assert',`return function(actual,expected,{startedAt,finishedAt}){${body[1]}}`)(assert);
+ const before={gold:500,gachaTokens:4,energy:{current:20,max:20,lastRegenTimestamp:10000}},window={startedAt:11000,finishedAt:12000};
+ const after={...structuredClone(before),energy:{...before.energy,lastRegenTimestamp:11500}};
+ assert.doesNotThrow(()=>check(after,before,window));assert.doesNotThrow(()=>check(before,before,window));
+ assert.doesNotThrow(()=>check(before,before,{startedAt:20000,finishedAt:21000}),'A rejected action may leave the existing clock unchanged');
+ const changes=[p=>p.gold++,p=>p.gachaTokens++,p=>p.energy.current--,p=>p.energy.max++,p=>p.energy.extra=1,p=>p.extra=1,p=>delete p.gold,p=>delete p.energy.current,p=>delete p.energy.lastRegenTimestamp,p=>p.energy.lastRegenTimestamp='11500',p=>p.energy.lastRegenTimestamp=9999,p=>p.energy.lastRegenTimestamp=12001];
+ for(const change of changes){const bad=structuredClone(after);change(bad);assert.throws(()=>check(bad,before,window));}
+ assert.throws(()=>check(after,{...before,energy:{...before.energy,current:19}},window),'Below-full regeneration is not waived');
+ assert.throws(()=>check({...after,energy:{...after.energy,lastRegenTimestamp:10001}},before,{startedAt:13000,finishedAt:14000}),'Unrelated stale clock is not waived');
+ const spec=source.slice(source.indexOf("test('cross-game actual B: three fixture-assisted"),source.indexOf("test('cross-game actual B: all eight"));
+ assert.match(spec,/expect\(replay.status\).toBe\(403\)/);assert.match(spec,/expect\(clearReplay.body.duplicate\).toBe\(true\)/);assert.match(spec,/expect\(savedAfterClearReplay.blox\).toEqual\(savedOnce.blox\)/);
+});

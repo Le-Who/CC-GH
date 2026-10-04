@@ -201,6 +201,16 @@ async function crossHome(page){
  else await openHome(page);
 }
 async function crossSelect(page,id){await crossHome(page);await selectHomeGame(page,id);}
+// Successful receipt replay builds an ordinary snapshot. At full energy,
+// calcRegen updates only this clock field even though no energy is awarded.
+function assertReplayWallet(actual,expected,{startedAt,finishedAt}){
+ const prior=expected.energy.lastRegenTimestamp,next=actual.energy.lastRegenTimestamp;
+ assert.ok(Number.isSafeInteger(prior)&&Number.isSafeInteger(next),'Persisted regeneration clocks must be integers');
+ assert.ok(expected.energy.max>0 && expected.energy.current===expected.energy.max,'This fixture must have full energy');
+ assert.ok(next>=prior,'Regeneration clock must not move backwards');
+ assert.ok(next===prior || (next>=startedAt && next<=finishedAt),'An advanced regeneration clock must match the real replay observation window');
+ assert.deepEqual(actual,{...expected,energy:{...expected.energy,lastRegenTimestamp:next}});
+}
 const researchPath=['cloud_ember_spark','glass_spark_lens','v3_lens_spark_light','v3_light_vial_glow_lantern','v3_sprout_dew_herb','vial_herb_elixir','v3_glass_elixir_crystal'];
 const craftPath=['glass_spark_lens','v3_lens_spark_light','v3_light_vial_glow_lantern','vial_herb_elixir','v3_glass_elixir_crystal'];
 
@@ -264,16 +274,20 @@ test('cross-game actual B: three fixture-assisted real Blox finishes fund one Me
   const result=await response.json();expect(result.clear.cleared).toBe(1);expect(result.savedState.score).toBe(3510);
   const finish=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/player/mutate'&&r.request().postDataJSON()?.action==='blox.end');await crossSelect(page,'merge');
   const finished=await finish;expect(finished.status()).toBe(200);const earned=await finished.json();expect(earned.tokenReward).toBe(4);
-  const savedOnce=await saved(f);expect(savedOnce.resources.gachaTokens).toBe(4*(run+1));
+  const walletObservedAt=Date.now(),savedOnce=await saved(f);expect(savedOnce.resources.gachaTokens).toBe(4*(run+1));
   // The ordinary Blox UI does not assign an action ID to finish. Its repeat must
   // hit the terminal-session fence, not claim a nonexistent same-ID receipt.
   const finishCommand=finished.request().postDataJSON();expect(finishCommand.clientActionId).toBeUndefined();
   expect(savedOnce.blox.activeGame).toBe(false);
   const replay=await mutation(request,f,finishCommand);expect(replay.status).toBe(403);expect(replay.body.error).toBe('No active Blox session');
-  const afterReplay=await saved(f);expect(afterReplay.resources).toEqual(savedOnce.resources);expect(afterReplay.blox).toEqual(savedOnce.blox);
+  const afterReplay=await saved(f);assertReplayWallet(afterReplay.resources,savedOnce.resources,{startedAt:walletObservedAt,finishedAt:Date.now()});expect(afterReplay.blox).toEqual(savedOnce.blox);
   const clearCommand=response.request().postDataJSON();expect(clearCommand.clientActionId).toEqual(expect.any(String));
   const clearReplay=await mutation(request,f,clearCommand);expect(clearReplay.status).toBe(200);expect(clearReplay.body.duplicate).toBe(true);
-  expect((await saved(f)).resources).toEqual(savedOnce.resources);
+  const savedAfterClearReplay=await saved(f);
+  assertReplayWallet(savedAfterClearReplay.resources,savedOnce.resources,{startedAt:walletObservedAt,finishedAt:Date.now()});
+  expect(clearReplay.body.snapshot.resources.energy.lastRegenTimestamp).toBeLessThanOrEqual(clearReplay.body.snapshot.serverTime);
+  expect(savedAfterClearReplay.resources.energy.lastRegenTimestamp).toBeGreaterThanOrEqual(clearReplay.body.snapshot.resources.energy.lastRegenTimestamp);
+  expect(savedAfterClearReplay.blox).toEqual(savedOnce.blox);
   earns.push({seededScore:3498,realFinalScore:3510,tokenReward:earned.tokenReward,command:finished.request().postDataJSON()});
  }
  const funded=await saved(f);expect(funded.resources.gachaTokens).toBe(12);await mergePanel(page,'supplies');
