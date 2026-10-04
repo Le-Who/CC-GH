@@ -52,6 +52,7 @@ export default function match3Routes(requireAuth, resolveUser) {
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
       const { savedModes, game } = req.body;
+      if (game && !p.match3.currentGame) return routeFail(403, { error: "Invalid session" });
       let changed = false;
 
       if (savedModes && typeof savedModes === "object") {
@@ -107,15 +108,10 @@ export default function match3Routes(requireAuth, resolveUser) {
     const { userId, username } = resolveUser(req);
     if (!userId) return res.status(400).json({ error: "userId required" });
     const result = await withPlayerLock(userId, async (p) => {
-      const { score, fromQuit } = req.body;
+      const { score } = req.body;
 
       // Prevent awarding gold if there was no active session logged
-      if (
-        !p.match3.currentGame &&
-        typeof score === "number" &&
-        score > 0 &&
-        !fromQuit
-      ) {
+      if (!p.match3.currentGame) {
         console.warn(
           `⚠️ User ${userId} tried to end Match-3 without starting a session.`,
         );

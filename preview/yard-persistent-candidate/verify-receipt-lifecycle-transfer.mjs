@@ -1,3 +1,4 @@
+import {verifyArcadeRewardTransfer,readBeforeArcadeReward} from './verify-arcade-reward-transfer.mjs';
 /** Reviewed optional CLOSED-receipt reuse and API lifecycle follow-up. */
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -325,6 +326,7 @@ const APPROVED={
   ]
 };
 export function verifyReceiptLifecycleTransfer({rootDir,contract}) {
+  const arcade=verifyArcadeRewardTransfer({rootDir,contract});contract=arcade.priorContract;
   const candidate=resolve(rootDir,'preview/yard-persistent-candidate');
   const read=path=>readFileSync(resolve(candidate,path));
   const reviewed=contract.reviewedReceiptLifecycleChangeSet;
@@ -349,9 +351,9 @@ export function verifyReceiptLifecycleTransfer({rootDir,contract}) {
   const validate='  validate:\n    uses: ./.github/workflows/ci.yml\n    permissions:\n      contents: read\n      packages: read\n';
   assert.equal(before.split(validate).length,2,'Exact previous validation caller required');
   assert.equal(readFileSync(resolve(rootDir,deploy.path),'utf8'),before.replace(validate,validate+'      actions: read\n'),'Deploy may only add read-only Actions receipt access to validate');
-  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,reviewedPinTransitions:0,workflowTransitions:2,canonicalSourceClosureChanged:false};
+  return {priorContract,transitions:APPROVED.transitions,reviewedFiles:APPROVED.files.length,reviewedPinTransitions:0,workflowTransitions:2,canonicalSourceClosureChanged:false,arcade};
 }
 export function readBeforeReceiptLifecycle({rootDir,receipt,path}) {
   const transition=receipt.transitions.find(row=>row.path===path);
-  return readFileSync(transition?resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive):resolve(rootDir,path));
+  return transition?readFileSync(resolve(rootDir,'preview/yard-persistent-candidate',transition.before.archive)):readBeforeArcadeReward({rootDir,arcade:receipt.arcade,path});
 }

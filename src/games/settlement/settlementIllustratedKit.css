@@ -247,3 +247,76 @@
   overflow-y: auto !important;
 }
 
+
+/* Measured acceptance fixes: restore footer flow and readable narrow cards. */
+.settlement-game-root .right-panel-fancy:not(.right-panel-overview) > .panel-footer {
+  position: static !important;
+  inset: auto !important;
+  width: auto !important;
+  height: auto !important;
+  transform: none !important;
+}
+.settlement-game-root .right-panel-fancy .council-bottom-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+@media (min-width: 621px) and (max-width: 980px) and (min-height: 481px) {
+  /* Match the clearance already used by adjacent tablet detail screens;
+   * the primary-build button rises above the decorative dock shell. */
+  .settlement-game-root .right-panel-council {
+    top: auto !important;
+    bottom: max(188px, var(--settlement-safe-bottom)) !important;
+    height: min(520px, calc(100% - var(--settlement-safe-top) - max(188px, var(--settlement-safe-bottom)))) !important;
+  }
+}
+@media (orientation: landscape) and (max-height: 480px) {
+  .settlement-game-root .right-panel-fancy .construction-screen-v2,
+  .settlement-game-root .right-panel-fancy .construction-card-grid-v2 {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  .settlement-game-root .right-panel-fancy .construction-screen-v2 {
+    display: flex !important;
+    flex-direction: column;
+  }
+  .settlement-game-root .right-panel-fancy .construction-card-v2 {
+    min-height: 88px !important;
+    grid-template-rows: auto 32px auto !important;
+  }
+  .settlement-game-root .right-panel-fancy .construction-card-art-v2 {
+    min-height: 0 !important;
+    height: 32px !important;
+  }
+  .settlement-game-root .right-panel-fancy .construction-card-art-v2 img {
+    max-height: 32px !important;
+  }
+  .settlement-game-root .right-panel-fancy .research-tree-board {
+    grid-template-columns: minmax(0, 1fr) !important;
+    grid-auto-rows: minmax(88px, auto) !important;
+  }
+  .settlement-game-root .right-panel-fancy .research-tech-node {
+    min-height: 88px !important;
+    grid-template-columns: 32px minmax(0, 1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 3px 8px !important;
+  }
+  .settlement-game-root .right-panel-fancy .research-tech-node > strong {
+    grid-column: 2;
+    grid-row: 1;
+    min-height: 0 !important;
+    font-size: 11px !important;
+    line-height: 1.1 !important;
+    -webkit-line-clamp: 3 !important;
+  }
+  .settlement-game-root .right-panel-fancy .research-tech-node > span:not(.research-node-icon-slot):not(.settlement-frame-art) {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .settlement-game-root .right-panel-fancy .research-tech-node > .research-node-icon-slot {
+    grid-column: 1;
+    grid-row: 1 / 4;
+  }
+  .settlement-game-root .right-panel-fancy .research-tech-node > em {
+    grid-column: 2;
+    grid-row: 3;
+  }
+}

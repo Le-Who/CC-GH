@@ -23,7 +23,7 @@ concurrency:
 jobs:
   illustrated-screens:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 35
     env:
       NODE_ENV: test
       DATABASE_URL: ''

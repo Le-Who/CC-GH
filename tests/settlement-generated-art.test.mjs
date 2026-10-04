@@ -7,6 +7,23 @@ import { SETTLEMENT_CARD_MATERIAL, settlementFrameMaterial } from '../src/games/
 import { makeUvNineSlice } from '../src/games/settlement/settlementNineSlice.js';
 const root = new URL('../', import.meta.url);
 const read = file => readFileSync(new URL(file, root), 'utf8');
+test('decorative material never overrides positioned HUD region anchors', () => {
+ const css = read('src/games/settlement/settlementFrameArt.css');
+ const common = css.split('.settlement-game-root .settlement-illustrated-frame {')[1].split('}')[0];
+ assert.doesNotMatch(common, /position\s*:/);
+ assert.match(css, /\.settlement-illustrated-frame:not\(\.hud-region\)\s*\{\s*position: relative/);
+});
+test('flex drawer footer returns to flow instead of covering upgrade controls', () => {
+ const css = read('src/games/settlement/settlementIllustratedKit.css');
+ assert.match(css, /> \.panel-footer\s*\{\s*position: static !important;\s*inset: auto !important/);
+});
+test('narrow council copy has a full column and landscape card grids stay compact', () => {
+ const css = read('src/games/settlement/settlementIllustratedKit.css');
+ assert.match(css, /\.council-bottom-grid\s*\{\s*grid-template-columns: minmax\(0, 1fr\) !important/);
+ assert.match(css, /\.construction-card-v2\s*\{\s*min-height: 88px !important;\s*grid-template-rows: auto 32px auto/);
+ assert.match(css, /\.research-tech-node\s*\{\s*min-height: 88px !important;\s*grid-template-columns: 32px minmax\(0, 1fr\)/);
+ assert.match(css, /span:not\(\.research-node-icon-slot\):not\(\.settlement-frame-art\)/);
+});
 test('all eight runtime derivatives match their recorded hashes and byte budget', () => {
  const manifest = JSON.parse(read('assets-source/imagegen/settlement/illustrated-v2/runtime-export-manifest.json'));
  assert.equal(manifest.assets.length, 8);

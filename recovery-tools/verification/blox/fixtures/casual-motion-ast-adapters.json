@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "baseCommit": "73582b7be248385d087e8640b1a548083f6579f6",
-  "scope": "Approved presentation-only Blox motion rewrite; unchanged statements remain compared against immutable owned preview. Each added or changed statement is pinned exactly.",
+  "scope": "Presentation-only Blox motion rewrite and cell-local clear polish against production 962323817b77eff1a4a20be71b38f8d462b9054f; immutable preview gameplay remains the oracle. Exact changed statements and retired beam helper are pinned.",
   "sourceOrder": [
     "declaration:root",
     "declaration:dragLayer",
@@ -14,6 +14,8 @@
     "declaration:destroyed,feedbackEpoch,background",
     "declaration:motionMedia",
     "declaration:feedback",
+    "declaration:clearing",
+    "declaration:motionObservation",
     "declaration:reduced",
     "declaration:animate",
     "declaration:dragVisual",
@@ -28,8 +30,14 @@
     "function:touchDragLift",
     "function:updateDragVisualNow",
     "function:g",
-    "function:G",
+    "function:removeClear",
+    "function:cancelAttempt",
+    "function:snapshotBoard",
+    "function:tickClearing",
     "function:placementFeedback",
+    "function:G",
+    "function:publishMotionObservation",
+    "function:beginPlacementFeedback",
     "function:F",
     "declaration:O",
     "function:k",
@@ -60,7 +68,17 @@
     "declaration:feedback": {
       "kind": "add",
       "previewSha256": null,
-      "sourceSha256": "edacce93fb6d75db207eb7db8eb04345bda77377c623036d813c2a47e7e08480"
+      "sourceSha256": "3d50665afba4e3bcdf562c60f4cf27396451b37853147cfcfbe49bd349ec0a14"
+    },
+    "declaration:clearing": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "e659f73d50f1b30df4ca393875e69d7ac4f64aef94a08ba1507d4abf38a2b2c8"
+    },
+    "declaration:motionObservation": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "c14d0f4c03109b04f9741c30119913f44a7d89ec947d887c2688c2d65334bfac"
     },
     "declaration:reduced": {
       "kind": "add",
@@ -70,42 +88,72 @@
     "declaration:animate": {
       "kind": "add",
       "previewSha256": null,
-      "sourceSha256": "97e00f225986e857ba6ea53b71c40c366a50ef598255362701f66561f9d2dff3"
+      "sourceSha256": "1b01f095d0d93422f2f989ddf3688ca0060f36f683af823dbd12695d58acfa5b"
     },
     "function:updateDragVisualNow": {
       "kind": "replace",
       "previewSha256": "8a3a89ce46058f6c7f412de71f4e1bc3a3f3e6802259799f3f511ae3c75c39f6",
-      "sourceSha256": "9760bd6832d3d57e4653cfe72e134965ad3537e380b2a630a52802ea387bc33b"
+      "sourceSha256": "4903fb56197556ed071135839a5a8da49608d3bdd3bae0a8216a7feb81cb4f35"
     },
-    "function:G": {
-      "kind": "replace",
-      "previewSha256": "4b962bcb836e0d8fe615739ebe60fa3419ee50834f3440f3c17382a0623bb8ad",
-      "sourceSha256": "ceab81a6aaed1fb7da2a8a53c1dcef884c7e7b3283bdf93a2f58ba1fd58d9d77"
+    "function:removeClear": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "92d43419e1224cefef2a9562b44263f4fb1c9d896a2b85503033b8d868c70362"
+    },
+    "function:cancelAttempt": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "44ddcf4510be34d6ff69362fd912b2519073ac3fb99f09e2c47fe5504b42e69b"
+    },
+    "function:snapshotBoard": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "89b78f30dc33d6a6543434e1987c9fd8142a1695cee8a7d7e04dec5d178fef2a"
+    },
+    "function:tickClearing": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "7aac97b7927341b473a8714b59a0b33c185d6428d3153c075a0ac1cc9ccdd6c3"
     },
     "function:placementFeedback": {
       "kind": "add",
       "previewSha256": null,
-      "sourceSha256": "257d5fc07aa9b1b5bcda3d732c59ccd038b0394ec85d1ec121b6dde6c72c6761"
+      "sourceSha256": "d2a7a8c85d4634a262446ac61dd8b2130e83172c2d742163530952656d93b113"
+    },
+    "function:G": {
+      "kind": "replace",
+      "previewSha256": "4b962bcb836e0d8fe615739ebe60fa3419ee50834f3440f3c17382a0623bb8ad",
+      "sourceSha256": "f052687d02dd994f36838c9c06e48c90553a6de0ebcf2dd38ab15fa974639304"
+    },
+    "function:publishMotionObservation": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "60af38a0eed03116f810b1b125080a938a3272b655f0d0635a9f0d8f22f22ea0"
+    },
+    "function:beginPlacementFeedback": {
+      "kind": "add",
+      "previewSha256": null,
+      "sourceSha256": "47b8649768ab84bbbd31479d3ec4361d2d74a93eb96cbe16e7e2c4987abb1773"
     },
     "function:F": {
       "kind": "replace",
       "previewSha256": "5c207cd58d97f7d3580618e4c92ae5bb25c2398396ce1b6abe7c6b918400e923",
-      "sourceSha256": "49c98ab34ad297c9fce9bf1c622b4bfc477810360c09e8f94da26ac2f636d631"
+      "sourceSha256": "d23f62cfd5ec06ec3063478ae21d217226d5bc51f32df1273d7bbcb67c075aa3"
     },
     "declaration:O": {
       "kind": "replace",
       "previewSha256": "63401577e576d31a624b559db15ba44f80c66b09d4bd670958b618a8086d0874",
-      "sourceSha256": "07442fdabad2dbd529249e8ac3ad3e91d0c587bf20be580f50a4f20a921c03e7"
+      "sourceSha256": "f4d305e129387e5575d480b245b0e58b016112a892076005aa0027a96486eeac"
     },
     "function:k": {
       "kind": "replace",
       "previewSha256": "50f894e8c9e9894d344f7dc9f6186847e76b83463f5e7862d5380eb29c87ffef",
-      "sourceSha256": "52555d1e186428ac61fcda43f7a4a59ffa38ed07aeb1687a96f817fd9bab470b"
+      "sourceSha256": "abf12abdbb3a6a086d92579aad57950759dbff1c9491e5a12140818f41e12cfd"
     },
     "declaration:resetFeedback": {
       "kind": "add",
       "previewSha256": null,
-      "sourceSha256": "bf7440465688e0421d6bbe996c17d59b92410cb20baf86f871e299bf5f5669b1"
+      "sourceSha256": "5d4a75d976b82640262d49d56fa7a2543a8f5183266c34c2e98b0add6053fa9b"
     },
     "declaration:suspend": {
       "kind": "add",
@@ -150,12 +198,13 @@
     "declaration:D": {
       "kind": "replace",
       "previewSha256": "d9a54f5683f3862d9aef86516243101653dbc06804e331fb129ef18ba4818dae",
-      "sourceSha256": "6e559fe1a7c8f29001670e952b5e8d614f2e9c15504358741a9a7d36e93068ad"
+      "sourceSha256": "bc526690666b31629f0f914b5691b48ac43dfa79ad0e5336faed2d5789628408"
     },
     "return": {
       "kind": "replace",
       "previewSha256": "d8f1d88806bad0aae9f86ecdee640b2d9389f45a6d165e7698f1b583b558976c",
-      "sourceSha256": "bd893f342b01af6bf9bb8b9bf4903c17732b2e0553d1ff6614ddfac0ae468559"
+      "sourceSha256": "c19756741c80575bd8d72ca0c8407292224c5783f23522ef3809235499f83ad8"
     }
-  }
+  },
+  "retiredEnergyHelperSha256": "04e7becb749299a8f5ea47ba531f72aa00cad10c9dab9d59efa91e1781f1222e"
 }

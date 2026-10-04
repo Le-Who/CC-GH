@@ -1,9 +1,11 @@
 /* Source-art composition only. The real control remains the parent element. */
 .settlement-game-root .settlement-illustrated-frame {
-  position: relative;
   isolation: isolate;
   background-image: none !important;
   background-color: transparent !important;
+}
+.settlement-game-root .settlement-illustrated-frame:not(.hud-region) {
+  position: relative;
 }
 .settlement-game-root .settlement-frame-art {
   position: absolute;

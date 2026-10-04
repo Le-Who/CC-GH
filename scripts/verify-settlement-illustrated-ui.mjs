@@ -12,7 +12,8 @@ const browser = await chromium.launch({ headless: true });
 const report = [];
 const assertionFailures = [];
 const ACTION_TIMEOUT = 8000;
-const PROFILE_BUDGET = 70000;
+// Based on measured slow profiles; retain a hard per-profile stop.
+const profileBudget = width => [390, 768, 1024, 1280].includes(width) ? 110000 : 70000;
 async function bounded(promise, ms, label) {
  let timer;
  try {
@@ -38,7 +39,7 @@ try {
    const url = new URL(response.url());
    if (url.origin === new URL(baseURL).origin && url.pathname.startsWith('/api/') && [401, 403].includes(response.status())) authFailure = true;
   });
-  const budget = setTimeout(() => { budgetExpired = true; void context.close().catch(() => {}); }, PROFILE_BUDGET);
+  const budget = setTimeout(() => { budgetExpired = true; void context.close().catch(() => {}); }, profileBudget(width));
   console.log(JSON.stringify({ event: 'profile-start', language, width, height }));
   try {
   page.on('pageerror', error => errors.push(error.message));

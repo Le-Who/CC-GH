@@ -3,8 +3,8 @@
   "productionFiles": [
     {
       "path": "routes/player.js",
-      "bytes": 62070,
-      "sha256": "81f1853fdeb714fdea94beb2d53781ad032ab92a9074c0a175931cc155efe054"
+      "bytes": 61600,
+      "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa"
     },
     {
       "path": "routes/mergeRoutes.js",
@@ -43,8 +43,8 @@
     },
     {
       "path": "package.json",
-      "bytes": 8951,
-      "sha256": "5752f6409107717636302c5bfae7f31a25b3ac64e63504e762e9fe4061cf406d"
+      "bytes": 8917,
+      "sha256": "e7364b734888d6185723c73917ae81f99c19ae9026b46009c61e1edb56f0d906"
     },
     {
       "path": "src/App.jsx",
@@ -2537,90 +2537,6 @@
         "path": "history/pre-receipt-lifecycle/verify-release-preparation-transfer.mjs",
         "bytes": 23534,
         "sha256": "05dd2fe6fbbad3d364fe15ce65673358f9b77e5ca638437083bd7261c02bd2f2"
-      }
-    ]
-  },
-  "reviewedArcadeRewardChangeSet": {
-    "id": "arcade-terminal-session-reward-fence-20261004",
-    "integrationBaseCommit": "962323817b77eff1a4a20be71b38f8d462b9054f",
-    "reviewedCommit": "3c7854300c823b058c5ef1cff7b50560b7720679",
-    "approvedPatchSha256": "55848d4c34781262d4d56961dceb5faf17e1a7f38176ef305f761c1734724640",
-    "rolloutEnabled": false,
-    "sourceAcceptanceChanged": false,
-    "canonicalSourceClosureChanged": false,
-    "transitions": [
-      {
-        "path": "routes/player.js",
-        "before": {
-          "bytes": 61600,
-          "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa",
-          "archive": "history/pre-arcade-reward/production/routes/player.js"
-        },
-        "after": {
-          "bytes": 62070,
-          "sha256": "81f1853fdeb714fdea94beb2d53781ad032ab92a9074c0a175931cc155efe054"
-        }
-      },
-      {
-        "path": "package.json",
-        "before": {
-          "bytes": 8917,
-          "sha256": "e7364b734888d6185723c73917ae81f99c19ae9026b46009c61e1edb56f0d906",
-          "archive": "history/pre-arcade-reward/production/package.json"
-        },
-        "after": {
-          "bytes": 8951,
-          "sha256": "5752f6409107717636302c5bfae7f31a25b3ac64e63504e762e9fe4061cf406d"
-        }
-      }
-    ],
-    "files": [
-      {
-        "path": "routes/player.js",
-        "bytes": 62070,
-        "sha256": "81f1853fdeb714fdea94beb2d53781ad032ab92a9074c0a175931cc155efe054"
-      },
-      {
-        "path": "routes/match3.js",
-        "bytes": 5782,
-        "sha256": "fe6399122587e2c5ed53783f6431d71653a8e4cd69965ac91372a553601baa0e"
-      },
-      {
-        "path": "routes/blox.js",
-        "bytes": 4346,
-        "sha256": "d6568ac325ba1116d401662ad75e7d1af7403abcbed8d983c0d505ce383d0c22"
-      },
-      {
-        "path": "package.json",
-        "bytes": 8951,
-        "sha256": "5752f6409107717636302c5bfae7f31a25b3ac64e63504e762e9fe4061cf406d"
-      },
-      {
-        "path": "tests/arcade-reward-once.test.mjs",
-        "bytes": 8308,
-        "sha256": "f6d93adf0447f95d70b12b64b063fab63c5b0b71948c3c0bc30498aed3527def"
-      }
-    ],
-    "archiveFiles": [
-      {
-        "path": "history/pre-arcade-reward/approved-reward-fix.patch",
-        "bytes": 21540,
-        "sha256": "55848d4c34781262d4d56961dceb5faf17e1a7f38176ef305f761c1734724640"
-      },
-      {
-        "path": "history/pre-arcade-reward/base-contract.json",
-        "bytes": 102749,
-        "sha256": "dcbbe9fd517724b156ee70c6c4db8a348169750354b36335265b08409b72bd07"
-      },
-      {
-        "path": "history/pre-arcade-reward/production/package.json",
-        "bytes": 8917,
-        "sha256": "e7364b734888d6185723c73917ae81f99c19ae9026b46009c61e1edb56f0d906"
-      },
-      {
-        "path": "history/pre-arcade-reward/production/routes/player.js",
-        "bytes": 61600,
-        "sha256": "b9b26e84a95c05202c049100b682480edf76638fbdbd22a07f47d4adb061a1fa"
       }
     ]
   }

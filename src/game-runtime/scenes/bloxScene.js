@@ -26,11 +26,6 @@ function createBloxFrame(bounds, skin="frame"){
   frame.eventMode="none",
   frame
 }
-function createBloxEnergyLine(x, y, width, height, alpha){
-  const sprite=spriteFit(bloxArtUrl("energy"), x, y, height, width, alpha);
-  return sprite.rotation=Math.PI/2,
-  sprite
-}
 function buildBloxScene(app, initial={
 }){
   const root=new Container;
@@ -43,11 +38,15 @@ function buildBloxScene(app, initial={
   let lastTraySignature="";
   let destroyed=false, feedbackEpoch=0, background=false;
   const motionMedia=window.matchMedia?.('(prefers-reduced-motion: reduce)');
-  const feedback=createFeedbackTrack(effects,{limit:48});
+  const feedback=createFeedbackTrack(effects,{limit:48,now:()=>performance.now()});
+  // One cosmetic view per cleared cell, independent of the authoritative board.
+  const clearing=new Map();
+  let motionObservation=null;
   const reduced=()=>!!motionMedia?.matches;
-  const animate=(node,options={})=>{
+  const animate=(node,options={},attempt)=>{
     if(destroyed||background||document.visibilityState==='hidden'){node.destroy?.({children:true});return;}
     feedback.add(node,{...options,reduced:reduced()});
+    attempt?.nodes.add(node);
     app.ticker.start?.();
   };
   const dragVisual=makeRafScheduler(()=>updateDragVisualNow());
@@ -113,8 +112,11 @@ function buildBloxScene(app, initial={
       col:drag.overCell.col
     }):null;
     if(b.alpha=drag.overCell?.78:.66, dragLayer.addChild(b), drag.overCell){
-      for(const B of S?.clear.rows||[])dragLayer.addChild(spriteFit(bloxArtUrl("energy"), layout.left+layout.size/2, layout.top+(B+.5)*layout.cell, layout.size+12, layout.cell*1.24, .42));
-      for(const B of S?.clear.cols||[])dragLayer.addChild(createBloxEnergyLine(layout.left+(B+.5)*layout.cell, layout.top+layout.size/2, layout.cell*1.24, layout.size+12, .4));
+      // Preview the same cells that will disappear, never a floating full-line beam.
+      for(let row=0;row<GRID;row++)for(let col=0;col<GRID;col++){
+        if(!S?.clear.rows.includes(row)&&!S?.clear.cols.includes(col))continue;
+        dragLayer.addChild(strokedRect(layout.left+col*layout.cell+2,layout.top+row*layout.cell+2,layout.cell-4,layout.cell-4,MINT,4,MINT,.12,2));
+      }
       const U=drawPiece(drag.piece, layout.left+drag.overCell.col*layout.cell, layout.top+drag.overCell.row*layout.cell, layout.cell, C?.34:.24);
       U.alpha=C?.74:.52;
       dragLayer.addChild(U);
@@ -133,34 +135,101 @@ function buildBloxScene(app, initial={
   function g(){
     dragVisual.request()
   }
-  // Clearing travels along the actual completed lines; it never covers the board
-  // with a centre-screen reward label or blocks the next placement.
-  function G(result={}){
-    if(!layout)return;
-    for(const row of (result.rows||[]).slice(0,GRID)){
-      const beam=spriteFit(bloxArtUrl("energy"),layout.left+layout.size/2,layout.top+(row+.5)*layout.cell,layout.size+8,layout.cell*.85,.65);
-      animate(beam,{duration:300,from:.98,peak:1.02});
+  function removeClear(key){
+    const track=clearing.get(key);
+    if(!track)return;
+    track.node.parent?.removeChild(track.node);
+    track.node.destroy?.({children:true});
+    clearing.delete(key);
+    track.attempt?.nodes.delete(track.node);
+  }
+  function cancelAttempt(attempt){
+    for(const [key,track] of clearing)if(track.attempt===attempt)removeClear(key);
+    for(const node of attempt.nodes){
+      if(node.destroyed)continue;
+      node.parent?.removeChild(node);
+      node.destroy?.({children:true});
     }
-    for(const col of (result.cols||[]).slice(0,GRID)){
-      const beam=createBloxEnergyLine(layout.left+(col+.5)*layout.cell,layout.top+layout.size/2,layout.cell*.85,layout.size+8,.65);
-      animate(beam,{duration:300,from:.98,peak:1.02});
+    attempt.nodes.clear();
+  }
+  function snapshotBoard(){
+    return (data.blox?.board||data.blox?.savedState?.board||[]).map(row=>[...row]);
+  }
+  function tickClearing(){
+    const now=performance.now();
+    const smooth=t=>t*t*(3-2*t);
+    for(const [key,t] of clearing){
+      t.age=Math.max(t.age,now-t.startedAt);
+      const elapsed=Math.max(0,t.age-t.delay);
+      let scale=1,alpha=1;
+      if(t.reduced){
+        alpha=1-Math.min(1,elapsed/120);
+      }else if(elapsed<55){
+        scale=1-.07*smooth(elapsed/55);
+      }else if(elapsed<125){
+        scale=.93+.15*smooth((elapsed-55)/70);
+      }else{
+        const p=Math.min(1,(elapsed-125)/165);
+        scale=1.08-.73*smooth(p);
+        alpha=1-smooth(p);
+      }
+      t.node.scale.set(t.sx*scale,t.sy*scale);
+      t.node.alpha=alpha;
+      if(alpha<=0)removeClear(key);
     }
   }
-  function placementFeedback(piece,cell,result){
+  function placementFeedback(piece,cell,result,before,attempt){
     if(!layout||!cell)return;
     if(result?.error){
       for(const [row,col] of piece.cells||[]){
         const r=cell.row+row,c=cell.col+col;
         if(r<0||c<0||r>=GRID||c>=GRID)continue;
-        animate(strokedRect(layout.left+c*layout.cell+2,layout.top+r*layout.cell+2,layout.cell-4,layout.cell-4,CORAL,4,CORAL,.12,2),{duration:190});
+        animate(strokedRect(layout.left+c*layout.cell+2,layout.top+r*layout.cell+2,layout.cell-4,layout.cell-4,CORAL,4,CORAL,.12,2),{duration:190},attempt);
       }
       return;
     }
+    const rows=result?.clear?.rows||[],cols=result?.clear?.cols||[];
+    const placed=new Map((piece.cells||[]).map(([r,c])=>[`${cell.row+r}:${cell.col+c}`,piece.color]));
+    // A fast next placement always takes visual priority over an older clear.
+    for(const key of placed.keys())removeClear(key);
     for(const [row,col] of piece.cells||[]){
-      const x=layout.left+(cell.col+col+.5)*layout.cell,y=layout.top+(cell.row+row+.5)*layout.cell;
-      animate(spriteFit(tileAssetForPiece(piece),x,y,tileVisualSize(layout.cell),tileVisualSize(layout.cell),.8),{duration:220,from:.94,peak:1.045});
+      const r=cell.row+row,c=cell.col+col;
+      if(rows.includes(r)||cols.includes(c))continue;
+      const x=layout.left+(c+.5)*layout.cell,y=layout.top+(r+.5)*layout.cell;
+      animate(spriteFit(tileAssetForPiece(piece),x,y,tileVisualSize(layout.cell),tileVisualSize(layout.cell),.65),{duration:145,from:1.1,peak:1.025,to:1},attempt);
     }
-    if(result?.clear?.cleared)G(result.clear);
+    if(!result?.clear?.cleared||destroyed||background||document.visibilityState==='hidden')return;
+    for(let row=0;row<GRID;row++)for(let col=0;col<GRID;col++){
+      if(!rows.includes(row)&&!cols.includes(col))continue;
+      const key=`${row}:${col}`,color=placed.get(key)||before?.[row]?.[col];
+      if(!color)continue;
+      removeClear(key);
+      const node=spriteFit(bloxTileAsset(color),layout.left+(col+.5)*layout.cell,layout.top+(row+.5)*layout.cell,tileVisualSize(layout.cell),tileVisualSize(layout.cell),1);
+      node.eventMode="none";
+      const quiet=reduced();
+      // A short wave originates at the placed piece. Every tile is visible from
+      // frame one, including the far end of a line and row/column intersections.
+      const distance=Math.min(...(piece.cells||[[0,0]]).map(([r,c])=>Math.abs(row-cell.row-r)+Math.abs(col-cell.col-c)));
+      attempt?.nodes.add(node);
+      clearing.set(key,{node,attempt,sx:node.scale.x,sy:node.scale.y,age:0,startedAt:performance.now(),delay:quiet?0:Math.min(63,distance*7),reduced:quiet});
+      effects.addChild(node);
+    }
+    app.ticker.start?.();
+  }
+  function G(){
+    for(const key of clearing.keys())removeClear(key);
+  }
+  function publishMotionObservation(){
+    if(app.canvas?.dataset&&motionObservation)app.canvas.dataset.bloxMotionTiming=JSON.stringify(motionObservation);
+  }
+  function beginPlacementFeedback(piece,cell,before,attempt){
+    if(!piece)return false;
+    const preview=previewBloxPlacement({board:before,tray:[{piece,placed:false}]},{pieceIdx:0,row:cell.row,col:cell.col});
+    if(!preview.valid)return false;
+    motionObservation={requestedAt:attempt.requestedAt,startedAt:performance.now(),firstFrameAt:null,clearedAt:null,finishedAt:null,frames:0};
+    publishMotionObservation();
+    placementFeedback(piece,cell,preview,before,attempt);
+    return true;
   }
   function F(done){
     if(!drag)return;
@@ -170,10 +239,14 @@ function buildBloxScene(app, initial={
     // Cancel is a neutral cleanup, never a selection, rejection, or reward.
     if(done?.cancelled){k();return;}
     if(target&&data.blox?.gameActive){
-      const epoch=feedbackEpoch;
-      Promise.resolve(data.onBloxDrop?.(current.pieceIdx,target.row,target.col)).then(result=>{
-        if(!destroyed&&epoch===feedbackEpoch&&result)placementFeedback(current.piece,target,result);
-      }).catch(()=>{});
+      const epoch=feedbackEpoch,before=snapshotBoard(),attempt={nodes:new Set(),requestedAt:performance.now()};
+      const pending=data.onBloxDrop?.(current.pieceIdx,target.row,target.col);
+      const started=pending!==undefined&&epoch===feedbackEpoch&&beginPlacementFeedback(current.piece,target,before,attempt);
+      Promise.resolve(pending).then(result=>{
+        if(destroyed||epoch!==feedbackEpoch||!result)return;
+        if(result.error)cancelAttempt(attempt);
+        if(!started||result.error)placementFeedback(current.piece,target,result,before,attempt);
+      }).catch(()=>{if(epoch===feedbackEpoch)cancelAttempt(attempt);});
     }else if(current.moved||done?.moved){
       const point=bloxDragVisualPoint(current);
       const returned=drawPiece(current.piece,0,0,Math.min(layout?.cell||22,28),.7);
@@ -188,9 +261,14 @@ function buildBloxScene(app, initial={
     },
     onTap:h=>{
       if(h.data?.kind==="blox-cell"){
-        const piece=data.blox?.tray?.[data.selectedBloxPiece]?.piece,epoch=feedbackEpoch;
+        const piece=data.blox?.tray?.[data.selectedBloxPiece]?.piece,epoch=feedbackEpoch,before=snapshotBoard(),attempt={nodes:new Set(),requestedAt:performance.now()};
         const result=data.onBloxCell?.(h.data.row,h.data.col);
-        if(piece)Promise.resolve(result).then(value=>{if(value&&!destroyed&&epoch===feedbackEpoch)placementFeedback(piece,h.data,value);}).catch(()=>{});
+        const started=result!==undefined&&epoch===feedbackEpoch&&beginPlacementFeedback(piece,h.data,before,attempt);
+        if(piece)Promise.resolve(result).then(value=>{
+          if(!value||destroyed||epoch!==feedbackEpoch)return;
+          if(value.error)cancelAttempt(attempt);
+          if(!started||value.error)placementFeedback(piece,h.data,value,before,attempt);
+        }).catch(()=>{if(epoch===feedbackEpoch)cancelAttempt(attempt);});
         return
       }
       drag&&(data.onBloxTray?.(drag.pieceIdx), drag=null, dragVisual.cancel(), clear(dragLayer), k())
@@ -200,6 +278,7 @@ function buildBloxScene(app, initial={
   });
   function k(){
     if(destroyed)return;
+    root.cacheAsTexture?.(false);
     clear(root);
     const h=data.blox||{
     };
@@ -321,10 +400,23 @@ function buildBloxScene(app, initial={
     }
     g();
     data.bloxHideStatusText||root.addChild(label(data.bloxStatusText||`Score ${h.score||0} · Lines ${h.linesCleared||0}`, viewWidth(app)/2, U+76, 14, AMBER));
+    // Pixi caches local bounds and rounds backing dimensions up to powers of
+    // two. Leave one pixel of rounding headroom: each backing axis stays<=1024,
+    // so this static cache costs at most1,048,576 pixels even on large screens.
+    // Children and full-cell hit areas remain available to Pixi event routing.
+    const bounds=root.getLocalBounds?.();
+    if(bounds){
+      // Match getLocalBounds().ceil(): fractional origins can add a pixel to
+      // each extent, so ceil(width) alone is not a safe allocation bound.
+      const x=bounds.x??bounds.minX??0,y=bounds.y??bounds.minY??0;
+      const width=Math.max(1,Math.ceil(x+bounds.width)-Math.floor(x));
+      const height=Math.max(1,Math.ceil(y+bounds.height)-Math.floor(y));
+      root.cacheAsTexture?.({resolution:Math.min(app.renderer.resolution||1,1023/width,1023/height),antialias:false});
+    }
     app.render?.();
   }
   const A=setupStage(app, O.move, O.end, ()=>O.cancel("stage"));
-  const resetFeedback=()=>{feedbackEpoch++;feedback.clear();};
+  const resetFeedback=()=>{feedbackEpoch++;feedback.clear();G();};
   const suspend=()=>{background=true;resetFeedback();app.render?.();app.ticker.stop?.();};
   const resume=()=>{background=false;};
   const visibility=()=>{if(document.visibilityState==='hidden')suspend();else resume();};
@@ -334,8 +426,18 @@ function buildBloxScene(app, initial={
   motionMedia?.addEventListener?.('change',motionChange);
   const D=ticker=>{
     if(background||document.visibilityState==='hidden')return;
+    if(motionObservation&&motionObservation.finishedAt===null){
+      motionObservation.firstFrameAt??=performance.now();
+      motionObservation.frames++;
+    }
     feedback.tick(ticker?.deltaMS??1000/60);
-    if(!drag&&!feedback.size){app.render?.();app.ticker.stop?.();}
+    tickClearing();
+    if(motionObservation&&motionObservation.clearedAt===null&&!clearing.size)motionObservation.clearedAt=performance.now();
+    if(!drag&&!feedback.size&&!clearing.size){
+      if(motionObservation&&motionObservation.finishedAt===null)motionObservation.finishedAt=performance.now();
+      app.render?.();app.ticker.stop?.();
+    }
+    publishMotionObservation();
   };
   return app.ticker.add(D),
   k(),
@@ -362,6 +464,7 @@ function buildBloxScene(app, initial={
       app.ticker.remove(D);
       dragVisual.cancel();
       O.cancel("destroy");
+      root.cacheAsTexture?.(false);
       clear(root);
       clear(dragLayer);
       clear(effects);
