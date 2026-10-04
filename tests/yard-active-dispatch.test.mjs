@@ -26,7 +26,7 @@ test('the complete permitted delta is exactly eight existing and thirteen new pa
  withFixture(f=>assert.equal(verify(f).changedFiles,21));
 });
 for(const path of ['routes/player.js','src/game-state/useGameHub.js','src/game-state/yardOutboxStorage.js','public/assets/yard-pip/actor.webp','.github/workflows/ci.yml'])test(`unrelated committed ${path} changes fail full-tree comparison`,()=>withFixture(f=>{
- put(f.root,path,'unreviewed drift');f.activeCommit=commit(f.root);assert.throws(()=>verify(f),/Unrelated tree change/);
+ put(f.root,path,'unreviewed drift');f.activeCommit=commit(f.root);assert.throws(()=>verify(f),path==='.github/workflows/ci.yml'?/Unrelated tree change|Complete separately reviewed/:/Unrelated tree change/);
 }));
 test('an extra file under the history prefix is not an allowed promotion',()=>withFixture(f=>{
  put(f.root,'preview/yard-persistent-candidate/history/pre-activation/unreviewed.js','bad');f.activeCommit=commit(f.root);assert.throws(()=>verify(f),/Unrelated tree change/);
@@ -83,7 +83,7 @@ function validateArtifactNames(jobs){
  }assert.ok(count>0);return count;
 }
 const STABLE_CLOSED_NAMES={test:undefined,'yard-player':undefined,'yard-eight-player':'Yard eight-player / ${{ matrix.group }}','browser-plan':undefined,browser:'Browser / ${{ matrix.group }}',touch:undefined,mochi:undefined};
-function assertStableJobNames(jobs){for(const [job,name]of Object.entries(STABLE_CLOSED_NAMES))assert.equal(jobs[job].name,name,`Existing check identity must remain stable: ${job}`);assert.equal(jobs['yard-active'].name,'ACTIVE ordinary imports');assert.equal(jobs['yard-active-production'].name,'ACTIVE production image and rollback');assert.equal(jobs['release-ready'].name,'Exact source release acceptance');}
+function assertStableJobNames(jobs){for(const [job,name]of Object.entries(STABLE_CLOSED_NAMES))assert.equal(jobs[job].name,name,`Existing check identity must remain stable: ${job}`);assert.equal(jobs['yard-active'].name,'ACTIVE ordinary imports');assert.equal(jobs['yard-active-production'].name,'ACTIVE published-image preflight');assert.equal(jobs['release-ready'].name,'Exact source release acceptance');}
 test('unchanged CLOSED jobs check out and disclose exact A, never silently use B',()=>{
  const jobs=metadata(workflow);assertStableJobNames(jobs);
  for(const job of ['test','yard-player','yard-eight-player','browser-plan','browser','touch','mochi']){
@@ -100,17 +100,18 @@ test('parsed job identities stay stable and every upload name is filename-safe',
  const missing=metadata(workflow.replace(/^    name: Browser.*\n/m,''));assert.equal(missing.browser.name,undefined);assert.throws(()=>assertStableJobNames(missing),/check identity/);
  const malformed=structuredClone(jobs),upload=malformed.test.steps.find(s=>/^actions\/upload-artifact@/.test(s.uses||''));upload.with.name='CLOSED / forbidden';assert.throws(()=>validateArtifactNames(malformed),/Illegal artifact name/);
 });
-test('reusable deploy caller grants only the same read permissions required for exact GHCR A',()=>{
+test('reusable deploy caller retains read ceilings and ACTIVE preflight needs only source read',()=>{
  const caller=metadata(readFileSync(resolve(ownRoot,'.github/workflows/deploy.yml'),'utf8')).validate,callee=metadata(workflow)['yard-active-production'];
- assert.equal(caller.uses,'./.github/workflows/ci.yml');assert.deepEqual(caller.permissions,{contents:'read',packages:'read',actions:'read'});assert.deepEqual(callee.permissions,{contents:'read',packages:'read'});assert.deepEqual(metadata(workflow)['yard-closed-receipt'].permissions,{contents:'read',actions:'read'});
- const production=block('yard-active-production');assert.match(production,/YARD_IMAGE_REPOSITORY: ghcr.io\/le-who\/cc-gh/);assert.match(production,/docker pull "\$\{YARD_IMAGE_REPOSITORY\}@\$\{YARD_CLOSED_DIGEST\}"/);assert.doesNotMatch(production,/packages: write|docker push/);
- assert.equal(caller.permissions.packages,callee.permissions.packages);assert.equal(caller.permissions.actions,metadata(workflow)['yard-closed-receipt'].permissions.actions);
+ assert.equal(caller.uses,'./.github/workflows/ci.yml');assert.deepEqual(caller.permissions,{contents:'read',packages:'read',actions:'read'});assert.deepEqual(callee.permissions,{contents:'read'});assert.deepEqual(metadata(workflow)['yard-closed-receipt'].permissions,{contents:'read',actions:'read'});
+ const production=block('yard-active-production');assert.doesNotMatch(production,/packages:|docker pull|docker build|docker push|docker\/login-action/);
+ assert.equal(caller.permissions.actions,metadata(workflow)['yard-closed-receipt'].permissions.actions);
 });
-test('ACTIVE build and production image lanes consume B and are mandatory only in ACTIVE mode',()=>{
+test('ACTIVE build and honest published-image preflight consume B and remain mandatory',()=>{
  const ordinary=block('yard-active'),production=block('yard-active-production'),aggregate=block('release-ready');
  for(const text of [ordinary,production]){assert.match(text,/if: needs.yard-release-mode.outputs.mode == 'ACTIVE'/);assert.match(text,/ref: \$\{\{ needs.yard-release-mode.outputs.active_ref \}\}/);assert.match(text,/yard-ci-dispatch\.mjs --verify-active/);assert.doesNotMatch(text,/continue-on-error|yard-eight-player-loader|vite.yard-eight-player-candidate/);}
  assert.match(ordinary,/run: pnpm run build/);assert.match(ordinary,/yard-active-runtime-checks\.mjs/);assert.match(ordinary,/perf:guard:build/);
- assert.match(production,/BUILD_ID=\$\{YARD_ACTIVE_COMMIT\}/);assert.match(production,/org.opencontainers.image.revision=\$\{YARD_ACTIVE_COMMIT\}/);assert.match(production,/yard-production-acceptance\.mjs/);assert.match(production,/timeout-minutes: 18/);
+ assert.match(production,/node --test tests\/yard-production-contract\.test\.mjs/);assert.match(production,/Runtime migration, persistence and rollback acceptance is pending the exact published image digest/);assert.match(production,/deploy remains gated on all nine cases/);
+ assert.doesNotMatch(production,/run: node scripts\/yard-production-acceptance\.mjs|docker build|playwright install|pnpm install/);
  assert.match(aggregate,/if: always\(\)/);assert.match(aggregate,/mode==='ACTIVE'\?'success':'skipped'/);assert.match(aggregate,/yard-active-production/);
 });
 test('ACTIVE ordinary-import checks contain no policy substitution or candidate options',()=>{

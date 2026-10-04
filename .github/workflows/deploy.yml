@@ -65,6 +65,121 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
+      # Initial Yard activation must exercise the exact registry object that the
+      # existing deploy dependency will pull. No image is rebuilt after this proof.
+      - name: Set up Node for published Yard image acceptance
+        if: hashFiles('game-logic/yard-v2/active-release-contract.json') != ''
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.x
+
+      - name: Verify published Yard acceptance inputs
+        id: published_yard
+        if: hashFiles('game-logic/yard-v2/active-release-contract.json') != ''
+        env:
+          YARD_ACTIVE_COMMIT: ${{ github.sha }}
+          YARD_ACTIVE_DIGEST: ${{ steps.build_image.outputs.digest }}
+          NODE_OPTIONS: ''
+          YARD_PLAYER_WIRING_TEST: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
+        run: |
+          test "$(git rev-parse HEAD)" = "$YARD_ACTIVE_COMMIT"
+          closed_commit="$(node --input-type=module <<'JS'
+          import {readFileSync} from 'node:fs';
+          import {validateActivationInputs} from './scripts/yard-active-contract.mjs';
+          const contract=JSON.parse(readFileSync('game-logic/yard-v2/active-release-contract.json','utf8'));
+          process.stdout.write(validateActivationInputs(contract.inputs).closed.buildId);
+          JS
+          )"
+          timeout --kill-after=5s 60s git fetch --no-tags --depth=1 origin "$closed_commit"
+          node scripts/yard-active-contract.mjs "$PWD"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync,appendFileSync} from 'node:fs';
+          const contract=JSON.parse(readFileSync('game-logic/yard-v2/active-release-contract.json','utf8'));
+          assert.match(process.env.YARD_ACTIVE_DIGEST,/^sha256:[a-f0-9]{64}$/);
+          const {buildId,imageDigest}=contract.inputs.closed;
+          appendFileSync(process.env.GITHUB_OUTPUT,`mode=ACTIVE\nclosed_commit=${buildId}\nclosed_digest=${imageDigest}\n`);
+          JS
+
+      - name: Prepare exact published Yard images and browser
+        if: steps.published_yard.outputs.mode == 'ACTIVE'
+        timeout-minutes: 10
+        env:
+          YARD_ACTIVE_DIGEST: ${{ steps.build_image.outputs.digest }}
+          YARD_CLOSED_DIGEST: ${{ steps.published_yard.outputs.closed_digest }}
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+          docker pull "${REGISTRY}/${REPO}@${YARD_ACTIVE_DIGEST}"
+          docker pull "${REGISTRY}/${REPO}@${YARD_CLOSED_DIGEST}"
+          docker pull postgres:15
+
+      - name: Require nine cases on the exact published Yard digest
+        id: published_yard_proof
+        if: steps.published_yard.outputs.mode == 'ACTIVE'
+        timeout-minutes: 18
+        env:
+          CI: 'true'
+          YARD_PRODUCTION_ACCEPTANCE: '1'
+          YARD_ACTIVE_COMMIT: ${{ github.sha }}
+          YARD_ACTIVE_DIGEST: ${{ steps.build_image.outputs.digest }}
+          YARD_CLOSED_COMMIT: ${{ steps.published_yard.outputs.closed_commit }}
+          YARD_CLOSED_DIGEST: ${{ steps.published_yard.outputs.closed_digest }}
+          YARD_IMAGE_REPOSITORY: ghcr.io/le-who/cc-gh
+          NODE_OPTIONS: ''
+          DEV_AUTH_ENABLED: ''
+          TELEGRAM_BOT_TOKEN: ''
+          DATABASE_URL: ''
+          REDIS_URL: ''
+          YARD_PLAYER_WIRING_TEST: ''
+          YARD_CANDIDATE_CI: ''
+          YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
+        run: node scripts/yard-production-acceptance.mjs
+
+      - name: Preserve published Yard digest acceptance evidence
+        if: always() && steps.published_yard.outputs.mode == 'ACTIVE'
+        uses: actions/upload-artifact@v7
+        with:
+          name: yard-published-production-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results/yard-production/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Require committed ACTIVE published-image proof
+        if: always()
+        timeout-minutes: 1
+        env:
+          YARD_ACTIVE_COMMIT: ${{ github.sha }}
+          YARD_ACTIVE_DIGEST: ${{ steps.build_image.outputs.digest }}
+          YARD_PROOF_MODE: ${{ steps.published_yard.outputs.mode }}
+          YARD_PROOF_OUTCOME: ${{ steps.published_yard_proof.outcome }}
+          NODE_OPTIONS: ''
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import {readFileSync} from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const git=args=>execFileSync('git',args,{encoding:'utf8',timeout:10000}).trim();
+          assert.equal(git(['rev-parse','HEAD']),process.env.YARD_ACTIVE_COMMIT,'Proof checkout must match the published source');
+          const path='game-logic/yard-v2/active-release-contract.json';
+          const committed=git(['ls-tree','--name-only','HEAD','--',path]);
+          if(!committed)process.exit(0);
+          assert.equal(committed,path);
+          assert.equal(process.env.YARD_PROOF_MODE,'ACTIVE','Committed ACTIVE source requires captured ACTIVE mode');
+          assert.equal(process.env.YARD_PROOF_OUTCOME,'success','Published nine-case acceptance must succeed');
+          assert.match(process.env.YARD_ACTIVE_DIGEST,/^sha256:[a-f0-9]{64}$/);
+          assert.equal(process.env.YARD_ACTIVE_DIGEST.length,71);
+          const proof=JSON.parse(readFileSync('test-results/yard-production/PASS.json','utf8'));
+          assert.equal(proof.format,'cc-gh-yard-production-acceptance/v1');
+          assert.equal(proof.activeCommit,process.env.YARD_ACTIVE_COMMIT);
+          assert.equal(proof.activeDigest,process.env.YARD_ACTIVE_DIGEST);
+          assert.equal(proof.tests,9);assert.equal(proof.retries,0);
+          console.log('Committed ACTIVE source has nine-case proof for the exact published digest.');
+          JS
+
   deploy:
     needs: build-and-push
     permissions:

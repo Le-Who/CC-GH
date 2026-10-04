@@ -775,29 +775,13 @@ jobs:
           retention-days: 14
 
   yard-active-production:
-    name: ACTIVE production image and rollback
+    name: ACTIVE published-image preflight
     needs: [yard-release-mode, yard-active]
     if: needs.yard-release-mode.outputs.mode == 'ACTIVE'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 5
     permissions:
       contents: read
-      packages: read
-    env:
-      CI: 'true'
-      YARD_PRODUCTION_ACCEPTANCE: '1'
-      YARD_ACTIVE_COMMIT: ${{ needs.yard-release-mode.outputs.active_ref }}
-      YARD_CLOSED_COMMIT: ${{ needs.yard-release-mode.outputs.closed_ref }}
-      YARD_CLOSED_DIGEST: ${{ needs.yard-release-mode.outputs.closed_digest }}
-      YARD_IMAGE_REPOSITORY: ghcr.io/le-who/cc-gh
-      NODE_OPTIONS: ''
-      DEV_AUTH_ENABLED: ''
-      TELEGRAM_BOT_TOKEN: ''
-      DATABASE_URL: ''
-      REDIS_URL: ''
-      YARD_PLAYER_WIRING_TEST: ''
-      YARD_CANDIDATE_CI: ''
-      YARD_EIGHT_PLAYER_CANDIDATE_TEST: ''
     steps:
       - uses: actions/checkout@v6
         with:
@@ -807,35 +791,13 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24.x
-      - name: Validate exact ACTIVE tree and production acceptance safety
+      - name: Validate exact ACTIVE tree and published-image acceptance safety
         run: |
           node scripts/yard-ci-dispatch.mjs --verify-active
           node --test tests/yard-production-contract.test.mjs
-      - name: Install frozen test dependencies and Chromium
+      - name: Report pending exact published-image runtime acceptance
         run: |
-          corepack enable && corepack prepare pnpm@10.28.2 --activate
-          pnpm install --frozen-lockfile
-          pnpm exec playwright install --with-deps chromium
-      - uses: docker/login-action@v4
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Fetch exact A and build ordinary B without publishing
-        run: |
-          docker pull "${YARD_IMAGE_REPOSITORY}@${YARD_CLOSED_DIGEST}"
-          docker pull postgres:15
-          docker build --file Dockerfile --build-arg "BUILD_ID=${YARD_ACTIVE_COMMIT}" --label "org.opencontainers.image.revision=${YARD_ACTIVE_COMMIT}" --tag "ccgh-yard-production:${YARD_ACTIVE_COMMIT}" .
-      - name: Real production API, persistence and warm A-B-A cache acceptance
-        timeout-minutes: 18
-        run: node scripts/yard-production-acceptance.mjs
-      - uses: actions/upload-artifact@v7
-        if: always()
-        with:
-          name: yard-production-${{ needs.yard-release-mode.outputs.active_ref }}-${{ github.run_attempt }}
-          path: test-results/yard-production/
-          if-no-files-found: error
-          retention-days: 14
+          echo "ACTIVE preflight passed for $GITHUB_SHA. Runtime migration, persistence and rollback acceptance is pending the exact published image digest; deploy remains gated on all nine cases." >> "$GITHUB_STEP_SUMMARY"
 
   release-ready:
     name: Exact source release acceptance

@@ -5,7 +5,7 @@ export const PIP_ACTOR_PROFILE=deepFreeze({
   "id": "pip",
   "revision": "pip-actor/r2-snack",
   "visitorId": "pip_hamster",
-  "playbackReady": true,
+  "playbackReady": false,
   "unitsPerWorld": 8,
   "sourceSampleMs": 40,
   "locomotion": {
@@ -89,7 +89,7 @@ export const PIP_ACTOR_PROFILE=deepFreeze({
   }
 });
 export const PIP_RELEASE_GATE=deepFreeze({
-  "accepted": true,
+  "accepted": false,
   "completed": [
     "independent-hamster-source",
     "own-40ms-locomotion-and-turns",

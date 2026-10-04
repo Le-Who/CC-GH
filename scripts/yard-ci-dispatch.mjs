@@ -4,6 +4,10 @@ import {readFileSync,appendFileSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 import {spawnSync} from 'node:child_process';
+import {createHash} from 'node:crypto';
+const buildExtensionUrl=new URL('./yard-active-build-transition.mjs',import.meta.url);
+assert.equal(createHash('sha256').update(readFileSync(buildExtensionUrl)).digest('hex'),'6c4de86959eecf6f99f9307e01bd7eac93ab53b62d1d92370ebe754a2feda0ee','Reviewed build extension bytes changed');
+const buildExtension=await import(buildExtensionUrl.href);
 import {ACTIVE_CONTRACT_PATH,PROMOTED_PATHS,verifyPromotionContract,verifyActiveRuntime} from './yard-active-contract.mjs';
 export const CLOSED_VERIFIERS=Object.freeze(['preview/yard-persistent-candidate/base-contract.json','preview/yard-persistent-candidate/verify-production.mjs','preview/yard-persistent-candidate/verify-closed-rollout.mjs','preview/yard-persistent-candidate/checks/closed-rollout-guard.checks.mjs']);
 export const ADDED_PROMOTION_PATHS=Object.freeze([ACTIVE_CONTRACT_PATH,
@@ -19,6 +23,7 @@ export function parseGitTree(text){
  }return entries;
 }
 export function assertExactPromotionTree(before,after){
+ const build=buildExtension.normalizeBuildTree(before,after);({before,after}=build);
  const expected=new Set(FULL_PROMOTION_PATHS),changed=[];
  assert.equal(expected.size,21);
  for(const path of new Set([...before.keys(),...after.keys()])){
@@ -31,7 +36,7 @@ export function assertExactPromotionTree(before,after){
   }
  }
  assert.deepEqual(changed.sort(),[...FULL_PROMOTION_PATHS].sort(),'Every exact promotion file must change, with no extra path');
- return {changedFiles:21,unchangedFiles:before.size-PROMOTED_PATHS.length};
+ return {changedFiles:21,reviewedBuildToolingFiles:build.buildChanged,reviewedAcceptanceToolingFiles:build.acceptanceChanged,totalChangedFiles:21+build.changed,unchangedFiles:before.size-PROMOTED_PATHS.length-build.existingChanged};
 }
 export function assertCleanReleaseCheckout(root){
  assert.equal(git(root,['status','--porcelain=v1','--untracked-files=all']),'','Committed release boundary rejects dirty or untracked files');
@@ -44,7 +49,8 @@ export function verifyGitPromotionBoundary({rootDir,closedCommit,activeCommit,cl
  const ancestor=spawnSync('git',['merge-base','--is-ancestor',closedCommit,activeCommit],{cwd:rootDir,encoding:'utf8'});assert.equal(ancestor.status,0,'Closed A must be an ancestor of B');
  const before=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree',closedCommit]));
  const after=parseGitTree(git(rootDir,['ls-tree','-rz','--full-tree',activeCommit]));
- return {...assertExactPromotionTree(before,after),closedCommit,activeCommit,closedTree};
+ const buildProof=buildExtension.verifyBuildTransition({rootDir,closedCommit});
+ return {...assertExactPromotionTree(before,after),closedCommit,activeCommit,closedTree,buildProof};
 }
 export function verifyClosedSource(rootDir,expectedCommit){
  assert.ok(fullCommit(expectedCommit));assertCleanReleaseCheckout(rootDir);
