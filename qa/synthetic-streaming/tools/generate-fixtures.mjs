@@ -35,9 +35,9 @@ for(const [p,count] of counts.entries()) {
     for(let y=10;y<h-10;y++)for(let x=10;x<w-10;x++) {
       const q=(Math.floor(x/4)+Math.floor(y/4)*101+index*13)>>>0;
       const n=(Math.imul(q^0x51ed270b,0x45d9f3b)^(q>>>3))>>>0;
-      const stripe=(x+2*y+index*7)%53<7;
-      const off=(y*w+x)*4;
       const noisy=x>10+(w-20)*(1-noiseFraction)/2&&x<w-10-(w-20)*(1-noiseFraction)/2;
+      const stripe=noisy&&(x+2*y+index*7)%53<7;
+      const off=(y*w+x)*4;
       crop[off]=(noisy?n&127:64)+(stripe?80:0);
       crop[off+1]=(noisy?(n>>>9)&127:64)+(stripe?0:80);
       crop[off+2]=(noisy?(n>>>17)&127:64)+40;
@@ -63,6 +63,7 @@ for(const [p,count] of counts.entries()) {
     pageFrames.push(row);
   }
   encoded=await sharp(pixels,{raw:{width,height,channels:4}}).webp({quality:90,alphaQuality:100,effort:4}).toBuffer();
+  console.log('FIXTURE_CALIBRATION '+JSON.stringify({page:p,attempt:attempt+1,encodedBytes:encoded.length,targetBytes,noiseFraction}));
   if(encoded.length>=targetBytes*.85&&encoded.length<=targetBytes*1.15)break;
   noiseFraction=Math.max(.025,Math.min(.8,noiseFraction*targetBytes/encoded.length));
   }
@@ -90,7 +91,7 @@ for(const [p,count] of counts.entries()) {
     meanOpaqueRGBError:rgbError/opaqueChannels,sourceCropReembeddingVerified:true,alphaEdgeGutterVerified:true});
 }
 assert.equal(frames.length,125);
-const manifest={format:'synthetic-temporal-fixtures/v1',testFixtureOnly:true,seed:'fixed-geometry-noise-v2-size-calibrated',
+const manifest={format:'synthetic-temporal-fixtures/v1',testFixtureOnly:true,seed:'fixed-geometry-noise-v3-size-calibrated-patch',
   sourceFrameMs:50,durationMs:6200,endpointStorageOnly:true,pages,frames};
 const bytes=JSON.stringify(manifest);
 await fs.writeFile(new URL('manifest.json',out),bytes);
