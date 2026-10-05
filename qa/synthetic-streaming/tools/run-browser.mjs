@@ -39,7 +39,7 @@ specs.push({...landscape,owners:8,alias:false,fetchMs:8,prefetch:false,name:'eig
   {...landscape,owners:8,alias:false,fetchMs:240,prefetch:true,name:'eight-distinct-240ms-prefetch-stress'},
   {...portrait,owners:8,alias:false,fetchMs:80,prefetch:true,name:'portrait-eight-distinct-80ms-prefetch'});
 const filter=process.env.SYNTHETIC_CASES?.split(',');
-const results=[],pageErrors=[];
+const results=[],pageErrors=[],abortedCases=[];
 try {
   const proofContext=await browser.newContext({viewport:{width:844,height:390},deviceScaleFactor:2,isMobile:true,hasTouch:true});
   const proofPage=await proofContext.newPage();await proofPage.goto(origin);await proofPage.waitForFunction(()=>window.syntheticHarness);
@@ -54,6 +54,7 @@ try {
     const page=await context.newPage();page.on('pageerror',error=>pageErrors.push({case:spec.name,message:error.message}));
     await page.goto(origin);await page.waitForFunction(()=>window.syntheticHarness);
     console.log('CASE_START '+spec.name);
+    try {
     const result=await page.evaluate(spec=>window.syntheticHarness.runCase(spec),spec);
     result.server=serverCounts.get(spec.name);results.push(result);
     await fs.writeFile(path.join(root,'results',`${spec.name}.json`),JSON.stringify(result,null,2));
@@ -62,16 +63,17 @@ try {
     // Preserve timing evidence in text logs rather than uploading an artifact.
     console.log('WINDOW_SAMPLES '+JSON.stringify({name:spec.name,samples:sourceWindowSamples}));
     console.log('READY_LATENCIES '+JSON.stringify({name:spec.name,readyEvents}));
-    await context.close();
+    }catch(error){const failure={name:spec.name,message:error.message,sourceWindowsNotClaimed:true};abortedCases.push(failure);console.log('CASE_ABORT '+JSON.stringify(failure));}
+    finally{await context.close();}
   }
   const nominal=results.filter(r=>r.prefetch&&r.fetchMs<=80);
   const report={testFixtureOnly:true,browserVersion:browser.version(),sourceCommit:process.env.GITHUB_SHA,
     hardware:'standard Ubuntu GitHub runner Chromium; phone viewport emulation only',
     noRealActors:true,noArtApproval:true,noProductionActivation:true,noFullHUDClaim:true,
-    correctnessPassed:pageErrors.length===0&&results.every(r=>r.errors.length===0),
-    nominalDeadlineQualificationPassed:nominal.every(r=>r.noPendingActorSamples&&r.allSourceWindowsDrawn),
+    correctnessPassed:abortedCases.length===0&&pageErrors.length===0&&results.every(r=>r.errors.length===0),
+    nominalDeadlineQualificationPassed:abortedCases.length===0&&nominal.every(r=>r.noPendingActorSamples&&r.allSourceWindowsDrawn),
     stressExcludedFromPassCriteria:true,serialBaselineExcludedFromPassCriteria:true,
-    pageErrors,results:results.map(({events,sourceWindowSamples,readyEvents,...r})=>r)};
+    pageErrors,abortedCases,results:results.map(({events,sourceWindowSamples,readyEvents,...r})=>r)};
   await fs.writeFile(path.join(root,'results/summary.json'),JSON.stringify(report,null,2));
   console.log('FINAL_REPORT '+JSON.stringify(report));
   if(process.env.GITHUB_STEP_SUMMARY)await fs.appendFile(process.env.GITHUB_STEP_SUMMARY,

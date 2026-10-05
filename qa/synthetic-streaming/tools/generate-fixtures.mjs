@@ -18,7 +18,12 @@ for(const [p,count] of counts.entries()) {
   const cols=count===5?1:count===3?3:p%2?count:2;
   const rows=Math.ceil(count/cols),width=cols*(w+2)+2,height=rows*(h+2)+2;
   assert.ok(width*height*4<=1572864);
-  const pixels=Buffer.alloc(width*height*4),pageFrames=[];
+  const firstIndex=index,targetBytes=count===3?44000:count===5?55000:52000;
+  let pixels,pageFrames,encoded,noiseFraction=.25,attempt=0;
+  // Match the representative encoded workload before any timing run. This
+  // calibration never looks at browser deadlines or changes decode budgets.
+  for(;attempt<5;attempt++) {
+  index=firstIndex;pixels=Buffer.alloc(width*height*4);pageFrames=[];
   for(let f=0;f<count;f++,index++) {
     const sx=2+(f%cols)*(w+2),sy=2+Math.floor(f/cols)*(h+2);
     const ox=140+(index%3)*2,oy=150,canvas=[704,576];
@@ -32,9 +37,10 @@ for(const [p,count] of counts.entries()) {
       const n=(Math.imul(q^0x51ed270b,0x45d9f3b)^(q>>>3))>>>0;
       const stripe=(x+2*y+index*7)%53<7;
       const off=(y*w+x)*4;
-      crop[off]=(n&127)+(stripe?80:0);
-      crop[off+1]=((n>>>9)&127)+(stripe?0:80);
-      crop[off+2]=((n>>>17)&127)+40;
+      const noisy=x>10+(w-20)*(1-noiseFraction)/2&&x<w-10-(w-20)*(1-noiseFraction)/2;
+      crop[off]=(noisy?n&127:64)+(stripe?80:0);
+      crop[off+1]=(noisy?(n>>>9)&127:64)+(stripe?0:80);
+      crop[off+2]=(noisy?(n>>>17)&127:64)+40;
       crop[off+3]=255;
     }
     // A seed-derived asymmetric marker changes each temporal state.
@@ -54,9 +60,14 @@ for(const [p,count] of counts.entries()) {
     assert.equal(frame.nativeRgbaSha256,frame.reembeddedRgbaSha256);
     assert.equal(verifyRuntimeCropPixels(native,crop,canvas,frame),true);
     const row={sourceIndex:index,sourceAtMs:index*50,pageIndex:p,canvas,pivotPx:[352,500],frame};
-    frames.push(row);pageFrames.push(row);
+    pageFrames.push(row);
   }
-  const encoded=await sharp(pixels,{raw:{width,height,channels:4}}).webp({quality:90,alphaQuality:100,effort:4}).toBuffer();
+  encoded=await sharp(pixels,{raw:{width,height,channels:4}}).webp({quality:90,alphaQuality:100,effort:4}).toBuffer();
+  if(encoded.length>=targetBytes*.85&&encoded.length<=targetBytes*1.15)break;
+  noiseFraction=Math.max(.025,Math.min(.8,noiseFraction*targetBytes/encoded.length));
+  }
+  assert.ok(encoded.length>=targetBytes*.85&&encoded.length<=targetBytes*1.15,'Representative encoded workload calibration failed');
+  frames.push(...pageFrames);
   assert.ok(encoded.length<=256*1024);
   const decoded=await sharp(encoded).ensureAlpha().raw().toBuffer();
   assert.equal(decoded.length,pixels.length);
@@ -75,10 +86,11 @@ for(const [p,count] of counts.entries()) {
     pixelsPerWorld:100,pages:[page],runtimeCells:{format:'yard-runtime-cells/v1',safeEdgePx:10,
     atlasGutterPx:2,imageSmoothingQuality:'low',frames:[row.frame]}},{physicalPages});
   proofs.push({page:p,count,width,height,encodedBytes:encoded.length,sha256,zeroAlphaPixels,maxRGBError,
+    targetBytes,noiseFraction,calibrationEncodes:attempt+1,
     meanOpaqueRGBError:rgbError/opaqueChannels,sourceCropReembeddingVerified:true,alphaEdgeGutterVerified:true});
 }
 assert.equal(frames.length,125);
-const manifest={format:'synthetic-temporal-fixtures/v1',testFixtureOnly:true,seed:'fixed-geometry-noise-v1',
+const manifest={format:'synthetic-temporal-fixtures/v1',testFixtureOnly:true,seed:'fixed-geometry-noise-v2-size-calibrated',
   sourceFrameMs:50,durationMs:6200,endpointStorageOnly:true,pages,frames};
 const bytes=JSON.stringify(manifest);
 await fs.writeFile(new URL('manifest.json',out),bytes);
