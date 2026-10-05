@@ -1,0 +1,39 @@
+name: Synthetic browser streaming QA
+on:
+  push:
+    branches: ['qa/yard-streaming-synthetic/20261005']
+permissions:
+  contents: read
+concurrency:
+  group: synthetic-streaming-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  synthetic-browser:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: qa/synthetic-streaming
+    env:
+      CI: 'true'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+          sparse-checkout: qa/synthetic-streaming
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install exact test dependencies only
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Verify pinned code and bounded ownership contracts
+        run: npm test
+      - name: Install Chromium
+        run: npx --no-install playwright install --with-deps chromium
+      - name: Generate deterministic synthetic fixtures only
+        run: npm run generate
+      - name: Browser fetch bitmap canvas and real-time deadline sampling
+        timeout-minutes: 4
+        run: npm run browser
