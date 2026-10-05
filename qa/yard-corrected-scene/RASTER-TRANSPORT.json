@@ -1,0 +1,515 @@
+{
+  "format": "yard-exact-raster-transport/v1",
+  "scope": "QA transport only; per-file base64 reconstructs exactly the approved bytes before build/server",
+  "browserBase64Payloads": false,
+  "originalRasterBytesPreserved": true,
+  "alreadyConfirmedRawRasterFiles": 116,
+  "files": [
+    {
+      "path": "public/assets/yard-scene45/media/a76387b0ec0ca698242cb87759697b3e7626088f6d403325d53d92af5657323b.webp",
+      "payload": "transport/a76387b0ec0ca698242cb87759697b3e7626088f6d403325d53d92af5657323b.base64",
+      "bytes": 34506,
+      "sha256": "a76387b0ec0ca698242cb87759697b3e7626088f6d403325d53d92af5657323b",
+      "canvas": [
+        546,
+        607
+      ],
+      "rawGitBlob": "8fc52841217f5b8943e1ee50021e965e3e3e0149"
+    },
+    {
+      "path": "public/assets/yard-scene45/media/b00f1373e9fa4ef2b11bbadd5d5e78f230316d93e5ba028a644f8610a17cf124.webp",
+      "payload": "transport/b00f1373e9fa4ef2b11bbadd5d5e78f230316d93e5ba028a644f8610a17cf124.base64",
+      "bytes": 2120,
+      "sha256": "b00f1373e9fa4ef2b11bbadd5d5e78f230316d93e5ba028a644f8610a17cf124",
+      "canvas": [
+        97,
+        70
+      ],
+      "rawGitBlob": "8fc281d23ccbe6c729e1a2b1e1e59c542630d853"
+    },
+    {
+      "path": "public/assets/yard-scene45/media/c4197c4d27bd6d2ec195b8bd8d160b3106f2ff10f81acfede1e9c395128fd17f.webp",
+      "payload": "transport/c4197c4d27bd6d2ec195b8bd8d160b3106f2ff10f81acfede1e9c395128fd17f.base64",
+      "bytes": 29840,
+      "sha256": "c4197c4d27bd6d2ec195b8bd8d160b3106f2ff10f81acfede1e9c395128fd17f",
+      "canvas": [
+        251,
+        177
+      ],
+      "rawGitBlob": "8ed43869d440f01d16f2e2325c2c485fa7a309df"
+    },
+    {
+      "path": "public/assets/yard-scene45/media/f1103736ec8af78726b3633a086bc1e149ba58bfe4178302f60c59f61b16700d.webp",
+      "payload": "transport/f1103736ec8af78726b3633a086bc1e149ba58bfe4178302f60c59f61b16700d.base64",
+      "bytes": 11640,
+      "sha256": "f1103736ec8af78726b3633a086bc1e149ba58bfe4178302f60c59f61b16700d",
+      "canvas": [
+        331,
+        237
+      ],
+      "rawGitBlob": "8e3427f447425b68cd93b15372e0f5970f9d6b34"
+    },
+    {
+      "path": "public/assets/yard-scene45/media/fe490648dbdb9f2e8ae55c7d7253a8619d8bb44b5b72a62eddee55934419eca0.webp",
+      "payload": "transport/fe490648dbdb9f2e8ae55c7d7253a8619d8bb44b5b72a62eddee55934419eca0.base64",
+      "bytes": 23438,
+      "sha256": "fe490648dbdb9f2e8ae55c7d7253a8619d8bb44b5b72a62eddee55934419eca0",
+      "canvas": [
+        145,
+        180
+      ],
+      "rawGitBlob": "59fa443f7be7b9316188f1c95bda2f7907b6bd41"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6.png",
+      "payload": "transport/083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6.base64",
+      "bytes": 36725,
+      "sha256": "083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6",
+      "canvas": [
+        188,
+        190
+      ],
+      "rawGitBlob": "c4b3cd2a8cdb4dba4a77f7150fc9cff5c13b1c1d"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/2ad3a018ee17be848d2be4439db51bc4e6fc6f80021f4c024630a942dde31a7e.png",
+      "payload": "transport/2ad3a018ee17be848d2be4439db51bc4e6fc6f80021f4c024630a942dde31a7e.base64",
+      "bytes": 18654,
+      "sha256": "2ad3a018ee17be848d2be4439db51bc4e6fc6f80021f4c024630a942dde31a7e",
+      "canvas": [
+        128,
+        118
+      ],
+      "rawGitBlob": "ddb1c488804cfe62af6caa2a8b8ad7c30310d50c"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.png",
+      "payload": "transport/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.base64",
+      "bytes": 62042,
+      "sha256": "4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093",
+      "canvas": [
+        230,
+        218
+      ],
+      "rawGitBlob": "5666f7ba3f334f55745581b964c7de48e970a5cd"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e.png",
+      "payload": "transport/56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e.base64",
+      "bytes": 54748,
+      "sha256": "56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e",
+      "canvas": [
+        244,
+        186
+      ],
+      "rawGitBlob": "2a77b2a2377737ec24a9f0aa024d804ce494317b"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730.png",
+      "payload": "transport/7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730.base64",
+      "bytes": 27298,
+      "sha256": "7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730",
+      "canvas": [
+        159,
+        160
+      ],
+      "rawGitBlob": "782d00e7b6e941438302d45642ad10e7f57f0e24"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2.png",
+      "payload": "transport/83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2.base64",
+      "bytes": 40616,
+      "sha256": "83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2",
+      "canvas": [
+        206,
+        196
+      ],
+      "rawGitBlob": "6043873f0a39da94c2caba8dc14bed0e6ad6c2dc"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481.png",
+      "payload": "transport/93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481.base64",
+      "bytes": 62513,
+      "sha256": "93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481",
+      "canvas": [
+        244,
+        188
+      ],
+      "rawGitBlob": "8c5fbe0310ca800173aba6f2f08deba31b8e7263"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179.png",
+      "payload": "transport/c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179.base64",
+      "bytes": 41416,
+      "sha256": "c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179",
+      "canvas": [
+        206,
+        196
+      ],
+      "rawGitBlob": "99e2bb794de48208ca1cf4676129ba972a17d771"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/background-meadow.webp",
+      "payload": "transport/b62f2ef9714a054362fb3c3b9ddb4bc29f7b36ae3544cfcb52559b62118cf38a.base64",
+      "bytes": 534902,
+      "sha256": "b62f2ef9714a054362fb3c3b9ddb4bc29f7b36ae3544cfcb52559b62118cf38a",
+      "canvas": [
+        512,
+        768
+      ],
+      "rawGitBlob": "e42713ec6ece93dba315118ad5b63e754a935d07"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/background-moon_garden.webp",
+      "payload": "transport/8302a1578c443971285086a73c9155e0ddc47d10a1c3e0e8451895822c127458.base64",
+      "bytes": 571554,
+      "sha256": "8302a1578c443971285086a73c9155e0ddc47d10a1c3e0e8451895822c127458",
+      "canvas": [
+        512,
+        768
+      ],
+      "rawGitBlob": "efb68ca6220f96eace1bb5f2fe007bbb23c3622e"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/background-tea_house.webp",
+      "payload": "transport/ffde7c568302ac9b994a64471f22098d0f351fa48d19bad1915f13235356f169.base64",
+      "bytes": 544702,
+      "sha256": "ffde7c568302ac9b994a64471f22098d0f351fa48d19bad1915f13235356f169",
+      "canvas": [
+        512,
+        768
+      ],
+      "rawGitBlob": "48d1e74dfca3011e2f9fe37a6309455413a15e46"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-back.webp",
+      "payload": "transport/3587cf8832d96725558a3b6387df36a0a01344dd7d81a4055e0832b1da8b7525.base64",
+      "bytes": 49118,
+      "sha256": "3587cf8832d96725558a3b6387df36a0a01344dd7d81a4055e0832b1da8b7525",
+      "canvas": [
+        256,
+        256
+      ],
+      "rawGitBlob": "d0fa59ab9b98b3f553ab4e6cd0ff24c75c8d640d"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-close.webp",
+      "payload": "transport/161202b25aa3a8fbc64c2f9069a4d284be234a0927a442600233e10b0ac096e1.base64",
+      "bytes": 50686,
+      "sha256": "161202b25aa3a8fbc64c2f9069a4d284be234a0927a442600233e10b0ac096e1",
+      "canvas": [
+        256,
+        256
+      ],
+      "rawGitBlob": "8a06e8f3bc43bc05e4eab8d695748675a39867fb"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-shiny.webp",
+      "payload": "transport/670cbbfa3f828285dcf881329684eef9f0ea8bc65d3a53ddadebe33ce151b76f.base64",
+      "bytes": 54740,
+      "sha256": "670cbbfa3f828285dcf881329684eef9f0ea8bc65d3a53ddadebe33ce151b76f",
+      "canvas": [
+        256,
+        256
+      ],
+      "rawGitBlob": "b7ebe203b5768db309896e49bc69e7625a900c92"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-treats.webp",
+      "payload": "transport/4db6432caf78465f6dc11d2dce06625a15e8d887d57fa3fda0c377ccdfacc562.base64",
+      "bytes": 54068,
+      "sha256": "4db6432caf78465f6dc11d2dce06625a15e8d887d57fa3fda0c377ccdfacc562",
+      "canvas": [
+        256,
+        256
+      ],
+      "rawGitBlob": "ef1fee86fe5b9e0aec3dbe35b9e50eafa451ad01"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.webp",
+      "payload": "transport/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.base64",
+      "bytes": 37786,
+      "sha256": "078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0",
+      "canvas": [
+        155,
+        256
+      ],
+      "rawGitBlob": "900a9f52bbe70697d742a66072de185d45a8eff4"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.webp",
+      "payload": "transport/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.base64",
+      "bytes": 53828,
+      "sha256": "10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6",
+      "canvas": [
+        219,
+        256
+      ],
+      "rawGitBlob": "9a60e3e25d2b52a5602c8d3dd603b6ce1aea005e"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7.webp",
+      "payload": "transport/10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7.base64",
+      "bytes": 48214,
+      "sha256": "10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7",
+      "canvas": [
+        256,
+        180
+      ],
+      "rawGitBlob": "f9a1888f438f337f4da37322344986d5ac38aee5"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.webp",
+      "payload": "transport/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.base64",
+      "bytes": 46588,
+      "sha256": "19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6",
+      "canvas": [
+        256,
+        223
+      ],
+      "rawGitBlob": "3a5f478e1517364db95b5892b60279c014de1f3e"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41.webp",
+      "payload": "transport/301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41.base64",
+      "bytes": 50846,
+      "sha256": "301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41",
+      "canvas": [
+        256,
+        199
+      ],
+      "rawGitBlob": "4725b2a569432361b5cb487a3b1b5d8ba85aa304"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1.webp",
+      "payload": "transport/30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1.base64",
+      "bytes": 41144,
+      "sha256": "30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1",
+      "canvas": [
+        256,
+        184
+      ],
+      "rawGitBlob": "54f36e44a6f1b785820928691f3c6dcd23ea81c6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9.webp",
+      "payload": "transport/36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9.base64",
+      "bytes": 46712,
+      "sha256": "36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9",
+      "canvas": [
+        186,
+        256
+      ],
+      "rawGitBlob": "12dcfb1cd8d1f15384bda581a78a121588cd644b"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a.webp",
+      "payload": "transport/38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a.base64",
+      "bytes": 51420,
+      "sha256": "38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a",
+      "canvas": [
+        256,
+        210
+      ],
+      "rawGitBlob": "72f88629e316879a3a0dbf92540ed5ea11a25ea7"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b.webp",
+      "payload": "transport/39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b.base64",
+      "bytes": 64220,
+      "sha256": "39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b",
+      "canvas": [
+        250,
+        256
+      ],
+      "rawGitBlob": "c13f612fba9453b1271c64d2928822edfaa3e924"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486.webp",
+      "payload": "transport/41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486.base64",
+      "bytes": 54678,
+      "sha256": "41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486",
+      "canvas": [
+        221,
+        256
+      ],
+      "rawGitBlob": "da86a1e7c6246ae8cbf03311d0718a6a1d8bb2b5"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5.webp",
+      "payload": "transport/489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5.base64",
+      "bytes": 51372,
+      "sha256": "489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5",
+      "canvas": [
+        219,
+        256
+      ],
+      "rawGitBlob": "5242d35935e0a170df2e1cde3e88cd785a8c207d"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535.webp",
+      "payload": "transport/49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535.base64",
+      "bytes": 53330,
+      "sha256": "49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535",
+      "canvas": [
+        256,
+        199
+      ],
+      "rawGitBlob": "15f43ae8db0ee3d06278240b70653c19eb53bb92"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562.webp",
+      "payload": "transport/49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562.base64",
+      "bytes": 54896,
+      "sha256": "49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562",
+      "canvas": [
+        220,
+        256
+      ],
+      "rawGitBlob": "2b7759cf2ac680d7f23378d4e331b3ee4d133165"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473.webp",
+      "payload": "transport/4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473.base64",
+      "bytes": 54534,
+      "sha256": "4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473",
+      "canvas": [
+        228,
+        256
+      ],
+      "rawGitBlob": "29a0aba39dd12242f5f3aa0c3ede92a82d173784"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f.webp",
+      "payload": "transport/7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f.base64",
+      "bytes": 52282,
+      "sha256": "7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f",
+      "canvas": [
+        256,
+        219
+      ],
+      "rawGitBlob": "9cc8197d1582f3cab3d70b392c5689f5ae82c456"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3.webp",
+      "payload": "transport/761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3.base64",
+      "bytes": 54032,
+      "sha256": "761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3",
+      "canvas": [
+        222,
+        256
+      ],
+      "rawGitBlob": "25c05a901608568ef876aa51ab06ec216ae89523"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc.webp",
+      "payload": "transport/7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc.base64",
+      "bytes": 40930,
+      "sha256": "7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc",
+      "canvas": [
+        256,
+        162
+      ],
+      "rawGitBlob": "942b451282a8cce3218222849b966628ed19737a"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934.webp",
+      "payload": "transport/81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934.base64",
+      "bytes": 54860,
+      "sha256": "81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934",
+      "canvas": [
+        256,
+        199
+      ],
+      "rawGitBlob": "3f1904a2a34d308ea4ff39b8fc84e87a4d6a653c"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3.webp",
+      "payload": "transport/965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3.base64",
+      "bytes": 50928,
+      "sha256": "965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3",
+      "canvas": [
+        256,
+        230
+      ],
+      "rawGitBlob": "f6c803078d11565e84ed27b2949052db0ea93d51"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.webp",
+      "payload": "transport/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.base64",
+      "bytes": 46916,
+      "sha256": "9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619",
+      "canvas": [
+        256,
+        164
+      ],
+      "rawGitBlob": "44a2c5f96913dd36fe5b0167e1459c73432f3c1b"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579.webp",
+      "payload": "transport/b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579.base64",
+      "bytes": 53352,
+      "sha256": "b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579",
+      "canvas": [
+        256,
+        226
+      ],
+      "rawGitBlob": "c097ea5a4bbf7df42f56ce08107dea46c5c87cb2"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36.webp",
+      "payload": "transport/b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36.base64",
+      "bytes": 43186,
+      "sha256": "b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36",
+      "canvas": [
+        256,
+        166
+      ],
+      "rawGitBlob": "a49562fde6fac0aceaf1ec82090b20736f9cd614"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f.webp",
+      "payload": "transport/c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f.base64",
+      "bytes": 48208,
+      "sha256": "c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f",
+      "canvas": [
+        256,
+        179
+      ],
+      "rawGitBlob": "3f930660015bd3180cde8506b97ca35cbc399c69"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8.webp",
+      "payload": "transport/cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8.base64",
+      "bytes": 45698,
+      "sha256": "cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8",
+      "canvas": [
+        256,
+        166
+      ],
+      "rawGitBlob": "eca711c14dafb759a513ee9528cd2b5db078c4a3"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42.webp",
+      "payload": "transport/f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42.base64",
+      "bytes": 56698,
+      "sha256": "f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42",
+      "canvas": [
+        225,
+        256
+      ],
+      "rawGitBlob": "df3bcf31a58d3239fbb2b37b3d2940b36b1b106f"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e.webp",
+      "payload": "transport/fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e.base64",
+      "bytes": 58086,
+      "sha256": "fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e",
+      "canvas": [
+        256,
+        206
+      ],
+      "rawGitBlob": "e18c71a4f09d4df395b94b64de37920cf07793c1"
+    }
+  ]
+}

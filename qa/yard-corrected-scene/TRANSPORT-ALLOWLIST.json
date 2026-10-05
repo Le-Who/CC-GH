@@ -1,0 +1,1712 @@
+{
+  "format": "yard-transport-publication-allowlist/v1",
+  "baselineCommit": "8a5bfc0b6c7d2aaf66d205d5dbf51d68a60a2f0d",
+  "baseTree": "7a5ea1ff031f6b46d8727d89b5201e37dc54bcb4",
+  "materializedRuntimeAllowlistSha256": "c955c60ff468b4324535c70684994734b2a42e8f91070937e813b23057c0d1db",
+  "materializedRasterFiles": 162,
+  "materializedRasterBytes": 10093929,
+  "rawRasterFilesReused": 116,
+  "base64Files": 46,
+  "base64PayloadBytes": 4826870,
+  "publishedFilesWithoutThisManifest": 211,
+  "publishedBytesWithoutThisManifest": 12278958,
+  "jobBounds": {
+    "timeoutMinutes": 20,
+    "browserWorkers": 1,
+    "retries": 0,
+    "artifactRetentionDays": 3,
+    "deploy": false,
+    "apiMutations": false,
+    "artifactCapBytes": 50331648
+  },
+  "files": [
+    {
+      "path": "qa/yard-corrected-scene/REUSED-REPO-FILES.json",
+      "bytes": 17063,
+      "sha256": "1ea31218c7118583cb550548a9bc6393f604cd5202ced9e9173546cf5aad9a4f",
+      "gitBlob": "9770e7b9126418d06176a3519659c12105bb6591",
+      "kind": "json",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/browser/build.mjs",
+      "bytes": 3261,
+      "sha256": "25d92f6236991985b2357f117ecb37b209d88c36c62682f1d3cf4945f6964937",
+      "gitBlob": "a86fea10b1e4c3606b531fbcc7af7b6cbf828c3a",
+      "kind": "code",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/browser/main.jsx",
+      "bytes": 1311,
+      "sha256": "b3b2c5c73c06ec1250be8dfc8750463e56d7f09221501a44b1c530bc97e700c2",
+      "gitBlob": "7f3f51a68428d7f68a8b86d6203304d448adee8e",
+      "kind": "code",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/browser/materialize-transport.mjs",
+      "bytes": 1948,
+      "sha256": "aee0ca885c1bdc876a0a167323b5f0680d32e04676e61ba47d44a56822cd773a",
+      "gitBlob": "5122e54473f5da8f5a0fde5e5fa1990779fb7b51",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/browser/preview.css",
+      "bytes": 136,
+      "sha256": "6b1e71503d9e1ad930fd7e5d427d5f41bdbaf8d9008861d93c7d55f0c320488f",
+      "gitBlob": "ae997a2c5b59921a138c66e79466a25d15549998",
+      "kind": "code",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/browser/run.mjs",
+      "bytes": 8952,
+      "sha256": "1c26937d233bd63b7fdb74bb9410310aeb737f2541868cab9f2fbda53067346e",
+      "gitBlob": "c51eb8bb865ca0a467727f77a0cccc68ab31713d",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/browser/scene.mjs",
+      "bytes": 9165,
+      "sha256": "e5912daab4ca1bcd28eb28549ad957c1658d8db6e1dd436756b78fed0654d4f3",
+      "gitBlob": "3061b3aac31af7aff499b0b461e7271b1e1d693e",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/package.json",
+      "bytes": 72,
+      "sha256": "75680f628b5da8453aff4b49bacbd6eac5a8de1adf31c5fc4920b1301bd8933f",
+      "gitBlob": "f49798078390ca0814b7b9cad943dddeee2fb7d9",
+      "kind": "json",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f0-000.webp",
+      "bytes": 52592,
+      "sha256": "ce3fdc9a2391ea4c2196b70a470329697e7ada0d01aeca817963479fc791cef6",
+      "gitBlob": "2e1a43e234cf78cd47e88eea7a3378b4c41088c9",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f0-005.webp",
+      "bytes": 55636,
+      "sha256": "f39b9ad8c4098557f8b9489cde673686412ea3f632bd7698b94b9395a0e76792",
+      "gitBlob": "c6a491ae991449e339765d6d8607e0e0ef1d3b76",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f0-010.webp",
+      "bytes": 21620,
+      "sha256": "1acab0d6dd2a6ee53b0af90a966204ddc62519e6f3c5d8c1ae872bac55d1b316",
+      "gitBlob": "614174e70e47bcf352996b9ad93b7ab4a58560e4",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f2-000.webp",
+      "bytes": 51314,
+      "sha256": "9747405dce422b6f9c166ff6d4cf5e43e6bd7c36957810bac18202ce73e8fd8b",
+      "gitBlob": "686d3d27ed5c8a710c741fc1ee015cc86a4ee4e1",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f2-004.webp",
+      "bytes": 53816,
+      "sha256": "2e29fc616daea6d01406ec36acd2f644397faf741495196fd970ccb0bd6ccd66",
+      "gitBlob": "b7d662484134f9064feb3303417195408cf0d2fa",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f2-008.webp",
+      "bytes": 53084,
+      "sha256": "1e97a66b43867e780283a366c668c9f14195a667d567cad4820d8ab2768c2581",
+      "gitBlob": "722b7034361d75e15455670b6a1a5d3ba8c8412c",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f4-000.webp",
+      "bytes": 46518,
+      "sha256": "497b4a8fdc1412ae90d618e2fc304930eee5b9255de59994ebbffa8c7001e98e",
+      "gitBlob": "5fdb66426c3cf9df9fc29903cc21f8ee59bfde30",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f4-004.webp",
+      "bytes": 47334,
+      "sha256": "7eb4846a4fd3074c6d9bd062153cb399ae7bc68d0ec9274c092ae6d7fbcd3b26",
+      "gitBlob": "8ad112fbb0c3325c9742db7c304ac25740f0e343",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f4-008.webp",
+      "bytes": 47836,
+      "sha256": "36617d6f8ebdf41ed22e66c59ba88b1c13c1d82d41d6ff1f1e1e486c6c54b9ce",
+      "gitBlob": "7d65ad1a21e69d16b7df3a5dccf794adcb20e54f",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f6-000.webp",
+      "bytes": 63258,
+      "sha256": "0693cfa4eb9d23c92a57629fd17172a1d9dc38878688a8ffdf3963b84b95a168",
+      "gitBlob": "fd3354fa51e3dddfb133a2b1ad79b8cfdc362ac3",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f6-005.webp",
+      "bytes": 67124,
+      "sha256": "401daceb6e840c446c615874c9ba8af2f6aa1d007455e41ec5b5b6329230d41d",
+      "gitBlob": "d399473e8cf33047cb8c10cdfaf6993fac2d604e",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/hop-f6-010.webp",
+      "bytes": 26196,
+      "sha256": "a9dd8eba7d8e952f9940b46e4745c32f6f94af468aeb44f56c2d907d709725a5",
+      "gitBlob": "e54863321e5691340535b03819123ea48738af92",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f0-000.webp",
+      "bytes": 52066,
+      "sha256": "0741e1165587d442d55f4933fe6660c9e79d504420ef883c93bfb1791884d339",
+      "gitBlob": "d314ecefd46c97d9e23e5c9d984aa826657b215e",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f0-005.webp",
+      "bytes": 45368,
+      "sha256": "8ff69c65fa27d321efbc226432b335a3e0b3629077e95425e0df746986a9888d",
+      "gitBlob": "f076b918ee4099288205d34c7dacb7cf05f08c9f",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f0-009.webp",
+      "bytes": 52010,
+      "sha256": "18b9582853da754c5d3c4300ec198f5d8d7c696c92416eebe2b7754f90708d3e",
+      "gitBlob": "1bdd54db36834a0fad420d87f048be44e1ba310b",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f0-013.webp",
+      "bytes": 39686,
+      "sha256": "e427232fab1a3503aa36ff3fce4024cf46e81660f01ea209487e82c68dbb6ae9",
+      "gitBlob": "0cd9e31c03558961c0bf73206173931b90091839",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f2-000.webp",
+      "bytes": 51090,
+      "sha256": "832f48e12696b8d9c0495fc5a8f7f3c9fc85659dabe69aa6625824e43ac74497",
+      "gitBlob": "4b8643e49fd2e3fb5dbe613272913475d12b9e8a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f2-004.webp",
+      "bytes": 50680,
+      "sha256": "2dbae3b1bf62168af51ecd1740dd99c574830f61575447fb7c00674ce41d474e",
+      "gitBlob": "13d9fdad5a5571d9b1b958b192287d9fb04f3b97",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f2-008.webp",
+      "bytes": 51498,
+      "sha256": "5177f661ca70a65a1362b3e3d7d6b9f43cc3be222c3b73ec6424817b44f2d89f",
+      "gitBlob": "0d6960d11e0166f1c6e83755140154fc34dcb1f9",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f2-012.webp",
+      "bytes": 47194,
+      "sha256": "c0de1b08e670c6ef252e0e8b6bf3ae5eaf796eb0daa0b4748c8a01942e98a1b8",
+      "gitBlob": "db0780ebc3d945e8ad3deb4a9a701dd2b150c331",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f4-000.webp",
+      "bytes": 46764,
+      "sha256": "e2012b0e71610e65b3560f6db55e4238af3372e30710812b6f3e14bf5f5ea4e9",
+      "gitBlob": "8052528925f78746ddda889a825a2436324e8e73",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f4-004.webp",
+      "bytes": 45606,
+      "sha256": "6b50b4ce855017355b65e4c7f1e149247f0e09ac4ddc496d35148f16551de463",
+      "gitBlob": "5c71a39ce2f5811cc0e165ab7ad347bb39673b5b",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f4-008.webp",
+      "bytes": 63932,
+      "sha256": "5bf67f36e901e468ee87830205746b90015803ba2ffa139a694e79bb76e78c33",
+      "gitBlob": "c07b9e7e210acd0dd8b30525237014a66010ae72",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f4-013.webp",
+      "bytes": 39392,
+      "sha256": "8112a46ae0e7e868313ca56db9274e1d596cecfc44c0a6b6ea379781e06f7e8f",
+      "gitBlob": "fadbb20f7dad72d981fe382f85542eb98ef6dbe4",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f6-000.webp",
+      "bytes": 63210,
+      "sha256": "e1cd431da97867b6102ee451f759856a266cbd8ec4b4d50cccb153c2f556091a",
+      "gitBlob": "91bddad9201bbe8c0ff0a674bcd06cf91d08bfea",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f6-005.webp",
+      "bytes": 51372,
+      "sha256": "f744d06ec4cd0f990c9f574a48dcb19d23b4256ececf6adf7da4402246d8f95a",
+      "gitBlob": "c29749ac4313cf666ac7a5a58a1ea9f95a9ff1ff",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f6-009.webp",
+      "bytes": 56800,
+      "sha256": "3993df5d8843abe7c6a8b6cfbaebe9b5875cd1cb4ec0500bf849a8d922d1b117",
+      "gitBlob": "17a0077c08654b53177ef17fcc321300e5449919",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/left90-f6-014.webp",
+      "bytes": 21820,
+      "sha256": "e9f36839e3734ed29a0379f86d13147a8ae4ef3437a2d504ab719b3a71de1136",
+      "gitBlob": "5c2e7ddc294598758088885ad550962264848fd8",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-000.webp",
+      "bytes": 49818,
+      "sha256": "17b72a49b32edf2fa2d5977c3567dbf8d3cf344d956f100170fd427e9b32a817",
+      "gitBlob": "502d263067622a7e8fad8a931306a76a4e2b0d5e",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-004.webp",
+      "bytes": 50920,
+      "sha256": "9218c413f62412f362980e23d421c666fda52fd185e1f8ccd342d584fdaf434e",
+      "gitBlob": "760e485e8f4d13c8ebcba7fb1f2645e0a92908a6",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-008.webp",
+      "bytes": 50734,
+      "sha256": "4c69e5e7aa6d6166e39458440dc3c1e21716907fefdad1d1597b0c7a84f49690",
+      "gitBlob": "110df2c61a87f442550a687911791f1acb11e120",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-012.webp",
+      "bytes": 55572,
+      "sha256": "3f600e7e95b6eb54e7a6e7e93e26df1514d7d8faf24103dc453e110682018a1f",
+      "gitBlob": "4258f26d36b1b3622e44c538f105c0908bd62cff",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-017.webp",
+      "bytes": 48064,
+      "sha256": "2562dea31e48f4594b20913d597f6bcbb08e605e64123341bcc55846585c5a98",
+      "gitBlob": "5210665c23fe3a35767219a3bb7e325f4a344857",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-022.webp",
+      "bytes": 45652,
+      "sha256": "e0d0489fcecb017894adfa205fac182914ef7360754037050e0ee91c02149545",
+      "gitBlob": "c4157f11f5889993ef173c1a8e71047d9de0364a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-027.webp",
+      "bytes": 48828,
+      "sha256": "27204225bfa1ce99edc7e487f118f5fc0bce5ef112184d70361274681b8d9448",
+      "gitBlob": "530fbe4d39748a831fca82837804a8c7d6c3d178",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-032.webp",
+      "bytes": 52702,
+      "sha256": "9cfbcd9e84ac98f3e12fe1cab81af02aee09c8992a1f489b1f3812eb2374227a",
+      "gitBlob": "d10df1c521d8622549bd5570932b890b5cc42d63",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-037.webp",
+      "bytes": 58082,
+      "sha256": "22dd604c7d10b3b6491edb3dc661bce5dee7160c67280eef2e33ca8326b07a10",
+      "gitBlob": "a47e5f6b1d3b689ba4eaaa3b820aebb2335caf40",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-042.webp",
+      "bytes": 55246,
+      "sha256": "cc391821b4fdb079c69f038dc5a1c335b1cdf1578942cd3c2353e061e9428722",
+      "gitBlob": "d2256efaa0b6e63bb348dae2c5533e80ef46df34",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-047.webp",
+      "bytes": 46020,
+      "sha256": "a0daa2555295266fbbfe090b27b80807073332ac12dd053f466792410007a836",
+      "gitBlob": "4c4f16f25be9a054aaa875e754f576f3c9e7fb91",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-052.webp",
+      "bytes": 46314,
+      "sha256": "30174b1521b5d77c00bb9a2e7abb02a219bff2da1ed7922da4ad6f767b79248f",
+      "gitBlob": "3ae5cae31c7d958de1abaf785197b333cd39d4d0",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-057.webp",
+      "bytes": 41076,
+      "sha256": "3144ef974cf8098cf4dcf0c422fe97a937f060c2f9580ae1a6840a6ac7780146",
+      "gitBlob": "21a2415d5d0c29f0f3d9d68cc0a2c62b08a880a2",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-062.webp",
+      "bytes": 47544,
+      "sha256": "767813de12db22bd9f15f24a0e572bfd57f243e3e6c32dff7f779a432b273e59",
+      "gitBlob": "8586434d60bf741378ac914942298930b2e3e076",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-067.webp",
+      "bytes": 45896,
+      "sha256": "c197b96385a9b1e17ae7f255275a05e28518e5987147174de1de7069d2c92ff5",
+      "gitBlob": "99d95a62343df066a9094e273c891f72ad0ab68a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-072.webp",
+      "bytes": 59292,
+      "sha256": "bf82c101d39e14c0219d91a481b21c9f82e055da7611c37864cf99210f943ba1",
+      "gitBlob": "1641c779feab5a8a76f47a922101a7d29c93c037",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-077.webp",
+      "bytes": 60180,
+      "sha256": "26d59f41f4d2f8254e13449a77c1ff41b92570e9bd33e2ee0f9441b6f7e5d663",
+      "gitBlob": "65b5afe0d933af5b66f185f4a4f3cb747338cd35",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-082.webp",
+      "bytes": 60992,
+      "sha256": "dad2b884fd8bc7229f6ba49d33943f76673973978f1f9f051e8d20bc18590100",
+      "gitBlob": "4bfee55d6eed7a1816bd7a406f3e30a15084c2cd",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-087.webp",
+      "bytes": 52794,
+      "sha256": "6ab18a419993e2099aab8ed646e15a09fbeba950cf7fffeb7436fc1089132860",
+      "gitBlob": "f5589f68a8ef8cb8172313087207d99bb06897d4",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-091.webp",
+      "bytes": 59076,
+      "sha256": "9bbbab2bc372be127d3d3f0a4c3f4e56a4c13ea834e736955e20c179fadeb386",
+      "gitBlob": "5c4552dc563c59e9b808d5b29028f8ad723d912c",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-095.webp",
+      "bytes": 59558,
+      "sha256": "96d43b23bff9589cad2efe18645b41170630c1628286eff5dc4735466f412e96",
+      "gitBlob": "3cef2f7139845296fe9dfd9933d02402288feed9",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-099.webp",
+      "bytes": 58312,
+      "sha256": "f5b6a4d2c1d880581b4e2890d9bc9629282132f078607fb69e311257beecdb44",
+      "gitBlob": "d7ae3cca808db25a4a9c964740162b49318f1b5a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-103.webp",
+      "bytes": 61104,
+      "sha256": "2ed22232f3cee7ba00bd1cc710f9b1fa46d2560c0d377e4cd6d72de0dddf5fa1",
+      "gitBlob": "925c8d6e5a695d4534faabfb7984f8944a94e41f",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-107.webp",
+      "bytes": 56448,
+      "sha256": "815345a4f173e64b83d9ad8ab1933fbb975ca58b1e58125940e6fd280d9a5a18",
+      "gitBlob": "a1ba999d94f1c919768f582d6b752a56bfcdb016",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-111.webp",
+      "bytes": 39860,
+      "sha256": "fbd94088557478d003ce7db70545b84430e1c65fe4b1db11de47721a5c04c39b",
+      "gitBlob": "c10f7f78c75c11105df869a997828893e1468dbb",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-115.webp",
+      "bytes": 39860,
+      "sha256": "fbd94088557478d003ce7db70545b84430e1c65fe4b1db11de47721a5c04c39b",
+      "gitBlob": "c10f7f78c75c11105df869a997828893e1468dbb",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-119.webp",
+      "bytes": 39860,
+      "sha256": "fbd94088557478d003ce7db70545b84430e1c65fe4b1db11de47721a5c04c39b",
+      "gitBlob": "c10f7f78c75c11105df869a997828893e1468dbb",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/mouse-combined-f0-123.webp",
+      "bytes": 24666,
+      "sha256": "426c49eae23dcf7d4286810cb3470d6ce68a06b54655245ba37e9f780dd741fa",
+      "gitBlob": "30e97327923014cfbd9c806e4cb539d6a9bd8233",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f0-000.webp",
+      "bytes": 52900,
+      "sha256": "46e463a28cd96d9aa1772341db73641d48de298f75f8c73ae8b8bb186c6389cc",
+      "gitBlob": "016b9873b1b4266a9d69d683471f97d92d41cb87",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f0-005.webp",
+      "bytes": 48086,
+      "sha256": "4ea653011b8330061ae79a1ec2fcacc6d2b5280b3a2ce90413e6f82119fa3980",
+      "gitBlob": "833f930111d8da7dbaeddd164506a79705ea9b8f",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f0-009.webp",
+      "bytes": 63750,
+      "sha256": "a56bcfbb3bea531c76e99131d814a735d1f3130bd5990f1a00134c8eb72e8f57",
+      "gitBlob": "166a4f4e2e2bdaacad3455f935bb987f8a5373a2",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f0-014.webp",
+      "bytes": 26078,
+      "sha256": "93c0f6e5659eab22f898ed2ac7fd40468d29b938c832e4a14e6e01968f90fafa",
+      "gitBlob": "829e8421b1c5b55b80972be08d2565b4602a4180",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f2-000.webp",
+      "bytes": 52348,
+      "sha256": "20421938ab13336de1f21b9b2f3e95e6098502407ede46766409e58558d31d00",
+      "gitBlob": "d1e5e853e6a5b86600ab1c53048226fe34764d53",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f2-004.webp",
+      "bytes": 50970,
+      "sha256": "f67d20ab8260b026ee82102b7c972493e7e5acf9701706f051e9c4f2a8ac4337",
+      "gitBlob": "4e3b1d93262766024ce957aeed141c8700ada5cd",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f2-008.webp",
+      "bytes": 48328,
+      "sha256": "25409b8bfe250e8dccc65a655b5650c08dcedb6c9535e1f13ca692cb8399b750",
+      "gitBlob": "45c62f68d055fc77afa267785c4afc84da2da2fc",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f2-012.webp",
+      "bytes": 42336,
+      "sha256": "12cf920fddb75bccbd1bf2cc5b242f9d67db1a87693a8c2643329a9d28c1147d",
+      "gitBlob": "a8bb061122c492ab11eee84e052e87d1a3d1f3a0",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f4-000.webp",
+      "bytes": 46346,
+      "sha256": "88e9f3f7cc614d3da4da935fad8f9591448781a0067e3e8ce3c3253e7d3c4492",
+      "gitBlob": "e3df82d3c9b578d527f73d3415356b628fd8d7e6",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f4-004.webp",
+      "bytes": 47086,
+      "sha256": "79a3c2c898f6d142081b6b5fafb242ae3367a42022460e88e63aa27ffb969b14",
+      "gitBlob": "4b7014c683ff1608d7e180ef3edf2c82b881540f",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f4-008.webp",
+      "bytes": 52544,
+      "sha256": "1123cf3bd1020f76cc712720bd9ce642411edb31996f72bc5756872cc7c55fbf",
+      "gitBlob": "5c86bb8d429a4df4de69d5c8e6dad3981bb1e359",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f4-012.webp",
+      "bytes": 52464,
+      "sha256": "49865ccc66bddeee298a69d2eaa9bcb8abab138bedf5946d9526081d92b53631",
+      "gitBlob": "59ceca554f23795905f6dd6c3272cfdad7a70b4a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f6-000.webp",
+      "bytes": 63206,
+      "sha256": "de6ce879c33ef5c6b04f5e7d8574ba4a928cd5444b07a996c616db6a78d7c920",
+      "gitBlob": "1534100af6e6f420c449445ed1afd6b422d581af",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f6-005.webp",
+      "bytes": 50550,
+      "sha256": "d5ae7ee23ab55fd541ae1e618872f0cc9383ad99d96c0e081fcf4aec9d4bd9d6",
+      "gitBlob": "2ae84c2b4e6c50f59caa206b6f36bf6de6c75d99",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f6-009.webp",
+      "bytes": 47580,
+      "sha256": "d7c8c7017fc8a33a1a0a4713d9aa160a3b5614382abcdb81f399ec1be436db7d",
+      "gitBlob": "6630a75962133e87e3cb0f02e68ee5ca10f01e77",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/actor/pages/right90-f6-013.webp",
+      "bytes": 35016,
+      "sha256": "7fc6651f7e33c37ddc6f3a1d744d3bf2621fcdcd9315bb18558b82b3e5c38a0d",
+      "gitBlob": "4d47b437538f8e12d09c416ebdd2a99159c34a80",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-candidate/8062ff823b440cce757766ca9825e4ea1b03e82f29ced977a47fece067c7601e.webp",
+      "bytes": 2106,
+      "sha256": "8062ff823b440cce757766ca9825e4ea1b03e82f29ced977a47fece067c7601e",
+      "gitBlob": "080bb3da478e770e1d54e9344824805bedab7335",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-candidate/a19ed10a401279d1694fe9f540e1ce239dd223f0233c227ec0717159d1cec620.webp",
+      "bytes": 40714,
+      "sha256": "a19ed10a401279d1694fe9f540e1ce239dd223f0233c227ec0717159d1cec620",
+      "gitBlob": "4617e279f66ac22802a49c520a0954da27a2117b",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-candidate/be0a8755a182abd0fab3f7ad7313b8da6aedff4ee2cca5fb98fa320dd98a461e.webp",
+      "bytes": 14356,
+      "sha256": "be0a8755a182abd0fab3f7ad7313b8da6aedff4ee2cca5fb98fa320dd98a461e",
+      "gitBlob": "b2d49ba301c9831abe1b4909f7965a955722c0fa",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/environment-cottage.webp",
+      "bytes": 521978,
+      "sha256": "5b894712c3473184c1cf70f7a3e8f7506d328b4b636f8187793a004ff2cff4e3",
+      "gitBlob": "11615cdcab1e0502d626c943279931ce58b3fb29",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/environment-ground.webp",
+      "bytes": 509158,
+      "sha256": "b0c3f9f9d3a52831440269c1cded91c5fb750ce20aace2b940d41ee693d1f908",
+      "gitBlob": "f6919c3b5f14ed0466e9d8aec99a712ee1987b52",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/143d33be37ee2f6b6faf82cd7a73d9985b41366cc04944b4439a6f02385853d3.webp",
+      "bytes": 42934,
+      "sha256": "143d33be37ee2f6b6faf82cd7a73d9985b41366cc04944b4439a6f02385853d3",
+      "gitBlob": "eef51059b789f8dd6590ab902ca4c528e5db7dbf",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/196d3aa666bb937563d0abd42ec73dbc631ea045afbfc945692c39c72243f370.webp",
+      "bytes": 7472,
+      "sha256": "196d3aa666bb937563d0abd42ec73dbc631ea045afbfc945692c39c72243f370",
+      "gitBlob": "7dfb998508fa834fcb95082faca5fd1ec9c6453d",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/1b1962c6194c5b962e2f2f5a75d567408271d93b7bb7463228184f05ddf472c2.webp",
+      "bytes": 19932,
+      "sha256": "1b1962c6194c5b962e2f2f5a75d567408271d93b7bb7463228184f05ddf472c2",
+      "gitBlob": "23ac94c80201d2d7c91a69589e25a0106c9159ec",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/296876d470d472a2825aef1942bd0c9bfdf8d588330e9ceee906b615b23588e0.webp",
+      "bytes": 32982,
+      "sha256": "296876d470d472a2825aef1942bd0c9bfdf8d588330e9ceee906b615b23588e0",
+      "gitBlob": "3cb3fbc0af860d7bc8b581a25e517c97c5be9f21",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/2c42fad194f8a5f664c0ac0dd2c591681c33a5e45bc8f95021d924419b0a89cf.webp",
+      "bytes": 2144,
+      "sha256": "2c42fad194f8a5f664c0ac0dd2c591681c33a5e45bc8f95021d924419b0a89cf",
+      "gitBlob": "a3e34d245004fef423e334f0c27ba3070309d7a1",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/32138affc1799e3dc536b5747d18a1556634ee13e2e99dd5944cc5e9ce213ad3.webp",
+      "bytes": 12758,
+      "sha256": "32138affc1799e3dc536b5747d18a1556634ee13e2e99dd5944cc5e9ce213ad3",
+      "gitBlob": "89c7f6865260cbf918891d140495be4965f700f6",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/3497f70c70a5fca7c5f84ee39476b525de1e76ad9fb519a1fead1e73f1ea4c5e.webp",
+      "bytes": 28000,
+      "sha256": "3497f70c70a5fca7c5f84ee39476b525de1e76ad9fb519a1fead1e73f1ea4c5e",
+      "gitBlob": "cec05914ebc83f01c89d8058f47b89ee8d6fadc2",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/41f4694391ea355a40afd6edf75fd417c873b236773ac9dfd51e5ade7df9b226.webp",
+      "bytes": 3388,
+      "sha256": "41f4694391ea355a40afd6edf75fd417c873b236773ac9dfd51e5ade7df9b226",
+      "gitBlob": "073dab1891c4751e682222647720cb6daa81307e",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/536fde933171a1e676b67270c7efe3899aac58f9d94deae50da20496c47b53d3.webp",
+      "bytes": 22368,
+      "sha256": "536fde933171a1e676b67270c7efe3899aac58f9d94deae50da20496c47b53d3",
+      "gitBlob": "487572063d675c79ed44fd4592997f83b16b2622",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/55608021ccc96482594cf8eccc5c098b88042519d23964e3155a61fafeaacd62.webp",
+      "bytes": 23730,
+      "sha256": "55608021ccc96482594cf8eccc5c098b88042519d23964e3155a61fafeaacd62",
+      "gitBlob": "175c67a69526b3a431e8fcd59bac3ce18174de81",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/55856088bb40b2d1de5f499115b2ec667dd05abbb5dec4f6d4d188785e5d47fc.webp",
+      "bytes": 42034,
+      "sha256": "55856088bb40b2d1de5f499115b2ec667dd05abbb5dec4f6d4d188785e5d47fc",
+      "gitBlob": "d612746064ef72b5df0ceafa32541800734ee8b1",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/58b8a81c7436ec8c397693a4fd0ef393e3c96f2b3fd54a4e328b7d9692158db0.webp",
+      "bytes": 28006,
+      "sha256": "58b8a81c7436ec8c397693a4fd0ef393e3c96f2b3fd54a4e328b7d9692158db0",
+      "gitBlob": "f0d415e59c47433020ebb74f14153dd4a860d73d",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/5d89f6945b42e1036c8315078e39599848cdf765ea760fb1f0d937023c3bd320.webp",
+      "bytes": 11458,
+      "sha256": "5d89f6945b42e1036c8315078e39599848cdf765ea760fb1f0d937023c3bd320",
+      "gitBlob": "efa167354e0a43a8ddd0c0ea04aff5b627d1cc8c",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/658928d524022463a787766ac466cdcf511cf91661f97e64129d2f1a4f0515cd.webp",
+      "bytes": 36168,
+      "sha256": "658928d524022463a787766ac466cdcf511cf91661f97e64129d2f1a4f0515cd",
+      "gitBlob": "413e7b826dce4c750c1656386b6d1e22252c1394",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/6ac592e7449864235749c05ccc58fdc54a4246a157c792813b82007a405c5cf5.webp",
+      "bytes": 30230,
+      "sha256": "6ac592e7449864235749c05ccc58fdc54a4246a157c792813b82007a405c5cf5",
+      "gitBlob": "50324e80d8d0135a02ad72072d252affd7b3211c",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/6fcea9b49dadaa8934b398a9ebd09eff010f0feff3717a5072c7ebb69a5678c2.webp",
+      "bytes": 31044,
+      "sha256": "6fcea9b49dadaa8934b398a9ebd09eff010f0feff3717a5072c7ebb69a5678c2",
+      "gitBlob": "b21237d8db1d39ee21b2c733adc87ec2483e8de3",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/701528c45f95f6da1ae83b0fe6c03c8c2bf0c9331eb586b984780af8015b0e60.webp",
+      "bytes": 44806,
+      "sha256": "701528c45f95f6da1ae83b0fe6c03c8c2bf0c9331eb586b984780af8015b0e60",
+      "gitBlob": "a37f4b17b2f1909d4e3f5f2e9c6b2592aaccb8f5",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/75bc491ab2ce0f7087e2114f06b3d9086f32065adbfd4ec2c3a72193e4f319cd.webp",
+      "bytes": 36896,
+      "sha256": "75bc491ab2ce0f7087e2114f06b3d9086f32065adbfd4ec2c3a72193e4f319cd",
+      "gitBlob": "d685d33970faea76cfb3a9f38bc24f023949f96a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/78bddd087cefb05b2ba129edf18539489a2419b0994cf29c141237b598b68699.webp",
+      "bytes": 17374,
+      "sha256": "78bddd087cefb05b2ba129edf18539489a2419b0994cf29c141237b598b68699",
+      "gitBlob": "1b62d08e76a5320aaedef1936eadb7f1e6a0ffff",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/797e026320117940846d690a9e3861c129b9a9587f01d77b9038e17a7009a13e.webp",
+      "bytes": 20088,
+      "sha256": "797e026320117940846d690a9e3861c129b9a9587f01d77b9038e17a7009a13e",
+      "gitBlob": "21035d8e84d41d7551dcff169cdceda705d1387d",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/79cf597d1644442fd3cce430662184a6767fd59203bf82f03ebe5e918d115b49.webp",
+      "bytes": 41646,
+      "sha256": "79cf597d1644442fd3cce430662184a6767fd59203bf82f03ebe5e918d115b49",
+      "gitBlob": "98005c287851eb2970293a3660a7922512b216c4",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/8062ff823b440cce757766ca9825e4ea1b03e82f29ced977a47fece067c7601e.webp",
+      "bytes": 2106,
+      "sha256": "8062ff823b440cce757766ca9825e4ea1b03e82f29ced977a47fece067c7601e",
+      "gitBlob": "080bb3da478e770e1d54e9344824805bedab7335",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/9cac690e2db7a53d259ff58fa8c928d02f716027b7eb18f40cafde1617cd0158.webp",
+      "bytes": 35024,
+      "sha256": "9cac690e2db7a53d259ff58fa8c928d02f716027b7eb18f40cafde1617cd0158",
+      "gitBlob": "d06e13691438015dea865853bfd76fe88c8735e6",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/a76387b0ec0ca698242cb87759697b3e7626088f6d403325d53d92af5657323b.base64",
+      "bytes": 46009,
+      "sha256": "c9e3e274cdedc9e5d8863699abdfdc562711abf15344334590323cfcb42840f4",
+      "gitBlob": "d9262b1f398057125d396086dc308791cb37bcb1",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/a9a8b26623ec707a879a21847991d8ab9bd34215823d19ef659b38bfefd4861a.webp",
+      "bytes": 22322,
+      "sha256": "a9a8b26623ec707a879a21847991d8ab9bd34215823d19ef659b38bfefd4861a",
+      "gitBlob": "742fed49f51c3025878081bf04b64b9350492e6e",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/b00f1373e9fa4ef2b11bbadd5d5e78f230316d93e5ba028a644f8610a17cf124.base64",
+      "bytes": 2829,
+      "sha256": "53c83830fea69a7664aa568f03c642dc449078b6566311d853ec62e161b44a23",
+      "gitBlob": "69b5be040bd6f9932b921988c356c2e801d003e9",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/c4197c4d27bd6d2ec195b8bd8d160b3106f2ff10f81acfede1e9c395128fd17f.base64",
+      "bytes": 39789,
+      "sha256": "f3b996256fc0bc5626e26ee467afa6a7a3c2330c1098fa3378a98369396c1e60",
+      "gitBlob": "c58f5c341211370742e850507a3642ce5050125c",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-scene45/media/ecbf7e2223a8ec8a7528f3a147b4af84005d22cb7304f04f3cf6fcd2eefc463f.webp",
+      "bytes": 24022,
+      "sha256": "ecbf7e2223a8ec8a7528f3a147b4af84005d22cb7304f04f3cf6fcd2eefc463f",
+      "gitBlob": "56313f06d66ca0367cd515713056376a1a208377",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/f1103736ec8af78726b3633a086bc1e149ba58bfe4178302f60c59f61b16700d.base64",
+      "bytes": 15521,
+      "sha256": "b62cfa94a3e8b98bd98de3a6d5795551e442b1a488ad201d9148b615da1153c2",
+      "gitBlob": "557e49357f52ad0eb8ad4510ae14a066c30c0b49",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/fe490648dbdb9f2e8ae55c7d7253a8619d8bb44b5b72a62eddee55934419eca0.base64",
+      "bytes": 31253,
+      "sha256": "ebceb256e9daaeb1a9b93ce13e0761aec699109b01efafd63f65109c9ad055d8",
+      "gitBlob": "f249bfcb4cbb84ef0ae155c2c57dc7c153f26221",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6.base64",
+      "bytes": 48969,
+      "sha256": "6dd32d9ad1663422fd6778905591769f407d39e9daba858f474ac42b15968438",
+      "gitBlob": "26f1db91e1744831ffb55758d45c99a92ab5a118",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/2ad3a018ee17be848d2be4439db51bc4e6fc6f80021f4c024630a942dde31a7e.base64",
+      "bytes": 24873,
+      "sha256": "374797d0c9e9a85468c6b075e83e4d7e5303c66e2f5350c4fa7a245f9ca312e4",
+      "gitBlob": "cc8ca89a6cb5e358944e8a0102b348b9a99d3591",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.base64",
+      "bytes": 82725,
+      "sha256": "0d70c97bc8bacb65990a8149a0aa73cb0403c11125ae74c95e18719da4c776bf",
+      "gitBlob": "218aedbd988f7674e9d978d75fdc7779d59d2e0e",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e.base64",
+      "bytes": 73001,
+      "sha256": "de5a23f61950e158d771e4e4b5ed9d5a31c6d1bdcb8f656c4dedb2c0a66cee35",
+      "gitBlob": "93207b5448d7d9f422677fb2601d8bc758551f3b",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730.base64",
+      "bytes": 36401,
+      "sha256": "f44587342abb83a60b6e0343b77e2eef13b761ac6c0c2ca1d6292730a94ba2b8",
+      "gitBlob": "124dd3d7b0bf7d7f756846757398394aae556d0e",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2.base64",
+      "bytes": 54157,
+      "sha256": "c2ea3aaf68aceb70e08e553d3ad13c57b252b92edf9f070d0f5f41bc4c1cbf8c",
+      "gitBlob": "067a1df778804fe7d8431afbb092922bb4a1ca34",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481.base64",
+      "bytes": 83353,
+      "sha256": "fe8f3cfaae9cfca24cfd324e6f47e7e9f6cb7a11f8e46cc70e4f7bf3654c3f1b",
+      "gitBlob": "67c577043bb90ea1e5cdf24770e220c9446ee248",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179.base64",
+      "bytes": 55225,
+      "sha256": "3c4367860762cfa2adf78150c8d84cbaef59f0bafcbf8073ff3e656f9021741b",
+      "gitBlob": "e2295f969c97eb75e8dac5328a2fae60dbd0d6c6",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/b62f2ef9714a054362fb3c3b9ddb4bc29f7b36ae3544cfcb52559b62118cf38a.base64",
+      "bytes": 713205,
+      "sha256": "00e095ec6a8493e9a4c4172b10cfc13fd180a53edb21e1e4e30bb3ce636b58d2",
+      "gitBlob": "1e74dddb7c887b7ec7f2a4cd9c2304609c1446e0",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/8302a1578c443971285086a73c9155e0ddc47d10a1c3e0e8451895822c127458.base64",
+      "bytes": 762073,
+      "sha256": "6a9a8913e93a28e97700b822548c4e836fed9701e0d51b974f405b99cc09e232",
+      "gitBlob": "714e590d02e94cc1bd418403b388eed2d469dfba",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/ffde7c568302ac9b994a64471f22098d0f351fa48d19bad1915f13235356f169.base64",
+      "bytes": 726273,
+      "sha256": "73e14b6c5872088077e2cdc778cb9cd83ea26c199775ecc58b4fca4858d8a36d",
+      "gitBlob": "2aca51dc2c066ea8e50b50d9dec88485323dd00d",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/3587cf8832d96725558a3b6387df36a0a01344dd7d81a4055e0832b1da8b7525.base64",
+      "bytes": 65493,
+      "sha256": "45df5281973dbd5d620686b06db215de69a7de505489ef8d3f76e89b0354ff4f",
+      "gitBlob": "0eddccdfa8e1fb1df46656a913a49dfec50db380",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/161202b25aa3a8fbc64c2f9069a4d284be234a0927a442600233e10b0ac096e1.base64",
+      "bytes": 67585,
+      "sha256": "7130db621a0ddb69d590b910310f8a62ca201a8451885d9068140bee8a6d19c7",
+      "gitBlob": "1ce5e4471e63dccbb64e908f5a367e3285a12247",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/670cbbfa3f828285dcf881329684eef9f0ea8bc65d3a53ddadebe33ce151b76f.base64",
+      "bytes": 72989,
+      "sha256": "f05236d8cd8cc2789f1f667eea1b2eef99493b82dad95a31320af10a2d26a749",
+      "gitBlob": "c9c673834b605a93d3b986be3fb27af38ecfa783",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/4db6432caf78465f6dc11d2dce06625a15e8d887d57fa3fda0c377ccdfacc562.base64",
+      "bytes": 72093,
+      "sha256": "9b496329376fa67eaea94d11fdb3eabd5c4648e013b7bf65510a33eaa4deef57",
+      "gitBlob": "b8d37c8f70c39a362e19a5d3e90cd48a038ee44b",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.base64",
+      "bytes": 50385,
+      "sha256": "da066435873b738a446bc943ea1ead0b2458575d8f7bd108b6e592c21f182714",
+      "gitBlob": "77407eab99971ad36459e909cec0549bf40a5b14",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.base64",
+      "bytes": 71773,
+      "sha256": "43d3efbfadeed1c8ee53d9c3733d2d6adef67f722ca91464f201f0e59d5aac80",
+      "gitBlob": "bbde2e9875be7924f7669e16ecae3fd1693b17ae",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/previews/106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee.webp",
+      "bytes": 35088,
+      "sha256": "106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee",
+      "gitBlob": "8056a081eb4e469523ab836b9baa70a80f6cae7a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7.base64",
+      "bytes": 64289,
+      "sha256": "e74d96c3a1a30945b1b70666b03ee8d14ea95b482026046ad5bcc5af4aee0e6b",
+      "gitBlob": "fbb55e1e11e1b892f1c2433021883f21af1d0798",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.base64",
+      "bytes": 62121,
+      "sha256": "17b22610844eea3d8acb14912fa7783f1829a024bc6a4dc0fa4677d86c22d782",
+      "gitBlob": "f2824fa3d103eb4bd1896599e6e19841ff7c76e2",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41.base64",
+      "bytes": 67797,
+      "sha256": "eb22b949a8a8eacaf53990aa9318c78879490960528452601606fb2ffab21e7f",
+      "gitBlob": "ffbc543e254a09131c9e15ac3b3b34913c1b73cd",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1.base64",
+      "bytes": 54861,
+      "sha256": "5e7301dd16adf55eb9a4e572981390249f02b483cb5788178fc88bb53933ef0d",
+      "gitBlob": "747e8ccf5b31ffb6098701e7bd0b409fedfcd422",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9.base64",
+      "bytes": 62285,
+      "sha256": "66233ce5dc770de7dbe6c294174ef9df6b96d99444afa31fb242cfaec0824140",
+      "gitBlob": "723a1986ce7c2aa9b5edc33602575fc7fb85b8df",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a.base64",
+      "bytes": 68561,
+      "sha256": "11017b9a5defff60600ed9728130c7e180262f47eb2c178f693650a14ab2191a",
+      "gitBlob": "9e61e52d739af5646bede66e0dc40e30171ae508",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b.base64",
+      "bytes": 85629,
+      "sha256": "60c9d4c7025a3779b593bdcb9a7dfd828f0e1ff8365ae9d5fb170c35dd9151ac",
+      "gitBlob": "bcf8a38e28198d9deff86c11bf9789634d8afbf8",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486.base64",
+      "bytes": 72905,
+      "sha256": "1452b556fca2fa9eb09afd40f817bcff47421149c37c68d04550a290db2a836a",
+      "gitBlob": "b8572677d9382b5f0058af26c8c03b9de99d789a",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/previews/463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284.webp",
+      "bytes": 55254,
+      "sha256": "463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284",
+      "gitBlob": "85b30c2019a3380b8abafcedf87445ed93a0258a",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5.base64",
+      "bytes": 68497,
+      "sha256": "2f2756a5cf92a94a6430d99ca586da1b38223e575d40f614602fb396e5ccae42",
+      "gitBlob": "b878f8b151141ffc654d080120943ae6c028de0f",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535.base64",
+      "bytes": 71109,
+      "sha256": "c8194e54c484172ab702b9b418e2500d4cffe31648578702bcc2db2b028aa811",
+      "gitBlob": "06434bc5d95f9376993fb97266fb25a5a0f26e90",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562.base64",
+      "bytes": 73197,
+      "sha256": "02141c132e83d6645f0b55d0b8cc2c254ec75f3e3f5422599cba838bf05462ff",
+      "gitBlob": "0a72dfa44928c43ca40feb96cf18d76bf6b757ff",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473.base64",
+      "bytes": 72713,
+      "sha256": "537aa3eda7d0b5c81a5fb3f5788e9427cd4825331e2cb4f46f9affa89be32366",
+      "gitBlob": "3a68c7274f44406852469f2ff0b598284d242af2",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f.base64",
+      "bytes": 69713,
+      "sha256": "30bf89a290cb3d9d4f3b7b81c350cf31ab0eaee494759c62ad1e10a22a3471e7",
+      "gitBlob": "8ce1c9f9b01ee7c5db87c38eaaa94c32f1446cb6",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3.base64",
+      "bytes": 72045,
+      "sha256": "cb932beec75face4a498e1ab46229fc58929ef316c03a8c93df59350bcdc8e4c",
+      "gitBlob": "821446c3189b32b33487a700a1888f201d418fdb",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc.base64",
+      "bytes": 54577,
+      "sha256": "c9e734151e05318d4c91c135096021b8b36f866e4d27b98fba1c9bd7517b2156",
+      "gitBlob": "77f49c9380925b74bf934a5803d5736198902d9d",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934.base64",
+      "bytes": 73149,
+      "sha256": "5bcad32ce151ae4ef2916660b9e4ce44bf4d4dbec02c2728b201e73f8d08131e",
+      "gitBlob": "9d7b29db18c92d79011f30c8c33627ff04d9d32d",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
+      "bytes": 49514,
+      "sha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
+      "gitBlob": "01636d39df9e03e9cb1fc4712f9f2aa19f62a932",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/previews/87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b.webp",
+      "bytes": 47204,
+      "sha256": "87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b",
+      "gitBlob": "be1c07b6eb4a4ef68bffc5892c3ed992f4df6251",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3.base64",
+      "bytes": 67905,
+      "sha256": "549ca07b5d1c59cd0df1e6c6bab2f209441993aa47ca7b7928f0ca52903688e3",
+      "gitBlob": "dda9561a49351703aae5e38c7eae4396220bc767",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.base64",
+      "bytes": 62557,
+      "sha256": "61f1d7458b3b994d5150b8274e4b43ba38ea094ebe0dff64eba8aec2295e2ca0",
+      "gitBlob": "25082ac59c584f9e14fc5e40cd7d30eb1bc35fdb",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579.base64",
+      "bytes": 71137,
+      "sha256": "c55d61d2068975e8f1afba32a1e7c23589c488438492cbe800071d2374df1b6d",
+      "gitBlob": "1208d25854e260619025a22de32cd7cc83cf162b",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36.base64",
+      "bytes": 57585,
+      "sha256": "ee0d8af398f4eed943d415786b2a6ec476ee37a1d43f27752cbc879def76c071",
+      "gitBlob": "9216b7b69ac5302cd098f248535fed2a94a65636",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f.base64",
+      "bytes": 64281,
+      "sha256": "b920bcd421f67c1df1abcc3a83848b38624b1fe0c3f0b370e70feb701726027e",
+      "gitBlob": "02a388665b3d1b5845681829cec8ffc18377b31f",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8.base64",
+      "bytes": 60933,
+      "sha256": "af528ca2bce53bbab6844eef3d43d1c1e51d9ed9eefe2d30cbcfe3d88ec9b4b2",
+      "gitBlob": "7695e71529fae5eab3044ffee489fd5d1c42d080",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42.base64",
+      "bytes": 75601,
+      "sha256": "974c8beecf61e4c74bf27d16c7f041ab515663ebd3a645aa257ce3de6b83e736",
+      "gitBlob": "a9f622139a0c2939fc83d87f25e4c67c6d97896a",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/transport/fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e.base64",
+      "bytes": 77449,
+      "sha256": "65d69d85ea02e0086c3a21adeaf87168291afda6402d49d4862d0a9ecfe933f2",
+      "gitBlob": "cef4e276372b605bd45a31eaad89bdaa220035f2",
+      "kind": "raster-base64-transport",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/surfaces/yard-ui-button-primary.webp",
+      "bytes": 69298,
+      "sha256": "c52716e9417f15e0300cf06cf2589d1c41b13f24acf76de36d41e9d9f383c37e",
+      "gitBlob": "d4d8e556ddc00cc5dc152ee88099a9dff1b93d70",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/surfaces/yard-ui-card-frame.webp",
+      "bytes": 257468,
+      "sha256": "0c070c1074e4dfbb87f8694930e4227de38feb8a4e073529715a3954c1c4410d",
+      "gitBlob": "54b2039df25613aafba2cb7fb472cab6aa93302b",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/surfaces/yard-ui-panel-frame.webp",
+      "bytes": 402904,
+      "sha256": "6b2c5a838836b7c75dfa30f724123efca582d82ffec9ec98e2ac3b007e87b3ac",
+      "gitBlob": "e44e112203cf1dbf7c8b7b0325d9a98947d57601",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/assets/yard-ui/surfaces/yard-ui-wood-strip.webp",
+      "bytes": 78540,
+      "sha256": "914232bc949de0ecc103f91afec1a8687d63643ea9cf962e89d8e5e030afe557",
+      "gitBlob": "7708d9be59fb380d5001ad45baca21804b4b675c",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/games/companion-yard/ui/daily_letter.png",
+      "bytes": 89075,
+      "sha256": "b2b9224da14d94a4292019c8ceb40ab62e53290577ae2d10e434d6addedb0e68",
+      "gitBlob": "2c81ac617a710c3d6aa6fa1a08875699cab78303",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/games/companion-yard/ui/gift_box.png",
+      "bytes": 76344,
+      "sha256": "f0ed0a5a64706aacdb6d4de67fe67d78e9d1223f90d81a6233aff414ccbd79a4",
+      "gitBlob": "76e3f270e63fb2a00a0b864735b3b2069f7fc4e3",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/games/hud-redesign/room/semantic-icons/dock-album.png",
+      "bytes": 17754,
+      "sha256": "85d722cb980a6e3f9012780bb351c338326d6da6329318b42f02dc7f930c4bef",
+      "gitBlob": "32091a75fb6e8566ad207d85efe06716c3da8cff",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/games/hud-redesign/room/semantic-icons/dock-food.png",
+      "bytes": 3579,
+      "sha256": "123aa9076fdbccc5ad1fb90f8d692a92a14fc8f68b6efb88dc9afbbe3b7561fc",
+      "gitBlob": "4f4e9f84a2252f3916ff2a86352604d35e20ffd6",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/games/hud-redesign/room/semantic-icons/dock-goodies.png",
+      "bytes": 9063,
+      "sha256": "8d9f51da2836a030b65dc7a6f1b54c489949357e213764ad448506bf972977c0",
+      "gitBlob": "9f43fc1baa7b52f8792b28e740d27c299f7945d1",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/games/hud-redesign/room/semantic-icons/dock-petbook.png",
+      "bytes": 16656,
+      "sha256": "e666845e4a3dede41dc8ee9f20fe9e1eb0bd01c2ff617a460ec1fdf17cf579c8",
+      "gitBlob": "017f91c41f1f24ba5eaa3e8f6096e310f31cfc56",
+      "kind": "raster",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/runtime/mochi.json",
+      "bytes": 605852,
+      "sha256": "5776d00fe5fccfa87290cf24a81f71b1af21eec4c5a364d2c400500b0fc26ebb",
+      "gitBlob": "82c977183a2aed58c5b78aaca5b844b161216f94",
+      "kind": "json",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/runtime/portraits.json",
+      "bytes": 2803,
+      "sha256": "4d5c047422744db9f9b1ed4b1e8e1848c7ed64d29a1dc916334edbfb52e43dbe",
+      "gitBlob": "219cc55641dbbe40c20cc96374c940f92765d514",
+      "kind": "json",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/public/runtime/scene.json",
+      "bytes": 13187,
+      "sha256": "ec925672165dac061eb28a233aa9741554d172e5c58c0e584ffb7a6f1aea230d",
+      "gitBlob": "951e5988da44ec3f6f213e45ede253636e3d97a7",
+      "kind": "json",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/runtime/candidate-presenter.mjs",
+      "bytes": 16307,
+      "sha256": "15143a05308ba364e86553bf84c8cd8feed1b3fc7a117a92e190899cab73f508",
+      "gitBlob": "3c63f4d4b90e51e9987724d021cdd5f019200fad",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/runtime/contract-pins.mjs",
+      "bytes": 193,
+      "sha256": "77cd1c8dc92443029ba87ba08e0ab8d7012a15970cc5cac53b853644d8ae8087",
+      "gitBlob": "029e8dac68262235f8b6a5961a1e4247c3ac55bc",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/runtime/r5-atlas-bridge.mjs",
+      "bytes": 3225,
+      "sha256": "fd7f41dda996481c7310cdade5f653687561b3bc89db62bf673935117de5eda1",
+      "gitBlob": "d0c85bfda5b40679026b3314f6a34b43ec94db97",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/runtime/sha256.mjs",
+      "bytes": 3007,
+      "sha256": "2090ca5c72ac826b3147bd8db37b4cb28a746380d99e77937d3a8d1742eadabf",
+      "gitBlob": "827cd5af9b169f1f2955f51a9e0b09da7dc0e5d9",
+      "kind": "code",
+      "existing": true
+    },
+    {
+      "path": "qa/yard-corrected-scene/runtime/source-sampler.mjs",
+      "bytes": 260,
+      "sha256": "b21787b819b262bb6add5bc993960194670883ada40310311088be2a90ca5d02",
+      "gitBlob": "992c6ca2901cbc92d8d25ad21767d90dfee4a7c5",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/runtime/util.mjs",
+      "bytes": 1377,
+      "sha256": "0dc123e8e66e87ea22576c04ff8599b3029ae55a317b5bddad216de69ef8d889",
+      "gitBlob": "ba34713a284caef435553d82dddf87366f5eabee",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/src/aggregate-scheduler.mjs",
+      "bytes": 1017,
+      "sha256": "c6db4a6fa313f329326c41b628690f010c294731ad04435d75df4e43616e1e28",
+      "gitBlob": "e0d79d295fa41f892076b9d01f31d065fb38a9f7",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/src/capacity.mjs",
+      "bytes": 2535,
+      "sha256": "304292b48d8a160551e264b3f3f9408ae88f0599ae6b8cc6395b42ee9ebb3b05",
+      "gitBlob": "e4e9907a8db688bfbe147c727ca8840fab98e138",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/src/compact-browser-sampler.mjs",
+      "bytes": 1502,
+      "sha256": "63dfed60614e6f0d30f5c3dc4deb20dd8c3ec32f2a02ea49b7c92fa3f0ad014d",
+      "gitBlob": "d5b01043cbf851b931a5f755ca740c632852e3e4",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/src/draw-scene-frame.mjs",
+      "bytes": 1922,
+      "sha256": "be03ddba760286c04033c3500bd34dcb1526b3bd1d967bfef56ac70d7e738718",
+      "gitBlob": "51375866cd53887f02449d5f63386c1db877b89c",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/src/scene-fixture.mjs",
+      "bytes": 3490,
+      "sha256": "6b7f4314c11a100878ac0016c38932bb2c99a4b1f6a59e73a1f905e9d1d6e0c9",
+      "gitBlob": "8a3963e9580e2e31f5a95c880fa2c041ea46762c",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/app/gameRegistry.js",
+      "bytes": 1640,
+      "sha256": "adf3d7ffb63fa4fd541c2ff18fbe798a91c507985e6c155f8e5c260a4564613f",
+      "gitBlob": "dbea73c228ffc9c645cf37487f136eb3be40f81a",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/CourtyardGame.jsx",
+      "bytes": 26671,
+      "sha256": "5b95dcc5cad85ef31843720e538e4ae9464af11d160cf8d0fa92a395e63bd807",
+      "gitBlob": "eac0ccc6101151e2b9361692bcb80bef67abf198",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/atlas.mjs",
+      "bytes": 11538,
+      "sha256": "2e907692f4d6cae8fbd33f075e2bc9c6bbafa1edee54a92829e22446b1c4910c",
+      "gitBlob": "693b1e3b1d3869f93854c3818403689689bd5ad4",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/bound-page-lookahead.mjs",
+      "bytes": 6829,
+      "sha256": "58bc3f8341323d44848174f069a5a08a4002d312ce5ebec61c5b68c2e76478ed",
+      "gitBlob": "b6544073e326eb1b73763889d5e4852c074c8392",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/catalog-ui.mjs",
+      "bytes": 5621,
+      "sha256": "358f5d499bcb57df585acf29bcc0614b3b20d55e75e5679601a6625f700fbc10",
+      "gitBlob": "0d37eaea14f84ddf9de9471f16ddf586e1879e09",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/courtyard.css",
+      "bytes": 11920,
+      "sha256": "adbadac9338babd4e399505e651d72ade85d3d3b25007d71e5cd6b9b75196b19",
+      "gitBlob": "c08abd1fe87d57624bec20dbc02d4fe9adcbc96c",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/current-cartoon-portrait-paths.mjs",
+      "bytes": 1407,
+      "sha256": "efbf92a37d94cba4dba6b03c6fc92a9916cc9b9402d7617974efea41c105420a",
+      "gitBlob": "0dd0ef3432cc04616d207c4e040bd72256186b0e",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/decoded-capacity.mjs",
+      "bytes": 3183,
+      "sha256": "1711ef591364f70e47fb8af1be1f5d919588eb050db796e2eef5093168cf9be6",
+      "gitBlob": "ad279322c092dd9e525b77adeb20e0895d85c992",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/i18n.js",
+      "bytes": 19055,
+      "sha256": "76374178bbfe9a7b3e17fc343c5a55a5971f467526dca8dcccbf4225b6a7f74f",
+      "gitBlob": "dace68c6673b0aaf470d185dbfc14c3bd3fcd705",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/preview-thumbnail-overrides.mjs",
+      "bytes": 5705,
+      "sha256": "c29597706ae1f0dcaaf8e712c2335477be204c0a7b549a69991c7620097cacd3",
+      "gitBlob": "6b47ff1ae2f17a34203f5733737e4af8b6ef5275",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/projection.mjs",
+      "bytes": 848,
+      "sha256": "bbf4eb25bbff56dc3e394e28c1f8c3121189441a942e63673c0dc96cb09f746e",
+      "gitBlob": "390b01f2a910c848d800f6745d663dac6015fb0a",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/render-pack-policy.mjs",
+      "bytes": 308,
+      "sha256": "94cdafd79ba620e362509cf90f06730bda1994f91173eaec305b215adea6b84f",
+      "gitBlob": "b8a51903779d95a6bb27e21aa795f89e63769b4e",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/render-pack.mjs",
+      "bytes": 11263,
+      "sha256": "950ea9b749e5b3cca29b34f94b51d64f49ee6d9c96516aa2c5b76692544aebeb",
+      "gitBlob": "1aac324960c2d87106576c8422d30550ff5261c4",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/render-schedule-ledger.mjs",
+      "bytes": 8281,
+      "sha256": "6f53298b02480ab1d8fa23a6cb0873650d1cc94d75bc15bdc511040b75b9558d",
+      "gitBlob": "2ab33b07d541cf227c8e7480e27e403dfacabf4b",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/runtime-cells.mjs",
+      "bytes": 4437,
+      "sha256": "bf3ade8f8998ca3e33dac5988b4dbf2e793defbf25967286ff11afc5dd5cfc2c",
+      "gitBlob": "9ae634f15150e21c1c6f001691696aea9b32e48a",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/scene.mjs",
+      "bytes": 24689,
+      "sha256": "b06ac37314d9e04a74c1e681564f370bd093990b71c1319f3c4d0970a52533b3",
+      "gitBlob": "50d220aa8f5ae3fb4785724d54565b302c736437",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/scene45-environment.mjs",
+      "bytes": 1753,
+      "sha256": "c34f66a9986de2295723f2baf618dc364f5b60124461b4160d7c41dae8bb8d32",
+      "gitBlob": "80dcdc041bc62cad0b7b2a6306292dabb2ce3054",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/scene45-layout.json",
+      "bytes": 1339,
+      "sha256": "965239f9f28dbb83f445f39411abf74b67ac04b4291d471af4e1e5c90d692c82",
+      "gitBlob": "ce15a883151ea38bc4995dedb86ddc44abcd8e5d",
+      "kind": "json",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/scene45-transform.mjs",
+      "bytes": 2412,
+      "sha256": "b29a83f108104b044a1bf05388358e48da0e8e477f38635ef13325ecabfb1453",
+      "gitBlob": "855b22de03cfd477b71abd0555bba7e117df921a",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/ui-image-inventory.json",
+      "bytes": 38292,
+      "sha256": "4d90ba23d9353005d91ad19fe9baffbdb4f419094496ab48a05b83eda80b279a",
+      "gitBlob": "0ce120b9c6018a0b372e2b26ec0d88fe850adb8c",
+      "kind": "json",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/r5/src/games/companion-yard-v2/ui-image-reserve.mjs",
+      "bytes": 4330,
+      "sha256": "f44b68c44421fe716403835b7e18d71e240bd8d6d2786b1c6f62fbe5c4ab3d57",
+      "gitBlob": "35bc66226dca812ff65dde6adef2ce3b7e48f2d4",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/streaming/capacity-scope.mjs",
+      "bytes": 1132,
+      "sha256": "feebeb960a78c63247277b494d5dcabd2c5217932b31a7efddc5c28b42b8f541",
+      "gitBlob": "2534b2a54118079a443e3457bf07ed5f858398cd",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/streaming/encoded-prefetch.mjs",
+      "bytes": 6488,
+      "sha256": "5254fa49de1583b21c165dd685ce076188bc3b2c0353499d887deece9b379144",
+      "gitBlob": "fdc20217ec4999d9537bb7bd24e7a872d28ca654",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/vendor/streaming/prefetched-atlas.mjs",
+      "bytes": 2438,
+      "sha256": "fc75a23567b1fe74952ce9cfd006e265a314036b448b580b6cb82004c88d4acf",
+      "gitBlob": "26002662e1c5fac70db4199ddb9b2563cbcfd818",
+      "kind": "code",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/RASTER-TRANSPORT.json",
+      "bytes": 20895,
+      "sha256": "eaf837521317d85fdc36ac6b9c1f23913ef6daeaf1404fa598f7be4b2f0c1141",
+      "gitBlob": "7e0c19181ba2e7dbf327da5ab816dc946f5a3eef",
+      "kind": "json",
+      "existing": false
+    },
+    {
+      "path": "qa/yard-corrected-scene/PUBLICATION-ALLOWLIST.json",
+      "bytes": 55021,
+      "sha256": "c955c60ff468b4324535c70684994734b2a42e8f91070937e813b23057c0d1db",
+      "gitBlob": "a489efd764bb2f662ecee9b8494619882e853a00",
+      "kind": "json",
+      "existing": false
+    },
+    {
+      "path": ".github/workflows/yard-corrected-scene-browser.yml",
+      "bytes": 2149,
+      "sha256": "4f42a561343dd4b5d26a90a0ae73edb1280f7490e3ca05e501656bb5a6387482",
+      "gitBlob": "aacab4f76ed455d1bbb714d0354c74c94dcb74ff",
+      "kind": "workflow",
+      "existing": false
+    }
+  ]
+}

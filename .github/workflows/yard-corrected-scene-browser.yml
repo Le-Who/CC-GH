@@ -1,0 +1,57 @@
+name: Corrected Yard scene and UI preview
+on:
+  push:
+    branches: ['qa/yard-corrected-scene-browser-20261005']
+permissions:
+  contents: read
+concurrency:
+  group: corrected-yard-preview-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  browser-preview:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      CI: 'true'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 1
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Enable ordinary repository package manager
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate
+      - name: Install ordinary repository dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Materialize exact reviewed raster bytes from QA transport
+        run: node qa/yard-corrected-scene/browser/materialize-transport.mjs
+      - name: Verify exact package and build actual React CSS preview
+        run: node qa/yard-corrected-scene/browser/build.mjs
+      - name: Install ordinary Chromium QA browser
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Run bounded read-only browser and timing matrix
+        timeout-minutes: 10
+        run: node qa/yard-corrected-scene/browser/run.mjs
+      - name: Check QA evidence cap
+        id: cap
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('qa/yard-corrected-scene/browser-results')
+          files=[f for f in p.rglob('*') if f.is_file()]
+          total=sum(f.stat().st_size for f in files)
+          assert total <= 48*1024*1024, 'QA evidence exceeds48MiB cap'
+          print('QA artifact bytes:', total)
+          PY
+      - name: Preserve labelled existing QA artifact evidence
+        if: always() && steps.cap.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: corrected-yard-preview-${{ github.sha }}-${{ github.run_attempt }}
+          path: qa/yard-corrected-scene/browser-results/
+          if-no-files-found: ignore
+          retention-days: 3
