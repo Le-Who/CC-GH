@@ -7,6 +7,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
 import { isRetiredAssetPath } from './asset-retirement-policy.mjs';
 import { GAME_DATA_MODULES } from './game-loading-graph.mjs';
+import { inspectYardAssetBudget } from './yard-ui-media-budget.mjs';
 
 const REPORT_PATH = path.resolve("artifacts", "perf", "perf-build-report.json");
 const DEFAULT_DIST_DIR = path.resolve("dist");
@@ -116,7 +117,7 @@ function budgetFailure(id, actual, budget, unit = "bytes") {
   };
 }
 
-export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAULT_BUILD_BUDGETS, requireLoadingGraph = false } = {}) {
+export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = {}, requireLoadingGraph = false } = {}) {
   const effectiveBudgets = { ...DEFAULT_BUILD_BUDGETS, ...budgets };
   const html = await fs.readFile(path.join(distDir, "index.html"), "utf8");
   const allFiles = await readFiles(distDir);
@@ -205,6 +206,29 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
   metrics.nonFamilyPublicAssets = summarize(publicAssetFiles.filter(file => !approvedFamily.has(file.path)));
   metrics.nonFamilyPublicMedia = summarize([...publicGameFiles, ...publicAssetFiles.filter(file => !approvedFamily.has(file.path)), ...runtimePayloads]);
 
+  // The historical generic ceilings remain visible below. Actual normal Yard
+  // builds use the reviewed exact UI/optional partition and a tighter aggregate
+  // remainder. Synthetic non-Yard fixtures still exercise the generic guards.
+  const usesYardPartition = requireLoadingGraph || Boolean(graph?.entries?.['companion-yard-v2'])
+    || assetFiles.some(file => file.startsWith('assets/yard-ui/')) || allFiles.includes('yard-pip-vendor-report.json');
+  const yardAssetPartition = usesYardPartition ? await inspectYardAssetBudget({ distDir, graph }) : null;
+  if (yardAssetPartition) {
+    graphFailures.push(...yardAssetPartition.failures);
+    if (yardAssetPartition.aggregate.actualBytes !== metrics.publicAssets.rawBytes) graphFailures.push({
+      id: 'public-assets.inventory-stable', actual: yardAssetPartition.aggregate.actualBytes, budget: metrics.publicAssets.rawBytes,
+      message: 'Generated assets changed during fresh inventory; do not use a partial or cached report',
+    });
+    metrics.requiredYardUi = summarize(yardAssetPartition.requiredUi.files.map(row => byPath.get(row.path)).filter(Boolean));
+    metrics.optionalPipMedia = summarize(yardAssetPartition.optionalMedia.files.map(row => byPath.get(row.path)).filter(Boolean));
+    metrics.otherNonFamilyPublicAssets = summarize(yardAssetPartition.otherNonFamilyAssets.files.map(row => byPath.get(row.path)).filter(Boolean));
+  }
+  const appliedPublicAssetsCeiling = yardAssetPartition
+    ? Math.min(yardAssetPartition.aggregate.ceilingBytes, Object.hasOwn(budgets, 'publicAssetsTotalRawBytes') ? effectiveBudgets.publicAssetsTotalRawBytes : Infinity)
+    : effectiveBudgets.publicAssetsTotalRawBytes;
+  const appliedOtherAssetsCeiling = yardAssetPartition
+    ? Math.min(yardAssetPartition.otherNonFamilyAssets.ceilingBytes, effectiveBudgets.nonFamilyPublicAssetsTotalRawBytes)
+    : effectiveBudgets.nonFamilyPublicAssetsTotalRawBytes;
+
   const loadingGraphs = Object.fromEntries(Object.entries(graph?.entries || {}).map(([game, entry]) => {
     const staticFiles = closure([entry]);
     const allFiles = closure([entry], true);
@@ -239,9 +263,10 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     budgetFailure("runtime-assets.total.raw", metrics.runtimeAssets.rawBytes, effectiveBudgets.runtimeAssetsTotalRawBytes),
     budgetFailure("runtime-assets.max-file.raw", metrics.runtimeAssets.maxRawBytes, effectiveBudgets.runtimeAssetMaxRawBytes),
     budgetFailure('public-games.total.raw', metrics.publicGames.rawBytes, effectiveBudgets.publicGamesTotalRawBytes),
-    budgetFailure('public-assets.total.raw', metrics.publicAssets.rawBytes, effectiveBudgets.publicAssetsTotalRawBytes),
+    budgetFailure('public-assets.total.raw', metrics.publicAssets.rawBytes, appliedPublicAssetsCeiling),
     budgetFailure('public-media.total.raw', metrics.publicMedia.rawBytes, effectiveBudgets.publicMediaTotalRawBytes),
-    budgetFailure('public-assets.non-family.raw', metrics.nonFamilyPublicAssets.rawBytes, effectiveBudgets.nonFamilyPublicAssetsTotalRawBytes),
+    budgetFailure(yardAssetPartition ? 'public-assets.other-non-family.raw' : 'public-assets.non-family.raw',
+      yardAssetPartition ? yardAssetPartition.otherNonFamilyAssets.rawBytes : metrics.nonFamilyPublicAssets.rawBytes, appliedOtherAssetsCeiling),
     budgetFailure('public-media.non-family.raw', metrics.nonFamilyPublicMedia.rawBytes, effectiveBudgets.nonFamilyPublicMediaTotalRawBytes),
   ].filter(Boolean);
 
@@ -314,6 +339,8 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
     generatedAt: new Date().toISOString(),
     distDir: path.resolve(distDir),
     budgets: effectiveBudgets,
+    appliedPublicAssetsCeiling,
+    yardAssetPartition,
     metrics,
     loadingGraphs,
     failures,
@@ -323,7 +350,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = DEFAUL
 
 export async function runBuildPerfGuard({
   distDir = DEFAULT_DIST_DIR,
-  budgets = DEFAULT_BUILD_BUDGETS,
+  budgets = {},
   writeReport = true,
   quiet = false,
   reportPath = REPORT_PATH,

@@ -4,7 +4,7 @@ import path from 'node:path';
 export const YARD_RENDERER_MODULES = new Set([
   'actor-media.mjs', 'atlas-policy.mjs', 'atlas.mjs', 'edge-opacity.mjs',
   'pose-selection.mjs', 'presentation-clock.mjs', 'presentation.mjs',
-  'projection.mjs', 'scene.mjs', 'telemetry.mjs',
+  'projection.mjs', 'scene.mjs', 'telemetry.mjs', 'scene-layout.mjs', 'legacy-m2-background.mjs',
 ].map(name => `src/games/companion-yard-v2/${name}`));
 // Shared static runtime/calibration dependencies must not be owned by the
 // React entry: the renderer imports them too. Keep this executable closure
@@ -40,6 +40,8 @@ export const YARD_RUNTIME_CORE_MODULES = new Set([
 ]);
 export function yardRendererChunk(id, root) {
   const source = path.relative(root, id.split('?')[0]).replaceAll('\\', '/');
+  if (['ui-image-inventory.json', 'ui-image-reserve.mjs', 'decoded-capacity.mjs', 'runtime-cells.mjs']
+    .some(name => source === `src/games/companion-yard-v2/${name}`)) return 'yard-scene-resources';
   if (YARD_RENDERER_MODULES.has(source)) return 'yard-renderer';
   return YARD_RUNTIME_CORE_MODULES.has(source) ? 'yard-runtime-core' : undefined;
 }

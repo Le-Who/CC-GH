@@ -10,8 +10,8 @@
 .cy-wallets{grid-column:1/-1;grid-row:2;display:flex;justify-content:center;gap:12px;min-width:0}
 .cy-wallet{display:flex;align-items:center;gap:4px;min-width:0;padding:0 10px;background:#fdf0c7;border:1px solid #c39a46;border-radius:20px;font-variant-numeric:tabular-nums}
 .cy-wallet>span:last-child{display:grid;gap:0;align-items:center;min-width:0;line-height:1.05}.cy-wallet small{font-size:14px;font-weight:800}.cy-wallet strong{font-size:15px}.cy-wallet .cy-icon{width:27px;height:27px}
-.cy-icon{display:inline-block;flex:0 0 auto;width:34px;height:34px;background-image:url('/games/companion-yard/HUD.png');background-size:500% 500%;background-repeat:no-repeat}
-.cy-icon-treats{background-position:0 0}.cy-icon-shiny{background-position:25% 0}.cy-icon-back{background-position:50% 75%}.cy-icon-close{background-position:75% 75%}
+.cy-icon{display:inline-block;flex:0 0 auto;width:34px;height:34px;background-size:100% 100%;background-repeat:no-repeat}
+.cy-icon-treats{background-image:url('/assets/yard-ui/delivery/hud-treats.webp')}.cy-icon-shiny{background-image:url('/assets/yard-ui/delivery/hud-shiny.webp')}.cy-icon-back{background-image:url('/assets/yard-ui/delivery/hud-back.webp')}.cy-icon-close{background-image:url('/assets/yard-ui/delivery/hud-close.webp')}
 .cy-scene{grid-area:scene;position:relative;min-height:0;overflow:hidden;background:#a6bd6a}
 .cy-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 50%;pointer-events:none}
 .cy-scene canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none}
@@ -46,5 +46,26 @@
 .cy-helper-portrait{display:flex;align-items:center;gap:15px}.cy-helper-portrait .cy-preview-art{width:110px;height:115px}.cy-helper-portrait h3{margin:0}
 .cy-panel label{display:flex;flex-direction:column;gap:6px;margin:12px 2px;font-weight:800}.cy-panel input{width:100%;min-width:0;min-height:44px;border:1px solid #a48c53;border-radius:10px;padding:8px 10px;font:inherit;background:#fff5d4;color:inherit}.cy-wide{width:100%;margin:6px 0}.cy-feedback{padding:10px;border:1px solid #ac8640;border-radius:8px;background:#fff1c5}
 @media(max-width:359px){.cy-wallets{gap:6px}.cy-wallet{padding:0 6px;gap:2px}.cy-wallet>span:last-child{gap:0}.cy-header h1{font-size:18px}.cy-dialog{border-width:12px}.cy-dialog>header{gap:5px}.cy-catalog-grid{gap:6px}.cy-card,.cy-dialog .cy-catalog-choice{padding:8px 5px 10px;border-width:7px}.cy-preview-art{height:82px}}
-@media(min-width:700px) and (orientation:landscape),(min-aspect-ratio:8/5) and (max-height:550px){.cy-app{grid-template:"header nav" 56px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 90px}.cy-header{display:flex;gap:4px;padding:2px 4px;border-width:0}.cy-header h1{font-size:16px;flex:1;text-align:left}.cy-header .cy-home{flex:0 0 44px}.cy-wallets{margin-left:auto;gap:4px}.cy-wallet{padding:0 5px}.cy-wallet>span:last-child{display:block;line-height:1.1}.cy-wallet small{display:block;font-size:14px}.cy-wallet strong{font-size:14px}.cy-wallet .cy-icon{width:23px;height:23px}.cy-actions{border-image:var(--cy-panel-art) 64 fill / 32px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(44px,1fr));padding:6px 4px;gap:5px;border-width:0}.cy-actions button{padding:4px 2px}.cy-actions strong{font-size:14px}.cy-status{font-size:14px}.cy-placement{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:4px 8px}.cy-placement>strong{text-align:left;font-size:14px}.cy-placement button{min-width:92px}.cy-dialog{width:340px;max-width:calc(100vw - 16px);height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 12px);max-height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 12px);margin:6px 8px 6px auto;border-width:12px}.cy-dialog>header{min-height:46px;padding:0}.cy-tabs{padding-bottom:4px}.cy-panel .cy-intro{margin:4px 2px 8px}.cy-selected-actions{padding-top:6px;gap:4px}.cy-preview-art{height:80px}}
+@media(min-width:700px) and (orientation:landscape),(min-aspect-ratio:8/5) and (max-height:550px){.cy-app{grid-template:"header nav" 56px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 90px}.cy-header{display:flex;gap:4px;padding:2px 4px;border-width:0}.cy-header h1{font-size:16px;flex:1;text-align:left}.cy-header .cy-home{flex:0 0 44px}.cy-wallets{margin-left:auto;gap:4px}.cy-wallet{padding:0 5px}.cy-wallet>span:last-child{display:block;line-height:1.1}.cy-wallet small{display:block;font-size:14px}.cy-wallet strong{font-size:14px}.cy-wallet .cy-icon{width:23px;height:23px}.cy-actions{border-image:var(--cy-panel-art) 64 fill / 32px;grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(44px,1fr));padding:6px 4px;gap:5px;border-width:0}.cy-actions button{padding:4px 2px}.cy-actions strong{font-size:12px;white-space:nowrap;overflow-wrap:normal}.cy-status{font-size:14px}.cy-placement{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:4px 8px}.cy-placement>strong{text-align:left;font-size:14px}.cy-placement button{min-width:92px}.cy-dialog{width:340px;max-width:calc(100vw - 16px);height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 12px);max-height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 12px);margin:6px 8px 6px auto;border-width:12px}.cy-dialog>header{min-height:46px;padding:0}.cy-tabs{padding-bottom:4px}.cy-panel .cy-intro{margin:4px 2px 8px}.cy-selected-actions{padding-top:6px;gap:4px}.cy-preview-art{height:80px}}
 @media(prefers-reduced-motion:reduce){.cy-app *,.cy-dialog *{scroll-behavior:auto}}
+
+/* Local visual prototype: stage-owned transparent depth surface; no layout override. */
+.cy-pip-direct-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.cy-pip-direct-layer canvas{inset:auto;touch-action:auto}
+.cy-pip-controls{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.cy-pip-controls[data-active="true"]{display:grid;grid-template-columns:minmax(84px,1fr) 140px minmax(96px,1fr);gap:4px;align-items:center}
+.cy-pip-controls button{min-width:0;min-height:44px;max-width:none;padding:8px 12px;white-space:nowrap;overflow:visible}
+.cy-pip-controls>.cy-pip-goals{display:grid;grid-template-columns:repeat(3,44px);gap:4px;justify-content:center}
+.cy-pip-controls .cy-pip-goals button{width:44px;padding:8px}
+.cy-pip-controls small{grid-column:1/-1;flex-basis:100%;text-align:center}
+.cy-pip-viewport-note{position:absolute;inset:0;display:grid;place-content:center;margin:0;padding:16px;text-align:center;pointer-events:none;color:var(--cy-ink)}
+@container(max-width:355px){.cy-pip-controls[data-active="true"]{grid-template-columns:repeat(2,minmax(0,1fr))}.cy-pip-controls [data-pip-control="planter"]{grid-column:2;grid-row:1}.cy-pip-controls>.cy-pip-goals{grid-column:1/-1;grid-row:2}}
+
+/* Local preview-only compact profile: its short header carries visible status. */
+@media (min-aspect-ratio:8/5) and (max-height:550px){.cy-app[data-pip-preview="true"] .cy-status{position:absolute;width:1px;height:1px;min-height:0;padding:0;overflow:hidden;clip-path:inset(50%)}}
+
+/* The compact preview reserves exactly52px:44px controls plus4px top/bottom. */
+@media (min-aspect-ratio:8/5) and (max-height:550px){
+ .cy-pip-controls[data-active="true"]{height:52px;min-height:52px;max-height:52px;padding:4px 8px;grid-template-rows:44px}
+ .cy-pip-controls[data-active="true"] small{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+}

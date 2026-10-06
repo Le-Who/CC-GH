@@ -1,0 +1,86 @@
+{
+  "format": "normal-yard-native-qa-packet/v1",
+  "parent": "9269231c1d952b056fddf056758b61034d72c63c",
+  "files": [
+    {
+      "path": ".github/workflows/yard-normal-preview-check.yml",
+      "bytes": 4323,
+      "sha256": "40186d8c29e621da9f63665e733b7be2add175ddce17c6ff8c0f06292a35712f"
+    },
+    {
+      "path": "qa/yard-normal-preview/build.mjs",
+      "bytes": 3355,
+      "sha256": "78c0311a5c488e88ee7f11f64f0323b043677a91514f57b396324b766a2c0481"
+    },
+    {
+      "path": "qa/yard-normal-preview/closure.mjs",
+      "bytes": 6556,
+      "sha256": "c2141f5b14e6905e4e3b6aaff288f322c739bf26d176561a3d9f64e16a567b75"
+    },
+    {
+      "path": "qa/yard-normal-preview/historical-findings.json",
+      "bytes": 672,
+      "sha256": "687d179f7d4e53e3034e236d9971786b2e82ce60028e5ccf7005d60181e27661"
+    },
+    {
+      "path": "qa/yard-normal-preview/prepare-preview.py",
+      "bytes": 1962,
+      "sha256": "945347c013a9c440740688786015141b2538225b30393542bf8a561f2bc318d9"
+    },
+    {
+      "path": "qa/yard-normal-preview/preview-fixture.mjs",
+      "bytes": 1301,
+      "sha256": "81f45dae4078a8e213f676f7a87ea741f0272a6e5749bdd4292fe536043ebd55"
+    },
+    {
+      "path": "qa/yard-normal-preview/run.mjs",
+      "bytes": 28909,
+      "sha256": "249c9433e150005d060bca1eafc14fd4309694049c2abd9b4c0810bcf0bf9fde"
+    },
+    {
+      "path": "qa/yard-normal-preview/runtime-urls.mjs",
+      "bytes": 4436,
+      "sha256": "4205603847312bd9af3e48041ccaf30130896522194ac620ff22750a3ceda45c"
+    },
+    {
+      "path": "qa/yard-normal-preview/source-pin.json",
+      "bytes": 31273,
+      "sha256": "fcfaf096ecd174a46bf1f21ea0bc880d3f0caaf22ebbeb775d3c4f93f98e0a98"
+    },
+    {
+      "path": "qa/yard-normal-preview/templates/index.html",
+      "bytes": 434,
+      "sha256": "54859d0d1d97f8a6eab3e86b13e9c396a7342f8a5af958d94bee8428f9e1783a"
+    },
+    {
+      "path": "qa/yard-normal-preview/templates/preview-app.jsx",
+      "bytes": 2048,
+      "sha256": "d474d1e23922839df8625c1860bf63955165675c4e54f0da59e0d0faa7110155"
+    },
+    {
+      "path": "qa/yard-normal-preview/templates/preview-bootstrap.mjs",
+      "bytes": 294,
+      "sha256": "a72d26dbec79373e181c22a624fe33f41bd3dfe98d418db88598a8b1812a68bb"
+    },
+    {
+      "path": "qa/yard-normal-preview/templates/preview.css",
+      "bytes": 136,
+      "sha256": "6b1e71503d9e1ad930fd7e5d427d5f41bdbaf8d9008861d93c7d55f0c320488f"
+    },
+    {
+      "path": "qa/yard-normal-preview/templates/vite.phone-preview.config.mjs",
+      "bytes": 1156,
+      "sha256": "a8e9224ec18efe64f2f6924a5f8255bcb37d2f9f811e344deb0ed815ae4f05fa"
+    },
+    {
+      "path": "qa/yard-normal-preview/verify.mjs",
+      "bytes": 2119,
+      "sha256": "ad539ed810f27e2f610129e84f5b20283a254a02305d2b949b47a302187131b8"
+    },
+    {
+      "path": "qa/yard-normal-preview/workflow-audit.json",
+      "bytes": 5987,
+      "sha256": "0bf9cc006ee94e4db8a1a1e6886151acaf31b2a2493fd5c8742def7d07621bfb"
+    }
+  ]
+}

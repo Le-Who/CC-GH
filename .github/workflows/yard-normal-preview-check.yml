@@ -1,0 +1,86 @@
+name: Normal Vite Yard and static phone evidence
+on:
+  push:
+    branches: ['qa/yard-normal-preview-check-20261006']
+permissions:
+  contents: read
+concurrency:
+  group: yard-normal-preview-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  native-browser:
+    if: github.run_attempt == 1 && github.event.created == true && github.event.forced == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CI: 'true'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Verify exact source delta and all parent workflow triggers
+        id: verify
+        run: |
+          node qa/yard-normal-preview/verify.mjs
+          command -v xvfb-run
+      - name: Install exact locked ordinary QA dependencies
+        id: dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+          if ! command -v ffmpeg >/dev/null || ! command -v ffprobe >/dev/null; then
+            timeout 90s sudo apt-get -o Acquire::Retries=0 update
+            timeout 90s sudo apt-get -o Acquire::Retries=0 install -y --no-install-recommends ffmpeg
+          fi
+          command -v ffmpeg
+          command -v ffprobe
+      - name: Focused source checks
+        id: source
+        run: |
+          set -o pipefail
+          mkdir -p qa/yard-normal-preview/results
+          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-pip-integration.test.mjs tests/yard-pip-legacy-m2.test.mjs tests/yard-pip-renderer.test.mjs tests/yard-pip-viewport-recovery.test.mjs tests/yard-pip-preview-gate.test.mjs tests/yard-pip-build-boundary.test.mjs tests/yard-atlas-working-set.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-mochi-scene-lifecycle.test.mjs tests/yard-pebble-scene-lifecycle.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/perf-build-guard.test.js tests/yard-public-media.test.mjs tests/yard-actor-profiles.test.mjs tests/yard-ui-media-budget.test.mjs | tee qa/yard-normal-preview/results/source-tests.tap
+      - name: Build actual default, opt-in and read-only Vite outputs and close assets
+        id: build
+        run: node qa/yard-normal-preview/build.mjs
+      - name: One bounded native consumer and phone-preview pass
+        id: browser
+        timeout-minutes: 4
+        run: xvfb-run -a --server-args='-screen 0 2880x2160x24' node qa/yard-normal-preview/run.mjs
+      - name: Preserve outcomes and enforce eight MiB evidence ceiling
+        id: cap
+        if: always()
+        env:
+          VERIFY_OUTCOME: ${{ steps.verify.outcome }}
+          DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
+          SOURCE_OUTCOME: ${{ steps.source.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+        run: |
+          python3 - <<'PY'
+          import json,os,pathlib
+          p=pathlib.Path('qa/yard-normal-preview/results');p.mkdir(parents=True,exist_ok=True)
+          setup={k:os.environ.get(k) for k in ['VERIFY_OUTCOME','DEPENDENCIES_OUTCOME','SOURCE_OUTCOME','BUILD_OUTCOME','BROWSER_OUTCOME']}
+          (p/'setup-outcomes.json').write_text(json.dumps(setup,indent=2))
+          if not (p/'report.json').exists():
+              (p/'report.json').write_text(json.dumps({'status':'SETUP_OR_EARLY_FAILURE','browserAcceptance':'NOT_ESTABLISHED','setup':setup},indent=2))
+          size=sum(f.stat().st_size for f in p.rglob('*') if f.is_file())
+          assert size<=8*1024*1024,'Evidence over cap: original files preserved, upload refused'
+          print('Evidence bytes:',size)
+          PY
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.cap.outcome == 'success'
+        with:
+          name: yard-normal-preview-${{ github.sha }}-${{ github.run_attempt }}
+          path: qa/yard-normal-preview/results/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0

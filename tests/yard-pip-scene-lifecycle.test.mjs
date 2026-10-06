@@ -1,3 +1,4 @@
+import {ownedImageBlob} from './helpers/yard-owned-image-fixture.mjs';
 /** Control-flow test with explicit DOM/image substitutes. Not a browser or pixel
  * test; real rendering is covered only by the separate authorized CI harness. */
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
@@ -20,8 +21,8 @@ test('shared scene keeps coherent backing pixels and pointer coordinates during 
   fetch:async value=>{const u=new URL(value,'https://qa.invalid');assert.equal(u.origin,'https://qa.invalid');requests.push(u.pathname);
    if(block&&u.pathname.endsWith('/pip-snack-combined-r1-p28.webp')){blocked=true;await gate;}
    if(u.pathname.endsWith('.json'))return{ok:true,json:async()=>JSON.parse(await readFile(new URL('../public'+u.pathname,import.meta.url),'utf8'))};
-   assert.ok(dimensions.has(u.pathname),u.pathname);return{ok:true,blob:async()=>({path:u.pathname,size:10})};},
-  createImageBitmap:async b=>({...dimensions.get(b.path),close:()=>closed.push(b.path)}),
+   return{ok:true,blob:async()=>dimensions.has(u.pathname)?({path:u.pathname,size:10}):ownedImageBlob(u.pathname)};},
+  createImageBitmap:async b=>({...b.fixtureDimensions||dimensions.get(b.path),close:()=>closed.push(b.path)}),
   requestAnimationFrame:cb=>{const id=++frame;raf.set(id,cb);return id;},cancelAnimationFrame:id=>raf.delete(id)});
  let rect={left:0,top:0,width:320,height:432},clears=0;const context={setTransform(){},clearRect(){clears++;},save(){},restore(){},translate(){},scale(){},createRadialGradient(){return{addColorStop(){}};},fillRect(){},drawImage(){}};
  const canvas={width:0,height:0,getContext:()=>context,getBoundingClientRect:()=>rect};
@@ -36,5 +37,5 @@ test('shared scene keeps coherent backing pixels and pointer coordinates during 
  const logical=scene.point(event);assert.ok(Math.abs(logical.x-50)<1e-9);assert.ok(Math.abs(logical.y-50)<1e-9);assert.equal(scene.hit(event).slotId,'snack');
  await pump(()=>scene.diagnostics().pendingDecodes===1);assert.equal(clears,heldClears);release();await pump(()=>scene.diagnostics().view?.now===fixture.times.rest&&!scene.diagnostics().pendingResize);
  assert.equal(canvas.width,568);assert.equal(canvas.height,252);assert.ok(clears>heldClears);assert.deepEqual(errors,[]);const d=scene.diagnostics();assert.equal(d.atlasPolicy.id,'yard-canonical-atlas/r1');assert.equal(d.atlasPolicy.maxPages,3);assert.ok(d.retainedPages<=3);assert.ok(d.decodedBytesEstimate+d.pendingBytesEstimate<=64*1024*1024);assert.ok(d.pendingDecodes<=1);
- scene.dispose();assert.equal(scene.diagnostics().retainedPages,0);assert.ok(closed.length>0);assert.ok(requests.some(p=>p.startsWith('/assets/yard-pip/')));
+ await scene.dispose();assert.equal(scene.diagnostics().retainedPages,0);assert.ok(closed.length>0);assert.ok(requests.some(p=>p.startsWith('/assets/yard-pip/')));
 });

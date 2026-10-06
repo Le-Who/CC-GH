@@ -1,0 +1,18 @@
+{
+  "format": "yard-build-historical-findings/v1",
+  "historicalV1Only": true,
+  "noCurrentWaiver": true,
+  "nonFamilyBudgetBytes": 75000000,
+  "originalNonFamilyBytes": {
+    "baseline": 75113382,
+    "default": 78815903,
+    "optIn": 84248079
+  },
+  "originalOverageBytes": {
+    "baseline": 113382,
+    "default": 3815903,
+    "optIn": 9248079
+  },
+  "oldGoldenTestResults": "Two expectations failed unchanged on baseline, then corrected in a separately reviewed test-only change. The full current corrected actor suite must pass in this job.",
+  "currentGate": "Both current scoped V2 asset guards must pass. Browser execution cannot waive an asset/source failure."
+}

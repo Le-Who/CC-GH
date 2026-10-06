@@ -1,0 +1,116 @@
+{
+  "parent": "9269231c1d952b056fddf056758b61034d72c63c",
+  "parentWorkflowTree": "d3607f186a1eb79fdd52af917fd38316f8fe58d0",
+  "branch": "qa/yard-normal-preview-check-20261006",
+  "event": "push on initial branch creation; no PR or workflow_dispatch",
+  "newWorkflow": ".github/workflows/yard-normal-preview-check.yml",
+  "parentWorkflows": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "gitBlob": "3b3867cb9b21a2eb256b6d74d1559ae1e5b7b1d9",
+      "sha256": "b66850d4f89d512d2f608fcc46c3f52f540c19651174199c925c06a8865b338a",
+      "bytes": 34689,
+      "triggerSummary": "on:\n  workflow_call:\n  pull_request:\n    branches: [codex/telegram-pixi-vps-migration]",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/deploy.yml",
+      "gitBlob": "269ac3142da0947cb8e2ac7803c2a6796a7b7df0",
+      "sha256": "1ca789317a35d0f5d391d38efc7fe61ddc8a2470fbd1a531be112df706a749b6",
+      "bytes": 21680,
+      "triggerSummary": "on:\n  push:\n    branches:\n      - codex/telegram-pixi-vps-migration\n  workflow_dispatch:",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/provision-caddy.yml",
+      "gitBlob": "2e399eef8a16bedbf4bb878e64545b1c860b99db",
+      "sha256": "57a834a36a179f6b8fded126afeb54903c14fa690f4b3f1a520fa08c8db45791",
+      "bytes": 2925,
+      "triggerSummary": "on:\n  workflow_dispatch:\n    inputs:\n      domain:\n        description: \"Public domain for CC-GH\"\n        required: true\n        default: \"games.tri.mom\"\n      app_host_port:\n        description: \"Localhost port used by ccgh-app\"\n        required: true\n        default: \"18080\"",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-compact-ui-code-check.yml",
+      "gitBlob": "ecd0b4f28ca9d277e10759d6364c88271801eb8e",
+      "sha256": "c35bb763995c0b3297b074cac4bf9f84927616e7358b411522c3b62eef96680a",
+      "bytes": 791,
+      "triggerSummary": "on:\n  push:\n    branches: ['qa/yard-compact-ui-code-20261005']",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-corrected-scene-browser.yml",
+      "gitBlob": "aacab4f76ed455d1bbb714d0354c74c94dcb74ff",
+      "sha256": "4f42a561343dd4b5d26a90a0ae73edb1280f7490e3ca05e501656bb5a6387482",
+      "bytes": 2149,
+      "triggerSummary": "on:\n  push:\n    branches: ['qa/yard-corrected-scene-browser-20261005']",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-native-gameplay-qa.yml",
+      "gitBlob": "160f32765c8574abb7f5e0b69d8faf6de7ede410",
+      "sha256": "7d65562c3fdd5b90b57a54ef458ed643524410613b8f1d039c4258b9f092eb34",
+      "bytes": 2863,
+      "triggerSummary": "on:\n  workflow_dispatch:\n  pull_request:\n    types: [opened, reopened, synchronize, labeled]",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-pip-integrated-check.yml",
+      "gitBlob": "a14d64b077bcf6630d4ca3f4bd982d577712b9fc",
+      "sha256": "c2fd4ec69d8c8b22ce66ca0772eaf34593c2893e45f7ad697606fde13f16c9b4",
+      "bytes": 3908,
+      "triggerSummary": "on:\n  push:\n    branches: ['qa/yard-pip-integrated-layout-20261006']",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-pip-webgl-followup.yml",
+      "gitBlob": "43e1a80e5f1c06c0b47d59cee35a9aacdbec2d03",
+      "sha256": "9736c1b7aa43cb389fd4d776498888092bc2e02853654f1958f1f1a5c8f8a1a1",
+      "bytes": 2535,
+      "triggerSummary": "on:\n  push:\n    branches: ['qa/yard-pip-webgl-followup-setupfix-20261006']",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-pip-webgl-pilot.yml",
+      "gitBlob": "a3abe7fd38b05378adc648bfbfafc232c9fa83dc",
+      "sha256": "9879d8edad4dca8f10b835ec270e7802e9e8b02cc86ba143f1cacda79c0235bc",
+      "bytes": 2221,
+      "triggerSummary": "on:\n  push:\n    branches: ['qa/yard-pip-webgl-pilot-20261006']",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-production-acceptance.yml",
+      "gitBlob": "c9839f2faf1bd448ee4fd6ce075e9bab9ac4b59d",
+      "sha256": "02e6ecd1bcd62c05ba18d8ed6cb92e77cb499a2aee597823315620bc7939b7de",
+      "bytes": 3197,
+      "triggerSummary": "on:\n  workflow_dispatch:\n    inputs:\n      active_commit:\n        description: Exact reviewed active B commit (40 hex)\n        required: true\n        type: string\n      closed_commit:\n        description: Exact published compatible closed A commit (40 hex)\n        required: true\n        type: string\n      closed_digest:\n        description: Immutable closed A GHCR sha256 digest\n        required: true\n        type: string",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-redesign-preview.yml",
+      "gitBlob": "61fdec0b3c6b50e32ae215d2cae7e05c3914b983",
+      "sha256": "8048e6b828e4c33536392e3102104e5105c520a36362898de1710894ee06257c",
+      "bytes": 4253,
+      "triggerSummary": "on:\n  push:\n    branches: [qa/yard-redesign-preview]",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-ui-functional-qa.yml",
+      "gitBlob": "6317abd82d24e5dc563015532f31b0287fc8068a",
+      "sha256": "0c8dcd4fd63753c343853db0ee08fc3b44d77f29dfb49c39fa35492be3c2b74e",
+      "bytes": 2287,
+      "triggerSummary": "on:\n  push:\n    branches: [qa/yard-ui-functional-preview]",
+      "firesOnReviewedInitialPush": false
+    }
+  ],
+  "existingWorkflowsTriggered": 0,
+  "newWorkflowsTriggered": 1,
+  "jobs": 1,
+  "timeoutMinutes": 10,
+  "runAttemptMustEqual": 1,
+  "automaticRetries": 0,
+  "deploys": false,
+  "serverWrites": false,
+  "secrets": false,
+  "newCredentials": false,
+  "review": "All twelve full immutable workflow blobs inspected; push triggers use other exact branch names. CI and native QA PR triggers are outside this initial-push operation. Manual workflows are not dispatched."
+}

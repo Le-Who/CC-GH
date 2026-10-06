@@ -1,4 +1,7 @@
+import {renderCatalogPreview} from './render-pack.mjs';
 import {CATALOG_PREVIEW_PATHS} from './catalog-preview-paths.mjs';
+import {PREVIEW_THUMBNAIL_OVERRIDES} from './preview-thumbnail-overrides.mjs';
+import {CURRENT_CARTOON_PORTRAITS} from './current-cartoon-portrait-paths.mjs';
 
 /** Presentation assets only. Prices, ownership and action gates remain server/catalog owned. */
 const root = '/games/companion-yard';
@@ -49,7 +52,9 @@ export function catalogPreviewSource(kind, id, {condition = 'new', pose = ''} = 
 }
 export function catalogPreview(kind,id,options) {
   const source=catalogPreviewSource(kind,id,options);
-  return source && (CATALOG_PREVIEW_PATHS[source] || source);
+  if(kind==='visitor'&&!options?.pose&&Object.hasOwn(CURRENT_CARTOON_PORTRAITS,source))return CURRENT_CARTOON_PORTRAITS[source];
+  const preview=source && (kind==='remodel'?`/assets/yard-ui/delivery/background-${id}.webp`:(CATALOG_PREVIEW_PATHS[source] || source));
+  return preview && (PREVIEW_THUMBNAIL_OVERRIDES[preview] || preview);
 }
 export function photoPreview(photo = {}) {
   return { visitor: catalogPreview('visitor', photo.visitorId, {pose: photo.pose}), background: catalogPreview('remodel', photo.remodel), goodie: catalogPreview('goodie', photo.goodieId) };
@@ -68,4 +73,23 @@ const placementMessages = Object.freeze({
 });
 export function placementMessageKey(code) {
   return `yard.persistent.placement.${Object.hasOwn(placementMessages,code)?placementMessages[code]:'blocked'}`;
+}
+
+/** This screen never substitutes old-camera prop/food pixels. Its ordinary
+ * loading/error state remains visible until the verified catalogue is ready. */
+export function sceneCatalogPreview(catalog,kind,id,options){
+ if(catalog?.kind==='legacy-m2')return catalogPreview(kind,id,options);
+ if(kind==='goodie'||kind==='food')return catalog?renderCatalogPreview(catalog,kind,id,options):null;
+ return catalogPreview(kind,id,options);
+}
+export function scenePhotoPreview(catalog,photo={}){
+ return{visitor:sceneCatalogPreview(catalog,'visitor',photo.visitorId,{pose:photo.pose}),
+  background:sceneCatalogPreview(catalog,'remodel',photo.remodel),
+  goodie:sceneCatalogPreview(catalog,'goodie',photo.goodieId)};
+}
+/** Exact historical URLs retired from the new-camera screen, not decoded
+ * owners released at runtime. Generic historical helpers remain available. */
+export function retiredScenePreviewURLs(){
+ return [...new Set([...Object.keys(foodAssets).map(id=>catalogPreview('food',id)),
+  ...goodieIds.flatMap(id=>['new','worn','broken'].map(condition=>catalogPreview('goodie',id,{condition})))])].sort();
 }

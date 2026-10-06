@@ -1,3 +1,4 @@
+import {ownedImageBlob} from './helpers/yard-owned-image-fixture.mjs';
 import './yard-inventory-only-loader.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -34,8 +35,8 @@ function environment(){
  globalThis.ResizeObserver=class{constructor(fn){this.fn=fn;resize=fn;}observe(){this.fn();}disconnect(){}};
  globalThis.requestAnimationFrame=fn=>(raf=fn,1);globalThis.cancelAnimationFrame=()=>raf=null;
  globalThis.Image=class{width=64;height=64;set src(v){this.url=v;queueMicrotask(()=>this.onload());}};
- globalThis.fetch=async url=>{const u=new URL(url,location.origin);if(u.pathname.endsWith('runtime-media.json')){const id=u.pathname.split('/')[2].replace('yard-','');return{ok:true,json:async()=>copy(manifests[id])};}if(u.pathname.endsWith('still-layer-contract.json'))return{ok:true,json:async()=>copy(stills)};const blob=new Blob(['synthetic']);blob.src=u.href;return{ok:true,blob:async()=>blob};};
- globalThis.createImageBitmap=blob=>new Promise(resolve=>waiting.push({src:blob.src,resolve}));
+ globalThis.fetch=async url=>{const u=new URL(url,location.origin);if(u.pathname.endsWith('runtime-media.json')){const id=u.pathname.split('/')[2].replace('yard-','');return{ok:true,json:async()=>copy(manifests[id])};}if(u.pathname.endsWith('still-layer-contract.json'))return{ok:true,json:async()=>copy(stills)};const blob=dimensions.has(u.href)?new Blob(['synthetic']):await ownedImageBlob(u.pathname);blob.src=u.href;return{ok:true,blob:async()=>blob};};
+ globalThis.createImageBitmap=blob=>{if(blob.fixtureDimensions){const image={...blob.fixtureDimensions,closed:0,close(){this.closed++;}};images.push(image);return Promise.resolve(image);}return new Promise(resolve=>waiting.push({src:blob.src,resolve}));};
  const canvas={width:0,height:0,getContext:()=>ctx,getBoundingClientRect:()=>rect};
  const owner=createCourtyardScene(canvas,{actorProfiles:profiles,now:()=>mono,onError:e=>errors.push(e)});
  return{owner,canvas,waiting,images,errors,
@@ -47,17 +48,30 @@ function environment(){
   restore(){owner.dispose();for(const[k,v]of old)if(v.own)globalThis[k]=v.value;else delete globalThis[k];},
  };
 }
-test('shared scene holds one coherent four-actor frame through slow simultaneous switches, resize, disposal and reload',async()=>{
- const snap=snapshot(),saved=JSON.stringify(snap),h=environment();try{
-  h.owner.update(snap);await h.owner.ready;assert.deepEqual(h.errors,[]);h.tick(0);await step();assert.equal(h.clears,0,'a partial cold four-actor frame must never be drawn');assert.equal(h.waiting.length,1);
+test('shared scene holds one coherent bounded two-actor frame through slow simultaneous switches, resize, disposal and reload',async()=>{
+ const snap=snapshot();snap.yardRuntime.visits=snap.yardRuntime.visits.filter(row=>['pip_hamster','pebble_pup'].includes(row.visitorId));const saved=JSON.stringify(snap),h=environment();try{
+  h.owner.update(snap);await h.owner.ready;assert.deepEqual(h.errors,[]);h.tick(0);await step();assert.equal(h.clears,0,'a partial cold two-actor frame must never be drawn');assert.equal(h.waiting.length,1);
   while(h.waiting.length){await h.complete();if(h.waiting.length)assert.equal(h.clears,0);}
-  h.tick(0);assert.equal(h.owner.diagnostics().view.pets.length,4);assert.equal(h.draws.filter(im=>im.src).length,4);const heldClear=h.clears,heldImages=h.draws.slice(),heldView=h.owner.diagnostics().view;
+  h.tick(0);assert.equal(h.owner.diagnostics().view.pets.length,2);assert.equal(h.draws.filter(im=>im.src).length,2);const heldClear=h.clears,heldImages=h.draws.slice(),heldView=h.owner.diagnostics().view;
   // Force a simultaneous phase/route change by jumping to a later snapshot.
   const leave=Math.max(...snap.yardRuntime.visits.map(r=>r.mediaAdmission.plan.departureAt));const dt=leave-snap.yardRuntime.serverNow+1000;
-  h.tick(dt);await step();assert.equal(h.clears,heldClear);assert.deepEqual(h.draws,heldImages);assert.equal(h.owner.diagnostics().view,heldView);assert.equal(h.owner.diagnostics().view.pets.length,4);assert.equal(h.waiting.length,1);const backing=h.canvas.width;h.resize(390,844);assert.equal(h.canvas.width,backing,'resize must not clear held pixels');assert.equal(h.owner.diagnostics().pendingResize,true);
+  h.tick(dt);await step();assert.equal(h.clears,heldClear);assert.deepEqual(h.draws,heldImages);assert.equal(h.owner.diagnostics().view,heldView);assert.equal(h.owner.diagnostics().view.pets.length,2);assert.equal(h.waiting.length,1);const backing=h.canvas.width;h.resize(390,844);assert.equal(h.canvas.width,backing,'resize must not clear held pixels');assert.equal(h.owner.diagnostics().pendingResize,true);
   const before=copy(h.owner.diagnostics());assert.ok(before.timing.activeMediaWait);assert.equal(before.atlasPolicy.maxPages,7);assert.equal(before.atlasPolicy.maxDecodedBytes,64*M);assert.equal(before.atlasPolicy.maxConcurrentDecodes,1);
-  await h.flush();h.tick(dt+40);const current=h.owner.diagnostics();assert.equal(current.view.pets.length,4);assert.equal(h.draws.filter(im=>im.src).length,4);assert.ok(current.presentationTime>=snap.yardRuntime.serverNow+dt);assert.equal(current.timing.activeMediaWait,null);assert.equal(h.canvas.width,780);assert.equal(h.canvas.height,1688);assert.equal(current.pendingResize,false);assert.equal(current.pendingDecodes<=1,true);assert.ok(current.decodedBytesEstimate+current.pendingBytesEstimate<=64*M);assert.equal(JSON.stringify(snap),saved);
+  await h.flush();h.tick(dt+40);const current=h.owner.diagnostics();assert.equal(current.view.pets.length,2);assert.equal(h.draws.filter(im=>im.src).length,2);assert.ok(current.presentationTime>=snap.yardRuntime.serverNow+dt);assert.equal(current.timing.activeMediaWait,null);assert.equal(h.canvas.width,780);assert.equal(h.canvas.height,1688);assert.equal(current.pendingResize,false);assert.equal(current.pendingDecodes<=1,true);assert.ok(current.decodedBytesEstimate+current.pendingBytesEstimate<=64*M);assert.equal(JSON.stringify(snap),saved);
   h.owner.dispose();await h.flush();assert.ok(h.images.every(im=>im.closed===1));assert.equal(h.errors.length,0);
  }finally{h.restore();}
- const reload=environment();try{reload.owner.update(JSON.parse(saved));await reload.owner.ready;reload.tick(0);await reload.flush();reload.tick(0);assert.equal(reload.owner.diagnostics().view.pets.length,4);assert.equal(reload.draws.filter(im=>im.src).length,4);assert.equal(reload.errors.length,0);}finally{reload.restore();}
+ const reload=environment();try{reload.owner.update(JSON.parse(saved));await reload.owner.ready;reload.tick(0);await reload.flush();reload.tick(0);assert.equal(reload.owner.diagnostics().view.pets.length,2);assert.equal(reload.draws.filter(im=>im.src).length,2);assert.equal(reload.errors.length,0);}finally{reload.restore();}
+});
+
+test('the independently juxtaposed four-actor stress fixture fails closed with full UI ownership',async()=>{
+ const snap=snapshot(),before=JSON.stringify(snap),h=environment();
+ try{
+  h.owner.update(snap);await h.owner.ready;assert.deepEqual(h.errors,[]);h.tick(0);await step();
+  assert.equal(h.errors.length,1);assert.match(h.errors[0].message,/working set exceeds/);
+  assert.equal(h.waiting.length,0);assert.equal(h.clears,0,'an unadmitted partial frame must not draw');
+  assert.equal(h.owner.diagnostics().atlasPolicy.maxDecodedBytes,64*M);
+  const d=h.owner.diagnostics(),ownedBytes=h.images.filter(image=>!image.closed).reduce((sum,image)=>sum+image.width*image.height*4,0);assert.ok(ownedBytes+h.canvas.width*h.canvas.height*4+d.uiLifetimeFloor<=64*M);
+  assert.equal(JSON.stringify(snap),before);
+  await h.owner.dispose();assert.ok(h.images.every(image=>image.closed===1));
+ }finally{h.restore();}
 });

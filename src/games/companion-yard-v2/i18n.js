@@ -3,6 +3,20 @@ import "../companion-yard/i18n.js";
 
 export const PERSISTENT_YARD_TRANSLATIONS = {
   en: {
+    "yard.pipPreview.title": "Pip · Preview",
+    "yard.pipPreview.name": "Pip preview",
+    "yard.pipPreview.enable": "Preview Pip",
+    "yard.pipPreview.return": "Return to Yard",
+    "yard.pipPreview.returnShort": "Yard",
+    "yard.pipPreview.planterPosition": "Planter {position}",
+    "yard.pipPreview.viewportPaused": "Preview paused. Enlarge the window to continue.",
+    "yard.pipPreview.planter": "Move planter",
+    "yard.pipPreview.goal": "Walk to {label}",
+    "yard.pipPreview.readOnly": "Pip preview. Yard controls are read-only.",
+    "yard.pipPreview.small": "This window is too small for the preview.",
+    "yard.pipPreview.unavailable": "The preview is unavailable. Return to the Yard and try again.",
+
+    "yard.persistent.error.visualMedia": "Courtyard artwork is unavailable. Please try again later.",
     "yard.persistent.error.storage": "The action could not be saved on this device. Please try again.",
     "yard.persistent.retrySaving": "Retry saving",
     "yard.persistent.placement.outside": "Keep the whole item inside the courtyard.",
@@ -125,6 +139,20 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.persistent.error.letter": "Today’s letter has already been opened.",
   },
   ru: {
+    "yard.pipPreview.title": "Pip · Просмотр",
+    "yard.pipPreview.name": "Предпросмотр Pip",
+    "yard.pipPreview.enable": "Предпросмотр Pip",
+    "yard.pipPreview.return": "Вернуться во двор",
+    "yard.pipPreview.returnShort": "Во двор",
+    "yard.pipPreview.planterPosition": "Горшок {position}",
+    "yard.pipPreview.viewportPaused": "Предпросмотр приостановлен. Увеличьте окно, чтобы продолжить.",
+    "yard.pipPreview.planter": "Переставить горшок",
+    "yard.pipPreview.goal": "Идти к {label}",
+    "yard.pipPreview.readOnly": "Предпросмотр Pip. Двор доступен только для просмотра.",
+    "yard.pipPreview.small": "Окно слишком мало для предпросмотра.",
+    "yard.pipPreview.unavailable": "Предпросмотр недоступен. Вернитесь во двор и попробуйте снова.",
+
+    "yard.persistent.error.visualMedia": "Графика двора недоступна. Попробуйте позже.",
     "yard.persistent.error.storage": "Не удалось сохранить действие на устройстве. Попробуйте ещё раз.",
     "yard.persistent.retrySaving": "Повторить",
     "yard.persistent.placement.outside": "Весь предмет должен быть внутри двора.",

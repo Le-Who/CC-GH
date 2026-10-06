@@ -34,7 +34,9 @@
     "test:yard-family": "node --test --test-concurrency=1 tests/yard-family-conditions.test.mjs tests/yard-family-reservations.test.mjs tests/yard-family-media.test.mjs tests/yard-intrinsic-prop-identity.test.mjs tests/yard-visit-reservations.test.mjs tests/yard-mixed-admission.test.mjs tests/yard-mixed-obstacles.test.mjs tests/yard-source-owned-routes.test.mjs tests/yard-authored-routes.test.mjs tests/yard-pip-source.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-family-pg-guard.test.mjs tests/yard-native-duration.test.mjs tests/yard-ground-coverage-index.test.mjs",
     "test:yard-family:pg": "node --test --test-concurrency=1 tests/yard-family-postgres.test.mjs",
     "test:yard-player-wiring": "node --test --test-concurrency=1 tests/yard-player-rollout.test.mjs",
-    "test:yard-rollback-guard": "node --test tests/yard-rollback-guard.test.mjs tests/release-gate.test.js"
+    "test:yard-rollback-guard": "node --test tests/yard-rollback-guard.test.mjs tests/release-gate.test.js",
+    "test:yard-pip-preview": "node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-pip-integration.test.mjs tests/yard-pip-legacy-m2.test.mjs tests/yard-pip-renderer.test.mjs tests/yard-pip-viewport-recovery.test.mjs tests/yard-pip-preview-gate.test.mjs tests/yard-pip-build-boundary.test.mjs tests/yard-atlas-working-set.test.mjs",
+    "test:yard-ui-media-budget": "node --test tests/yard-ui-media-budget.test.mjs"
   },
   "dependencies": {
     "@esotericsoftware/spine-pixi-v8": "^4.2.112",

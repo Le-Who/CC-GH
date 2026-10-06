@@ -67,17 +67,19 @@ test('only the immutable Mika profile is ready; malformed or foreign explicit re
   assert.equal(resolveVisitActorProfile({...r,original:{...r.original,visitorId:'mochi_bunny'}},own),null);
   assert.equal(resolveBindingActorProfile({...b,visitorId:'mochi_bunny'}),null);
 });
-test('new admission adds actor identity and timed occupancy; r3 economics, commits, claim result and replay remain identical',()=>{
-  let p=copy(golden.initialPlayer);ensurePersistentPlayerYard(p,{now:NOW});ensurePersistentPlayerYard(p,{now:NOW+4*H,simulate:true});
+test('historical Mika admission adds actor identity and timed occupancy; r3 economics, commits, claim result and replay remain identical',()=>{
+  // The immutable r3 golden was authored with the original Mika-only registry.
+  const options=getMikaServerOptions(),claimOptions={...options,...golden.claimOptions};
+  let p=copy(golden.initialPlayer);ensurePersistentPlayerYard(p,{...options,now:NOW});ensurePersistentPlayerYard(p,{...options,now:NOW+4*H,simulate:true});
   assert.deepEqual(record(p).mediaAdmission.actorProfile,REF);assert.deepEqual(withoutNewRefs(p),golden.admittedPlayer);
-  const projection=publicPersistentYard(p,{now:golden.projectionTime});assert.deepEqual(projection.visits[0].resolvedActorProfile,REF);
+  const projection=publicPersistentYard(p,{...options,now:golden.projectionTime});assert.deepEqual(projection.visits[0].resolvedActorProfile,REF);
   delete projection.visits[0].resolvedActorProfile;delete projection.visits[0].mediaAdmission.actorProfile;
   delete projection.visits[0].mediaAdmission.plan.reservations;
   assert.deepEqual(projection,golden.publicProjection);
-  const at=record(p).leavesAt;ensurePersistentPlayerYard(p,{now:at,simulate:true});assert.deepEqual(withoutNewRefs(p),golden.completedPlayer);
-  const result=executePersistentYardAction(p,'yard.collectGifts',{},golden.claimOptions);assert.deepEqual(copy(result),golden.claimResult);
+  const at=record(p).leavesAt;ensurePersistentPlayerYard(p,{...options,now:at,simulate:true});assert.deepEqual(withoutNewRefs(p),golden.completedPlayer);
+  const result=executePersistentYardAction(p,'yard.collectGifts',{},claimOptions);assert.deepEqual(copy(result),golden.claimResult);
   assert.deepEqual(withoutNewRefs(p),golden.claimedPlayer);p=copy(p);const before=digest(p);
-  assert.equal(executePersistentYardAction(p,'yard.collectGifts',{},golden.claimOptions).replayed,true);assert.equal(digest(p),before);
+  assert.equal(executePersistentYardAction(p,'yard.collectGifts',{},claimOptions).replayed,true);assert.equal(digest(p),before);
 });
 test('actual old player roundtrip resolves a known Mika without backfill, reroute or re-time',()=>{
   let p=copy(golden.admittedPlayer),before=digest(p),r=record(p),plan=digest(r.mediaAdmission.plan);
@@ -93,11 +95,17 @@ test('profile compatibility stays pinned across registry growth and strict for u
   registry.bindings.push({id:'mochi-unapproved',revision:'pending',visitorId:'mochi_bunny',playbackReady:false});registry.revision+=':unrelated';
   const options={...b,mediaRegistry:registry,now:golden.projectionTime},before=digest(p);
   assert.equal(publicPersistentYard(p,options).visits[0].renderCompatible,true);
+  assert.equal(publicPersistentYard(p,{now:golden.projectionTime}).visits[0].renderCompatible,true);
   const state=inspectPlayerYard(p,options).state;assert.equal(inspectPersistentYard(state,options).visits[0].renderCompatible,true);
   assert.equal(digest(p),before);
   delete record(p).mediaAdmission.bindingCalibrationHash;
-  assert.equal(publicPersistentYard(p,{now:golden.projectionTime}).visits[0].renderCompatible,true);
-  assert.equal(publicPersistentYard(p,options).visits[0].renderCompatible,false);
+  // Without a binding pin, compatibility requires the exact saved registry identity.
+  assert.equal(publicPersistentYard(p,{...b,now:golden.projectionTime}).visits[0].renderCompatible,true);
+  for(const changedOptions of [{now:golden.projectionTime},options]){
+    const rejected=publicPersistentYard(p,changedOptions).visits[0];
+    assert.equal(rejected.renderCompatible,false);
+    assert.ok(rejected.presentationIssues.includes('MEDIA_CALIBRATION_MISMATCH'));
+  }
   record(p).mediaAdmission.actorProfile={id:'mika',revision:'future'};
   const rejected=publicPersistentYard(p,{now:golden.projectionTime}).visits[0];
   assert.equal(rejected.renderCompatible,false);assert.equal(Object.hasOwn(rejected,'resolvedActorProfile'),false);
