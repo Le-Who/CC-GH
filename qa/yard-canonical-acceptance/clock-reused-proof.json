@@ -317,8 +317,8 @@
     }
   },
   "allowedClockFiles": {
-    "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs": "5f4dfd5d53ec39c71b02d13bb412a835482319145c2d4e5fd95308bf79e67bc7",
-    "tests/yard-canonical-real-renderer.test.mjs": "3ff5a25050c81aeaceb2760d2a7d14708e177b39fdc9a37c63e1a867b2d69803"
+    "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs": "ab37dc888b6873061187c833e5bbe1d590ca90641233f48291b2b739b8702761",
+    "tests/yard-canonical-real-renderer.test.mjs": "a3931817a90a1280d2bc806e617f858bcb7b1c1dfc683c1ad0fbc2a714f31798"
   },
   "protectedEntryCount": 4890,
   "protectedGitEntriesSha256": "51bf793619500df24dbf8a02e2d6c0d191e6d2b26fcdff336b538dc3c8647368",

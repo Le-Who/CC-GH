@@ -165,7 +165,13 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  return{ready,update(value){const old=selectedCommitted();if(snapshot?.player?.id&&snapshot.player.id!==value?.player?.id){retireInteraction();ghost=null;selectedSlotId=null;}snapshot=value;syncCanonicalInteraction();const next=selectedCommitted();if(canonicalItems&&!itemPointerActive&&descriptor&&(old?.slotId!==next?.slotId||old?.x!==next?.x||old?.y!==next?.y))resize();publish();if(canonicalItems)scheduler.invalidate('snapshot',{whilePaused:true});},
   setCanonicalActionPending(value){canonicalActionPending=!!value;syncInteractionClock();scheduler.invalidate("item-intent",{whilePaused:true});},
   inspectCanonicalSlot(slotId){if(!canonicalItems||ghost||canonicalActionPending||!canonicalCapability(snapshot)||!interaction||!canonicalPlacements(snapshot).some(row=>row.slotId===slotId))return false;selectedSlotId=slotId;const accepted=interaction.request(slotId,clock.read());syncInteractionClock();scheduler.invalidate("inspect-selected",{whilePaused:true});notify(phase());publish();return accepted;},
-  beginPointer(){if(canonicalItems)itemPointerActive=true;},endPointer(){itemPointerActive=false;},
+  beginPointer(){if(canonicalItems)itemPointerActive=true;},endPointer(){
+   // Layout may change before ResizeObserver is delivered. Reconcile while
+   // the pointer still owns its old transform, so pointer-up cannot hide an
+   // orientation interruption from the observer that follows it.
+   if(canonicalItems&&itemPointerActive&&!disposed)try{const r=canvas.getBoundingClientRect();if(projection?.width!==r.width||projection?.height!==r.height)resize();}catch(error){reportFailure(error,'pointer-end-resize');}
+   itemPointerActive=false;
+  },
   selectCanonicalSlot(slotId){if(!canonicalItems||ghost||itemPointerActive||!canonicalPlacements(snapshot).some(row=>row.slotId===slotId))return false;selectedSlotId=slotId;if(descriptor)resize();publish();return true;},
   setGhost(value){if(!canonicalItems)return;if(value)selectedSlotId=value.slotId;ghost=value;syncInteractionClock(); scheduler.invalidate('ghost',{whilePaused:true});},point,
   hit(event){if(!canonicalItems||!canonicalCapability(snapshot)||viewportBlocked||!projection)return null;const r=canvas.getBoundingClientRect();return canonicalPlacements(snapshot).map(item=>{const p=projection.project({x:item.x,y:item.y,z:5.5});return{item,distance:Math.hypot(event.clientX-r.left-p.x,event.clientY-r.top-p.y)};}).filter(row=>row.distance<=Math.max(22,22*projection.scale)).sort((a,b)=>a.distance-b.distance)[0]?.item??null;},

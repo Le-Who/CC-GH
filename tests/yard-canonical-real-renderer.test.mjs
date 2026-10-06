@@ -22,20 +22,45 @@ function contextStub(canvas){
 function environment({nativeRenderer=false,owned=false,failGhost=false,startupClockGap=0}={}){
  const win=new EventTarget(),doc=new EventTarget();doc.hidden=false;doc.hasFocus=()=>true;
  globalThis.window=win;globalThis.document=doc;globalThis.devicePixelRatio=2;
- let observer,width=378,height=622,next=0,at=0,failureCount=0,clockStarted=false;const frames=new Map(),failures=[],renders=[],notices=[],legacyGhosts=[];
+ let observer,width=378,height=622,next=0,at=0,failureCount=0,clockStarted=false,interruptions=0;const frames=new Map(),failures=[],renders=[],notices=[],legacyGhosts=[];
  globalThis.ResizeObserver=class{constructor(fn){observer=fn;}observe(){}disconnect(){}};
  const ctx={setTransform(a,b,c,d,e,f){this.transform={a,b,c,d,e,f};},getTransform(){return this.transform;},clearRect(){},fillRect(){},drawImage(){}};
  const rect=()=>({left:6,top:60,width,height}),canvas={style:{},width:0,height:0,getContext:()=>ctx,getBoundingClientRect:rect};
  const host={style:{},appendChild(c){c.parentNode=this;},getBoundingClientRect:rect};
  const fetchImpl=async url=>{const b=await fs.readFile(url);return{ok:true,arrayBuffer:async()=>b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),json:async()=>JSON.parse(b),text:async()=>b.toString()};};
- const options={canonicalItems:true,directHost:host,uiImageOwner:createUiImageReserve(),onFailure:(error,context)=>failures.push({message:error.message,stack:error.stack,context}),fetchImpl,decodeImage:async()=>({width:973,height:1616,close(){}}),now:()=>{const current=at;if(!clockStarted){clockStarted=true;at+=startupClockGap;}return current;},requestFrame:fn=>{frames.set(++next,fn);return next;},cancelFrame:id=>frames.delete(id),
+ const options={canonicalItems:true,directHost:host,uiImageOwner:createUiImageReserve(),onPointerInterrupt:()=>{interruptions++;scene.endPointer();scene.setGhost(null);},onFailure:(error,context)=>failures.push({message:error.message,stack:error.stack,context}),fetchImpl,decodeImage:async()=>({width:973,height:1616,close(){}}),now:()=>{const current=at;if(!clockStarted){clockStarted=true;at+=startupClockGap;}return current;},requestFrame:fn=>{frames.set(++next,fn);return next;},cancelFrame:id=>frames.delete(id),
   plannerWorkerFactory:()=>({plan:args=>Promise.resolve(planCanonicalInspection(args)),dispose(){}}),
   rendererFactory:args=>createOptionalPipRenderer({...args,canvasFactory:()=>{const c=new EventTarget();c.style={};c.dataset={};c.remove=()=>{c.parentNode=null;};return c;},
    rendererFactory:({THREE,canvas})=>{const renderer=nativeRenderer?new THREE.WebGLRenderer({canvas,context:contextStub(canvas)}):({shadowMap:{},setClearColor(){},setPixelRatio(){},setSize(w,h){canvas.width=w;canvas.height=h;},dispose(){},forceContextLoss(){},render(world,camera){world.updateMatrixWorld(true);renders.push({children:world.children.map(o=>({name:o.name,visible:o.visible})),camera:camera.matrixWorld.toArray()});}});
     const render=renderer.render.bind(renderer);renderer.render=(world,camera)=>{render(world,camera);if(failGhost&&!failureCount&&world.children.some(group=>group.visible&&group.children.some(o=>o.visible&&o.userData.ghost))){failureCount++;throw new TypeError('Injected first ghost submission failure');}};return renderer;}})};
  const scene=owned?createSceneOwner(canvas,{...options,prototypeAllowed:true,onError:error=>notices.push(error.code),onSceneFailure:detail=>notices.push(detail.mode),createLegacy:()=>({update(){},setGhost:g=>legacyGhosts.push(g),dispose(){},diagnostics:()=>({ready:true})}),loadPrototype:async()=>({createPipYardScene})}):createPipYardScene(canvas,options);
- return{scene,failures,renders,notices,legacyGhosts,tick(ms=0){at+=ms;const calls=[...frames.values()];frames.clear();calls.forEach(fn=>fn(at));},resize(w,h){width=w;height=h;observer();}};
+ return{scene,failures,renders,notices,legacyGhosts,get interruptions(){return interruptions;},tick(ms=0){at+=ms;const calls=[...frames.values()];frames.clear();calls.forEach(fn=>fn(at));},resize(w,h,{flush=true}={}){width=w;height=h;if(flush)observer();},flushResize(){observer();}};
 }
+
+test('orientation change cancels an active draft even when pointer-up precedes ResizeObserver',async()=>{
+ for(const observerFirst of[false,true]){
+  const e=environment({nativeRenderer:true});
+  const row={...CANONICAL_LOCATION,slotId:'canonical:resize-order',goodieId:'leaf_pot',itemGeometryRevision:'yard-succulent-T2',x:98,y:118,condition:'new',uses:0,placedAt:1000};
+  const saved={...snapshot,yardRuntime:{...snapshot.yardRuntime,canonicalPlacements:[row]}},before=JSON.stringify(saved);
+  try{
+   e.scene.update(saved);await e.scene.ready;e.resize(378,599.109375);e.tick();const pose=e.scene.diagnostics().dynamicSample.world;
+   const draft={...CANONICAL_LOCATION,slotId:row.slotId,goodieId:'leaf_pot',x:98,y:118,placing:false,ownerAccountId:'owner',ownerSession:1,valid:true};
+   e.scene.setGhost(draft);e.scene.beginPointer();
+   const point=e.scene.point({clientX:6+189,clientY:60+599.109375/2}),moved={...draft,...point};
+   const result=e.scene.checkPlacement(moved);e.scene.setGhost({...moved,valid:result.ok,placementError:result.errors?.[0]?.code});e.tick();
+   assert.equal(e.scene.diagnostics().lastFrame.ghost.placementError,'CANONICAL_ACTOR_OCCUPIED');
+   e.resize(756,252,{flush:false});await Promise.resolve();
+   if(observerFirst)e.flushResize();e.scene.endPointer();await Promise.resolve();e.flushResize();e.tick();
+   assert.equal(e.interruptions,1,'one interruption regardless of observer/up ordering');
+   const d=e.scene.diagnostics();assert.equal(d.itemEditing,false);assert.equal(d.lastFrame.ghost,null);assert.equal(d.lastFrame.visibility,'both');
+   assert.deepEqual(d.lastFrame.records,[row]);assert.deepEqual(d.dynamicSample.world,pose);assert.equal(JSON.stringify(saved),before);assert.deepEqual(e.failures,[]);
+   assert.deepEqual(d.renderer.propInstances.filter(p=>p.visible).map(p=>p.position),[[98/12,0,-118/12]]);
+   // A normal pointer-up with no viewport change retains the user's draft.
+   e.scene.setGhost({...draft,x:72,y:145});e.scene.beginPointer();await Promise.resolve();e.scene.endPointer();e.tick();
+   assert.equal(e.interruptions,1);assert.equal(e.scene.diagnostics().lastFrame.ghost.x,72);
+  }finally{await e.scene.dispose();}
+ }
+});
 
 test('actual canonical scene and R1/T2 renderer enter the UI ghost and resize without failure',async()=>{
  const e=environment({nativeRenderer:true});try{

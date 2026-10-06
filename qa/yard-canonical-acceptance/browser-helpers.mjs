@@ -6,7 +6,9 @@ import sharp from 'sharp';
 import {ORIGIN} from './fixtures.mjs';
 import geometry from '../../game-logic/yard-v2/canonical-location-geometry.json' with {type:'json'};
 export const OUT=path.join(import.meta.dirname,'results'),WORK=path.join(import.meta.dirname,'work');
-export const report={console:{limit:48,maxTextCharacters:2048,entries:[],dropped:0},failureDiagnostics:[],status:'RUNNING',cases:[],matrix:[],captures:[],errors:[],requests:[],limits:{artifactBytes:8388608,jobMinutes:10,browserSeconds:220,retries:0},visualAcceptance:'REVIEW_PENDING',devicePerformance:'NOT_MEASURED'};
+export const report={head:null,sections:{actions:'not-run',hud:'not-run'},console:{limit:48,maxTextCharacters:2048,entries:[],dropped:0},failureDiagnostics:[],status:'RUNNING',cases:[],matrix:[],captures:[],errors:[],requests:[],limits:{artifactBytes:8388608,jobMinutes:10,browserSeconds:220,retries:0},visualAcceptance:'REVIEW_PENDING',devicePerformance:'NOT_MEASURED'};
+export function restoreEvidence(current,prior,head){if(prior){assert.equal(prior.head,head,'Never mix evidence from another commit');Object.assign(current,prior);}current.head=head;current.sections??={actions:'not-run',hud:'not-run'};return current;}
+export function evidenceStatus(value){return value.errors.length||Object.values(value.sections).includes('failed')?'FAILED_OR_INCOMPLETE':value.sections.actions==='passed'&&value.sections.hud==='passed'?'MECHANICAL_ACCEPTANCE_PASSED_VISUAL_REVIEW_PENDING':'INCOMPLETE';}
 export const shot=page=>page.evaluate(()=>window.__yardPipIntegration?.snapshot());
 export const scene=async page=>(await shot(page))?.scene;
 export async function init(context,f,language='en'){
@@ -16,10 +18,10 @@ export async function init(context,f,language='en'){
   window.Worker=class extends Native{constructor(url,opts){super(url,opts);this.qaURL=String(url);observed.created.push(this.qaURL);}terminate(){observed.terminated.push(this.qaURL);return super.terminate();}};
  },{id:f.externalId,language});
 }
-export function observe(page){
+export function observe(page,scope=null){
  page.on('console',message=>{
   if(!['error','warning','warn'].includes(message.type()))return;
-  const entry={type:message.type(),text:message.text().slice(0,report.console.maxTextCharacters),location:message.location()};
+  const entry={scope,type:message.type(),text:message.text().slice(0,report.console.maxTextCharacters),location:message.location()};
   if(report.console.entries.length>=report.console.limit){report.console.entries.shift();report.console.dropped++;}report.console.entries.push(entry);
  });
  page.on('pageerror',e=>report.errors.push({type:'pageerror',message:e.message}));

@@ -8,12 +8,13 @@ import {execFileSync} from 'node:child_process';
 import sharp from 'sharp';
 import setup from '../../src/games/companion-yard-v2/pip-prototype/data/fixture.json' with {type:'json'};
 import {fixtureOwner,canonicalRows,economy,realMutation,ORIGIN} from './fixtures.mjs';
-import {OUT,WORK,report,init,observe,boot,waitForYardReady,enter,scene,shot,placedPanel,closePanel,project,dragTo,place,move,pickup,inspect,refresh,capture,captureFailureDiagnostics,fonts,layout,checkLayout,outbox} from './browser-helpers.mjs';
+import {OUT,WORK,report,restoreEvidence,evidenceStatus,init,observe,boot,waitForYardReady,enter,scene,shot,placedPanel,closePanel,project,dragTo,place,move,pickup,inspect,refresh,capture,captureFailureDiagnostics,fonts,layout,checkLayout,outbox} from './browser-helpers.mjs';
 let owner,fixture;
-test.beforeAll(async()=>{await fs.mkdir(OUT,{recursive:true});await fs.mkdir(WORK,{recursive:true});owner=await fixtureOwner();fixture=await owner.seed();});
-test.afterAll(async()=>{try{await owner?.close();}catch(error){report.errors.push({type:'fixture-cleanup',message:String(error)});report.status='FAILED_OR_INCOMPLETE';throw error;}finally{await fs.writeFile(path.join(OUT,'browser.json'),JSON.stringify(report,null,2)+'\n');}});
+test.beforeAll(async()=>{await fs.mkdir(OUT,{recursive:true});await fs.mkdir(WORK,{recursive:true});const prior=await fs.readFile(path.join(OUT,'browser.json'),'utf8').then(JSON.parse).catch(e=>{if(e.code==='ENOENT')return null;throw e;});restoreEvidence(report,prior,process.env.GITHUB_SHA);owner=await fixtureOwner();fixture=await owner.seed();});
+test.afterEach(async({},info)=>{if(info.status!=='passed'){const section=info.title.startsWith('independent full HUD')?'hud':'actions';report.sections[section]='failed';report.errors.push({type:'test-status',section,status:info.status,message:info.error?.message??'Test did not complete'});}report.status=evidenceStatus(report);await fs.writeFile(path.join(OUT,'browser.json'),JSON.stringify(report,null,2)+'\n');});
+test.afterAll(async()=>{try{await owner?.close();}catch(error){report.errors.push({type:'fixture-cleanup',message:String(error)});report.status='FAILED_OR_INCOMPLETE';throw error;}finally{report.status=evidenceStatus(report);await fs.writeFile(path.join(OUT,'browser.json'),JSON.stringify(report,null,2)+'\n');}});
 async function rows(n){await expect.poll(async()=>canonicalRows(await owner.saved(fixture)).length).toBe(n);return canonicalRows(await owner.saved(fixture));}
-async function context(browser,options={}){const {language='ru',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p,fixture);return{c,p,recording:!!options.recordVideo};}catch(error){await captureFailureDiagnostics(p,'startup-failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));if(!options.recordVideo)await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
+async function context(browser,options={}){const {language='ru',evidenceLabel='startup-failure',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p,evidenceLabel);try{await boot(p,fixture);return{c,p,recording:!!options.recordVideo,recordingLabel:evidenceLabel};}catch(error){await captureFailureDiagnostics(p,evidenceLabel).catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));if(!options.recordVideo)await capture(p,evidenceLabel).catch(()=>{});const video=options.recordVideo?p.video():null;await c.close();if(video){const file=evidenceLabel+'-interrupted.webm';await fs.copyFile(await video.path(),path.join(OUT,file)).then(()=>{report.interruptedClips??=[];report.interruptedClips.push({file,processing:'Raw interrupted recording; no screenshot or retiming.'});}).catch(e=>report.errors.push({type:'failed-video-preservation',message:String(e)}));}throw error;}}
 async function visibleCount(page,n){await expect.poll(async()=>{const s=await scene(page);return s?.canonicalRecords?.length===n&&s.lastFrame?.records?.length===n&&JSON.stringify(s.lastFrame.records)===JSON.stringify(s.canonicalRecords);}).toBe(true);}
 async function switchFresh(page){await page.locator('[data-pip-control="toggle"]').click();await expect.poll(async()=>(await shot(page))?.mode).toBe('legacy');await enter(page);}
 async function settled(page){await expect.poll(async()=>(await scene(page))?.interaction?.phase,{timeout:24000}).toBe('settled');}
@@ -79,7 +80,8 @@ async function jitter(page,slotId){
  return{samples,differences,displacement,qualification:'Native screenshots over 4 actual-time samples plus exact stationary prop/camera transforms; pixel changes require visual review, not a device FPS benchmark.'};
 }
 
-test('finite real persistence, dynamic inspection and full HUD matrix',async({browser})=>{
+test('real persistence, dynamic inspection and native recordings',async({browser})=>{
+ test.setTimeout(125000);report.sections.actions='running';
  let active;
  try{
   report.browserVersion=browser.version();
@@ -125,7 +127,7 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
   await c.close();active=null;
 
   // One untouched native Playwright recording, with wall-clock duration evidence.
-  const recordingStart=Date.now();active=await context(browser,{recordVideo:{dir:path.join(WORK,'video'),size:{width:390,height:844}}});({p,c}=active);await enter(p);await visibleCount(p,2);
+  const recordingStart=Date.now();active=await context(browser,{evidenceLabel:'normal-recording',recordVideo:{dir:path.join(WORK,'video'),size:{width:390,height:844}}});({p,c}=active);await enter(p);await visibleCount(p,2);
   const inspectionStart=Date.now();await inspect(p);const inspectionAdmittedAt=Date.now(),initial=await scene(p);assert.equal(initial.interaction.selectedAnchor,'leaf-7');assert.equal(initial.savedVisitor,false);assert.equal(initial.interaction.savedVisitor,false);
   // Keep this entire native recording free of screenshots and viewport changes.
   await settled(p);const end=await scene(p);assert.equal(end.lastFrame.visibility,'both');
@@ -137,8 +139,18 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
   // Separate unrecorded context: raster crops cannot disturb the native clip.
   active=await context(browser);({p,c}=active);await enter(p);await visibleCount(p,2);await inspect(p);
   const stable=await jitter(p,canonicalRows(await owner.saved(fixture))[1].slotId);await settled(p);await capture(p,'normal-two-prop-inspection');report.cases.push({name:'separate-unrecorded-stationary-prop-check',stationaryProp:stable});await c.close();active=null;
+  // Compact visual adaptation: actual UI moves the blocker while Pip is idle.
+  const adaptationRecordingStart=Date.now();active=await context(browser,{evidenceLabel:'adaptation-recording',recordVideo:{dir:path.join(WORK,'adaptation-video'),size:{width:390,height:844}}});({p,c}=active);await enter(p);await visibleCount(p,2);
+  const idleBefore=await scene(p);assert.equal(idleBefore.interaction.active,false);assert.deepEqual(idleBefore.dynamicSample.world.root,{x:79,y:129.5,z:0});
+  const blockerMoveStartedAt=Date.now();await move(p,1,94,135);await expect.poll(async()=>{const r=canonicalRows(await owner.saved(fixture))[1];return Math.abs(r.x-94)<.25&&Math.abs(r.y-135)<.25;}).toBe(true);await visibleCount(p,2);
+  const blockerCommittedAt=Date.now(),idleAfter=await scene(p);assert.deepEqual(idleAfter.dynamicSample.world.root,idleBefore.dynamicSample.world.root);
+  const adaptationInspectStartedAt=Date.now();await inspect(p,0);const adaptationAdmittedAt=Date.now(),adaptationStart=await scene(p);assert.notEqual(adaptationStart.interaction.selectedAnchor,'leaf-7');await settled(p);const adaptationEnd=await scene(p);
+  const adaptationVideo=p.video();await c.close();active=null;const adaptationFile='actual-time-alternate-route.webm';await fs.copyFile(await adaptationVideo.path(),path.join(OUT,adaptationFile));
+  const adaptationMedia=JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','v:0','-show_entries','format=duration:stream=width,height,r_frame_rate','-of','json',path.join(OUT,adaptationFile)],{encoding:'utf8',timeout:10000}));
+  report.adaptationClip={file:adaptationFile,recordingWallMs:Date.now()-adaptationRecordingStart,blockerMoveStartedAt,blockerCommittedAt,adaptationInspectStartedAt,adaptationAdmittedAt,media:adaptationMedia,processing:'Raw untrimmed/unretimed native recording; actual UI blocker move then complete alternate route; no screenshots or viewport changes.',qualification:'Same saved target and real changed blocker; browser/software-renderer evidence, not device FPS.'};
+  report.cases.push({name:'actual-ui-blocker-move-complete-alternate-route',idleBefore,idleAfter,initial:adaptationStart,end:adaptationEnd});
   active=await context(browser);({p,c}=active);await enter(p);await visibleCount(p,2);
-  await externalMove(p,1,94,135);await switchFresh(p);const moveEntry=await scene(p);await inspect(p);await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('approaching');const alternative=await scene(p);assert.notEqual(alternative.interaction.selectedAnchor,'leaf-7');assert.equal(alternative.interaction.savedVisitor,false);report.cases.push({name:'front-blocked-reachable-alternative',scene:alternative});
+  await switchFresh(p);const moveEntry=await scene(p);await inspect(p);await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('approaching');const alternative=await scene(p);assert.notEqual(alternative.interaction.selectedAnchor,'leaf-7');assert.equal(alternative.interaction.savedVisitor,false);report.cases.push({name:'front-blocked-reachable-alternative',scene:alternative});
   // Mutate through actual authenticated HTTP, then a labelled synthetic visibility
   // notification invokes the app's real snapshot fetch without touching its store.
   const beforeMove=await departed(p,moveEntry,'target-move'),oldLayout=beforeMove.interaction.layoutKey;await externalMove(p,0,108,122);const moveRecovery=await recoveryWitness(p),moveBoundary=mutationBoundary(beforeMove,moveRecovery);
@@ -155,19 +167,35 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
   await p.locator('[data-pip-control="toggle"]').click();await expect.poll(async()=>(await shot(p))?.mode).toBe('legacy');const worker=await p.evaluate(()=>window.__canonicalWorkerObserver);assert.equal(worker.created.filter(s=>s.includes('dynamic-prop-worker')).length,worker.terminated.filter(s=>s.includes('dynamic-prop-worker')).length);assert.equal(await p.locator('.cy-pip-direct-layer canvas').count(),0);
   report.cases.push({name:'pointercancel-resize-mode-off-worker-retirement',recovery,worker,syntheticPointerCancel:true});await c.close();active=null;
 
-  // Full AGENTS HUD matrix plus one extended phone and native DPR3 typography pass.
-  const matrix=[[320,568,1,'en'],[360,800,1,'ru'],[390,844,2,'en'],[414,896,1,'ru'],[568,320,1,'en'],[844,390,1,'ru'],[768,1024,1,'en'],[1024,768,1,'ru'],[1280,720,1,'en'],[375,812,1,'ru'],[390,844,3,'ru']];
-  for(const[width,height,dpr,language]of matrix){
-   active=await context(browser,{viewport:{width,height},deviceScaleFactor:dpr,isMobile:width<1024||height>width,hasTouch:width<1280,language});({p,c}=active);await enter(p);
-   const name=`hud-${width}x${height}-dpr${dpr}-${language}`,font=await fonts(p,language),screen=await layout(p);checkLayout(screen);await capture(p,name);if(dpr>=2)await p.locator('.cy-header').screenshot({path:path.join(OUT,`${name}-header-native.png`)});
-   await p.locator('[data-pip-control="inventory"]').click();await expect(p.locator('.cy-dialog[open]')).toBeVisible();const dialog=await layout(p);checkLayout(dialog);await expect.poll(()=>p.locator('.cy-dialog').evaluate(e=>e.contains(document.activeElement))).toBe(true);
-   if(dpr>=2)await p.locator('.cy-dialog').screenshot({path:path.join(OUT,`${name}-dialog-native.png`)});
-   await closePanel(p);const s=await scene(p);report.matrix.push({viewport:screen,font,dialog,scene:{ready:s.ready,viewportBlocked:s.viewportBlocked,projection:s.projection,rgba:s.rgba},file:name+'.webp'});await c.close();active=null;
-  }
   const ordinary=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});await init(ordinary,fixture);const ordinaryPage=await ordinary.newPage();await ordinaryPage.goto(ORIGIN+'/?tab=room');await expect(ordinaryPage.locator('.cy-app')).toBeVisible();await expect(ordinaryPage.locator('[data-pip-control]')).toHaveCount(0);assert.equal(await ordinaryPage.evaluate(()=>window.__canonicalWorkerObserver.created.filter(s=>s.includes('dynamic-prop-worker')).length),0);await ordinary.close();report.cases.push({name:'on-build-without-page-opt-in-remains-ordinary'});
   assert(!report.console.entries.some(e=>e.type==='error'&&/THREE\.WebGLProgram|VALIDATE_STATUS|shader.*error|shader.*compile|WebGL.*INVALID_OPERATION/i.test(e.text)),'WebGL/shader error captured in bounded console evidence');
   assert.equal(report.errors.length,0,JSON.stringify(report.errors));assert(!report.requests.some(r=>r.status>=400),'Runtime resource request failed');
-  assert.deepEqual(economy(await owner.saved(fixture)),baseline);report.status='MECHANICAL_ACCEPTANCE_PASSED_VISUAL_REVIEW_PENDING';
- }catch(error){report.status='FAILED_OR_INCOMPLETE';report.errors.push({type:'assertion',message:String(error),stack:error.stack});if(active){await captureFailureDiagnostics(active.p,'failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));if(!active.recording)await capture(active.p,'failure').catch(()=>{});else{const interrupted=active.p.video();await active.c.close();active=null;try{await fs.copyFile(await interrupted.path(),path.join(OUT,'failed-native-inspection.webm'));report.interruptedClip={file:'failed-native-inspection.webm',processing:'Untrimmed, unretimed failed native recording, preserved without screenshot calls.'};}catch(videoError){report.errors.push({type:'failed-video-preservation',message:String(videoError)});}}}throw error;}
+  assert.deepEqual(economy(await owner.saved(fixture)),baseline);report.sections.actions='passed';report.status=evidenceStatus(report);
+ }catch(error){report.sections.actions='failed';report.status='FAILED_OR_INCOMPLETE';report.errors.push({type:'assertion',message:String(error),stack:error.stack});if(active){await captureFailureDiagnostics(active.p,'failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));if(!active.recording)await capture(active.p,'failure').catch(()=>{});else{const interrupted=active.p.video(),failedVideo='failed-'+active.recordingLabel+'.webm';await active.c.close();active=null;try{await fs.copyFile(await interrupted.path(),path.join(OUT,failedVideo));report.interruptedClip={file:failedVideo,processing:'Untrimmed, unretimed failed native recording, preserved without screenshot calls.'};}catch(videoError){report.errors.push({type:'failed-video-preservation',message:String(videoError)});}}}throw error;}
  finally{await active?.c.close();}
+});
+
+
+// A failed action test restarts the worker; beforeAll reloads its saved report.
+// A separate account and real API placement make this matrix independent of UI edits.
+test('independent full HUD and typography matrix',async({browser,request})=>{
+ test.setTimeout(75000);report.sections.hud='running';const errorStart=report.errors.length;let active;
+ try{
+  fixture=await owner.seed();await realMutation(request,fixture,'yard.placeGoodie',{slotId:'canonical:hud-one',goodieId:'leaf_pot',x:98,y:118});
+  const matrix=[[320,568,1,'en'],[360,800,1,'ru'],[390,844,2,'en'],[414,896,1,'ru'],[568,320,1,'en'],[844,390,1,'ru'],[768,1024,1,'en'],[1024,768,1,'ru'],[1280,720,1,'en'],[375,812,1,'ru'],[390,844,3,'ru']];
+  for(const[width,height,dpr,language]of matrix){
+   const name=`hud-${width}x${height}-dpr${dpr}-${language}`;
+   try{
+    active=await context(browser,{evidenceLabel:name,viewport:{width,height},deviceScaleFactor:dpr,isMobile:width<1024||height>width,hasTouch:width<1280,language});const{p}=active;await enter(p);
+    const font=await fonts(p,language),screen=await layout(p);checkLayout(screen);await capture(p,name);if(dpr>=2)await p.locator('.cy-header').screenshot({path:path.join(OUT,`${name}-header-native.png`)});
+    await p.locator('[data-pip-control="inventory"]').click();await expect(p.locator('.cy-dialog[open]')).toBeVisible();const dialog=await layout(p);checkLayout(dialog);await expect.poll(()=>p.locator('.cy-dialog').evaluate(e=>e.contains(document.activeElement))).toBe(true);
+    if(dpr>=2)await p.locator('.cy-dialog').screenshot({path:path.join(OUT,`${name}-dialog-native.png`)});
+    await closePanel(p);const snapshot=await scene(p);assert(!report.console.entries.some(e=>e.scope===name&&e.type==='error'&&/THREE\.WebGLProgram|VALIDATE_STATUS|shader.*error|shader.*compile|WebGL.*INVALID_OPERATION/i.test(e.text)),'HUD viewport shader error');
+    report.matrix.push({name,status:'passed',viewport:screen,font,dialog,scene:{ready:snapshot.ready,viewportBlocked:snapshot.viewportBlocked,projection:snapshot.projection,rgba:snapshot.rgba},file:name+'.webp'});
+   }catch(error){report.errors.push({type:'hud-viewport',name,message:String(error),stack:error.stack});report.matrix.push({name,status:'failed'});if(active){await captureFailureDiagnostics(active.p,name+'-failure').catch(()=>{});await capture(active.p,name+'-failure').catch(()=>{});}}
+   finally{await active?.c.close();active=null;}
+  }
+  const errors=report.errors.slice(errorStart);report.sections.hud=errors.length?'failed':'passed';assert.equal(errors.length,0,JSON.stringify(errors));
+ }catch(error){report.sections.hud='failed';if(report.errors.length===errorStart)report.errors.push({type:'hud-setup',message:String(error),stack:error.stack});throw error;}
+ finally{await active?.c.close();report.status=evidenceStatus(report);}
 });
