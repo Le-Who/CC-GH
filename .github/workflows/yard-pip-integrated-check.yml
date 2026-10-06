@@ -1,7 +1,7 @@
 name: Bounded actual Yard optional Pip integration
 on:
   push:
-    branches: ['qa/yard-pip-integrated-buildfix-20261006']
+    branches: ['qa/yard-pip-integrated-m2-20261006']
 permissions:
   contents: read
 concurrency:
@@ -15,6 +15,9 @@ jobs:
     env:
       CI: 'true'
       NODE_ENV: test
+      YARD_XVFB_SCREEN: '2880x2160x24'
+      YARD_M2_REPO_ROOT: ${{ github.workspace }}
+      YARD_LEGACY_REPORT: ${{ github.workspace }}/qa/yard-pip-integration/results/legacy-source-check.json
     steps:
       - uses: actions/checkout@v6
         with:
@@ -23,7 +26,7 @@ jobs:
       - name: Verify immutable parent and candidate, and existing Xvfb
         id: verify
         run: |
-          test "$(git rev-parse HEAD^)" = d0c412717c15cb46d41e04913f58904e8adbe598
+          test "$(git rev-parse HEAD^)" = 20f61b1fb6e2cea42336a9ba2f4868a73c81895f
           command -v xvfb-run
           node qa/yard-pip-integration/run.mjs --verify-only
       - name: Install ffmpeg from official Ubuntu repositories
@@ -54,7 +57,7 @@ jobs:
       - name: One finite real-UI native Chromium pass
         id: browser
         timeout-minutes: 4
-        run: xvfb-run -a node qa/yard-pip-integration/run.mjs
+        run: xvfb-run -a --server-args='-screen 0 2880x2160x24' node qa/yard-pip-integration/run.mjs
       - name: Preserve setup failure context and enforce eight MiB cap
         id: cap
         if: always()
@@ -67,8 +70,11 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-          import json,os
+          import json,os,shutil
           p=Path('qa/yard-pip-integration/results'); p.mkdir(parents=True,exist_ok=True)
+          for name in ['built-files.json','asset-url-closure.json','bundle-transfer-estimates.json']:
+            src=p.parent/name
+            if src.is_file(): shutil.copyfile(src,p/name)
           setup={k:os.environ.get(k) for k in ['VERIFY_OUTCOME','FFMPEG_OUTCOME','DEPENDENCIES_OUTCOME','BUILD_OUTCOME','BROWSER_OUTCOME']}
           (p/'setup-outcomes.json').write_text(json.dumps(setup,indent=2))
           if not (p/'report.json').exists():

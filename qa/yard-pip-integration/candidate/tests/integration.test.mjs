@@ -41,7 +41,7 @@ test('separate CPU/GPU admission rejects the former undercount and concurrent ow
  const release=acquirePipLease();assert.throws(acquirePipLease);release();release();acquirePipLease()();
  const pre={stage:'before-import-and-load',separateFromYard64MiBRGBALedger:true,cpuGLBBytes:3972384,cpuBufferViewCopiesBytes:3937068,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK};
  assert.equal(admitPipResources(pre),true);assert.equal(admitPipResources({...pre,knownCPUBufferPeakBytes:7909452}),false);
- assert.equal(rgbaAdmission({uiBytes:19138304,backgroundBytes:6289472,currentCanvasBytes:4043520,pendingCanvasBytes:4043520}).totalBytes,33514816);
+ assert.equal(rgbaAdmission({uiBytes:23145580,backgroundBytes:6289472,currentCanvasBytes:4043520,pendingCanvasBytes:4043520}).totalBytes,37522092);
  assert.equal(rgbaAdmission({uiBytes:64*1024*1024,currentCanvasBytes:4}).fits,false);
 });
 test('mode owner stays default-off and awaits legacy retirement before importing Pip; rollback waits too',async()=>{
@@ -72,7 +72,7 @@ test('new React owner waits for the previous owner retirement across component r
 test('R1 default portrait is separately charged; legacy aliases retain their owners',async()=>{
  const inv=JSON.parse(await fs.readFile(new URL('../vendor/r5/src/games/companion-yard-v2/ui-image-inventory.json',import.meta.url)));
  assert.equal(inv.rows.some(r=>r.url.includes('2ad3a018')),false);assert.ok(inv.rows.some(r=>String(r.sourceUrls).includes('78d5a3dfdddf')||r.url.includes('78d5a3dfdddf')));const r1=inv.rows.find(r=>r.url.includes('/r1-pip/'));assert.equal(r1.width*r1.height*4,34768);
- assert.equal(uiImageLifetimeLedger().bytes,16828428);
+ assert.equal(uiImageLifetimeLedger().bytes,23145580);
 });
 test('actual optional scene uses shared stage, remains read-only and cleans asynchronous resources',async()=>{
  const e=env();const{createPipYardScene}=await import('../vendor/r5/src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs');

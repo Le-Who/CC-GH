@@ -78,6 +78,7 @@ export function placementMessageKey(code) {
 /** This screen never substitutes old-camera prop/food pixels. Its ordinary
  * loading/error state remains visible until the verified catalogue is ready. */
 export function sceneCatalogPreview(catalog,kind,id,options){
+ if(catalog?.kind==='legacy-m2')return catalogPreview(kind,id,options);
  if(kind==='goodie'||kind==='food')return catalog?renderCatalogPreview(catalog,kind,id,options):null;
  return catalogPreview(kind,id,options);
 }

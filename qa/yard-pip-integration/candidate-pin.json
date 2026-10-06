@@ -1,13 +1,13 @@
 {
   "format": "Actual-Yard-Pip-candidate-pin/v1",
-  "baseCommit": "d691e7a26fa726091e363702feade8cfe291456d",
+  "baseCommit": "20f61b1fb6e2cea42336a9ba2f4868a73c81895f",
   "summary": {
-    "files": 168,
-    "bytes": 23412145,
-    "treeSHA256": "50aeabcf57749d4dc6a89f33c7e53bcc07772195288afbbb8fade4d6379d7ae6",
-    "uiLifetimeBytes": 19138304
+    "files": 170,
+    "bytes": 23432515,
+    "treeSHA256": "747b564326bcdc52ed8a3d7da903508f96843e265531ceeba4936cabc434a316",
+    "uiLifetimeBytes": 23145580
   },
-  "uiLifetimeBytes": 19138304,
+  "uiLifetimeBytes": 23145580,
   "files": [
     {
       "path": "package.json",
@@ -24,8 +24,14 @@
     {
       "path": "tests/integration.test.mjs",
       "bytes": 14789,
-      "sha256": "9512667ee57515b0227b4f7bdabf32bf135784690565109d9f6fc811afb7dad6",
-      "gitBlobSha1": "1da4b46df74c5e2e565a7e503742c67ed6118199"
+      "sha256": "49fca8f6ac616194d939e27674f8a912e2ec7b7cec174cb02d00b2d30c462452",
+      "gitBlobSha1": "15f07698228654b51b677ceb0092769cc17ba4fa"
+    },
+    {
+      "path": "tests/legacy-m2.test.mjs",
+      "bytes": 7516,
+      "sha256": "f08cf13b5c99a07c9f63b6f64be94ad03ca66256b3d962b4f1113d1bdc595f8c",
+      "gitBlobSha1": "1c7729ff23b6f3ceccd9bf72515d891b4c3e996f"
     },
     {
       "path": "tests/register-vendor.mjs",
@@ -238,6 +244,18 @@
       "gitBlobSha1": "6a85ad178f3519586ea15f631ac7d44d5c52e740"
     },
     {
+      "path": "vendor/r5/game-logic/yard-v2/media/mochi-actor-assets.mjs",
+      "bytes": 321,
+      "sha256": "d45e433dedf6764129fc80ab3cfefa566d095fa20c7dce1f582cc4efc2c618ad",
+      "gitBlobSha1": "03f34ec59eecd6a264ef1ec12f2f1587a3a10e91"
+    },
+    {
+      "path": "vendor/r5/game-logic/yard-v2/media/mochi-combined-binding.mjs",
+      "bytes": 10726,
+      "sha256": "23554ecee549e75dac22cdec61d3dfc441c570cd474874e328615c59cbe41ba0",
+      "gitBlobSha1": "5e997d1e7b88b7d1a6a046ba9b9176ea7cbd6668"
+    },
+    {
       "path": "vendor/r5/game-logic/yard-v2/media/mochi/authored-stride.json",
       "bytes": 77990,
       "sha256": "5d78d77970c4defa63e478f8aa3e9559edddc4b6f623989aeda8889c314c02a8",
@@ -256,16 +274,10 @@
       "gitBlobSha1": "b81d5e560b791156d1ae60834f7722bf7624029a"
     },
     {
-      "path": "vendor/r5/game-logic/yard-v2/media/mochi-actor-assets.mjs",
-      "bytes": 321,
-      "sha256": "d45e433dedf6764129fc80ab3cfefa566d095fa20c7dce1f582cc4efc2c618ad",
-      "gitBlobSha1": "03f34ec59eecd6a264ef1ec12f2f1587a3a10e91"
-    },
-    {
-      "path": "vendor/r5/game-logic/yard-v2/media/mochi-combined-binding.mjs",
-      "bytes": 10726,
-      "sha256": "23554ecee549e75dac22cdec61d3dfc441c570cd474874e328615c59cbe41ba0",
-      "gitBlobSha1": "5e997d1e7b88b7d1a6a046ba9b9176ea7cbd6668"
+      "path": "vendor/r5/game-logic/yard-v2/media/pebble-actor-assets.mjs",
+      "bytes": 325,
+      "sha256": "891ed54e84adc0b3beb589ecca63500f3567627e289ab5a3c649a20ef50485df",
+      "gitBlobSha1": "444e07c353f5f3f7a5ecee4c791c291af16769f3"
     },
     {
       "path": "vendor/r5/game-logic/yard-v2/media/pebble/authored-stride.json",
@@ -284,30 +296,6 @@
       "bytes": 124610,
       "sha256": "71545554a2f855ee94f6fdc378d5ecbbe5e77d236aba16c7e2c66f918915a701",
       "gitBlobSha1": "0f8e2ab6f5848d65e402be2815cda72b69f45708"
-    },
-    {
-      "path": "vendor/r5/game-logic/yard-v2/media/pebble-actor-assets.mjs",
-      "bytes": 325,
-      "sha256": "891ed54e84adc0b3beb589ecca63500f3567627e289ab5a3c649a20ef50485df",
-      "gitBlobSha1": "444e07c353f5f3f7a5ecee4c791c291af16769f3"
-    },
-    {
-      "path": "vendor/r5/game-logic/yard-v2/media/pip/authored-stride.json",
-      "bytes": 55441,
-      "sha256": "781344a1797bbb3974b342ab3be222dbb71e1191df5f8e60e6fcca528500b26c",
-      "gitBlobSha1": "fa9a45b72e8d4fac2b68f3337ddf0ad86d515549"
-    },
-    {
-      "path": "vendor/r5/game-logic/yard-v2/media/pip/ground-motion.json",
-      "bytes": 170100,
-      "sha256": "81df13fce6a5a3c0438cafb2d5c063c589ad81b0cf99b0f6b46216987dd9e2aa",
-      "gitBlobSha1": "435b57cabc8e75249a7f7164ed37b65d0727058f"
-    },
-    {
-      "path": "vendor/r5/game-logic/yard-v2/media/pip/snack-combined-binding.json",
-      "bytes": 104471,
-      "sha256": "f6072b7bc8b2351cf68fb5ae13dd06286a83278432580296157d2e0783179d62",
-      "gitBlobSha1": "d4fa3128aa26a41c0fea2a62ed37c2b4240e20b8"
     },
     {
       "path": "vendor/r5/game-logic/yard-v2/media/pip-actor-assets.mjs",
@@ -332,6 +320,24 @@
       "bytes": 12211,
       "sha256": "7cd89772b2fdb19b576132b64a3716effa8f9c50e18a776cdb1183bc06ea1faa",
       "gitBlobSha1": "b4c8619fb1747e8e4a7731df9252578f7f261e44"
+    },
+    {
+      "path": "vendor/r5/game-logic/yard-v2/media/pip/authored-stride.json",
+      "bytes": 55441,
+      "sha256": "781344a1797bbb3974b342ab3be222dbb71e1191df5f8e60e6fcca528500b26c",
+      "gitBlobSha1": "fa9a45b72e8d4fac2b68f3337ddf0ad86d515549"
+    },
+    {
+      "path": "vendor/r5/game-logic/yard-v2/media/pip/ground-motion.json",
+      "bytes": 170100,
+      "sha256": "81df13fce6a5a3c0438cafb2d5c063c589ad81b0cf99b0f6b46216987dd9e2aa",
+      "gitBlobSha1": "435b57cabc8e75249a7f7164ed37b65d0727058f"
+    },
+    {
+      "path": "vendor/r5/game-logic/yard-v2/media/pip/snack-combined-binding.json",
+      "bytes": 104471,
+      "sha256": "f6072b7bc8b2351cf68fb5ae13dd06286a83278432580296157d2e0783179d62",
+      "gitBlobSha1": "d4fa3128aa26a41c0fea2a62ed37c2b4240e20b8"
     },
     {
       "path": "vendor/r5/game-logic/yard-v2/media/runtime-version.mjs",
@@ -580,12 +586,6 @@
       "gitBlobSha1": "eb8c2cb902a0a27b889cbbbb10d1ed23504d426d"
     },
     {
-      "path": "vendor/r5/src/games/companion-yard/currencyDisplay.js",
-      "bytes": 800,
-      "sha256": "65e651416be1dad137d9cd617b678bda5da89dc7e414a463d67bdd73a12ec802",
-      "gitBlobSha1": "eb52cfed591821839d01b987e5dbb49287c7f0cf"
-    },
-    {
       "path": "vendor/r5/src/games/companion-yard-v2/ACTOR-MEDIA.md",
       "bytes": 2263,
       "sha256": "123d6438d886763e5a1ef08ad2cd509e843ebf2c4dcbdac61c54873b0f48ac32",
@@ -641,9 +641,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/catalog-ui.mjs",
-      "bytes": 5621,
-      "sha256": "358f5d499bcb57df585acf29bcc0614b3b20d55e75e5679601a6625f700fbc10",
-      "gitBlobSha1": "0d37eaea14f84ddf9de9471f16ddf586e1879e09"
+      "bytes": 5693,
+      "sha256": "193728e413d0c0c1ab39794bf25a4e9e2b913092ff2f9a161f9cfc78ecf821e6",
+      "gitBlobSha1": "69a11442a02f6a8a2b594d70b51e5ee286f2aa3b"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/composite-visitor-media.mjs",
@@ -692,6 +692,12 @@
       "bytes": 20335,
       "sha256": "c1797b6d2bade18300688361af5a0284baebeb5af6256e11b3b4ff113c0f5165",
       "gitBlobSha1": "0e936a4d3e689e17e4efd38d562bcfd5f031b272"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/legacy-m2-background.mjs",
+      "bytes": 980,
+      "sha256": "5650949ab9974a07f7e1e6b5089f8e63c9f278756d24059b58df46f7702a7161",
+      "gitBlobSha1": "6bb661d91d729bdd84f5dcb7a852bf7edd1adfb1"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/mochi-actor-media.mjs",
@@ -917,9 +923,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/projection.mjs",
-      "bytes": 848,
-      "sha256": "bbf4eb25bbff56dc3e394e28c1f8c3121189441a942e63673c0dc96cb09f746e",
-      "gitBlobSha1": "390b01f2a910c848d800f6745d663dac6015fb0a"
+      "bytes": 1152,
+      "sha256": "0c886f735e42d9e61e6bd06c71cd8894919d8a8f341ad30fa440265b037b4d3c",
+      "gitBlobSha1": "75dffbcc78859736171fa8e1f227dfedefc2eb9e"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/release-presentation.mjs",
@@ -971,9 +977,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/scene.mjs",
-      "bytes": 24991,
-      "sha256": "5cce8ffd7e2e197e1b66835bf251b47b368bf73f8db49a8d595f87d06513d10f",
-      "gitBlobSha1": "32732b16d24a0174405b52f3090a45c7166ab6c7"
+      "bytes": 21693,
+      "sha256": "e258b54a9fcb98355e4fab2bf27b113f49203cad401ba21d259ac3380c0a4a86",
+      "gitBlobSha1": "77aef8d3a2229731f36049db9fc0a5a70f310f79"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/scene45-environment.mjs",
@@ -1001,15 +1007,21 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/ui-image-inventory.json",
-      "bytes": 38327,
-      "sha256": "3bdddb621cb2a09715079e90b0a28875d03b0084dc10cdb2148bcfb537f60ce2",
-      "gitBlobSha1": "28a6693ede985899c23b3c78f19bee4cf89787c2"
+      "bytes": 53123,
+      "sha256": "1a4fa2cb00a0dca3e7ca99ff2a365b197453cc8018487720b2a056b284870b20",
+      "gitBlobSha1": "c554cb37a5e790f9a202984bf64c9a34702ff3d4"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/ui-image-reserve.mjs",
       "bytes": 4330,
       "sha256": "f44b68c44421fe716403835b7e18d71e240bd8d6d2786b1c6f62fbe5c4ab3d57",
       "gitBlobSha1": "35bc66226dca812ff65dde6adef2ce3b7e48f2d4"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard/currencyDisplay.js",
+      "bytes": 800,
+      "sha256": "65e651416be1dad137d9cd617b678bda5da89dc7e414a463d67bdd73a12ec802",
+      "gitBlobSha1": "eb52cfed591821839d01b987e5dbb49287c7f0cf"
     },
     {
       "path": "vendor/r5/tests/yard-atlas-working-set.test.mjs",

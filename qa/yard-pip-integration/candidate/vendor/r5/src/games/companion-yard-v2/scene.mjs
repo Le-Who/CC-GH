@@ -1,19 +1,16 @@
+// Derived from released 6b80c9a2; compatibility changes are recorded in M2-COMPATIBILITY.md.
+import{createUiImageReserve,uiImageLifetimeLedger}from'./ui-image-reserve.mjs';
+import{offsetWorldPoint}from'./scene-layout.mjs';
+import{LEGACY_M2_BACKGROUND,drawLegacyBackground}from'./legacy-m2-background.mjs';
 import { AtlasCache, atlasPageFor } from './atlas.mjs';
-import {canvasResizePeakBytes,fullActorCapacity,pageOwnerLedger} from './decoded-capacity.mjs';
-import {createUiImageReserve,uiImageLifetimeLedger} from './ui-image-reserve.mjs';
-import {RENDER_PACK_URL,validateInstalledRenderPack,bindRenderPack,visualImageURL} from './render-pack.mjs';
-import {createCottageLayer,drawEnvironment} from './scene45-environment.mjs';
 import { CANONICAL_ATLAS_POLICY,CURRENT_FOUR_ATLAS_POLICY,FAMILY_ATLAS_POLICY } from './atlas-policy.mjs';
 import { createProjection, footprintPolygon } from './projection.mjs';
-import { offsetWorldPoint, conservativeMaskStrips } from './scene-layout.mjs';
 import { selectPetPose } from './pose-selection.mjs';
-import {createBoundPageLookahead} from './bound-page-lookahead.mjs';
 import { FrameTelemetry } from './telemetry.mjs';
 import { PresentationClock } from './presentation-clock.mjs';
 import { edgeOpacity } from './edge-opacity.mjs';
 import { courtyardPresentation } from './presentation.mjs';
-import { footprint, sceneConfig } from '../../../game-logic/yard-v2/geometry.mjs';
-import { getYardPlayzoneRows } from '../../../game-logic/yard-playzones.js';
+import { footprint } from '../../../game-logic/yard-v2/geometry.mjs';
 import { MIKA_SCENE } from '../../../game-logic/yard-v2/mika-media.mjs';
 import { MIKA_CLIPS as clips } from '../../../game-logic/yard-v2/media/mika-clips.mjs';
 import { MIKA_RUNTIME_MEDIA_REVISION } from '../../../game-logic/yard-v2/media/runtime-version.mjs';
@@ -33,32 +30,31 @@ const stillIds = [...new Set(['sun-cushion-clean','yarn-mouse-clean','yarn-mouse
 async function json(path,signal){const r=await fetch(path,{signal});if(!r.ok)throw Error(`Media ${r.status}: ${path}`);return r.json();}
 
 /** One disposable canvas owner. Server snapshots are read-only; RAF never writes a save or reward. */
-export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,backgroundImage,uiImageOwner}={}) {
+export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner}={}) {
   const ctx=canvas.getContext('2d'),abort=new AbortController(),timing=new FrameTelemetry();
   const familyMode=Object.values(FAMILY_ACTOR_REFERENCES).some(ref=>resolveActorProfile(ref,actorProfiles));
   const atlasPolicy=familyMode?FAMILY_ATLAS_POLICY:[MIKA_ACTOR_REFERENCE,MOCHI_ACTOR_REFERENCE,PEBBLE_ACTOR_REFERENCE,PIP_ACTOR_REFERENCE]
     .every(ref=>resolveActorProfile(ref,actorProfiles))?CURRENT_FOUR_ATLAS_POLICY:CANONICAL_ATLAS_POLICY;
   const bitmapOwners=new Map(),globalTrace=[];
+  const uiImages=uiImageOwner||createUiImageReserve();let uiReserve=uiImages.snapshot(),canvasPendingBytes=0;
+  const uiLifetimeFloor=Math.max(19138304,uiImageLifetimeLedger().bytes);
+  const uiBytes=()=>Math.max(uiLifetimeFloor,uiReserve.bytes);
+  const renderCatalog=Object.freeze({kind:'legacy-m2',sourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa'});
   let staticDecodedBytes=0,staticPendingBytes=0,backgroundDecodedBytes=0,globalPeakBytes=0,staticDecodes=0,maxGlobalDecodes=0;
-  const uiImages=uiImageOwner||createUiImageReserve();
-  let uiReserve=uiImages.snapshot(),uiLifetime=null,fullCapacity=null,staticInventoryBytes=0,canvasPendingBytes=0;
-  const outside=()=>staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiReserve.bytes+canvas.width*canvas.height*4+canvasPendingBytes;
-  function budgetSample(reason){const row={reason,atlasRetainedBytes:atlas.decodedBytes,atlasPendingBytes:atlas.reservedBytes,stillRetainedBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiReserve.bytes,canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,activeDecodes:atlas.active+staticDecodes};row.totalBytes=atlas.decodedBytes+atlas.reservedBytes+outside();globalPeakBytes=Math.max(globalPeakBytes,row.totalBytes);maxGlobalDecodes=Math.max(maxGlobalDecodes,row.activeDecodes);if(row.totalBytes>atlasPolicy.maxDecodedBytes||row.activeDecodes>1)throw Error('Global decoded-image budget exceeded');globalTrace.push(row);if(globalTrace.length>240)globalTrace.shift();}
+  const outside=()=>staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+canvas.width*canvas.height*4+canvasPendingBytes;
+  function budgetSample(reason){const row={reason,atlasRetainedBytes:atlas.decodedBytes,atlasPendingBytes:atlas.reservedBytes,stillRetainedBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,activeDecodes:atlas.active+staticDecodes};row.totalBytes=atlas.decodedBytes+atlas.reservedBytes+outside();globalPeakBytes=Math.max(globalPeakBytes,row.totalBytes);maxGlobalDecodes=Math.max(maxGlobalDecodes,row.activeDecodes);if(row.totalBytes>atlasPolicy.maxDecodedBytes||row.activeDecodes>1)throw Error('Global decoded-image budget exceeded');globalTrace.push(row);if(globalTrace.length>240)globalTrace.shift();}
   const atlas=new AtlasCache(new URL(ROOT,location.origin),atlasPolicy.maxPages,
     {...atlasPolicy,externalBytes:outside,onEvent:e=>{timing.atlas(e);budgetSample(e.type);}});
   const clock=new PresentationClock(now);
   let snapshot=null,view=null,projection=null,media=null,stills=null,actorEntries={},propBindings={},sceneGeometry=MIKA_SCENE;
-  let visual=null,visualPack=null,cottageLayer=null;const pendingStills=[];
-  const pageLookahead=createBoundPageLookahead({bindClip:clip=>visual.clip(clip)});
   let retirement=null,ghost=null,disposed=false,raf=0,lastRafStamp=null,lastStatusAt=0,ready=false,pendingSize=null,resizeFailure=null;
   const images=new Map();
-  const poseFor=pet=>{const actor=actorEntryForPet(pet,actorEntries),pose=selectPetPose(actor.manifest,pet,{actorProfile:actor.profile});return{...pose,clip:visual.clip(pose.clip)};};
+  const poseFor=pet=>{const actor=actorEntryForPet(pet,actorEntries);return selectPetPose(actor.manifest,pet,{actorProfile:actor.profile});};
   function time(){return clock.read();}
-  function update(value){if(!value)return;snapshot=value;clock.update(value?.yardRuntime?.serverNow||value?.serverTime||Date.now());if(!ready)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false});}
+  function update(value){if(!value)return;snapshot=value;clock.update(value?.yardRuntime?.serverNow||value?.serverTime||Date.now());if(!ready)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});}
   function applyResize(){if(!pendingSize)return true;const {width,height,dpr}=pendingSize;
     const w=Math.max(1,Math.round(width*dpr)),h=Math.max(1,Math.round(height*dpr));
-    {const backingPeak=canvasResizePeakBytes(canvas.width,canvas.height,w,h),external=staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiReserve.bytes+backingPeak;
-      if(visual){const capacity=fullActorCapacity(visual.actorPages,uiLifetime.bytes+staticInventoryBytes+448*448*4*2+backingPeak,{limitBytes:atlasPolicy.maxDecodedBytes,slotLimit:atlasPolicy.maxPages});if(!capacity.fits){pendingSize=null;resizeFailure={code:'CANVAS_GLOBAL_BUDGET_UNAVAILABLE',width,height,dpr,fullActorCapacity:capacity};const error=Error('Canvas resize cannot fit the full eight-actor bound');error.code=resizeFailure.code;onError(error);return false;}fullCapacity=capacity;}
+    {const external=staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+canvas.width*canvas.height*4+(canvas.width!==w||canvas.height!==h?w*h*4:0);
       const demand=[...atlas.pinned].reduce((n,key)=>n+(atlas.entries.get(key)?.bytes??atlas.jobs.get(key)?.expectedBytes??0),0);
       if(external+demand>atlasPolicy.maxDecodedBytes){
         // Keep the existing coherent backing and projection, explicitly reject
@@ -70,52 +66,31 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     }
     resizeFailure=null;
     pendingSize=null;if(canvas.width===w&&canvas.height===h&&projection?.width===width&&projection?.height===height)return true;
-    const backingChanged=canvas.width!==w||canvas.height!==h;canvasPendingBytes=backingChanged?w*h*4:0;budgetSample('canvas-resize-start');
-    // Zero the old width first so separate width/height assignments cannot
-    // allocate an unreserved new-width/old-height intermediate backing.
-    if(backingChanged){canvas.width=0;canvas.height=h;canvas.width=w;}
-    canvasPendingBytes=0;ctx.setTransform(dpr,0,0,dpr,0,0);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality='low';projection=createProjection(width,height);budgetSample('canvas-resize');return true;}
+    const changed=canvas.width!==w||canvas.height!==h;canvasPendingBytes=changed?w*h*4:0;budgetSample('canvas-resize-start');
+    if(changed){canvas.width=0;canvas.height=h;canvas.width=w;}canvasPendingBytes=0;ctx.setTransform(dpr,0,0,dpr,0,0);projection=createProjection(width,height);budgetSample('canvas-resize');return true;}
   function resize(){const r=canvas.getBoundingClientRect();pendingSize={width:r.width,height:r.height,dpr:Math.min(devicePixelRatio||1,2)};
     // Changing backing dimensions clears a canvas. While decoding, leave its
     // coherent pixels intact and let CSS fit them until the current frame can
     // be redrawn. This needs no extra canvas copy or retained atlas pages.
     if(!ready||!view)applyResize();}
-  uiImages.setAdmissionCheck(next=>{
-    if(disposed)return false;
-    if(visual){const capacity=fullActorCapacity(visual.actorPages,Math.max(uiLifetime.bytes,next.bytes)+staticInventoryBytes+448*448*4*2+canvas.width*canvas.height*4,{limitBytes:atlasPolicy.maxDecodedBytes,slotLimit:atlasPolicy.maxPages});if(!capacity.fits)return false;}
-    if(!atlas.reserveExternal(outside()-uiReserve.bytes+next.bytes))return false;
-    uiReserve=next;budgetSample('ui-image-admission');return true;
-  });
+  uiImages.setAdmissionCheck(next=>{if(disposed)return false;const proposed=Math.max(uiLifetimeFloor,next.bytes);if(!atlas.reserveExternal(outside()-uiBytes()+proposed))return false;uiReserve=next;budgetSample('ui-admission');return true;});
   const observer=new ResizeObserver(resize);observer.observe(canvas);
+  function shadow(p,rx,ry,opacity=.2){ctx.save();ctx.translate(p.x,p.y);ctx.scale(rx,ry);const g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(39,54,27,${opacity})`);g.addColorStop(1,'rgba(39,54,27,0)');ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();}
   function sprite(id,p,alpha=1){const im=images.get(id),meta=stills[id];if(!im||!meta)return;const scale=projection.ppu/meta.worldPixelScale;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,p.x-meta.pivotPx[0]*scale,p.y-meta.pivotPx[1]*scale,im.width*scale,im.height*scale);ctx.restore();}
-  function drawPlacementGuides(v){
-    if(!ghost)return;
-    const polygon=points=>{points.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();};
-    ctx.save();ctx.beginPath();
-    // Show the actual source-owned ground rows, not all visible background grass.
-    conservativeMaskStrips(getYardPlayzoneRows(v.yard.remodel)).forEach(box=>polygon(footprintPolygon(box,projection)));
-    ctx.fillStyle='rgba(116,159,83,.16)';ctx.fill();
-    const boxes=(rows,fill,stroke)=>{ctx.beginPath();for(const box of rows.filter(Boolean))polygon(footprintPolygon(box,projection));ctx.fillStyle=fill;ctx.fill();ctx.strokeStyle=stroke;ctx.lineWidth=1.5;ctx.stroke();};
-    boxes(v.props.filter(p=>p.slotId!==ghost.slotId).map(p=>footprint({...p,...p.transform},sceneGeometry)), 'rgba(119,76,43,.12)', 'rgba(110,70,41,.72)');
-    const layout=sceneConfig(sceneGeometry),entry=layout.entry,clearance=layout.entryClearance;
-    boxes([...layout.exclusions,{x:entry.x-clearance,y:entry.y-clearance,width:clearance*2,height:clearance*2}], 'rgba(119,76,43,.12)', 'rgba(110,70,41,.72)');
-    // Match checkPlacement's active reservation boundary; no extra blocking rule.
-    const reserved=(v.runtime?.visits||[]).filter(visit=>v.now<visit.leavesAt)
-      .flatMap(visit=>visit.mediaAdmission?.plan?.reservationBoxes||[]);
-    boxes(reserved, 'rgba(197,141,44,.14)', 'rgba(157,111,37,.65)');
-    ctx.restore();
-  }
   const fade=pet=>pet.phase==='approach'||pet.phase==='depart'?edgeOpacity(pet.route.points,pet.phase,pet.groundDistance):1;
   function draw(v){
-    const {width,height,ppu}=projection;ctx.clearRect(0,0,width,height);
-    drawEnvironment(ctx,projection,{ground:images.get('environment:ground'),cottage:images.get('environment:cottage')},cottageLayer);
-    drawPlacementGuides(v);
+    const {width,height,ppu}=projection;ctx.clearRect(0,0,width,height);drawLegacyBackground(ctx,images.get('legacy-background'),width,height);
     for(const food of foodBowlPresentation(v.bowls)){
-      const bowl=projection.project(food.anchor);sprite(food.stillId,bowl);
+      const bowl=projection.project(food.anchor);shadow(bowl,ppu*.43,ppu*.16,.25);sprite(food.stillId,bowl);
     }
     const layers=[];
-    // New native RGBA frames include their source-owned contact shadows.
+    for(const pet of v.pets){const pose=poseFor(pet),base=pet.phase==='active-clip'?pet.clipOrigin:pet.position,units=actorEntryForPet(pet,actorEntries).profile.unitsPerWorld;
+      const contact=actorEntryForPet(pet,actorEntries).groundShadow||{radiusX:.19,radiusY:.065,opacity:.22};
+      const origin=pet.phase==='active-clip'?(pose.clip.originWorld||[0,0,0]):[0,0,0];
+      for(const p of pose.clip.groundContacts?.[pose.index]||[]){const point=projection.project({x:base.x+(p[0]-origin[0])*units,y:base.y+(p[1]-origin[1])*units});shadow(point,ppu*contact.radiusX,ppu*contact.radiusY,contact.opacity*fade(pet));}
+    }
     for(const prop of v.props){if(!prop.supported||ghost?.slotId===prop.slotId)continue;const p=projection.project(prop.transform);
+      shadow(p,ppu*(prop.goodieId==='sun_cushion'?1.1:.32),ppu*(prop.goodieId==='sun_cushion'?.35:.1),.14);
       if(prop.drawStandalone)layers.push({y:p.y,draw:()=>sprite(prop.stillId||(prop.goodieId==='sun_cushion'?'sun-cushion-clean':Math.abs(prop.transform.rotationZ)>.05?'yarn-mouse-settled-clean':'yarn-mouse-clean'),p,prop.conditionPixels||prop.condition==='new'?1:.7)});
     }
     for(const pet of v.pets){const pose=poseFor(pet),p=projection.project(pet.phase==='active-clip'?pet.clipOrigin:pet.position);
@@ -129,9 +104,11 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     // be virtual. Bootstrap from the first RAF instead of mixing those origins.
     const delta=lastRafStamp===null?0:stamp-lastRafStamp;lastRafStamp=stamp;timing.raf(delta,!document.hidden);
     if(snapshot&&media&&projection&&!document.hidden){const at=time(),next=courtyardPresentation(snapshot,at,clips,{actorEntries,actorProfiles});
+      const later=courtyardPresentation(snapshot,at+1100,clips,{actorEntries,actorProfiles});
       const lookahead=[];
       for(const pet of next.pets){const entry=actorEntryForPet(pet,actorEntries),plan=next.plans[pet.visitId];
-        lookahead.push(...pageLookahead.requests(entry,plan,at,pet).lookahead);}
+        if(entry.presentation?.requests)lookahead.push(...entry.presentation.requests(plan,at).lookahead);
+        else{const future=later.pets.find(p=>p.visitId===pet.visitId);if(future)lookahead.push(poseFor(future));}}
       atlas.prepare(next.pets.map(pet=>poseFor(pet)),lookahead);
       let missing=null;for(const pet of next.pets){const p=poseFor(pet);if(!atlas.frame(p.clip,p.index))missing={mediaId:p.mediaId,index:p.index,page:atlas.sourceFor(p.clip,atlasPageFor(p.clip,p.index).page)};}
       if(missing){timing.mediaWait(at,missing);}else{timing.mediaReady(at);view=next;}
@@ -141,16 +118,16 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
       // pages while waiting would re-request images that the new working set is
       // deliberately replacing, causing eviction/decode churn with two actors.
       if(view&&!missing&&applyResize()){draw(view);timing.presented(view.pets.map(p=>{const q=poseFor(p);return{visitId:p.visitId,mediaId:q.mediaId,actorProfile:p.actorProfile,index:q.index,position:p.position||p.clipOrigin};}),at);budgetSample('presented');}
-      if(stamp-lastStatusAt>250){onView({...next,mediaReady:true,renderCatalog:visual.catalog,renderRevision:visual.revision});lastStatusAt=stamp;}
+      if(stamp-lastStatusAt>250){onView({...next,mediaReady:true,renderCatalog,renderRevision:'legacy-m2/6b80c9a2'});lastStatusAt=stamp;}
       if(atlas.error)throw atlas.error;
     }
-  }catch(e){ready=false;if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false});onError(e);return;}raf=requestAnimationFrame(tick);}
+  }catch(e){ready=false;if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);return;}raf=requestAnimationFrame(tick);}
   async function loadStill(id,meta,url){
+    if(disposed)return;
     const absolute=new URL(url,location.origin);if(meta.assetRevision)absolute.searchParams.set('yard-media',meta.assetRevision);const key=absolute.href;
     if(bitmapOwners.has(key)){const old=bitmapOwners.get(key);if(meta.canvas&&(old.width!==meta.canvas[0]||old.height!==meta.canvas[1]))throw Error('Shared still dimensions disagree');images.set(id,old);stills[id]=meta;return;}
     const response=await fetch(key,{signal:abort.signal});if(!response.ok)throw Error(`Media ${response.status}: ${key}`);const blob=await response.blob();if(disposed)return;
-    if(meta.verifySourceBytes){const bytes=await blob.arrayBuffer(),hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');if(hash!==meta.sha256||bytes.byteLength!==meta.encodedBytes)throw Error('Visual still source byte identity mismatch');}
-    if(disposed)return;
+    if(meta.verifySourceBytes){const bytes=await blob.arrayBuffer();if(disposed)return;const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');if(disposed)return;if(hash!==meta.sha256||bytes.byteLength!==meta.encodedBytes)throw Error('Legacy source image identity mismatch');}
     const declared=meta.canvas?meta.canvas[0]*meta.canvas[1]*4:1024*1024; // reserve a finite upper bound for older verified still descriptors
     if(!atlas.reserveExternal(outside()+declared))throw Error('Static decoded-image allocation exceeds global budget');
     staticPendingBytes=declared;staticDecodes=1;budgetSample('still-decode-start');let bitmap;
@@ -158,65 +135,51 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     finally{bitmap?.close();staticPendingBytes=0;staticDecodes=0;}
   }
   const readyPromise=(async()=>{
-    visualPack=validateInstalledRenderPack(await json(RENDER_PACK_URL,abort.signal));if(disposed)return;
+    stills={};await loadStill('legacy-background',LEGACY_M2_BACKGROUND,LEGACY_M2_BACKGROUND.url);if(disposed)return;
+    staticDecodedBytes-=LEGACY_M2_BACKGROUND.decodedBytes;backgroundDecodedBytes=LEGACY_M2_BACKGROUND.decodedBytes;budgetSample('background-ready');
     const [a,b]=await Promise.all([json(`${ROOT}runtime-media.json?v=${encodeURIComponent(MIKA_RUNTIME_MEDIA_REVISION)}`,abort.signal),json(`${ROOT}still-layer-contract.json?v=${encodeURIComponent(MIKA_RUNTIME_MEDIA_REVISION)}`,abort.signal)]);
     if(disposed)return;if(a.manifestRevision!==MIKA_RUNTIME_MEDIA_REVISION||!a.renderBindings)throw Error('Mismatched Yard runtime media revision');
     actorEntries={mika:createActorMediaEntry(a,{reference:MIKA_ACTOR_REFERENCE,assetBaseURL:new URL(ROOT,location.origin).href,clips,profiles:actorProfiles})};
     media=a;stills=b;
-    for(const id of stillIds)pendingStills.push({id,meta:b[id],consumerId:'mika'});
+    for(const id of stillIds){await loadStill(id,b[id],`${ROOT}${id}.webp`);if(disposed)return;}
     // No Mochi network/decode work in a released/default scene. The registry
     // must explicitly contain its accepted exact profile before this loads.
     if(resolveActorProfile(MOCHI_ACTOR_REFERENCE,actorProfiles)){
       const base=new URL('/assets/yard-mochi/',location.origin).href;
       const [{createMochiActorMediaEntry},manifest]=await Promise.all([import('./mochi-actor-media.mjs'),json(`${base}runtime-media.json?v=${encodeURIComponent(MOCHI_RUNTIME_MEDIA_REVISION)}`,abort.signal)]);
-      const entry=createMochiActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[id,meta]of Object.entries(entry.stills))pendingStills.push({id,meta,consumerId:'mochi'});
+      if(disposed)return;const entry=createMochiActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[id,meta]of Object.entries(entry.stills)){await loadStill(id,meta,meta.assetURL);if(disposed)return;}
       if(disposed)return;actorEntries.mochi=entry;
     }
     if(resolveActorProfile(PEBBLE_ACTOR_REFERENCE,actorProfiles)){
       const base=new URL('/assets/yard-pebble/',location.origin).href;
       const [{createPebbleActorMediaEntry},manifest]=await Promise.all([import('./pebble-actor-media.mjs'),json(`${base}runtime-media.json?v=${encodeURIComponent(PEBBLE_MEDIA_REVISION)}`,abort.signal)]);
-      const entry=createPebbleActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[id,meta]of Object.entries(entry.stills))pendingStills.push({id,meta,consumerId:'pebble'});
+      if(disposed)return;const entry=createPebbleActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[id,meta]of Object.entries(entry.stills)){await loadStill(id,meta,meta.assetURL);if(disposed)return;}
       if(disposed)return;actorEntries.pebble=entry;
     }
     if(resolveActorProfile(PIP_ACTOR_REFERENCE,actorProfiles)){
       const base=new URL('/assets/yard-pip/',location.origin).href;
       const [{createPipActorMediaEntry},manifest]=await Promise.all([import('./pip-actor-media.mjs'),json(`${base}runtime-media.json?v=${encodeURIComponent(PIP_MEDIA_REVISION)}`,abort.signal)]);
-      const entry=createPipActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[id,meta]of Object.entries(entry.stills))pendingStills.push({id,meta,consumerId:'pip'});
+      if(disposed)return;const entry=createPipActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[id,meta]of Object.entries(entry.stills)){await loadStill(id,meta,meta.assetURL);if(disposed)return;}
       if(disposed)return;actorEntries.pip=entry;
     }
-    for(const[actorId,reference]of Object.entries(FAMILY_ACTOR_REFERENCES))if(resolveActorProfile(reference,actorProfiles)){
-      const base=new URL(`/assets/yard-family/${actorId}/`,location.origin).href;
+    for(const[id,reference]of Object.entries(FAMILY_ACTOR_REFERENCES))if(resolveActorProfile(reference,actorProfiles)){
+      const base=new URL(`/assets/yard-family/${id}/`,location.origin).href;
       const [{createFamilyActorMediaEntry},manifest]=await Promise.all([import('./family-actor-media.mjs'),json(`${base}runtime-media.json`,abort.signal)]);
-      const entry=createFamilyActorMediaEntry(actorId,manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[id,meta]of Object.entries(entry.stills))pendingStills.push({id,meta,consumerId:actorId});
-      if(disposed)return;actorEntries[actorId]=entry;
+      if(disposed)return;const entry=createFamilyActorMediaEntry(id,manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[stillId,meta]of Object.entries(entry.stills)){await loadStill(stillId,meta,meta.assetURL);if(disposed)return;}
+      if(disposed)return;actorEntries[id]=entry;
     }
-    visual=bindRenderPack(visualPack,actorEntries,pendingStills,{origin:location.origin});
-    uiImages.registerCatalog(visual.catalog);uiReserve=uiImages.snapshot();uiLifetime=uiImageLifetimeLedger(visual.catalog);
-    const staticOwners=pageOwnerLedger([...visual.stills.values()].map(({meta,url})=>({owner:visualImageURL(url,visual.catalog.baseURL,visual.revision),width:meta.canvas[0],height:meta.canvas[1]})),Object.values(visual.environment).map(row=>({owner:visualImageURL(row.src,visual.catalog.baseURL,visual.revision),width:row.canvas[0],height:row.canvas[1]})));
-    staticInventoryBytes=[...staticOwners.values()].reduce((n,row)=>n+row.bytes,0);
-    fullCapacity=fullActorCapacity(visual.actorPages,uiLifetime.bytes+staticInventoryBytes+448*448*4*2+canvas.width*canvas.height*4,{limitBytes:atlasPolicy.maxDecodedBytes,slotLimit:atlasPolicy.maxPages});
-    if(!fullCapacity.fits)throw Error('Complete eight-actor image inventory exceeds the decoded capacity bound');
-    for(const[id,{meta,url}]of visual.stills){await loadStill(id,meta,url);if(disposed)return;}
-    for(const[id,row]of Object.entries(visual.environment)){
-      await loadStill('environment:'+id,{...row,verifySourceBytes:true,assetRevision:visual.revision},new URL(row.src,new URL('/assets/yard-scene45/',location.origin)).href);
-      if(disposed)return;staticDecodedBytes-=row.decodedBytes;backgroundDecodedBytes+=row.decodedBytes;
-    }
-    if(disposed)return;const derivedBytes=448*448*4;if(!atlas.reserveExternal(outside()+derivedBytes*2))throw Error('Cottage composition exceeds global decoded-image budget');
-    staticPendingBytes=derivedBytes*2;budgetSample('cottage-layer-start');
-    cottageLayer=createCottageLayer(images.get('environment:cottage'),(w,h)=>{const surface=document.createElement('canvas');surface.width=w;surface.height=h;return surface;});
-    staticPendingBytes=0;backgroundDecodedBytes+=derivedBytes;budgetSample('cottage-layer-ready');
     propBindings=Object.assign({},...Object.values(actorEntries).map(e=>e.propBindings||{}));
     sceneGeometry={...MIKA_SCENE,footprints:{...MIKA_SCENE.footprints,...Object.fromEntries(Object.entries(propBindings).map(([id,p])=>[id,p.footprint]))}};
     if(disposed)return;resize();ready=true;raf=requestAnimationFrame(tick);
-  })().catch(e=>{ready=false;e.code||='YARD_CAMERA_MEDIA_UNAVAILABLE';if(!disposed){if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false});onError(e);}});
+  })().catch(e=>{ready=false;if(!disposed){if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);}});
   return {ready:readyPromise,update,setGhost(value){ghost=value;},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
     offsetPoint(position,delta){return projection?offsetWorldPoint(projection,position,delta):null;},
     hit(event){if(!view||!projection)return null;const r=canvas.getBoundingClientRect(),point={x:event.clientX-r.left,y:event.clientY-r.top};return view.props.filter(p=>p.supported).map(prop=>{const q=projection.project(prop.transform);return{prop,p:{x:q.x*r.width/projection.width,y:q.y*r.height/projection.height}};}).filter(v=>Math.hypot(v.p.x-point.x,v.p.y-point.y)<28).sort((a,b)=>Math.hypot(a.p.x-point.x,a.p.y-point.y)-Math.hypot(b.p.x-point.x,b.p.y-point.y))[0]?.prop;},
-    diagnostics(){return{disposed,ready,renderRevision:visual?.revision||null,mediaBlocked:!ready,presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiReserve.bytes,canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}},uiReserve,uiLifetime,uiImageOwnershipScope:'Reserved DOM/CSS resource URLs; browser internal sharing and decoder scratch unmeasured',fullCapacity,view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
-    dispose(){if(retirement)return retirement;const pending=[readyPromise,...atlas.pending.values()];disposed=true;abort.abort();cancelAnimationFrame(raf);observer.disconnect();uiImages.setAdmissionCheck(null);atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;backgroundDecodedBytes=0;if(cottageLayer)cottageLayer.width=cottageLayer.height=0;images.clear();retirement=Promise.allSettled(pending);return retirement;}
+    diagnostics(){return{disposed,ready,legacySourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa',renderRevision:'legacy-m2/6b80c9a2',mediaBlocked:!ready,uiReserve,uiLifetimeFloor,backgroundComposition:'original cover52%50% in owned Canvas2D',presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...(familyMode?{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}}:{}),view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
+    dispose(){if(retirement)return retirement;const pending=[readyPromise,...atlas.pending.values()];disposed=true;ready=false;abort.abort();cancelAnimationFrame(raf);observer.disconnect();atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;backgroundDecodedBytes=0;images.clear();uiImages.setAdmissionCheck(()=>false);retirement=Promise.allSettled(pending);return retirement;}
   };
 }
