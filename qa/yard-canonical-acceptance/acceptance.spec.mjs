@@ -6,24 +6,46 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import sharp from 'sharp';
+import setup from '../../src/games/companion-yard-v2/pip-prototype/data/fixture.json' with {type:'json'};
 import {fixtureOwner,canonicalRows,economy,realMutation,ORIGIN} from './fixtures.mjs';
 import {OUT,WORK,report,init,observe,boot,waitForYardReady,enter,scene,shot,placedPanel,closePanel,project,dragTo,place,move,pickup,inspect,refresh,capture,captureFailureDiagnostics,fonts,layout,checkLayout,outbox} from './browser-helpers.mjs';
 let owner,fixture;
 test.beforeAll(async()=>{await fs.mkdir(OUT,{recursive:true});await fs.mkdir(WORK,{recursive:true});owner=await fixtureOwner();fixture=await owner.seed();});
 test.afterAll(async()=>{try{await owner?.close();}catch(error){report.errors.push({type:'fixture-cleanup',message:String(error)});report.status='FAILED_OR_INCOMPLETE';throw error;}finally{await fs.writeFile(path.join(OUT,'browser.json'),JSON.stringify(report,null,2)+'\n');}});
 async function rows(n){await expect.poll(async()=>canonicalRows(await owner.saved(fixture)).length).toBe(n);return canonicalRows(await owner.saved(fixture));}
-async function context(browser,options={}){const {language='ru',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p,fixture);return{c,p};}catch(error){await captureFailureDiagnostics(p,'startup-failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
+async function context(browser,options={}){const {language='ru',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p,fixture);return{c,p,recording:!!options.recordVideo};}catch(error){await captureFailureDiagnostics(p,'startup-failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));if(!options.recordVideo)await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
 async function visibleCount(page,n){await expect.poll(async()=>{const s=await scene(page);return s?.canonicalRecords?.length===n&&s.lastFrame?.records?.length===n&&JSON.stringify(s.lastFrame.records)===JSON.stringify(s.canonicalRecords);}).toBe(true);}
 async function switchFresh(page){await page.locator('[data-pip-control="toggle"]').click();await expect.poll(async()=>(await shot(page))?.mode).toBe('legacy');await enter(page);}
 async function settled(page){await expect.poll(async()=>(await scene(page))?.interaction?.phase,{timeout:24000}).toBe('settled');}
 async function externalMove(page,index,x,y){const r=canonicalRows(await owner.saved(fixture))[index];await realMutation(page.request,fixture,'yard.moveGoodie',{slotId:r.slotId,goodieId:'leaf_pot',x,y});await refresh(page);return r.slotId;}
 async function externalPickup(page,index){const r=canonicalRows(await owner.saved(fixture))[index];await realMutation(page.request,fixture,'yard.pickupGoodie',{slotId:r.slotId});await refresh(page);return r.slotId;}
 async function recoveryWitness(page){
- await expect.poll(async()=>(await scene(page))?.interaction?.phase,{timeout:2000,intervals:[20]}).toBe('recovering');
+ await expect.poll(async()=>{const s=await scene(page);return s?.interaction?.phase==='recovering'&&s.lastFrame?.intention==='support-preserving-recovery'&&s.dynamicSample?.poseRecovery&&JSON.stringify(s.lastFrame.root)===JSON.stringify(s.dynamicSample.world.root);},{timeout:2000,intervals:[20]}).toBeTruthy();
  const before=await scene(page);await page.waitForTimeout(100);const after=await scene(page);
  assert.deepEqual(after.dynamicSample.world.root,before.dynamicSample.world.root);assert.equal(after.dynamicSample.world.heading,before.dynamicSample.world.heading);
  for(const side of before.dynamicSample.world.support){assert.deepEqual(after.dynamicSample.world.feet[side].position,before.dynamicSample.world.feet[side].position);assert.equal(after.dynamicSample.world.feet[side].heading,before.dynamicSample.world.feet[side].heading);}
  return{before,after};
+}
+const rootDistance=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+async function departed(page,entry,label){
+ let observed;
+ await expect.poll(async()=>{
+  const s=await scene(page),world=s?.dynamicSample?.world;if(!world||s.interaction.phase!=='approaching'||s.lastFrame?.visibility!=='both')return false;
+  const a=project(s,entry.dynamicSample.world.root.x,entry.dynamicSample.world.root.y),b=project(s,world.root.x,world.root.y);
+  const moved=rootDistance(world.root,entry.dynamicSample.world.root)>1&&Math.hypot(a.x-b.x,a.y-b.y)>2;
+  const sameFrame=JSON.stringify(s.lastFrame.root)===JSON.stringify(world.root)&&s.frameCount>entry.frameCount;
+  if(moved&&sameFrame){observed=s;return true;}return false;
+ },{timeout:12000,intervals:[20,50]}).toBe(true);
+ report.cases.push({name:label+'-pre-mutation',entry,observed});return observed;
+}
+function mutationBoundary(before,recovery){
+ const after=recovery.before,a=before.dynamicSample.world,b=after.dynamicSample.world;
+ const elapsedMs=after.lastFrame.elapsedMs-before.lastFrame.elapsedMs;assert(elapsedMs>=0);
+ const limit=setup.actor.maxSpeedSourcePerSecond*setup.actor.unitsPerSource*elapsedMs/1000;
+ assert(rootDistance(a.root,b.root)<=limit+1e-5,'Root cannot jump between the final pre-request draw and first recovery draw');
+ const sharedPlants=[];for(const side of a.support){if(a.feet[side].plantId!==b.feet[side].plantId)continue;assert.deepEqual(a.feet[side].position,b.feet[side].position);assert.equal(a.feet[side].heading,b.feet[side].heading);sharedPlants.push(side);}
+ return{elapsedMs,frameCountBefore:before.frameCount,frameCountAfter:after.frameCount,rootDisplacement:rootDistance(a.root,b.root),maxRootDisplacement:limit,sharedPlantedSupports:sharedPlants,
+  qualification:'Requests may span real animation frames; legal movement is bounded by measured actor speed. Recovery itself preserves root/heading/planted supports exactly.'};
 }
 async function captureHeldContact(page){
  await page.evaluate(()=>document.fonts.ready);
@@ -104,23 +126,27 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
 
   // One untouched native Playwright recording, with wall-clock duration evidence.
   const recordingStart=Date.now();active=await context(browser,{recordVideo:{dir:path.join(WORK,'video'),size:{width:390,height:844}}});({p,c}=active);await enter(p);await visibleCount(p,2);
-  const inspectionStart=Date.now();await inspect(p);const initial=await scene(p);assert.equal(initial.interaction.selectedAnchor,'leaf-7');assert.equal(initial.savedVisitor,false);assert.equal(initial.interaction.savedVisitor,false);
-  const stable=await jitter(p,canonicalRows(await owner.saved(fixture))[1].slotId);await settled(p);const end=await scene(p);assert.equal(end.lastFrame.visibility,'both');await capture(p,'normal-two-prop-inspection');
-  report.cases.push({name:'normal-two-committed-props',initial,end,stationaryProp:stable});const video=p.video();await c.close();active=null;
+  const inspectionStart=Date.now();await inspect(p);const inspectionAdmittedAt=Date.now(),initial=await scene(p);assert.equal(initial.interaction.selectedAnchor,'leaf-7');assert.equal(initial.savedVisitor,false);assert.equal(initial.interaction.savedVisitor,false);
+  // Keep this entire native recording free of screenshots and viewport changes.
+  await settled(p);const end=await scene(p);assert.equal(end.lastFrame.visibility,'both');
+  report.cases.push({name:'normal-two-committed-props',initial,end});const video=p.video();await c.close();active=null;
   const raw=await video.path(),target=path.join(OUT,'actual-time-inspection.webm');await fs.copyFile(raw,target);
   const media=JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','v:0','-show_entries','format=duration:stream=width,height,r_frame_rate','-of','json',target],{encoding:'utf8',timeout:10000}));
-  report.clip={file:'actual-time-inspection.webm',recordingWallMs:Date.now()-recordingStart,inspectionStartWallOffsetMs:inspectionStart-recordingStart,media,processing:'Untrimmed, unretimed native browser recording. No screenshot concatenation or interpolated frames.',qualification:'Actual Chromium/WebGL backend is recorded in renderingBackend; native video cadence is not device FPS.'};
+  report.clip={file:'actual-time-inspection.webm',recordingWallMs:Date.now()-recordingStart,inspectionStartWallOffsetMs:inspectionStart-recordingStart,inspectionAdmittedWallOffsetMs:inspectionAdmittedAt-recordingStart,inspectionAdmittedAt,media,processing:'Untrimmed, unretimed native browser recording. No screenshot concatenation or interpolated frames.',qualification:'Actual Chromium/WebGL backend is recorded in renderingBackend; native video cadence is not device FPS.'};
 
+  // Separate unrecorded context: raster crops cannot disturb the native clip.
+  active=await context(browser);({p,c}=active);await enter(p);await visibleCount(p,2);await inspect(p);
+  const stable=await jitter(p,canonicalRows(await owner.saved(fixture))[1].slotId);await settled(p);await capture(p,'normal-two-prop-inspection');report.cases.push({name:'separate-unrecorded-stationary-prop-check',stationaryProp:stable});await c.close();active=null;
   active=await context(browser);({p,c}=active);await enter(p);await visibleCount(p,2);
-  await externalMove(p,1,94,135);await switchFresh(p);await inspect(p);await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('approaching');const alternative=await scene(p);assert.notEqual(alternative.interaction.selectedAnchor,'leaf-7');assert.equal(alternative.interaction.savedVisitor,false);report.cases.push({name:'front-blocked-reachable-alternative',scene:alternative});
+  await externalMove(p,1,94,135);await switchFresh(p);const moveEntry=await scene(p);await inspect(p);await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('approaching');const alternative=await scene(p);assert.notEqual(alternative.interaction.selectedAnchor,'leaf-7');assert.equal(alternative.interaction.savedVisitor,false);report.cases.push({name:'front-blocked-reachable-alternative',scene:alternative});
   // Mutate through actual authenticated HTTP, then a labelled synthetic visibility
   // notification invokes the app's real snapshot fetch without touching its store.
-  const oldLayout=alternative.interaction.layoutKey;await externalMove(p,0,108,122);const moveRecovery=await recoveryWitness(p);
+  const beforeMove=await departed(p,moveEntry,'target-move'),oldLayout=beforeMove.interaction.layoutKey;await externalMove(p,0,108,122);const moveRecovery=await recoveryWitness(p),moveBoundary=mutationBoundary(beforeMove,moveRecovery);
   await expect.poll(async()=>(await scene(p))?.interaction?.invalidations).toBeGreaterThan(alternative.interaction.invalidations);
   await expect.poll(async()=>{const s=await scene(p);return s.interaction.phase!=='recovering'&&s.interaction.phase!=='planning';}).toBe(true);
-  const moved=await scene(p);assert.notEqual(moved.interaction.layoutKey,oldLayout);assert(['approaching','inspecting','settled','no-path','cancelled'].includes(moved.interaction.phase));if(moved.interaction.planLayoutKey)assert.equal(moved.interaction.planLayoutKey,moved.interaction.layoutKey);report.cases.push({name:'target-moved-during-approach',scene:moved,recovery:moveRecovery,refreshEventTrusted:false});
-  await switchFresh(p);await inspect(p);await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('approaching');const beforeDelete=await scene(p);await externalPickup(p,0);const deleteRecovery=await recoveryWitness(p);
-  await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('cancelled');const cancelled=await scene(p);assert.equal(cancelled.interaction.active,false);assert(cancelled.lastFrame.root.x!==79||cancelled.lastFrame.root.y!==129.5,'Cancellation must not teleport to entry');report.cases.push({name:'target-deleted-during-approach',before:beforeDelete,after:cancelled,recovery:deleteRecovery,refreshEventTrusted:false});
+  const moved=await scene(p);assert.notEqual(moved.interaction.layoutKey,oldLayout);assert(['approaching','inspecting','settled','no-path','cancelled'].includes(moved.interaction.phase));if(moved.interaction.planLayoutKey)assert.equal(moved.interaction.planLayoutKey,moved.interaction.layoutKey);report.cases.push({name:'target-moved-during-approach',scene:moved,recovery:moveRecovery,boundary:moveBoundary,refreshEventTrusted:false});
+  await switchFresh(p);const deleteEntry=await scene(p);await inspect(p);const beforeDelete=await departed(p,deleteEntry,'target-delete');await externalPickup(p,0);const deleteRecovery=await recoveryWitness(p),deleteBoundary=mutationBoundary(beforeDelete,deleteRecovery);
+  await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('cancelled');const cancelled=await scene(p);assert.equal(cancelled.interaction.active,false);assert.deepEqual(cancelled.dynamicSample.world.root,deleteRecovery.before.dynamicSample.world.root);assert.equal(cancelled.dynamicSample.world.heading,deleteRecovery.before.dynamicSample.world.heading);for(const side of deleteRecovery.before.dynamicSample.world.support){assert.deepEqual(cancelled.dynamicSample.world.feet[side].position,deleteRecovery.before.dynamicSample.world.feet[side].position);assert.equal(cancelled.dynamicSample.world.feet[side].heading,deleteRecovery.before.dynamicSample.world.feet[side].heading);}assert(cancelled.lastFrame.root.x!==79||cancelled.lastFrame.root.y!==129.5,'Cancellation must not teleport to entry');report.cases.push({name:'target-deleted-during-approach',before:beforeDelete,after:cancelled,recovery:deleteRecovery,boundary:deleteBoundary,refreshEventTrusted:false});
   await externalMove(p,0,35,115);await switchFresh(p);await inspect(p);await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('no-path');const noPath=await scene(p);assert.equal(noPath.interaction.error,'NO_REACHABLE_INTERACTION_ANCHOR');await capture(p,'valid-item-no-reachable-anchor');report.cases.push({name:'valid-35-115-all-anchors-blocked',scene:noPath});
   await externalMove(p,0,98,118);await switchFresh(p);await placedPanel(p);await p.locator('[data-yard-action="move"]').click();await dragTo(p,100,120);const frozen=await scene(p);assert.equal(frozen.lastFrame.visibility,'planter');
   await p.locator('.cy-scene > canvas').dispatchEvent('pointercancel',{pointerId:1});await expect.poll(async()=>(await scene(p))?.lastFrame?.ghost===null).toBe(true);assert.equal(canonicalRows(await owner.saved(fixture))[0].x,98);
@@ -142,6 +168,6 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
   assert(!report.console.entries.some(e=>e.type==='error'&&/THREE\.WebGLProgram|VALIDATE_STATUS|shader.*error|shader.*compile|WebGL.*INVALID_OPERATION/i.test(e.text)),'WebGL/shader error captured in bounded console evidence');
   assert.equal(report.errors.length,0,JSON.stringify(report.errors));assert(!report.requests.some(r=>r.status>=400),'Runtime resource request failed');
   assert.deepEqual(economy(await owner.saved(fixture)),baseline);report.status='MECHANICAL_ACCEPTANCE_PASSED_VISUAL_REVIEW_PENDING';
- }catch(error){report.status='FAILED_OR_INCOMPLETE';report.errors.push({type:'assertion',message:String(error),stack:error.stack});if(active){await captureFailureDiagnostics(active.p,'failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));await capture(active.p,'failure').catch(()=>{});}throw error;}
+ }catch(error){report.status='FAILED_OR_INCOMPLETE';report.errors.push({type:'assertion',message:String(error),stack:error.stack});if(active){await captureFailureDiagnostics(active.p,'failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));if(!active.recording)await capture(active.p,'failure').catch(()=>{});else{const interrupted=active.p.video();await active.c.close();active=null;try{await fs.copyFile(await interrupted.path(),path.join(OUT,'failed-native-inspection.webm'));report.interruptedClip={file:'failed-native-inspection.webm',processing:'Untrimmed, unretimed failed native recording, preserved without screenshot calls.'};}catch(videoError){report.errors.push({type:'failed-video-preservation',message:String(videoError)});}}}throw error;}
  finally{await active?.c.close();}
 });

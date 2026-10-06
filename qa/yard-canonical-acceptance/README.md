@@ -1,39 +1,36 @@
-# Clock correction: narrow fresh browser acceptance
+# Actual departure and clean native recording
 
-Base17fc659a45b3ffe8559020019cf7453b6e222a11, tree
-e1d11bd7eeb50079eeed4dc2e59247cefc42dcd0. Integrate the separately reviewed
-clock source/test fix before sealing this harness delta.
+Test-only correction on cc23a6f2f0f58eda6b21f7950f285e30dde3656e, tree
+a7f917a2e7c3d68cf665174df1fc6a97f67df047. Runtime/assets remain unchanged.
 
-Run37498940977 captured MONOTONIC_ACTIVE_CLOCK_REQUIRED in canonical-sample on the
-first valid ghost. Its initial pet frame had already consumed a sub-millisecond
-time before the scene reset the clock. The source correction moves initialization
-before the first consumer and retains the monotonic guard. The fresh real-scene
-regression covers the exact0.09999999997671694→0 counterexample.
+Run37501431981 completed real UI/outbox place/reload/move/pickup, normal two-item
+inspection and alternate-side admission. Its cancellation assertion failed because
+approaching also covers an initial1670ms in-place turn. The captured heading and
+both foot positions reproduce exactly when target108,122 beside blocker94,135 is
+deleted at518.7ms, before translation. Root remains79,129.5 throughout recovery;
+that is preservation, not teleportation. The assertion previously assumed departure.
 
-No browser behavior predicate is relaxed. Real auth/API/disposable PostgreSQL,
-owned inventory/outbox/exactly-once replay, all dynamic cases, menu/viewport checks,
-startup/failure snapshots and bounded console records remain. An early native-DPR2
-frame and contact crop use the existing idle pause, verify identical pose/clock and
-camera before/after, and retain contact-anchor diagnostics. No renderer toggle or
-new product hook is added. The garden raster remains390×648/DPR1; this is not an
-on/off comparison or a claim that grounding is visually solved.
+Both remote move/delete now wait for actual rendered root movement exceeding one
+canonical unit and two CSS pixels from the captured entry. Pre-mutation state is
+saved before HTTP. Current-frame root movement through request/refresh is bounded
+by the actor's measured maximum speed and elapsed active time; shared planted feet
+remain exact. Recovery and cancellation preserve observed recovery root/heading/
+planted supports exactly. The original no-entry-reset assertion remains. No fixed
+sleep, coordinate injection or relaxed predicate substitutes for observed travel.
 
-Only prior9-case PostgreSQL and default-off build proof is reused. The reuse guard
-requires every tracked file except this harness/workflow and the exact two pinned
-clock source/test files to retain its17fc Git identity. This includes all backend,
-auth, DB, dependencies/lockfile, assets, build plugins and configuration. The old
-default graph proves optionalModuleCount0, no optional assets and vendor excluded,
-so the sole runtime change cannot enter that build. Original browser failure stays
-labelled failure. No old complete source-test result is credited as a fresh pass.
+The native video context performs no screenshot or viewport operation. Four jitter
+crops and the final still run in a separate unrecorded context with the same saved
+two-item layout. Raw recording stays untrimmed/unretimed; existing wall metadata is
+kept and an admission-return timestamp is added. These wall offsets are diagnostics,
+not exact video-frame timecodes. A separately derived delivery clip may remove only
+a transparent contiguous startup prefix after review, preserving the full action.
+Current raw37501431981 footage/partial-frame evidence remains untouched and no cause
+for those recording artifacts is asserted without a matched timeline.
 
-Fresh checks cover the current clock, actual scene/renderer, viewport/raster and
-planner, plus harness/guards. The preview production build and every current
-asset/startup/worker closure and budget run fresh, followed by the full browser.
-PostgreSQL15 still starts fresh for actual API persistence. Same one10-minute job,
-zero retries,8MiB artifact retained3days. Depth2 suffices: selected current checks
-no longer read historical4660. No assets, software flags or resource caps change.
-
-After exact final review, run seal.mjs --reviewed-final-source from the integration
-root and commit the complete seal/delta as one child of17fc. Branch:
-qa/yard-canonical-clock-fix-20261006. No dispatch, publication, browser or listener
-was launched while preparing this packet. Preserve all prior failure evidence.
+The same real API/PostgreSQL/full browser cases and fresh source/preview closure
+remain. Exact unchanged17fc backend-PG9/default-off proof remains guarded. One job,
+10minutes, no retries,8MiB/3days, depth2. Parent/source seals now target cc23;
+branch qa/yard-canonical-cancel-boundary-20261006. Regenerate the reviewed seal only
+after reviewing the complete test-only delta. No browser/server/publication was
+launched during preparation. Remaining no-path/lifecycle/viewport cases are still
+unqualified until the next real pass reaches them.
