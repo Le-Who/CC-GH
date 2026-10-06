@@ -1,0 +1,102 @@
+name: Yard food status finite native follow-up
+on:
+  push:
+    branches: ['qa/yard-food-status-followup-20261006']
+permissions:
+  contents: read
+concurrency:
+  group: yard-food-status-followup-20261006
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    if: github.run_attempt == 1 && github.event.created == true && github.event.forced == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: ccgh_merge_ci
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      YARD_CANONICAL_PG_TEST: '1'
+      YARD_V2_PG_TEST: '1'
+      YARD_V2_PG_TARGET: integrated
+      DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_CANONICAL_API_TEST: ''
+      YARD_PLAYER_API_TEST: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      YARD_FOOD_NATIVE_API: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 3
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Exact parent, source allowlist and disposable database admission
+        id: preflight
+        run: node qa/yard-food-native/preflight.mjs
+      - name: Locked dependencies, one Chromium, official offline decoder
+        id: dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+      - name: Inactive food source, real route calls, outbox rollback and resource guards
+        id: source
+        run: |
+          set -o pipefail
+          node qa/yard-food-native/path-audit.mjs
+          pnpm run hud-layout:validate
+          node qa/yard-food-native/source-checks.mjs | tee qa/yard-canonical-acceptance/results/source.tap
+      - name: Fresh default and preview production builds and resource closures
+        id: build
+        run: node qa/yard-food-native/build.mjs
+      - name: Food purchases, shared bowl, occupancy, retained intent, route and full baseline HUD
+        id: browser
+        timeout-minutes: 4
+        run: pnpm exec playwright test --config qa/yard-food-native/config.mjs
+      - name: Decode scoped stage-visible frames after the food recording has closed
+        id: encoded
+        if: always() && steps.preflight.outcome == 'success' && steps.dependencies.outcome == 'success'
+        run: node qa/yard-food-native/analyze.mjs
+      - name: Preserve all originals losslessly within eight MiB
+        id: cap
+        if: always()
+        env:
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
+          DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
+          SOURCE_OUTCOME: ${{ steps.source.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+          ENCODED_OUTCOME: ${{ steps.encoded.outcome }}
+        run: node qa/yard-food-native/evidence.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: yard-food-status-followup-${{ github.sha }}-${{ github.run_attempt }}
+          path: qa/yard-food-native/upload/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0

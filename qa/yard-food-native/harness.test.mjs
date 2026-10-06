@@ -8,7 +8,7 @@ import os from 'node:os';
 import {REQUIRED_ORIGINALS,verifyRequiredEvidence,readEvidenceJSON} from './required-evidence.mjs';
 import {fixtureServiceSource,SERVICE_SIGNATURES} from './source-gate.mjs';
 import {assertCanonicalPgEnvironment} from '../../tests/helpers/yard-canonical-pg-guard.mjs';
-import {BASE,BRANCH,LIMITS} from './identity.mjs';
+import {BASE,HISTORICAL_BASE,WORKFLOW,BRANCH,LIMITS} from './identity.mjs';
 const read=p=>fs.readFile(new URL(p,import.meta.url),'utf8'),digest=s=>createHash('sha256').update(s).digest('hex');
 const env={YARD_CANONICAL_PG_TEST:'1',YARD_V2_PG_TEST:'1',YARD_V2_PG_TARGET:'integrated',CI:'true',NODE_ENV:'test',DATABASE_URL:'postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci',REDIS_URL:'',NODE_OPTIONS:'',YARD_CANDIDATE_CI:'',YARD_CANONICAL_API_TEST:'',YARD_PLAYER_API_TEST:'',YARD_PLAYER_WIRING_TEST:''};
 test('exact trusted options seam fails on source drift and alters only three function prologues',async()=>{
@@ -23,12 +23,12 @@ test('disposable destination/auth admission rejects live host, credentials overr
  assert.throws(()=>assertCanonicalPgEnvironment(env,{api:true}));assert.doesNotThrow(()=>assertCanonicalPgEnvironment({...env,YARD_CANONICAL_API_TEST:'1',YARD_PLAYER_API_TEST:'1',DEV_AUTH_ENABLED:'true'},{api:true}));
 });
 test('finite workflow is one branch, first newly created push, one standard job, ten minutes, read permission and three-day originals',async()=>{
- const s=await read('../../.github/workflows/yard-food-native.yml');assert(s.includes(`branches: ['${BRANCH}']`));for(const token of ['github.run_attempt == 1','github.event.created == true','github.event.forced == false','runs-on: ubuntu-24.04','timeout-minutes: 10','contents: read','retention-days: 3','compression-level: 0','fetch-depth: 2','persist-credentials: false'])assert(s.includes(token),token);
- assert(!/workflow_dispatch:|secrets\.|contents: write|pull_request:|deploy/i.test(s));assert.equal((s.match(/^  acceptance:/gm)||[]).length,1);assert.equal(LIMITS.artifactBytes,8388608);assert.equal(LIMITS.retries,0);assert.equal(BASE,'32981e328fbfc7993eb08c3bfcf6eb7634dceb53');
+ const s=await read('../../'+WORKFLOW);assert(s.includes(`branches: ['${BRANCH}']`));for(const token of ['github.run_attempt == 1','github.event.created == true','github.event.forced == false','runs-on: ubuntu-24.04','timeout-minutes: 10','contents: read','retention-days: 3','compression-level: 0','fetch-depth: 3','persist-credentials: false'])assert(s.includes(token),token);
+ assert(!/workflow_dispatch:|secrets\.|contents: write|pull_request:|deploy/i.test(s));assert.equal((s.match(/^  acceptance:/gm)||[]).length,1);assert.equal(LIMITS.artifactBytes,8388608);assert.equal(LIMITS.retries,0);assert.equal(BASE,'bab0664b90b2de419c498f318d2c1b39d5e8c611');assert.equal(HISTORICAL_BASE,'32981e328fbfc7993eb08c3bfcf6eb7634dceb53');
 });
 test('baseline full HUD is unchanged and recorded call chain has no screenshot/readback capture',async()=>{
  const config=await read('./config.mjs');assert(config.includes('**/yard-canonical-acceptance/hud.spec.mjs'));assert(config.includes('**/yard-food-native/food.spec.mjs'));for(const token of ['workers:1','retries:0','globalTimeout:220000','reuseExistingServer:false'])assert(config.includes(token));
- for(const f of ['./recorded-flow.mjs','./browser.mjs']){const s=await read(f);assert(!/\.(screenshot|readPixels|captureStream|toDataURL|toBlob)\s*\(/.test(s));assert(!/\bcapture\s*\(/.test(s));}
+ for(const f of ['./recorded-flow.mjs','./browser.mjs','./selectors.mjs']){const s=await read(f);assert(!/\.(screenshot|readPixels|captureStream|toDataURL|toBlob)\s*\(/.test(s));assert(!/\bcapture\s*\(/.test(s));}
  const recording=await read('./recorded-flow.mjs');assert(recording.includes('await c.close()'));assert(recording.includes('await video.path()'));assert(recording.includes('food-observed-motion.json'));assert(recording.includes("toBe('settled')"));
 });
 test('all raw evidence uses unchanged lossless packager and failure conditions cannot produce a green receipt',async()=>{

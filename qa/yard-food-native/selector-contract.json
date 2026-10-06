@@ -1,0 +1,301 @@
+{
+  "format": "yard-food-selector-contract/v1",
+  "scope": [
+    "food.spec.mjs",
+    "recorded-flow.mjs",
+    "browser.mjs",
+    "selectors.mjs"
+  ],
+  "selectors": [
+    {
+      "selector": ".cy-scene",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<HudRegion id=\"yardStage\" className=\"cy-scene\""
+        },
+        {
+          "path": "src/app/hud-layout/HudRegion.jsx",
+          "contains": "className: `${className}"
+        }
+      ]
+    },
+    {
+      "selector": ".cy-dialog",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<dialog ref={dialog} className=\"cy-dialog\""
+        }
+      ]
+    },
+    {
+      "selector": ".cy-dialog select",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<dialog ref={dialog} className=\"cy-dialog\""
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<select className=\"cy-food-select\""
+        }
+      ]
+    },
+    {
+      "selector": ".cy-pip-direct-layer canvas",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "className=\"cy-pip-direct-layer\""
+        },
+        {
+          "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+          "contains": "canvasFactory=()=>document.createElement('canvas')"
+        },
+        {
+          "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+          "contains": "presentDirectSurface(canvas,directHost,cssRect,alpha)"
+        },
+        {
+          "path": "src/games/companion-yard-v2/pip-prototype/prototype/surface-placement.mjs",
+          "contains": "host.appendChild(canvas)"
+        }
+      ]
+    },
+    {
+      "selector": "[data-nav-item=\"food\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-nav-item={id}"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "[['food',t('yard.nav.food')"
+        }
+      ]
+    },
+    {
+      "selector": "[data-nav-item=\"decor\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-nav-item={id}"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "['decor',t('yard.persistent.decor')"
+        }
+      ]
+    },
+    {
+      "selector": "[data-decor-tab=\"inventory\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-decor-tab={id}"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "['inventory',t('yard.persistent.stocks')"
+        }
+      ]
+    },
+    {
+      "selector": ".cy-catalog-choice[data-goodie-id=\"leaf_pot\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "className=\"cy-catalog-choice\" data-goodie-id={item.id}"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "leaf_pot"
+        }
+      ]
+    },
+    {
+      "selector": "[data-pip-control=\"inspect-selected\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-pip-control=\"inspect-selected\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-pip-control=\"reenter-food\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-pip-control=\"reenter-food\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-pip-control=\"inventory\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-pip-control=\"inventory\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"cancel-placement\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"cancel-placement\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"commit-placement\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"commit-placement\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"move\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"move\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"place\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"place\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"set-food\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"set-food\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"${action}\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"move\""
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"pickup\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"buy-food\"][data-food-id=\"${id}\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"buy-food\" data-food-id={f.id}"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "Object.values(YARD_FOODS).map"
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-action=\"set-food\"][data-bowl-id=\"bowl-1\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-yard-action=\"set-food\" data-bowl-id={b.id}"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "b.id==='bowl-1'"
+        }
+      ]
+    },
+    {
+      "selector": "[data-canonical-food-status=\"true\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-canonical-food-status=\"true\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-canonical-food-conflict=\"true\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "data-canonical-food-conflict=\"true\""
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-rejected-intent]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<details key={item.clientActionId} data-yard-rejected-intent={item.clientActionId}"
+        }
+      ]
+    },
+    {
+      "selector": "[data-yard-rejected-intent=\"${original.clientActionId}\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<details key={item.clientActionId} data-yard-rejected-intent={item.clientActionId}"
+        }
+      ]
+    },
+    {
+      "selector": "summary",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<details key={item.clientActionId}"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<summary style={{minHeight:44,paddingBlock:12}}>"
+        }
+      ]
+    },
+    {
+      "selector": "[data-hud-region=\"yardVisitStatus\"][role=\"status\"]",
+      "evidence": [
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "<HudRegion id=\"yardVisitStatus\""
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "contains": "applyLayout={false} role=\"status\""
+        },
+        {
+          "path": "src/app/hud-layout/HudRegion.jsx",
+          "contains": "\"data-hud-region\": id"
+        },
+        {
+          "path": "src/app/hud-layout/HudRegion.jsx",
+          "contains": "...props,"
+        }
+      ]
+    }
+  ],
+  "qualification": "Every direct selector in the new food flow is traced to current owner source. HUD behavior is additionally executed against real HudRegion SSR; native geometry and pixels remain a separate gate."
+}

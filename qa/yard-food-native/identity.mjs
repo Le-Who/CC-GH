@@ -1,5 +1,7 @@
-export const BASE='32981e328fbfc7993eb08c3bfcf6eb7634dceb53';
-export const BRANCH='qa/yard-food-native-20261006';
+export const BASE='bab0664b90b2de419c498f318d2c1b39d5e8c611';
+export const HISTORICAL_BASE='32981e328fbfc7993eb08c3bfcf6eb7634dceb53';
+export const WORKFLOW='.github/workflows/yard-food-status-followup.yml';
+export const BRANCH='qa/yard-food-status-followup-20261006';
 export const DIR='qa/yard-food-native';
 export const FOOD_SOURCE='src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb';
 export const FOOD_SHA='ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66';

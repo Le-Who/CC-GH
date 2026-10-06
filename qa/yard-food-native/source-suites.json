@@ -30,6 +30,7 @@
     "tests/yard-dynamic-prop-inspection.test.mjs",
     "tests/yard-canonical-pg-guard.test.mjs",
     "tests/yard-pip-pose-replay.test.mjs",
-    "tests/yard-renderer-chunk.test.mjs"
+    "tests/yard-renderer-chunk.test.mjs",
+    "qa/yard-food-native/status-followup.test.mjs"
   ]
 }

@@ -1,0 +1,52 @@
+{
+  "format": "yard-food-native-failure-reference/v1",
+  "runId": "37543913644",
+  "head": "bab0664b90b2de419c498f318d2c1b39d5e8c611",
+  "status": "FAILED_OR_INCOMPLETE",
+  "allOriginalsVerified": 70,
+  "manifestSha256": "5fade4c46b5dc28464dcae703dc2994504d2d2b0662d80e3b579cf38240a4035",
+  "keyOriginals": [
+    {
+      "path": "browser.json",
+      "bytes": 8023840,
+      "sha256": "0ec9137d928ee22eed8756dd50e60ea5f693bcf8a897f14760b9b1d1188c7d14"
+    },
+    {
+      "path": "food-interactions-native.webm",
+      "bytes": 980673,
+      "sha256": "b2a827560bd2ba3cfc09da1ec1596ee20b55c5f18168fc3ea58710310e1e1cbc"
+    },
+    {
+      "path": "food-occupied-320x568-ru-failure-diagnostics.json",
+      "bytes": 94948,
+      "sha256": "3a117464a995d0961aff27abb901327bbf39e3c5ab6659ffef09c4d095655b99"
+    },
+    {
+      "path": "food-receipt.json",
+      "bytes": 2766,
+      "sha256": "8e0db109fcd4d8b672be60c3ebf37eee110baf844a8708149da86be46d453c33"
+    },
+    {
+      "path": "food-recording-failure-diagnostics.json",
+      "bytes": 96208,
+      "sha256": "18ad0dfee8d439eea18985416874bb1d2fb8b1c3f7cfa9735e487f0a5a0ff113"
+    },
+    {
+      "path": "source.tap",
+      "bytes": 26194,
+      "sha256": "83536a980718157104cb9af61828692afb444139f3dbef2766d7544945064d0c"
+    }
+  ],
+  "verifiedPassed": {
+    "sourceTests": 246,
+    "normalBuilds": 2,
+    "hudTuples": 11,
+    "foodImages": 4,
+    "foodTransactions": 6
+  },
+  "unresolved": [
+    "wrong DOM id selector in two cases",
+    "encoded video shows stale unavailable/inventory while actual reentry control was actionable; strict DOM observations and fresh encoded evidence required"
+  ],
+  "recordingMetadataIssue": "Original report resets food section on worker restart; originals and failure diagnostics remain preserved. This follow-up preserves the earlier same-head food record."
+}
