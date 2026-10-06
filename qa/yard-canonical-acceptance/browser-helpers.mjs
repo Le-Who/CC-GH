@@ -18,14 +18,14 @@ export async function init(context,f,language='en'){
   window.Worker=class extends Native{constructor(url,opts){super(url,opts);this.qaURL=String(url);observed.created.push(this.qaURL);}terminate(){observed.terminated.push(this.qaURL);return super.terminate();}};
  },{id:f.externalId,language});
 }
-export function observe(page,scope=null){
+export function observe(page,scope=null,allowedActions=[]){
  page.on('console',message=>{
   if(!['error','warning','warn'].includes(message.type()))return;
   const entry={scope,type:message.type(),text:message.text().slice(0,report.console.maxTextCharacters),location:message.location()};
   if(report.console.entries.length>=report.console.limit){report.console.entries.shift();report.console.dropped++;}report.console.entries.push(entry);
  });
  page.on('pageerror',e=>report.errors.push({type:'pageerror',message:e.message}));
- page.on('request',r=>{if(new URL(r.url()).pathname==='/api/player/mutate'){const c=r.postDataJSON();if(!['yard.placeGoodie','yard.moveGoodie','yard.pickupGoodie'].includes(c?.action))report.errors.push({type:'unexpected-economy-action',action:c?.action});}});
+ page.on('request',r=>{if(new URL(r.url()).pathname==='/api/player/mutate'){const c=r.postDataJSON();if(!['yard.placeGoodie','yard.moveGoodie','yard.pickupGoodie',...allowedActions].includes(c?.action))report.errors.push({type:'unexpected-economy-action',action:c?.action});}});
  page.on('response',r=>{const u=new URL(r.url());if(u.origin===ORIGIN&&(u.pathname.startsWith('/assets/')||/woff2?$/.test(u.pathname)))report.requests.push({url:u.pathname,status:r.status()});});
 }
 export function assertReadySnapshot(snapshot,accountId){

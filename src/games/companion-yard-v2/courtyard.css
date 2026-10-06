@@ -108,10 +108,32 @@
 }
 @media(prefers-reduced-motion:reduce){.cy-actions button{transition:none}}
 
-/* Canonical errors keep a visible registered row in compact landscape.
-   56px header + 28px status + 44px controls leaves the 192px stage floor. */
+/* Canonical errors keep a visible registered row in landscape. The shortest
+   profile below also accounts for the shared shell's vertical safe-area gutter. */
 @media (min-aspect-ratio:8/5) and (max-height:550px){
  .cy-app[data-canonical-items="true"] .cy-status{min-height:28px;padding:0 8px;font-size:12px;line-height:14px}
  .cy-app[data-canonical-items="true"] .cy-placement{padding-top:0;padding-bottom:0;min-height:44px}
  .cy-app[data-canonical-items="true"] .cy-pip-controls[data-active="true"]{height:44px;min-height:44px;max-height:44px;padding:0 8px;grid-template-rows:44px}
+}
+
+/* Registered custom Yard compact-landscape adapter. At 568x320 the immersive
+   shell leaves 310px: 44 header +28 status +44 controls preserves 194px of live
+   stage. The modal reserves header/tabs and keeps actions beside its scroll
+   region, so selecting a card never shrinks that card's visible viewport. */
+@media (min-aspect-ratio:8/5) and (max-height:360px){
+ .cy-app[data-canonical-items="true"]{grid-template:"header nav" 44px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 76px}
+ .cy-app[data-canonical-items="true"] .cy-header{padding:0 8px}
+ .cy-app[data-canonical-items="true"] .cy-dialog{width:calc(100vw - 16px)}
+ .cy-app[data-canonical-items="true"] .cy-dialog[open]{display:grid;grid-template:"head head" 44px "tabs tabs" 48px "content actions" minmax(0,1fr)/minmax(0,1fr) 176px;gap:0 8px}
+ .cy-app[data-canonical-items="true"] .cy-dialog>header{grid-area:head;min-height:44px}
+ .cy-app[data-canonical-items="true"] .cy-dialog>.cy-tabs{grid-area:tabs}
+ .cy-app[data-canonical-items="true"] .cy-dialog>.cy-panel{grid-area:content;min-width:0;padding:0 4px 4px 0}
+ .cy-app[data-canonical-items="true"] .cy-dialog>.cy-selected-actions{grid-area:actions;min-height:0;overflow-y:auto;border-top:0;border-left:1px solid var(--cy-line);padding:0 0 0 8px;gap:6px}
+ .cy-app[data-canonical-items="true"] .cy-selected-actions .cy-row-actions{flex-direction:column;flex-wrap:nowrap;gap:4px}
+ .cy-app[data-canonical-items="true"] .cy-selected-actions button{flex:0 0 auto;padding:8px}
+ .cy-app[data-canonical-items="true"] .cy-dialog .cy-catalog-grid{grid-template-columns:minmax(0,1fr);gap:6px}
+ .cy-app[data-canonical-items="true"] .cy-dialog .cy-catalog-choice{display:grid;grid-template:"art name" auto "art detail" auto/56px minmax(0,1fr);gap:2px 8px;min-height:92px;border-width:6px;padding:12px;text-align:left}
+ .cy-app[data-canonical-items="true"] .cy-catalog-choice>.cy-preview-art{grid-area:art;width:56px;height:56px}
+ .cy-app[data-canonical-items="true"] .cy-catalog-choice>strong{grid-area:name;min-height:0;padding-right:22px;align-self:end;justify-content:flex-start}
+ .cy-app[data-canonical-items="true"] .cy-catalog-choice>small{grid-area:detail;padding-right:22px;align-self:start}
 }

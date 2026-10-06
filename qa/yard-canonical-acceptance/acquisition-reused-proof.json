@@ -1,0 +1,224 @@
+{
+  "base": "17fc659a45b3ffe8559020019cf7453b6e222a11",
+  "baseTree": "e1d11bd7eeb50079eeed4dc2e59247cefc42dcd0",
+  "runId": "37498940977",
+  "receiptSha256": "270e0a370c50a8d0c24fee5133eaf326559b2e0b20a70b427cfb66270d6b36bb",
+  "receipt": {
+    "head": "17fc659a45b3ffe8559020019cf7453b6e222a11",
+    "stages": {
+      "PREFLIGHT": "success",
+      "DEPENDENCIES": "success",
+      "SOURCE": "success",
+      "DATABASE": "success",
+      "BUILD": "success",
+      "BROWSER": "failure"
+    },
+    "acceptance": "FAILED_OR_INCOMPLETE",
+    "limits": {
+      "jobMinutes": 10,
+      "artifactBytes": 8388608,
+      "retentionDays": 3,
+      "retries": 0
+    },
+    "excluded": [
+      "production activation or deployment",
+      "real-device GPU/FPS",
+      "trusted native Telegram WebView events",
+      "subjective visual acceptance"
+    ],
+    "files": [
+      {
+        "path": "browser.json",
+        "bytes": 83564,
+        "sha256": "1cb9ecbe86cc61a7b858781d43bd63b2cec47ff5aa87bfaae4726a6de1315cb7"
+      },
+      {
+        "path": "builds.json",
+        "bytes": 19337,
+        "sha256": "52d69cb4d3878ccb44f1012fb59e57cf85a3c166cbedfc0b96cabad4a71b47fc"
+      },
+      {
+        "path": "failure-diagnostics.json",
+        "bytes": 144594,
+        "sha256": "f89d07900eb99855f551d548a3f59183b3edf5655f38187ad5a159743db825ae"
+      },
+      {
+        "path": "failure.webp",
+        "bytes": 111372,
+        "sha256": "315a6e547b12fddc5dbd2a5d8125f8843b0c2d902ff87cc63a288e92616a7703"
+      },
+      {
+        "path": "new-hud-initial.webp",
+        "bytes": 35078,
+        "sha256": "d944a79f8b36037b559c5715e77d02b2a7f5e2efbb0e4a7832aa8e9da0844aba"
+      },
+      {
+        "path": "path-audit.json",
+        "bytes": 1333,
+        "sha256": "9398f3ae53fdc173a861560ce24766b3bfb52b71743f0cf890e1208f80f1854d"
+      },
+      {
+        "path": "postgres.tap",
+        "bytes": 5033,
+        "sha256": "47190aa6f21b5ae21a9e0b37cf30b9620c640d5a3fd686b6bfc4bed9a99d28c3"
+      },
+      {
+        "path": "source.json",
+        "bytes": 5970,
+        "sha256": "95536f652fecf43348969d40616ed1a8407893bd74976be60010daa0d8f3c207"
+      },
+      {
+        "path": "source.tap",
+        "bytes": 20985,
+        "sha256": "a1fdd7b7106536545705a726035ccd0b53ee9160749037f0c12b2cdef53eb767"
+      }
+    ]
+  },
+  "postgres": {
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "skipped": 0
+  },
+  "scope": "Reuse only the nine unchanged production-domain PostgreSQL cases from 17fc. Both default and preview builds are fresh. Reuse db044 core dynamic-route/renderer observations and historical matrix status as explicitly recorded below.",
+  "allowedReviewedFiles": {
+    "src/app/hud-layout/defaultLayouts/room.json": "36bc468d835b70e790e646cb6f8bbce1474fac0cf07213488f9bfb69c3872ee0",
+    "src/app/hud-layout/registry.js": "eef3030881f9a68c59eccd09e7739368d40089cf23d234c813cc0c3125525ee9",
+    "src/game-state/useGameHub.js": "d31b2949852d7687dffab0cadb40398dcdd0fe495abffb848620ee6076d864d0",
+    "src/games/companion-yard-v2/CourtyardGame.jsx": "37a181d0b0dd598befd4acbba933150d6cd1e02c175342061b2879cfb7c5d000",
+    "src/games/companion-yard-v2/courtyard.css": "8d880ca43988e8f33084840253a9a745d37b5cb3d3eb0cbb7325dcd9fad44ef1",
+    "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs": "ab37dc888b6873061187c833e5bbe1d590ca90641233f48291b2b739b8702761",
+    "tests/yard-canonical-acquisition-ui.test.mjs": "b3e17e537dc28a6e63602c107030bdede97b95cec75bb175758f1a2dad98c847",
+    "tests/yard-canonical-acquisition.test.mjs": "1d8f6f7f2e4b1959e4e60cb829ad25e903cbc39f857257bfdf427977a439d08b",
+    "tests/yard-canonical-real-renderer.test.mjs": "a3931817a90a1280d2bc806e617f858bcb7b1c1dfc683c1ad0fbc2a714f31798",
+    "tests/yard-compact-hud-layout.test.mjs": "01774f482e83d6aae8593748d54793b8a601a38562a1e22a440a2d86249af53f"
+  },
+  "protectedEntryCount": 4885,
+  "protectedGitEntriesSha256": "c0b8f5eef6c61d76d43e1ea8a6d3754ae52f5b124dbb10a7af7cc68fb77cb9c9",
+  "browserReused": true,
+  "defaultBuildReused": false,
+  "priorBrowser": {
+    "head": "db044806e18c5c7649a0f360c6238efcaae14746",
+    "tree": "483b6acd504027d5b6d75ec2509fd5a5ddadb360",
+    "runId": "37507167039",
+    "url": "https://github.com/Le-Who/CC-GH/actions/runs/37507167039",
+    "receiptSha256": "71b8646941b7ccb1b58d49f5e78b37c977362940c4e2d9ad008ac5d223b0177b",
+    "browserSha256": "d69ca09f46378a73118e0941e213dd805bd35698153c4e4fc29f04831652164d",
+    "overallStatus": "FAILED_OR_INCOMPLETE",
+    "sections": {
+      "actions": "passed",
+      "hud": "failed"
+    },
+    "cases": [
+      "committed-response-held",
+      "actual-ui-outbox-place-reload-move-pickup",
+      "normal-two-committed-props",
+      "separate-unrecorded-stationary-prop-check",
+      "actual-ui-blocker-move-complete-alternate-route",
+      "front-blocked-reachable-alternative",
+      "target-move-pre-mutation",
+      "target-moved-during-approach",
+      "target-delete-pre-mutation",
+      "target-deleted-during-approach",
+      "valid-35-115-all-anchors-blocked",
+      "pointercancel-resize-mode-off-worker-retirement",
+      "on-build-without-page-opt-in-remains-ordinary"
+    ],
+    "matrix": [
+      {
+        "name": "hud-320x568-dpr1-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-360x800-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-390x844-dpr2-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-414x896-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-568x320-dpr1-en",
+        "status": "failed"
+      },
+      {
+        "name": "hud-844x390-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-768x1024-dpr1-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-1024x768-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-1280x720-dpr1-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-375x812-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-390x844-dpr3-ru",
+        "status": "passed"
+      }
+    ],
+    "clips": [
+      {
+        "file": "actual-time-inspection.webm",
+        "recordingWallMs": 10866,
+        "inspectionStartWallOffsetMs": 4333,
+        "inspectionAdmittedWallOffsetMs": 4966,
+        "inspectionAdmittedAt": 1791309448515,
+        "media": {
+          "programs": [],
+          "streams": [
+            {
+              "width": 390,
+              "height": 844,
+              "r_frame_rate": "25/1"
+            }
+          ],
+          "format": {
+            "duration": "10.960000"
+          }
+        },
+        "processing": "Untrimmed, unretimed native browser recording. No screenshot concatenation or interpolated frames.",
+        "qualification": "Actual Chromium/WebGL backend is recorded in renderingBackend; native video cadence is not device FPS.",
+        "sha256": "88cf94f37ffbd3bf6f26d016f9055a98e136be153119d48b7923f4843363d8de"
+      },
+      {
+        "file": "actual-time-alternate-route.webm",
+        "recordingWallMs": 18960,
+        "blockerMoveStartedAt": 1791309469134,
+        "blockerCommittedAt": 1791309469858,
+        "adaptationInspectStartedAt": 1791309469876,
+        "adaptationAdmittedAt": 1791309470577,
+        "media": {
+          "programs": [],
+          "streams": [
+            {
+              "width": 390,
+              "height": 844,
+              "r_frame_rate": "25/1"
+            }
+          ],
+          "format": {
+            "duration": "19.120000"
+          }
+        },
+        "processing": "Raw untrimmed/unretimed native recording; actual UI blocker move then complete alternate route; no screenshots or viewport changes.",
+        "qualification": "Same saved target and real changed blocker; browser/software-renderer evidence, not device FPS.",
+        "sha256": "ff54410518a69cebcdeda4d8b25d38e41ec5cd209825cd7f148bbd39103959d6"
+      }
+    ],
+    "qualification": "Actions passed; full run failed at 568x320 HUD. Core renderer/dynamic implementation unchanged. Changed UI and startup are tested fresh; historical visual acceptance is not promoted to current full-matrix acceptance."
+  }
+}

@@ -11,11 +11,12 @@ export async function fixtureOwner(){
  assert.equal(server.name,'ccgh_merge_ci');assert.equal(server.username,'ccgh_merge_ci');assert(server.version>=150000&&server.version<160000);
  async function owned(f){assertYardPlayerFixture(f.externalId,f.id);const[row]=await db`SELECT account_id FROM account_identities WHERE provider='dev' AND external_id=${f.externalId}`;assert.equal(row?.account_id,f.id);}
  return {
-  async seed(){
+  async seed({treats=80,pots=2}={}){
+   assert([80,140,280].includes(treats));assert([0,2].includes(pots));
    const externalId=assertYardPlayerFixture(`yard_player_api_${randomUUID()}`),{getOrCreateAccountForIdentity}=await import('../../accountManager.js');
    const id=await getOrCreateAccountForIdentity('dev',externalId,{displayName:'Canonical finite QA'}),f={id,externalId};fixtures.push(f);await owned(f);
    const {createDefaultPlayer}=await import('../../game-logic/player.js');const p=createDefaultPlayer(id,'Canonical finite QA',Date.now());
-   p._onboarded=true;p._version=randomUUID();p.yard.placedGoodies=[];p.yard.goodieInventory={leaf_pot:2};p.yard.pendingGifts=[];p.yard.album.photos=[];
+   p._onboarded=true;p._version=randomUUID();p.yard.placedGoodies=[];p.yard.goodieInventory=pots?{leaf_pot:pots}:{};p.yard.currencies.treats=treats;p.yard.pendingGifts=[];p.yard.album.photos=[];
    p.yard.bowls=p.yard.bowls.map(b=>({...b,servings:0}));await db`INSERT INTO players(id,data) VALUES(${id},${p})`;return f;
   },
   async saved(f){await owned(f);const[row]=await db`SELECT data FROM players WHERE id=${f.id}`;assert(row);return row.data;},

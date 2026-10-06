@@ -1,11 +1,11 @@
 name: Canonical Yard finite acceptance
 on:
   push:
-    branches: ['qa/yard-canonical-pointer-matrix-20261006']
+    branches: ['qa/yard-canonical-acquisition-hud-20261006']
 permissions:
   contents: read
 concurrency:
-  group: yard-canonical-pointer-matrix-20261006
+  group: yard-canonical-acquisition-hud-20261006
   cancel-in-progress: false
 jobs:
   acceptance:
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 10
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -60,19 +60,14 @@ jobs:
           corepack prepare pnpm@10.28.2 --activate
           pnpm install --frozen-lockfile --ignore-scripts
           pnpm exec playwright install --with-deps chromium
-          if ! command -v ffprobe >/dev/null; then
-            timeout 90s sudo apt-get -o Acquire::Retries=0 update
-            timeout 90s sudo apt-get -o Acquire::Retries=0 install -y --no-install-recommends ffmpeg
-          fi
-          command -v ffprobe
-      - name: Fresh affected source, UI, renderer and failure-evidence checks
+      - name: Fresh acquisition, outbox, compact UI and source guards
         id: source
         run: |
           set -o pipefail
           node qa/yard-canonical-acceptance/path-audit.mjs | tee qa/yard-canonical-acceptance/results/path-audit.json
           pnpm run hud-layout:validate
-          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 qa/yard-canonical-acceptance/independent-sections.test.mjs qa/yard-canonical-acceptance/cancellation-boundary.test.mjs qa/yard-canonical-acceptance/readiness.test.mjs qa/yard-canonical-acceptance/failure-evidence.test.mjs tests/yard-canonical-pg-guard.test.mjs tests/yard-canonical-real-renderer.test.mjs tests/yard-canonical-item-ui.test.mjs tests/yard-pip-world-raster.test.mjs tests/yard-pip-integration.test.mjs tests/yard-pip-viewport-recovery.test.mjs tests/yard-pip-renderer.test.mjs tests/yard-dynamic-prop-inspection.test.mjs | tee qa/yard-canonical-acceptance/results/source.tap
-      - name: Fresh preview production build with every asset/startup budget
+          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 qa/yard-canonical-acceptance/acquisition-harness.test.mjs qa/yard-canonical-acceptance/independent-sections.test.mjs qa/yard-canonical-acceptance/readiness.test.mjs qa/yard-canonical-acceptance/failure-evidence.test.mjs tests/yard-canonical-pg-guard.test.mjs tests/yard-canonical-acquisition.test.mjs tests/yard-canonical-acquisition-ui.test.mjs tests/yard-compact-hud-layout.test.mjs tests/yard-canonical-item-ui.test.mjs | tee qa/yard-canonical-acceptance/results/source.tap
+      - name: Fresh default and preview production builds with every asset/startup budget
         id: build
         run: node qa/yard-canonical-acceptance/build.mjs
       - name: One browser pass through actual auth, UI, outbox and database

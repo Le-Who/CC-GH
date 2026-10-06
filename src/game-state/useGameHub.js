@@ -500,9 +500,10 @@ export const useGameHub = create((set, get) => ({
       }
 
       if (isYardAction(sending.action) && (result.error === "YARD_ROLLOUT_PAUSED" || result.error === "CANONICAL_LOCATION_REQUIRED"
+        || result.error === "UNSUPPORTED_YARD_STORAGE_VERSION" && /^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(sending.clientActionId)
         || isCanonicalItemIntent(sending.payload,sending.clientActionId) && (Number(result._httpStatus) === 409 || CANONICAL_PENDING_ERRORS.has(result.error)))) {
-        // Closed rollback returns before receipt lookup. Keep the signed intent
-        // and its busy lock: a lost reply on B may already have spent/granted.
+        // Closed rollback and unsupported storage return before receipt lookup.
+        // Keep ordinary v2 purchases too: a lost reply may have spent/granted.
         yardOutboxPauseEpoch = {};
         yardOutboxResumeSession = null;
         canonicalOutboxResumeSession = null;
@@ -510,7 +511,7 @@ export const useGameHub = create((set, get) => ({
         set((state) => ({
           pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
             candidate.clientActionId === sending.clientActionId
-              ? { ...candidate, status: result.error === "YARD_ROLLOUT_PAUSED" ? "rollout-paused" : "canonical-blocked", blockedReason:result.error, requiresCanonicalReview:result.error === "CANONICAL_LOCATION_REQUIRED" && !isCanonicalItemIntent(sending.payload,sending.clientActionId), requiresYardResume: true, nextAttemptAt: 0 }
+              ? { ...candidate, status: result.error === "YARD_ROLLOUT_PAUSED" || result.error === "UNSUPPORTED_YARD_STORAGE_VERSION" && !isCanonicalItemIntent(sending.payload,sending.clientActionId) ? "rollout-paused" : "canonical-blocked", blockedReason:result.error, requiresCanonicalReview:result.error === "CANONICAL_LOCATION_REQUIRED" && !isCanonicalItemIntent(sending.payload,sending.clientActionId), requiresYardResume: true, nextAttemptAt: 0 }
               : candidate
           )),
           lastResult: result,

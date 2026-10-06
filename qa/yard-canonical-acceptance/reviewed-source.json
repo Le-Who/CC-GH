@@ -1,61 +1,121 @@
 {
   "format": "yard-canonical-reviewed-source/v1",
-  "base": "ecde5ad9c45cdc348a573797605b9b8fc133580b",
+  "base": "db044806e18c5c7649a0f360c6238efcaae14746",
   "files": [
     {
       "path": ".github/workflows/yard-canonical-dynamic.yml",
-      "bytes": 4389,
-      "sha256": "6f647b9b9099929142cf78fb470f4c3143995f8cc80cb283f6f2853d1e329be7"
+      "bytes": 4025,
+      "sha256": "236e424f828b7486c22122c8a5c5d2ff5272e568809cc6b9266b2095a01fa23d"
     },
     {
       "path": "qa/yard-canonical-acceptance/README.md",
-      "bytes": 3118,
-      "sha256": "d752a697cfd8c91fa6c5d51435d57a841b679d6eac6cd859e82a3f3f4a6c8c05"
+      "bytes": 4688,
+      "sha256": "f003e88c3b347dffc76f78db9ec290ee7011a3ff81b2bb2e7c022b169d486695"
     },
     {
-      "path": "qa/yard-canonical-acceptance/acceptance.spec.mjs",
-      "bytes": 32337,
-      "sha256": "d6f4a94da23db15c0c3048c9d6a2a67382da93efeff04b4afd274dc3dbf2a75e"
+      "path": "qa/yard-canonical-acceptance/acquisition-harness.test.mjs",
+      "bytes": 4784,
+      "sha256": "2c4977e32ba9cdae5807d1dfeaca6da4a3766232b20ba26b5fd13940355e38a8"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/acquisition-reused-proof.json",
+      "bytes": 8164,
+      "sha256": "9e13b99efcbe7f93b3e508175965d5cbe482a9af2d73cf53583c15397a700c7b"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/acquisition.spec.mjs",
+      "bytes": 21619,
+      "sha256": "8e1a426e556a050d12e28ecdf5c9373737d01fdd5444f2603074a9a79f3ddc44"
     },
     {
       "path": "qa/yard-canonical-acceptance/browser-helpers.mjs",
-      "bytes": 12573,
-      "sha256": "41a9bd3399f8cb6b3bc14bb8a0d4e9bac5de194a155b56efc979fdfc199647f6"
+      "bytes": 12609,
+      "sha256": "a1ffff7898c1cb43514844119d05d845f08ca4c3473a43b8a86b40febde1cd98"
     },
     {
-      "path": "qa/yard-canonical-acceptance/clock-reused-proof.json",
-      "bytes": 9752,
-      "sha256": "925f54836bd6594ccdacfe11b45ec7f8db5773666673bda60c3c9a6f90cb44f8"
+      "path": "qa/yard-canonical-acceptance/build.mjs",
+      "bytes": 2912,
+      "sha256": "6c773bc2c9e8246a718f1caab68b130875625615f4870770af53051842b03b28"
     },
     {
       "path": "qa/yard-canonical-acceptance/config.mjs",
-      "bytes": 1109,
-      "sha256": "6cad5562947863a2ce01aba57a4f8a2db528f4199a279db3ad2134735f685edb"
+      "bytes": 1110,
+      "sha256": "c04e25813fcb53c7bb36e9112b90ac0a82ac3eafd78a9e3e9b73cbd516c639f2"
     },
     {
-      "path": "qa/yard-canonical-acceptance/independent-sections.test.mjs",
-      "bytes": 2239,
-      "sha256": "e2fb0e9c20a1aca6b3b68e801ad50f2186539efe080416cdddb8a55ffa727a44"
+      "path": "qa/yard-canonical-acceptance/evidence.mjs",
+      "bytes": 1968,
+      "sha256": "02b97b780eb087b2a5b16925666f3bdf75ef6e75e616d5fe9da36d2a1afeaf46"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/fixtures.mjs",
+      "bytes": 3271,
+      "sha256": "eca101517c29368fefede242e115df7e40ac48c718497c143a038dff9a35a781"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/old-domain-pins.json",
+      "bytes": 9801,
+      "sha256": "65b05720e915aadd9418d115f6cd5bd9dc89e570f59a7e233e4d4a22d4d1b158"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/old-domain.mjs",
+      "bytes": 2323,
+      "sha256": "f0392f5dcc6b124f27e18cc4b297d3e2f36bcab5c3277b787e0fa04c381c31bd"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/path-audit.mjs",
+      "bytes": 6249,
+      "sha256": "352233d7c3b15f384b1113409c520e4d92cb62167c836fbe275ce67a8f137c08"
     },
     {
       "path": "qa/yard-canonical-acceptance/preflight.mjs",
-      "bytes": 5122,
-      "sha256": "adbc64601c92f594d6baf8eae49e371e492cba5519c437eb8c4f72d92e6d09e1"
+      "bytes": 5265,
+      "sha256": "5c1c30e0969740ef502c86e5d82d26ea3b2b55a7ff443fc0e14f7730c6e685d6"
     },
     {
       "path": "qa/yard-canonical-acceptance/seal.mjs",
       "bytes": 1579,
-      "sha256": "69439dc5bc1560b5ce7e8f4dfd7de27e469c91cd3d64f52ebe2c5de457c20be8"
+      "sha256": "4f9ba4f04abd9e2285fbf7d5b1c3e28bee4dcc40c10cba78deb9de16a8f6344f"
     },
     {
-      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
-      "bytes": 24221,
-      "sha256": "ab37dc888b6873061187c833e5bbe1d590ca90641233f48291b2b739b8702761"
+      "path": "src/app/hud-layout/defaultLayouts/room.json",
+      "bytes": 4593,
+      "sha256": "36bc468d835b70e790e646cb6f8bbce1474fac0cf07213488f9bfb69c3872ee0"
     },
     {
-      "path": "tests/yard-canonical-real-renderer.test.mjs",
-      "bytes": 13562,
-      "sha256": "a3931817a90a1280d2bc806e617f858bcb7b1c1dfc683c1ad0fbc2a714f31798"
+      "path": "src/app/hud-layout/registry.js",
+      "bytes": 20069,
+      "sha256": "eef3030881f9a68c59eccd09e7739368d40089cf23d234c813cc0c3125525ee9"
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "bytes": 34853,
+      "sha256": "d31b2949852d7687dffab0cadb40398dcdd0fe495abffb848620ee6076d864d0"
+    },
+    {
+      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "bytes": 36899,
+      "sha256": "37a181d0b0dd598befd4acbba933150d6cd1e02c175342061b2879cfb7c5d000"
+    },
+    {
+      "path": "src/games/companion-yard-v2/courtyard.css",
+      "bytes": 19878,
+      "sha256": "8d880ca43988e8f33084840253a9a745d37b5cb3d3eb0cbb7325dcd9fad44ef1"
+    },
+    {
+      "path": "tests/yard-canonical-acquisition-ui.test.mjs",
+      "bytes": 11557,
+      "sha256": "b3e17e537dc28a6e63602c107030bdede97b95cec75bb175758f1a2dad98c847"
+    },
+    {
+      "path": "tests/yard-canonical-acquisition.test.mjs",
+      "bytes": 12151,
+      "sha256": "1d8f6f7f2e4b1959e4e60cb829ad25e903cbc39f857257bfdf427977a439d08b"
+    },
+    {
+      "path": "tests/yard-compact-hud-layout.test.mjs",
+      "bytes": 5389,
+      "sha256": "01774f482e83d6aae8593748d54793b8a601a38562a1e22a440a2d86249af53f"
     }
   ]
 }

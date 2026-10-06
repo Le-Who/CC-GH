@@ -44,7 +44,7 @@ try{
 }finally{process.chdir(initialCwd);}
 const read=name=>fs.readFile(path.join(configDir,name),'utf8');
 const [build,browser,helpers,evidence,preflight,seal,workflow,api,loader]=await Promise.all([
- read('build.mjs'),read('acceptance.spec.mjs'),read('browser-helpers.mjs'),read('evidence.mjs'),read('preflight.mjs'),read('seal.mjs'),
+ read('build.mjs'),read('acquisition.spec.mjs'),read('browser-helpers.mjs'),read('evidence.mjs'),read('preflight.mjs'),read('seal.mjs'),
  fs.readFile(path.join(root,'.github/workflows/yard-canonical-dynamic.yml'),'utf8'),fs.readFile(expectedEntry,'utf8'),fs.readFile(path.join(root,'tests/helpers/yard-canonical-pg-loader.mjs'),'utf8'),
 ]);
 // Audit the remaining actual path owners. Do not import build/evidence/preflight:
@@ -53,9 +53,9 @@ assert.match(build,/root=path\.resolve\(import\.meta\.dirname,'\.\.\/\.\.'\),out
 assert.match(build,/execFileSync\('pnpm',\['run','build'\],\{cwd:root/);
 assert.match(build,/execFileSync\('node',\['scripts\/yard-pip-build-closure\.mjs','dist',[\s\S]*?\{cwd:root/);
 assert.match(build,/const dist=path\.join\(root,'dist'\)/);
-assert.match(browser,/recordVideo:\{dir:path\.join\(WORK,'video'\)/);
-assert.match(browser,/target=path\.join\(OUT,'actual-time-inspection\.webm'\)/);
-assert.match(browser,/execFileSync\('ffprobe',\[[\s\S]*?'json',target\]/);
+assert.equal(config.testMatch,'acquisition.spec.mjs');
+assert.doesNotMatch(browser,/recordVideo|execFileSync\('ffprobe'/);
+assert.match(browser,/path\.join\(OUT,'browser.json'\)/);
 assert.match(helpers,/toFile\(path\.join\(OUT,file\)\)/);
 assert.match(evidence,/out=path\.join\(import\.meta\.dirname,'results'\)/);
 assert.match(preflight,/assert\.equal\(process\.cwd\(\),root\)/);
@@ -67,6 +67,6 @@ assert.match(workflow,/path: qa\/yard-canonical-acceptance\/results\//);
 for(const line of browser.split('\n').filter(line=>/writeFile|copyFile|screenshot\(\{path/.test(line)))assert.match(line,/OUT|target/,'Browser file output must use an absolute evidence target');
 assert.equal(fileURLToPath(new URL('../../dist/index.html',new URL('file://'+expectedEntry))),path.join(root,'dist/index.html'));
 console.log(JSON.stringify({status:'PATHS_VERIFIED_WITHOUT_LAUNCH',playwrightVersion:'1.58.2',checks,
- evidenceDirectory:path.relative(root,OUT),videoDirectory:path.relative(root,path.join(WORK,'video')),buildOutput:'dist',artifactUpload:'qa/yard-canonical-acceptance/results/',
- coverage:['actual Playwright config and webServer cwd resolver','test discovery/output','browser images/report/video/ffprobe','build subprocess cwd and dist','API entry, loader root and dist','preflight/seal/TAP/upload repository cwd'],
+ evidenceDirectory:path.relative(root,OUT),nativeRecording:'not repeated; prior raw clips referenced by hash',buildOutput:'dist',artifactUpload:'qa/yard-canonical-acceptance/results/',
+ coverage:['actual Playwright config and webServer cwd resolver','test discovery/output','selected acquisition spec, browser images and combined report','build subprocess cwd and dist','API entry, loader root and dist','preflight/seal/TAP/upload repository cwd'],
  processLaunches:0,listeners:0,browsers:0,databaseConnections:0,sourceGuards:'unchanged'},null,2));

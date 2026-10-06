@@ -68,6 +68,13 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
   const current=view || {...courtyardPresentation(snapshot,snapshot?.yardRuntime?.serverNow||0,clips),mutable:false,mediaReady:false};
   const canonicalState=canonicalItemState(snapshot);
   const itemMode=current.canonicalItems===true,itemMutable=itemMode&&current.mediaReady&&!!canonicalCapability(snapshot);
+  const actionSession=useGameHub.getState().accountSession;
+  // A canonical scene owns placement only. Acquisition still uses the shared
+  // wallet and ordinary Yard receipt, with the exact advertised shop binding.
+  const canBuyGoodie=(goodieId,snap=snapshot)=>!!(itemMode
+    ? goodieId==='leaf_pot'&&current.mediaReady===true&&snap?.player?.id&&canonicalCapability(snap)
+      &&snap.yardRuntime.supportedBindings?.goodies?.leaf_pot?.buy===true&&canAffordCatalogCost(YARD_GOODIES.leaf_pot.cost,snap.yard?.currencies)
+    : current.mutable&&current.runtime?.supportedBindings?.goodies?.[goodieId]?.buy&&canAffordCatalogCost(YARD_GOODIES[goodieId]?.cost,snap?.yard?.currencies));
   const validatePlacement=(snap,g)=>{if(!isCanonicalItemIntent(g))return checkPlacement(snap,g,{placing:g.placing});const result=checkCanonicalPlacement(snap,g);return result.ok?(scene.current?.checkPlacement(g)||result):result;};
   const catalogPreview=(kind,id,options)=>sceneCatalogPreview(current.renderCatalog,kind,id,options);
   const navigationArt=id=>id==='decor'&&itemMode?catalogPreview('goodie','leaf_pot'):YARD_UI_ART[id];
@@ -105,8 +112,11 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
   useEffect(()=>{if(panel && !dialog.current.open)dialog.current.showModal();else if(!panel && dialog.current.open){dialog.current.close();if(ghostRef.current)canvas.current.focus();}},[panel]);
   useEffect(()=>{if(panel==='guests')setCompanionName(yard.companion?.name || '');},[panel,yard.companion?.name]);
   const act=async(action,payload={})=>{
-    const canonical=isCanonicalItemIntent(payload);
-    if(busy || !(canonical?itemMutable&&canonicalCapability(latest.current,action):current.mutable))return;
+    const canonical=isCanonicalItemIntent(payload),state=useGameHub.getState();
+    if(state.accountSession!==actionSession||state.snapshot?.player?.id!==snapshot?.player?.id)return;
+    const actionBusy=state.pendingActions.some(p=>p.action.startsWith('yard.')&&p.status!=='failed');
+    const purchase=itemMode&&action==='yard.buyGoodie'&&canBuyGoodie(payload.goodieId,state.snapshot);
+    if(actionBusy || !(canonical?itemMutable&&canonicalCapability(state.snapshot,action):current.mutable||purchase))return;
     if(canonical)scene.current?.setCanonicalActionPending(true);
     try{const result=await useGameHub.getState().performReliableAction(action,payload,{clientActionId:`${canonical?CANONICAL_ACTION_NONCE_PREFIX:'yard-v2:'}${uuid()}`,durability:'outbox'});
       if(result.error)setError(result.error);else if(result.success&&result.pending)setError('');
@@ -151,11 +161,12 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
   const keyDown=e=>{if(!ghostRef.current || e.repeat)return;if(e.key==='Escape'){e.preventDefault();cancel();}else if(e.key==='Enter'){e.preventDefault();confirm();}else{const d={ArrowLeft:[-8,0],ArrowRight:[8,0],ArrowUp:[0,-8],ArrowDown:[0,8]}[e.key];if(d){e.preventDefault();moveGhost(scene.current?.offsetPoint(ghostRef.current,{x:d[0],y:d[1]}));}}};
   const blocked=busy || !current.mutable,itemBlocked=busy||!itemMutable,placementBlocked=isCanonicalItemIntent(ghost)?itemBlocked:blocked;
   const bindings=current.runtime?.supportedBindings || {};
-  const feedbackCode=error||message||pending.find(item=>item.requiresCanonicalReview)?.blockedReason;
+  const feedbackCode=error||message||pending.find(item=>item.requiresCanonicalReview||item.status==='rollout-paused'&&item.blockedReason==='UNSUPPORTED_YARD_STORAGE_VERSION')?.blockedReason;
   const feedback=feedbackCode==='YARD_PIP_SCENE_FAILED'?t('yard.canonical.displayFailed'):feedbackCode==='YARD_CAMERA_MEDIA_UNAVAILABLE'?t('yard.persistent.error.visualMedia'):feedbackCode==='OUTBOX_STORAGE_UNAVAILABLE'?t('yard.persistent.error.storage'):yardFeedbackText(playerFeedbackText(language,feedbackCode),t);
   const placementState=useGameHub.getState(),placementPending=pendingPlacement(placementState,ghost),placementRetry=storageError&&retryablePlacement(placementState,ghost);
   const previewStatus=t(pipPreview.settled?'yard.pipPreview.inspectionDone':'yard.pipPreview.inspectionActive');
-  const status=!snapshot?.yard?t('yard.persistent.loading'):feedback || (busy?t('yard.persistent.saving'):ghost?(ghost.valid?t('yard.persistent.spaceFree'):t(placementMessageKey(ghost.placementError))):visibleStatus(current,t));
+  const sceneLoading=current.mediaReady===false&&current.runtime?.version===1&&current.runtime.status==='ready'&&current.runtime.mutable===true&&!current.runtime.error;
+  const status=!snapshot?.yard?t('yard.persistent.loading'):feedback || (busy?t('yard.persistent.saving'):ghost?(ghost.valid?t('yard.persistent.spaceFree'):t(placementMessageKey(ghost.placementError))):sceneLoading?t('yard.persistent.loading'):visibleStatus(current,t));
   const canonicalPending=pending.find(item=>isCanonicalItemIntent(item.payload,item.clientActionId)&&['canonical-blocked','rollout-paused'].includes(item.status));
   const canonicalEntryAvailable=!!canonicalCapability(snapshot)||(canonicalState.available&&canonicalState.records.length>0)||pending.some(item=>isCanonicalItemIntent(item.payload,item.clientActionId)||item.requiresCanonicalReview);
   const interactionPhase=pipPreview.interaction?.phase,interactionIssue=['no-path','entry-blocked','blocked-occupancy','unavailable'].includes(interactionPhase);
@@ -244,7 +255,7 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
         {decorTab==='placed' && <><button data-yard-action="move" disabled={(itemMode?itemBlocked:blocked) || chosen.reserved || !chosen.supported} onClick={()=>startPlacement(chosen.prop || selected.raw)}>{t('yard.move')}</button><button data-yard-action="pickup" disabled={(itemMode?itemBlocked:blocked) || chosen.reserved} onClick={()=>act('yard.pickupGoodie',{slotId:selected.raw.slotId,...(itemMode?CANONICAL_LOCATION:{})})}>{t('yard.store')}</button>{selected.raw.condition!=='new' && <button disabled={blocked || chosen.reserved || !chosen.supported || !affordable(YARD_GOODIES[selected.id]?.fixCost)} onClick={()=>act('yard.fixGoodie',{slotId:selected.raw.slotId})}>{t('yard.persistent.repairCost',{cost:cost(YARD_GOODIES[selected.id]?.fixCost)})}</button>}</>}
         {decorTab==='placed'&&itemMode && <button data-pip-control="inspect-selected" disabled={itemBlocked||!!ghost||!pipPreview.interaction?.spawned} onClick={()=>{try{if(scene.current?.inspectCanonicalSlot(selected.raw.slotId)){setError('');setPanel(null);}else setError('CANONICAL_INTERACTION_UNAVAILABLE');}catch{setError('CANONICAL_INTERACTION_UNAVAILABLE');}}}>{t('yard.canonical.inspect')}</button>}
         {decorTab==='inventory' && <button data-yard-action="place" disabled={(itemMode?itemBlocked||placedItems.length>=CANONICAL_MAX_PLACEMENTS:blocked||!bindings.goodies?.[selected.id]?.place) || !chosen.supported} onClick={()=>startPlacement({goodieId:selected.id},true)}>{t('yard.place')}</button>}
-        {decorTab==='shop' && <button disabled={blocked || !bindings.goodies?.[selected.id]?.buy || !affordable(YARD_GOODIES[selected.id]?.cost)} onClick={()=>act('yard.buyGoodie',{goodieId:selected.id})}>{t('yard.buy')}</button>}
+        {decorTab==='shop' && <button data-yard-action="buy-goodie" disabled={busy || !canBuyGoodie(selected.id)} onClick={()=>act('yard.buyGoodie',{goodieId:selected.id})}>{t('yard.buy')}</button>}
       </div></footer>}
     </dialog>
   </div></VisualCatalogContext.Provider></UiImageAdmissionContext.Provider>;

@@ -196,7 +196,7 @@ const GAME_REGIONS = {
     triviaQuestionSurfaceAsset: assetRegion("triviaQuestionSurfaceAsset", "Trivia question panel surface asset", "Trivia DOM assets"),
   },
   room: {
-    yardStage: region("yardStage", "Yard play stage", "Cozy Yard", { measured: true, affectsPixiSafeArea: false, mode: "custom" }),
+    yardStage: region("yardStage", "Yard play stage", "Cozy Yard", { measured: true, affectsPixiSafeArea: false, mode: "custom" }, "Persistent Yard uses a reserved CSS grid. Canonical landscape at max-height 360px and aspect>=8/5 uses a 44px header, 28px status and 44px controls inside the shared shell gutter; the 280x192 scene admission floor is unchanged."),
     yardHudLayer: region("yardHudLayer", "Yard HUD layer", "Cozy Yard", { draggable: false, resizable: false, mode: "custom" }),
     yardPlacementControls: region("yardPlacementControls", "Yard placement controls", "Cozy Yard", { measured: true, draggable: false, resizable: false, mode: "custom" }, "Reserved CSS-grid controls outside the stage. Canonical ground anchors use the fixed versioned camera and server geometry; no player layout override."),
     yardVisitStatus: region("yardVisitStatus", "Yard reserved visit status", "Cozy Yard", { measured: true, draggable: false, resizable: false, mode: "custom" }, "Reserved flow strip outside placement canvas; portrait row and landscape rail preserve readable controls."),
@@ -206,7 +206,7 @@ const GAME_REGIONS = {
     yardActivityPill: region("yardActivityPill", "Yard activity status", "Cozy Yard", { draggable: true, resizable: true, mode: "custom" }),
     yardCurrencyStack: region("yardCurrencyStack", "Yard currency stack", "Cozy Yard", { draggable: true, resizable: true, mode: "stack" }),
     yardBottomDock: region("yardBottomDock", "Yard bottom dock", "Cozy Yard", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
-    yardGameScreen: region("yardGameScreen", "Yard game screen/dialog", "Cozy Yard", { draggable: true, resizable: true, mode: "anchored" }),
+    yardGameScreen: region("yardGameScreen", "Yard game screen/dialog", "Cozy Yard", { draggable: true, resizable: true, mode: "anchored" }, "Persistent native dialogs intentionally use CSS viewport bounds. Canonical max-height 360px landscape keeps 44px header/48px tabs, a scrollable item column and 176px adjacent actions; selection cannot shrink the item viewport."),
     yardBackgroundAsset: assetRegion("yardBackgroundAsset", "Yard background art asset", "Cozy Yard assets"),
     yardCompanionAsset: assetRegion("yardCompanionAsset", "Yard companion image asset", "Cozy Yard assets"),
   },
