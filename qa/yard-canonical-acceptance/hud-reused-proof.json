@@ -1,0 +1,525 @@
+{
+  "base": "770a560a78d8e011d582411a8ae8569783b83116",
+  "baseTree": "787e39496fc4ed2ae90b93e271db635a5958299a",
+  "runId": "37513128014",
+  "url": "https://github.com/Le-Who/CC-GH/actions/runs/37513128014",
+  "receiptSha256": "b57aa94ec365e70420f9461bc99988769afbfe5fcdf8c55954d6dfe203f7a420",
+  "receipt": {
+    "reused": {
+      "runId": "37498940977",
+      "scope": "Reuse only the nine unchanged production-domain PostgreSQL cases from 17fc. Both default and preview builds are fresh. Reuse db044 core dynamic-route/renderer observations and historical matrix status as explicitly recorded below.",
+      "browserReused": true,
+      "defaultBuildReused": false,
+      "priorBrowser": {
+        "head": "db044806e18c5c7649a0f360c6238efcaae14746",
+        "runId": "37507167039",
+        "sections": {
+          "actions": "passed",
+          "hud": "failed"
+        }
+      }
+    },
+    "head": "770a560a78d8e011d582411a8ae8569783b83116",
+    "stages": {
+      "PREFLIGHT": "success",
+      "DEPENDENCIES": "success",
+      "SOURCE": "success",
+      "BUILD": "success",
+      "BROWSER": "failure"
+    },
+    "acceptance": "FAILED_OR_INCOMPLETE",
+    "limits": {
+      "jobMinutes": 10,
+      "artifactBytes": 8388608,
+      "retentionDays": 3,
+      "retries": 0
+    },
+    "excluded": [
+      "production activation or deployment",
+      "real-device GPU/FPS",
+      "trusted native Telegram WebView events",
+      "subjective visual acceptance"
+    ],
+    "files": [
+      {
+        "path": "acquisition-initial.webp",
+        "bytes": 87872,
+        "sha256": "235cb16237bce3907604975ca8d2c484fce61333079b6ad8b5e4f7ed062bb977"
+      },
+      {
+        "path": "browser.json",
+        "bytes": 132605,
+        "sha256": "a9948f8907b18fde44fbc4620da73bddaab848551ff3215c6981c4fdd884dc40"
+      },
+      {
+        "path": "builds.json",
+        "bytes": 19630,
+        "sha256": "f2c3de31d39c7a94fcb38d5b9defaecd41300755af49cb738ef8d9d7b0e3a52d"
+      },
+      {
+        "path": "hud-320x568-dpr1-en-failure-diagnostics.json",
+        "bytes": 63733,
+        "sha256": "034285d65f3a6ff2c2e45f666a7294eae0229fe89634a9e1f2eda1949161bd4b"
+      },
+      {
+        "path": "hud-320x568-dpr1-en-failure.webp",
+        "bytes": 23152,
+        "sha256": "ffc1f6ebc7f9511aa3965dd4b81dea9da29fe56af74ea5d67ec2293140580dc1"
+      },
+      {
+        "path": "hud-320x568-dpr1-en-inventory.webp",
+        "bytes": 22028,
+        "sha256": "53aa194e26d46cc5a6b98ba9a06352c0d65ba6805321d91b23a68653b97d769d"
+      },
+      {
+        "path": "hud-320x568-dpr1-en-placed.webp",
+        "bytes": 23812,
+        "sha256": "65e6eb555c4685c6cb728bdf2a3f0c58a9f91402585f644bb853edcd30870d1e"
+      },
+      {
+        "path": "hud-320x568-dpr1-en.webp",
+        "bytes": 13412,
+        "sha256": "09f50a9b14f51a4eed016fcb6f1034a55b74d34f92359eb24d5c6deb0fb06b56"
+      },
+      {
+        "path": "hud-390x844-dpr2-ru-dialog-native.png",
+        "bytes": 1009252,
+        "sha256": "4a6e9615470e45c8a9eaa83f9fb55c579151ce48f6b01e646cb446e46fa04908"
+      },
+      {
+        "path": "hud-390x844-dpr2-ru-failure-diagnostics.json",
+        "bytes": 81087,
+        "sha256": "34f2d2b290f040e3f062eaa2b522c514d778f7c94c96d56c0dd88f4fd90bb5b1"
+      },
+      {
+        "path": "hud-390x844-dpr2-ru-failure.webp",
+        "bytes": 122212,
+        "sha256": "177367e3c0fbe13444c38070ea04dda0a2a335203693fce1613d9313dca95c42"
+      },
+      {
+        "path": "hud-390x844-dpr2-ru-header-native.png",
+        "bytes": 94365,
+        "sha256": "b600e29c8db5eb34e191f7d2e4b40c5e43ac01c9377042080c82620db85a335a"
+      },
+      {
+        "path": "hud-390x844-dpr2-ru-inventory.webp",
+        "bytes": 89836,
+        "sha256": "490c766d3486722c53d12752609d1b5273c3412a1918243cc727a9bf1cbab199"
+      },
+      {
+        "path": "hud-390x844-dpr2-ru-placed.webp",
+        "bytes": 94906,
+        "sha256": "a876a4c861d973d391158a7875aa78b961ad15bd08509baf75b1b6711cae14f6"
+      },
+      {
+        "path": "hud-390x844-dpr2-ru.webp",
+        "bytes": 88876,
+        "sha256": "ccd6ddb21632d12a9e96f0cb5c3b7c52734b0c3f47ef40349b2c3a94dd10d773"
+      },
+      {
+        "path": "hud-568x320-dpr1-en-failure-diagnostics.json",
+        "bytes": 61782,
+        "sha256": "7e9cdd99bd66ce9ac5c012982c7829186e34a7e6c026020315be4fb6c08e8391"
+      },
+      {
+        "path": "hud-568x320-dpr1-en-failure.webp",
+        "bytes": 22178,
+        "sha256": "34b5f29d5d29a5f97ab34b6357bbb3848eb214c902303b720ac8b874fd310bb8"
+      },
+      {
+        "path": "hud-568x320-dpr1-en-inventory.webp",
+        "bytes": 22184,
+        "sha256": "f9bcba9c4efb8ef54d98a65be8d3f423f2f03ca5a5c868ea03b76308b18b919f"
+      },
+      {
+        "path": "hud-568x320-dpr1-en-placed.webp",
+        "bytes": 23504,
+        "sha256": "e589bfb5b4ac2be4341996c5f27d042eb714d485fc74c0f79fb6e3a1df2cccb1"
+      },
+      {
+        "path": "hud-568x320-dpr1-en.webp",
+        "bytes": 11880,
+        "sha256": "0ac38cac64db4c2c98d94e3e09d0bef54f49f2e98985bd0760595ea101b659ff"
+      },
+      {
+        "path": "hud-568x320-dpr1-ru-failure-diagnostics.json",
+        "bytes": 62044,
+        "sha256": "513864fb4837ccb3af3d5724f10ab6e9f6390c3f46d098802ae1fbcde0c3003c"
+      },
+      {
+        "path": "hud-568x320-dpr1-ru-failure.webp",
+        "bytes": 25118,
+        "sha256": "094d9ffe65751522185a4335fb39fffdd90bbf68d8fa91f487944a4bf1a5f584"
+      },
+      {
+        "path": "hud-568x320-dpr1-ru-inventory.webp",
+        "bytes": 24214,
+        "sha256": "287376ba248ee1b681acf2b6d71fe4b76f9bf2290e108d73e12be5fc638af4e9"
+      },
+      {
+        "path": "hud-568x320-dpr1-ru-placed.webp",
+        "bytes": 26022,
+        "sha256": "f8df617657959e2a5a639b2630cb89f4c438850dfb60b9aa5fe8a4018265c6c5"
+      },
+      {
+        "path": "hud-568x320-dpr1-ru.webp",
+        "bytes": 11758,
+        "sha256": "0731042870a5cc75b71ad66bb73b5919c26f46d8e503d67192c091c2a0dbf70c"
+      },
+      {
+        "path": "hud-844x390-dpr1-ru-failure-diagnostics.json",
+        "bytes": 77455,
+        "sha256": "95c52948264c1a015767bce0d057671253a1e4250c28638953ba772dd86bbe8d"
+      },
+      {
+        "path": "hud-844x390-dpr1-ru-failure.webp",
+        "bytes": 25386,
+        "sha256": "0b06d7609d8633e6fdc6ecef3399eaec6d9df23d053299ee0d9d6a1f6decea62"
+      },
+      {
+        "path": "hud-844x390-dpr1-ru-inventory.webp",
+        "bytes": 23674,
+        "sha256": "d4303c244298e526e8bd83a0c073a64bfd2cae7af71ad2d97c10ea31ec961071"
+      },
+      {
+        "path": "hud-844x390-dpr1-ru.webp",
+        "bytes": 14724,
+        "sha256": "a6e5d52827c2478016afc7289567749ac1b9fb6fab091b395de9cd634e87c0ec"
+      },
+      {
+        "path": "insufficient-funds.webp",
+        "bytes": 123124,
+        "sha256": "e32b2e18025b7e97be1cbfa63cdda5758246c6e9591243a4f0837fe04bab581e"
+      },
+      {
+        "path": "old-domain-quarantine.webp",
+        "bytes": 16876,
+        "sha256": "b7d7c6d1c2cdefcc954af974b5681e40d9ce88bdaed613d997dfc70f5054ba90"
+      },
+      {
+        "path": "path-audit.json",
+        "bytes": 1369,
+        "sha256": "def9e77b0770bc8f5b92350be1ac9eaf30e4cb3f6c2853bd52a6b891df79c1ed"
+      },
+      {
+        "path": "purchase-confirmed.webp",
+        "bytes": 121944,
+        "sha256": "f893d64d6bcdffdaae02eb8f79a78269a93955be769a93caf1c397d411a65073"
+      },
+      {
+        "path": "reused.json",
+        "bytes": 8452,
+        "sha256": "2f6d6831a4be696e0ce0667d6894d0c3024d558f098f6ebe134481bb9df22d7e"
+      },
+      {
+        "path": "source.json",
+        "bytes": 4346,
+        "sha256": "4098361ffb27a6c4fa487c88f8cc7c9608038ada0fd1c7963354a7f5b6c96ac7"
+      },
+      {
+        "path": "source.tap",
+        "bytes": 6504,
+        "sha256": "96aabef1b9a6b61e5b7794530e7934ca674a1bcd342876d3a45554365a7e951d"
+      }
+    ]
+  },
+  "scope": "Reuse only exact passed native acquisition and unchanged source/domain results. Prior HUD remains failed. Fresh UI-only qualification and both production builds required.",
+  "browserReused": true,
+  "defaultBuildReused": false,
+  "allowedReviewedFiles": {
+    "src/app/hud-layout/defaultLayouts/room.json": "8b9b7b1e68c07d400fd97bacc2c65279a13ab7b3c8c8bbfe207c9ad4a6262c72",
+    "src/app/hud-layout/registry.js": "3110cf714198966dab52b9a0c5633ab4041482f2d2ae3d508ad45ecdd80b0bb0",
+    "src/games/companion-yard-v2/courtyard.css": "904a86713d2d473a0cad2abbda653232456b3ab30f9ee15aa7825aaaaf6df8ec",
+    "tests/yard-compact-hud-layout.test.mjs": "c47061a2c762cf7b1a16bdb87101de720af2d0e5084d48d67218f9598eb936f6"
+  },
+  "protectedEntryCount": 4891,
+  "protectedGitEntriesSha256": "8f296df57f3b77eaede991f3ba29e3651b2912e21a5382b40c546571a32a270c",
+  "source": {
+    "tests": 62,
+    "pass": 62,
+    "fail": 0,
+    "skipped": 0,
+    "sha256": "96aabef1b9a6b61e5b7794530e7934ca674a1bcd342876d3a45554365a7e951d",
+    "qualification": "Prior source results for unchanged acquisition code; changed compact layout and current harness run fresh."
+  },
+  "acquisition": {
+    "sections": {
+      "actions": "passed",
+      "hud": "failed"
+    },
+    "browserSha256": "a9948f8907b18fde44fbc4620da73bddaab848551ff3215c6981c4fdd884dc40",
+    "cases": [
+      {
+        "name": "buy-real-commit-held",
+        "durable": {
+          "version": 2,
+          "accountId": "acct:c69181b6-1cdf-4de8-99cf-a1f435aaf426",
+          "items": [
+            {
+              "accountId": "acct:c69181b6-1cdf-4de8-99cf-a1f435aaf426",
+              "clientActionId": "yard-v2:6144473c-0296-49f3-a132-a76003294a0e",
+              "action": "yard.buyGoodie",
+              "payload": {
+                "goodieId": "leaf_pot"
+              },
+              "entityKey": "shop:goodie:leaf_pot",
+              "pendingLabel": "yard buyGoodie",
+              "intentServerTime": 1791312211017,
+              "createdAt": 1791312211017,
+              "attempts": 1,
+              "status": "sending",
+              "nextAttemptAt": 0
+            }
+          ],
+          "revision": 2
+        },
+        "balance": 140,
+        "owned": 1
+      },
+      {
+        "name": "genuine-buy-inventory-place-reload-move-pickup",
+        "nonce": "yard-v2:6144473c-0296-49f3-a132-a76003294a0e",
+        "duplicate": true,
+        "balance": 140,
+        "owned": 1,
+        "receipt": {
+          "at": 1791312211155,
+          "action": "yard.buyGoodie",
+          "extras": {
+            "goodieId": "leaf_pot"
+          },
+          "format": "yard-action-receipt/v1",
+          "status": 200,
+          "actionId": "yard-v2:6144473c-0296-49f3-a132-a76003294a0e",
+          "requestHash": "e71cf817d98920e0f24afcd37fd5fa799e4288f03d916b383f82085b846f3509"
+        }
+      },
+      {
+        "name": "native-idb-committed-purchase-old-domain-reload-recovery",
+        "historicalRevision": "4660ba9d84a0abb40f7c77bed7a702caba18b67b",
+        "dependencyCount": 81,
+        "qualification": "Pinned old domain / HTTP interception, not an old Express deployment. Native IDB and current authenticated API/DB commit + duplicate recovery are real. Uncommitted loss and account switching are fresh source tests only.",
+        "retained": {
+          "version": 2,
+          "accountId": "acct:c69181b6-1cdf-4de8-99cf-a1f435aaf426",
+          "items": [
+            {
+              "accountId": "acct:c69181b6-1cdf-4de8-99cf-a1f435aaf426",
+              "clientActionId": "yard-v2:2ca7b768-290e-4903-81b4-001584e8b76e",
+              "action": "yard.buyGoodie",
+              "payload": {
+                "goodieId": "leaf_pot"
+              },
+              "entityKey": "shop:goodie:leaf_pot",
+              "pendingLabel": "yard buyGoodie",
+              "intentServerTime": 1791312221644,
+              "createdAt": 1791312221644,
+              "attempts": 2,
+              "status": "rollout-paused",
+              "nextAttemptAt": 0,
+              "blockedReason": "UNSUPPORTED_YARD_STORAGE_VERSION",
+              "requiresCanonicalReview": false,
+              "requiresYardResume": true
+            }
+          ],
+          "revision": 19
+        },
+        "reloaded": {
+          "version": 2,
+          "accountId": "acct:c69181b6-1cdf-4de8-99cf-a1f435aaf426",
+          "items": [
+            {
+              "accountId": "acct:c69181b6-1cdf-4de8-99cf-a1f435aaf426",
+              "clientActionId": "yard-v2:2ca7b768-290e-4903-81b4-001584e8b76e",
+              "action": "yard.buyGoodie",
+              "payload": {
+                "goodieId": "leaf_pot"
+              },
+              "entityKey": "shop:goodie:leaf_pot",
+              "pendingLabel": "yard buyGoodie",
+              "intentServerTime": 1791312221644,
+              "createdAt": 1791312221644,
+              "attempts": 2,
+              "status": "rollout-paused",
+              "nextAttemptAt": 0,
+              "blockedReason": "UNSUPPORTED_YARD_STORAGE_VERSION",
+              "requiresCanonicalReview": false,
+              "requiresYardResume": true
+            }
+          ],
+          "revision": 19
+        },
+        "nonce": "yard-v2:2ca7b768-290e-4903-81b4-001584e8b76e",
+        "duplicate": true,
+        "balance": 0,
+        "owned": 2
+      },
+      {
+        "name": "real-80-treat-starter-cannot-buy-140-pot",
+        "balance": 80,
+        "owned": 0,
+        "requests": 0
+      }
+    ],
+    "priorHudFailures": [
+      {
+        "type": "hud-320x568-dpr1-en",
+        "message": "AssertionError [ERR_ASSERTION]: Unreachable control Select"
+      },
+      {
+        "type": "hud-390x844-dpr2-ru",
+        "message": "AssertionError [ERR_ASSERTION]: Unreachable control \u0412\u044b\u0431\u0440\u0430\u0442\u044c"
+      },
+      {
+        "type": "hud-568x320-dpr1-en",
+        "message": "AssertionError [ERR_ASSERTION]: Unreachable control Select"
+      },
+      {
+        "type": "hud-568x320-dpr1-ru",
+        "message": "AssertionError [ERR_ASSERTION]: Unreachable control \u0412\u044b\u0431\u0440\u0430\u0442\u044c"
+      },
+      {
+        "type": "hud-844x390-dpr1-ru",
+        "message": "AssertionError [ERR_ASSERTION]: Clipped control \u041f\u0435\u0440\u0435\u0434\u0432\u0438\u043d\u0443\u0442\u044c\n\ntrue !== false\n"
+      }
+    ],
+    "qualification": "Four real native acquisition cases passed. HUD failed in this run and is not reused as acceptance."
+  },
+  "domain": {
+    "runId": "37498940977",
+    "base": "17fc659a45b3ffe8559020019cf7453b6e222a11",
+    "receiptSha256": "270e0a370c50a8d0c24fee5133eaf326559b2e0b20a70b427cfb66270d6b36bb",
+    "postgres": {
+      "tests": 9,
+      "pass": 9,
+      "fail": 0,
+      "skipped": 0
+    },
+    "verifiedInPriorRun": true,
+    "priorReuseArtifactSha256": "2f6d6831a4be696e0ce0667d6894d0c3024d558f098f6ebe134481bb9df22d7e"
+  },
+  "historicalDynamic": {
+    "head": "db044806e18c5c7649a0f360c6238efcaae14746",
+    "tree": "483b6acd504027d5b6d75ec2509fd5a5ddadb360",
+    "runId": "37507167039",
+    "url": "https://github.com/Le-Who/CC-GH/actions/runs/37507167039",
+    "receiptSha256": "71b8646941b7ccb1b58d49f5e78b37c977362940c4e2d9ad008ac5d223b0177b",
+    "browserSha256": "d69ca09f46378a73118e0941e213dd805bd35698153c4e4fc29f04831652164d",
+    "overallStatus": "FAILED_OR_INCOMPLETE",
+    "sections": {
+      "actions": "passed",
+      "hud": "failed"
+    },
+    "cases": [
+      "committed-response-held",
+      "actual-ui-outbox-place-reload-move-pickup",
+      "normal-two-committed-props",
+      "separate-unrecorded-stationary-prop-check",
+      "actual-ui-blocker-move-complete-alternate-route",
+      "front-blocked-reachable-alternative",
+      "target-move-pre-mutation",
+      "target-moved-during-approach",
+      "target-delete-pre-mutation",
+      "target-deleted-during-approach",
+      "valid-35-115-all-anchors-blocked",
+      "pointercancel-resize-mode-off-worker-retirement",
+      "on-build-without-page-opt-in-remains-ordinary"
+    ],
+    "matrix": [
+      {
+        "name": "hud-320x568-dpr1-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-360x800-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-390x844-dpr2-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-414x896-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-568x320-dpr1-en",
+        "status": "failed"
+      },
+      {
+        "name": "hud-844x390-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-768x1024-dpr1-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-1024x768-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-1280x720-dpr1-en",
+        "status": "passed"
+      },
+      {
+        "name": "hud-375x812-dpr1-ru",
+        "status": "passed"
+      },
+      {
+        "name": "hud-390x844-dpr3-ru",
+        "status": "passed"
+      }
+    ],
+    "clips": [
+      {
+        "file": "actual-time-inspection.webm",
+        "recordingWallMs": 10866,
+        "inspectionStartWallOffsetMs": 4333,
+        "inspectionAdmittedWallOffsetMs": 4966,
+        "inspectionAdmittedAt": 1791309448515,
+        "media": {
+          "programs": [],
+          "streams": [
+            {
+              "width": 390,
+              "height": 844,
+              "r_frame_rate": "25/1"
+            }
+          ],
+          "format": {
+            "duration": "10.960000"
+          }
+        },
+        "processing": "Untrimmed, unretimed native browser recording. No screenshot concatenation or interpolated frames.",
+        "qualification": "Actual Chromium/WebGL backend is recorded in renderingBackend; native video cadence is not device FPS.",
+        "sha256": "88cf94f37ffbd3bf6f26d016f9055a98e136be153119d48b7923f4843363d8de"
+      },
+      {
+        "file": "actual-time-alternate-route.webm",
+        "recordingWallMs": 18960,
+        "blockerMoveStartedAt": 1791309469134,
+        "blockerCommittedAt": 1791309469858,
+        "adaptationInspectStartedAt": 1791309469876,
+        "adaptationAdmittedAt": 1791309470577,
+        "media": {
+          "programs": [],
+          "streams": [
+            {
+              "width": 390,
+              "height": 844,
+              "r_frame_rate": "25/1"
+            }
+          ],
+          "format": {
+            "duration": "19.120000"
+          }
+        },
+        "processing": "Raw untrimmed/unretimed native recording; actual UI blocker move then complete alternate route; no screenshots or viewport changes.",
+        "qualification": "Same saved target and real changed blocker; browser/software-renderer evidence, not device FPS.",
+        "sha256": "ff54410518a69cebcdeda4d8b25d38e41ec5cd209825cd7f148bbd39103959d6"
+      }
+    ],
+    "qualification": "Actions passed; full run failed at 568x320 HUD. Core renderer/dynamic implementation unchanged. Changed UI and startup are tested fresh; historical visual acceptance is not promoted to current full-matrix acceptance."
+  }
+}

@@ -6,6 +6,7 @@ import {supportsCleanViewport,CLEAN_STAGE_MIN} from '../src/games/companion-yard
 
 const source=await fs.readFile(process.env.YARD_COMPACT_CSS_SOURCE||new URL('../src/games/companion-yard-v2/courtyard.css',import.meta.url),'utf8');
 const css=postcss.parse(source),compact='(min-aspect-ratio:8/5) and (max-height:360px)';
+const landscapeDialog='(orientation:landscape) and (min-aspect-ratio:8/5) and (max-height:550px)';
 const root='.cy-app[data-canonical-items="true"]';
 function matches(params,{width,height}){
  return params.split(',').some(branch=>[...branch.matchAll(/\(([^:()]+):([^()]+)\)/g)].every(([,key,raw])=>{
@@ -25,6 +26,7 @@ function declarations(tree,selectors,viewport){
 }
 const viewport={width:568,height:320};
 const effective=(selectors,v=viewport)=>declarations(css,selectors,v);
+const dialogWidth=(value,width)=>value.startsWith('min(')?Math.min(Number.parseFloat(value.slice(4)),width-16):value.startsWith('calc(')?width-16:Number.parseFloat(value);
 
 test('compact canonical stage includes the real outer shell gutter and retains its unchanged live minimum',async()=>{
  const shell=postcss.parse(await fs.readFile(new URL('../src/index.css',import.meta.url),'utf8'));
@@ -41,7 +43,7 @@ test('compact canonical stage includes the real outer shell gutter and retains i
 
 test('compact item scrolling owns a full-height column beside actions instead of below a shrinking footer',()=>{
  const dialog=effective(['.cy-dialog',root+' .cy-dialog','.cy-dialog[open]',root+' .cy-dialog[open]']);
- assert.equal(dialog.display,'grid');assert.equal(dialog.width,'calc(100vw - 16px)');
+ assert.equal(dialog.display,'grid');assert.equal(dialogWidth(dialog.width,568),552);
  const rows=[...dialog['grid-template'].matchAll(/"[^"]+" (\d+)px/g)].map(m=>Number(m[1]));assert.deepEqual(rows,[44,48]);
  assert.match(dialog['grid-template'],/"content actions" minmax\(0,1fr\)/);
  const panelHeight=320-12-2*Number.parseFloat(dialog['border-width'])-rows.reduce((a,b)=>a+b,0);
@@ -55,9 +57,23 @@ test('compact item scrolling owns a full-height column beside actions instead of
  assert.match(card['grid-template'],/"art name".*"art detail"/);
 });
 
-test('short-landscape overrides leave the other accepted profiles and legacy mode unchanged',()=>{
- const baseline=css.clone();baseline.walkAtRules('media',rule=>{if(rule.params===compact)rule.remove();});
+test('phone-landscape placed actions retain their full column and text width at844x390',()=>{
+ const v={width:844,height:390},dialog=effective(['.cy-dialog',root+' .cy-dialog','.cy-dialog[open]',root+' .cy-dialog[open]'],v);
+ assert.equal(dialog.display,'grid');assert.equal(dialogWidth(dialog.width,v.width),640);
+ const column=Number(dialog['grid-template'].match(/ (\d+)px$/)[1]);
+ const actions=effective(['.cy-selected-actions',root+' .cy-dialog>.cy-selected-actions'],v);
+ const buttons=effective(['.cy-app button','.cy-dialog button','.cy-selected-actions button',root+' .cy-selected-actions button'],v);
+ const row=effective(['.cy-row-actions','.cy-selected-actions .cy-row-actions',root+' .cy-selected-actions .cy-row-actions'],v);
+ assert.equal(row['flex-direction'],'column');assert.equal(row['flex-wrap'],'nowrap');
+ const inset=Number.parseFloat(actions.padding.split(' ').at(-1)),border=Number.parseFloat(actions['border-left']),buttonPadding=Number.parseFloat(buttons.padding);
+ assert.equal(column-inset-border-2*buttonPadding,151,'each action retains151px available text width');
+ assert.equal(Number.parseFloat(buttons['min-height']),44);
+ assert.equal(Number(effective(['.cy-app',root],v)['grid-template'].match(/"header nav" (\d+)px/)[1]),56,'common landscape header stays unchanged');
+});
+
+test('landscape dialog overrides leave portrait, tablet, desktop and legacy profiles unchanged',()=>{
+ const baseline=css.clone();baseline.walkAtRules('media',rule=>{if(rule.params===compact||rule.params===landscapeDialog)rule.remove();});
  const targets=[['.cy-app',root],['.cy-header',root+' .cy-header'],['.cy-dialog',root+' .cy-dialog','.cy-dialog[open]',root+' .cy-dialog[open]'],['.cy-selected-actions',root+' .cy-dialog>.cy-selected-actions']];
- for(const [width,height]of[[320,568],[360,800],[390,844],[414,896],[844,390],[768,1024],[1024,768],[1280,720],[375,812]])for(const selectors of targets){const v={width,height};assert.deepEqual(declarations(css,selectors,v),declarations(baseline,selectors,v),`${width}x${height}`);}
- for(const selectors of targets.map(rows=>rows.filter(s=>!s.includes('data-canonical-items'))))assert.deepEqual(declarations(css,selectors,viewport),declarations(baseline,selectors,viewport));
+ for(const [width,height]of[[320,568],[360,800],[390,844],[414,896],[768,1024],[1024,768],[1280,720],[375,812]])for(const selectors of targets){const v={width,height};assert.deepEqual(declarations(css,selectors,v),declarations(baseline,selectors,v),`${width}x${height}`);}
+ for(const v of[viewport,{width:844,height:390}])for(const selectors of targets.map(rows=>rows.filter(s=>!s.includes('data-canonical-items'))))assert.deepEqual(declarations(css,selectors,v),declarations(baseline,selectors,v));
 });

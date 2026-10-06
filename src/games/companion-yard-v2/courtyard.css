@@ -118,12 +118,16 @@
 
 /* Registered custom Yard compact-landscape adapter. At 568x320 the immersive
    shell leaves 310px: 44 header +28 status +44 controls preserves 194px of live
-   stage. The modal reserves header/tabs and keeps actions beside its scroll
-   region, so selecting a card never shrinks that card's visible viewport. */
+   stage. The dialog profile below also covers common phone landscape. */
 @media (min-aspect-ratio:8/5) and (max-height:360px){
  .cy-app[data-canonical-items="true"]{grid-template:"header nav" 44px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 76px}
  .cy-app[data-canonical-items="true"] .cy-header{padding:0 8px}
- .cy-app[data-canonical-items="true"] .cy-dialog{width:calc(100vw - 16px)}
+}
+
+/* Phone-landscape native dialogs keep the full-size actions beside the item
+   scroll region. Three localized actions never compete for one narrow row. */
+@media (orientation:landscape) and (min-aspect-ratio:8/5) and (max-height:550px){
+ .cy-app[data-canonical-items="true"] .cy-dialog{width:min(640px,calc(100vw - 16px))}
  .cy-app[data-canonical-items="true"] .cy-dialog[open]{display:grid;grid-template:"head head" 44px "tabs tabs" 48px "content actions" minmax(0,1fr)/minmax(0,1fr) 176px;gap:0 8px}
  .cy-app[data-canonical-items="true"] .cy-dialog>header{grid-area:head;min-height:44px}
  .cy-app[data-canonical-items="true"] .cy-dialog>.cy-tabs{grid-area:tabs}

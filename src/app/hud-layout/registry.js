@@ -206,7 +206,7 @@ const GAME_REGIONS = {
     yardActivityPill: region("yardActivityPill", "Yard activity status", "Cozy Yard", { draggable: true, resizable: true, mode: "custom" }),
     yardCurrencyStack: region("yardCurrencyStack", "Yard currency stack", "Cozy Yard", { draggable: true, resizable: true, mode: "stack" }),
     yardBottomDock: region("yardBottomDock", "Yard bottom dock", "Cozy Yard", { draggable: true, resizable: true, affectsPixiSafeArea: true, mode: "dock" }),
-    yardGameScreen: region("yardGameScreen", "Yard game screen/dialog", "Cozy Yard", { draggable: true, resizable: true, mode: "anchored" }, "Persistent native dialogs intentionally use CSS viewport bounds. Canonical max-height 360px landscape keeps 44px header/48px tabs, a scrollable item column and 176px adjacent actions; selection cannot shrink the item viewport."),
+    yardGameScreen: region("yardGameScreen", "Yard game screen/dialog", "Cozy Yard", { draggable: true, resizable: true, mode: "anchored" }, "Persistent native dialogs intentionally use CSS viewport bounds. Canonical phone landscape at aspect>=8/5 and max-height 550px uses a 640px-capped dialog, 44px header/48px tabs, a scrollable item column and 176px adjacent actions. The same action width applies at 568x320 and 844x390; selection cannot shrink the item viewport."),
     yardBackgroundAsset: assetRegion("yardBackgroundAsset", "Yard background art asset", "Cozy Yard assets"),
     yardCompanionAsset: assetRegion("yardCompanionAsset", "Yard companion image asset", "Cozy Yard assets"),
   },

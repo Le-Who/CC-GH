@@ -44,7 +44,7 @@ try{
 }finally{process.chdir(initialCwd);}
 const read=name=>fs.readFile(path.join(configDir,name),'utf8');
 const [build,browser,helpers,evidence,preflight,seal,workflow,api,loader]=await Promise.all([
- read('build.mjs'),read('acquisition.spec.mjs'),read('browser-helpers.mjs'),read('evidence.mjs'),read('preflight.mjs'),read('seal.mjs'),
+ read('build.mjs'),read('hud.spec.mjs'),read('browser-helpers.mjs'),read('evidence.mjs'),read('preflight.mjs'),read('seal.mjs'),
  fs.readFile(path.join(root,'.github/workflows/yard-canonical-dynamic.yml'),'utf8'),fs.readFile(expectedEntry,'utf8'),fs.readFile(path.join(root,'tests/helpers/yard-canonical-pg-loader.mjs'),'utf8'),
 ]);
 // Audit the remaining actual path owners. Do not import build/evidence/preflight:
@@ -53,7 +53,7 @@ assert.match(build,/root=path\.resolve\(import\.meta\.dirname,'\.\.\/\.\.'\),out
 assert.match(build,/execFileSync\('pnpm',\['run','build'\],\{cwd:root/);
 assert.match(build,/execFileSync\('node',\['scripts\/yard-pip-build-closure\.mjs','dist',[\s\S]*?\{cwd:root/);
 assert.match(build,/const dist=path\.join\(root,'dist'\)/);
-assert.equal(config.testMatch,'acquisition.spec.mjs');
+assert.equal(config.testMatch,'hud.spec.mjs');
 assert.doesNotMatch(browser,/recordVideo|execFileSync\('ffprobe'/);
 assert.match(browser,/path\.join\(OUT,'browser.json'\)/);
 assert.match(helpers,/toFile\(path\.join\(OUT,file\)\)/);
@@ -68,5 +68,5 @@ for(const line of browser.split('\n').filter(line=>/writeFile|copyFile|screensho
 assert.equal(fileURLToPath(new URL('../../dist/index.html',new URL('file://'+expectedEntry))),path.join(root,'dist/index.html'));
 console.log(JSON.stringify({status:'PATHS_VERIFIED_WITHOUT_LAUNCH',playwrightVersion:'1.58.2',checks,
  evidenceDirectory:path.relative(root,OUT),nativeRecording:'not repeated; prior raw clips referenced by hash',buildOutput:'dist',artifactUpload:'qa/yard-canonical-acceptance/results/',
- coverage:['actual Playwright config and webServer cwd resolver','test discovery/output','selected acquisition spec, browser images and combined report','build subprocess cwd and dist','API entry, loader root and dist','preflight/seal/TAP/upload repository cwd'],
+ coverage:['actual Playwright config and webServer cwd resolver','test discovery/output','selected HUD spec, browser images and combined report','build subprocess cwd and dist','API entry, loader root and dist','preflight/seal/TAP/upload repository cwd'],
  processLaunches:0,listeners:0,browsers:0,databaseConnections:0,sourceGuards:'unchanged'},null,2));
