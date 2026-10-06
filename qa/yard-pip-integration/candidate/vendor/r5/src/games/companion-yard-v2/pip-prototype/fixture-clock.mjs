@@ -8,7 +8,7 @@ export function createFixtureClock({now=()=>performance.now()}={}){
     reset(){if(disposed)throw Error('Fixture clock is disposed');accumulated=0;anchor=now();},
     setReason(reason,active){
       if(disposed)return;
-      if(!['hidden','blur','context-lost','ready'].includes(reason))throw Error('Unknown fixture pause reason');
+      if(!['hidden','blur','context-lost','ready','viewport'].includes(reason))throw Error('Unknown fixture pause reason');
       const at=now();
       if(active){
         if(reasons.has(reason))return;

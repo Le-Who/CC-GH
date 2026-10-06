@@ -18,6 +18,7 @@ export function createFixtureScheduler({draw,requestFrame=requestAnimationFrame,
   }
   return{
     invalidate(why='change',{whilePaused=false}={}){if(disposed)return;reason=why;frozenRedraw||=whilePaused;schedule();},
+    cancelPending(){if(disposed)return;if(pending!==null){cancelFrame(pending);pending=null;counts.cancelled++;}frozenRedraw=false;},
     setPaused(value){
       if(disposed)return;const next=Boolean(value);if(next===paused)return;paused=next;
       if(paused){if(pending!==null){cancelFrame(pending);pending=null;counts.cancelled++;}frozenRedraw=false;}

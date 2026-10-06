@@ -1,7 +1,7 @@
-name: Bounded actual Yard optional Pip integration
+name: Focused actual Yard viewport recovery
 on:
   push:
-    branches: ['qa/yard-pip-integrated-m2-20261006']
+    branches: ['qa/yard-pip-integrated-layout-20261006']
 permissions:
   contents: read
 concurrency:
@@ -26,17 +26,9 @@ jobs:
       - name: Verify immutable parent and candidate, and existing Xvfb
         id: verify
         run: |
-          test "$(git rev-parse HEAD^)" = 20f61b1fb6e2cea42336a9ba2f4868a73c81895f
+          test "$(git rev-parse HEAD^)" = 01145450550ee43eb2e50723df9aa1d9c28f17fb
           command -v xvfb-run
           node qa/yard-pip-integration/run.mjs --verify-only
-      - name: Install ffmpeg from official Ubuntu repositories
-        id: ffmpeg
-        run: |
-          sudo apt-get update
-          apt-cache policy ffmpeg
-          sudo apt-get install --no-install-recommends -y ffmpeg
-          command -v ffmpeg
-          command -v ffprobe
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -54,7 +46,7 @@ jobs:
           node qa/yard-corrected-scene/browser/materialize-transport.mjs
           node --import ./qa/yard-pip-integration/candidate/tests/register-vendor.mjs --test qa/yard-pip-integration/candidate/tests/*.test.mjs qa/yard-pip-integration/candidate/vendor/r5/tests/yard-atlas-working-set.test.mjs
           node qa/yard-pip-integration/build.mjs
-      - name: One finite real-UI native Chromium pass
+      - name: One finite actual UI viewport and rollback check
         id: browser
         timeout-minutes: 4
         run: xvfb-run -a --server-args='-screen 0 2880x2160x24' node qa/yard-pip-integration/run.mjs
@@ -63,7 +55,6 @@ jobs:
         if: always()
         env:
           VERIFY_OUTCOME: ${{ steps.verify.outcome }}
-          FFMPEG_OUTCOME: ${{ steps.ffmpeg.outcome }}
           DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           BROWSER_OUTCOME: ${{ steps.browser.outcome }}
@@ -75,7 +66,7 @@ jobs:
           for name in ['built-files.json','asset-url-closure.json','bundle-transfer-estimates.json']:
             src=p.parent/name
             if src.is_file(): shutil.copyfile(src,p/name)
-          setup={k:os.environ.get(k) for k in ['VERIFY_OUTCOME','FFMPEG_OUTCOME','DEPENDENCIES_OUTCOME','BUILD_OUTCOME','BROWSER_OUTCOME']}
+          setup={k:os.environ.get(k) for k in ['VERIFY_OUTCOME','DEPENDENCIES_OUTCOME','BUILD_OUTCOME','BROWSER_OUTCOME']}
           (p/'setup-outcomes.json').write_text(json.dumps(setup,indent=2))
           if not (p/'report.json').exists():
             (p/'report.json').write_text(json.dumps({'status':'SETUP_OR_EARLY_FAILURE','setup':setup,'browserAcceptance':'NOT_ESTABLISHED','note':'Check the named workflow step log. This file preserves absence of native evidence; it is not a successful check.'},indent=2))

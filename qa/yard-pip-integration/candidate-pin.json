@@ -1,10 +1,10 @@
 {
   "format": "Actual-Yard-Pip-candidate-pin/v1",
-  "baseCommit": "20f61b1fb6e2cea42336a9ba2f4868a73c81895f",
+  "baseCommit": "01145450550ee43eb2e50723df9aa1d9c28f17fb",
   "summary": {
-    "files": 170,
-    "bytes": 23432515,
-    "treeSHA256": "747b564326bcdc52ed8a3d7da903508f96843e265531ceeba4936cabc434a316",
+    "files": 171,
+    "bytes": 23444955,
+    "treeSHA256": "28bd38e92eab75e34ca695d3ed32a42f29deb37b3868ba239cb15de818e39f53",
     "uiLifetimeBytes": 23145580
   },
   "uiLifetimeBytes": 23145580,
@@ -50,6 +50,12 @@
       "bytes": 355,
       "sha256": "b5d08b89af61e2d8275e7a88933e47c4de5ad8ed25eef50ffb1bb452e46f5c21",
       "gitBlobSha1": "aba968f980edc96e6efca7a01a7f4022c31a9903"
+    },
+    {
+      "path": "tests/viewport-recovery.test.mjs",
+      "bytes": 8365,
+      "sha256": "3309d5227780ebe343d7787f6a29a0bee5a78d9af434b36171469a68c743a27f",
+      "gitBlobSha1": "0ef388dd5aa4545dae69090922b41f5259d15f3f"
     },
     {
       "path": "vendor/r5/game-logic/yard-catalog.js",
@@ -593,9 +599,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/CourtyardGame.jsx",
-      "bytes": 28691,
-      "sha256": "cc4a208bf8ef2e5c4e985a4bbc30e589c2a2360b0c953428bd221091c8b07120",
-      "gitBlobSha1": "6bba09ac66ee171d3e1de44097e4113eb6373111"
+      "bytes": 29145,
+      "sha256": "6bd5c35f707f9611059d8b36a808828377805169c5b180871abe956bee598752",
+      "gitBlobSha1": "18ee66fa3e01e83c3df36541e8b9f693e0358c68"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/MOCHI-CANDIDATE.md",
@@ -653,9 +659,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/courtyard.css",
-      "bytes": 12625,
-      "sha256": "2d328f8b33a66dc73dd7235ab4fe3c70f1a4706dfa88353a9eb601cd673e27bb",
-      "gitBlobSha1": "a7fe71bf01b937ccd8a3095da6c23841910c65b5"
+      "bytes": 13810,
+      "sha256": "24d5521e5e2dc4f5653015fa402b417c31bb347a7a811859404e9eae38972067",
+      "gitBlobSha1": "d3b6a372bd93054bb401a4be9dc0ecfba71a1302"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/current-cartoon-portrait-paths.mjs",
@@ -689,9 +695,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/i18n.js",
-      "bytes": 20335,
-      "sha256": "c1797b6d2bade18300688361af5a0284baebeb5af6256e11b3b4ff113c0f5165",
-      "gitBlobSha1": "0e936a4d3e689e17e4efd38d562bcfd5f031b272"
+      "bytes": 20802,
+      "sha256": "40040a83052248ffece58dc9ceb4f8da2a95c1ed34e2c2f7f03da09f3abd29c6",
+      "gitBlobSha1": "a64a2cc0b3169065417fd570954e09d23440945d"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/legacy-m2-background.mjs",
@@ -761,15 +767,15 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/fixture-clock.mjs",
-      "bytes": 1123,
-      "sha256": "3f31d1f5077b7c2cb55256714475fc70994d2dbb6d93fe16e6d6dba3c6cd53e7",
-      "gitBlobSha1": "2708ac9337f9d7bc1416830558ec4f61025426dd"
+      "bytes": 1134,
+      "sha256": "322acf846d69bc077b9ecdc77467b1dd1fbee6cc5aceb1e7d641debf1bb33a30",
+      "gitBlobSha1": "2453ea253697abd7d542890c802109a2fce45ce6"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/fixture-scheduler.mjs",
-      "bytes": 1553,
-      "sha256": "086acc9862d667670c35f2ac04745042ec0dc0677d6f900b5c2bda75bb227edc",
-      "gitBlobSha1": "8d8c7442eb8eab7f360f5d70ae5e636dd1355c1f"
+      "bytes": 1687,
+      "sha256": "3c64824cdba15b8ea9dd963ddcae61369b4bdd327607cd0d221c867e3b7c3935",
+      "gitBlobSha1": "b1effb265a130b13a34f0a4c1738852911a47350"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/motion/kinematics.mjs",
@@ -797,9 +803,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/projection.mjs",
-      "bytes": 2637,
-      "sha256": "29b7ef6ecf0264a5bec4524f3baaf95e589ea0e2857e64af0506a52f3a325f02",
-      "gitBlobSha1": "32b981e9d918d905cf2b00a5b3d154663b711111"
+      "bytes": 2882,
+      "sha256": "43a96a6070f4805520697e2c96c9d9a0a8c4cb802d24633d2181518f8c7cf109",
+      "gitBlobSha1": "da24c44870281876e697ef0bbe605cd2778152a7"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/prototype/adaptive-pose-driver.mjs",
@@ -887,9 +893,9 @@
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
-      "bytes": 12024,
-      "sha256": "09183851899a1ab94f3766ccf4f1401297d91bf6a46383e7ba368699600dac49",
-      "gitBlobSha1": "b3cd2b9d992fbed76ce29ce50bc967542b4cc6d3"
+      "bytes": 13603,
+      "sha256": "f33f5bf69dc7bfd9f0c1596f2ccf711142ccb8e1f72f43567879992d3063c248",
+      "gitBlobSha1": "7c689cd5948810f426b10ca08242684356f908b3"
     },
     {
       "path": "vendor/r5/src/games/companion-yard-v2/placement-recovery.mjs",

@@ -1,0 +1,190 @@
+{
+  "format": "actual-yard-prior-native-evidence/v1",
+  "run": 37438559317,
+  "commit": "01145450550ee43eb2e50723df9aa1d9c28f17fb",
+  "scope": "Previously recorded phone appearance, portrait, shared planter depth and uninterrupted native route; changed viewport recovery and layouts are rechecked. Native blur/visibility and hardware remain unqualified.",
+  "files": [
+    {
+      "path": "report.json",
+      "bytes": 2231435,
+      "sha256": "d66d7c4267af6eed4513c8ed01f1422350acceeaa513c7f5f17f78ba97093940"
+    },
+    {
+      "path": "active-A.png",
+      "bytes": 306885,
+      "sha256": "1b0024b63f8f04830b24a9f3a5b951b96a5b339783427e4a0a3d02a353e57412"
+    },
+    {
+      "path": "actual-foreground-route-only-refusal.png",
+      "bytes": 306885,
+      "sha256": "1b0024b63f8f04830b24a9f3a5b951b96a5b339783427e4a0a3d02a353e57412"
+    },
+    {
+      "path": "actual-planter-alternate-depth.png",
+      "bytes": 306750,
+      "sha256": "a96b3c792d51663124c215d3a811dda02b5c90bd63680d57d9664c02ddc2271c"
+    },
+    {
+      "path": "actual-guests-r1-portrait.jpg",
+      "bytes": 68392,
+      "sha256": "9fccc64db2a04e7340da7ce9c875084ef86a0e0da31acb9dcd85a30b00ec9ddf"
+    },
+    {
+      "path": "actual-yard-clean-route.webm",
+      "bytes": 467226,
+      "sha256": "84278977765f786f899d90494546fea36ae77bf5cf6d1be3a90867bc833fdebc"
+    },
+    {
+      "path": "raw/9b82ea829fff826120233a8caf07bda4.webm",
+      "bytes": 792201,
+      "sha256": "ebc4a4d4ce33d8cf3f70060f6142c22758c23e4a285e7252a5d1887069faee69"
+    }
+  ],
+  "unchangedInputs": [
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/assets/clean-garden.png",
+      "bytes": 1444018,
+      "sha256": "c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79",
+      "gitBlobSha1": "75dc660fb401bf58e419af7ab90c7a7e8270bb69"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
+      "bytes": 3972384,
+      "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b",
+      "gitBlobSha1": "a195575d2207406b418965e40d371973cc5287a8"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/data/calibration.json",
+      "bytes": 1834,
+      "sha256": "a06c5ebb322e3fe6690868552ec9223dd55672c710f365667cfea7a882b53306",
+      "gitBlobSha1": "3deff7012e5985b56c6de570f6ae0b2c42e81702"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/data/fixture.json",
+      "bytes": 8473,
+      "sha256": "15fb5f8199f13918958d270474885957cbb750a4569b3a445d29880ea7cfc21f",
+      "gitBlobSha1": "407fe575a21da69f6e0d6a856a2cb06ee1363eff"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/data/location.json",
+      "bytes": 2686,
+      "sha256": "1eb3bd23f7af2032fe9297e8c43e3d7de209f416d95e94d30e8e75fa94601b40",
+      "gitBlobSha1": "99cac31e6ddfca27b42f2845cedb7f0d07719a67"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/motion/kinematics.mjs",
+      "bytes": 5000,
+      "sha256": "c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1",
+      "gitBlobSha1": "b4abe6c19ee71f476df09aecc75557212639c56a"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/motion/math.mjs",
+      "bytes": 900,
+      "sha256": "9a52990677f0445f09d18f4cf8c98b16c231215c1b5c5bc080d178f0dfc1d0b9",
+      "gitBlobSha1": "1eac27eb42780148216768bf11d7040f10bac682"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/motion/polygon-domain.mjs",
+      "bytes": 5195,
+      "sha256": "778d2f02dcbdadf6787b223c27229d2c09e55e9beab8fd22e58320aa71de0f0c",
+      "gitBlobSha1": "c18720f75d8bfd84e014e8442ee5186e13329d07"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/motion/trajectory.mjs",
+      "bytes": 5560,
+      "sha256": "6d576e91c3f63ee1ba23435b06cc9d2f0d76cd408808650fa27e815eea6d06b1",
+      "gitBlobSha1": "64354ad708aadcadd7c25508f4723fd28568bf15"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/prototype/adaptive-pose-driver.mjs",
+      "bytes": 5594,
+      "sha256": "a7e187736eaf2970e844e340fbb964e923d07bc64b756e35145374be262d03f4",
+      "gitBlobSha1": "521a8b970c6bd5d1d2ead241dbc2a663065ebad0"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/prototype/calibrated-planter.mjs",
+      "bytes": 1796,
+      "sha256": "3ec3065b1398434570f79ce4e60731909de88b6dfcb6f4a05b79b9a0d6d01354",
+      "gitBlobSha1": "3050c8656883b71c1333b640074b341cae39807d"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "bytes": 11324,
+      "sha256": "6000e7a532acffc1dc878b43bd86912392728dd87856e6e9e7ce65882da00275",
+      "gitBlobSha1": "725011e3f73c7c31db98649db5caa9769c1a23c0"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/prototype/surface-placement.mjs",
+      "bytes": 1994,
+      "sha256": "7f18086dda4d92d3a4ce2d8a40c6573f336f38687534d90b15620c4709d8071b",
+      "gitBlobSha1": "0b018809d5ec8010b34e4798cb568871c940bbd9"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/resources.mjs",
+      "bytes": 2187,
+      "sha256": "a4b2d409177af6b2210990b04c70ee40d8b46210832c6e09a6770f6f0512c778",
+      "gitBlobSha1": "4226fe97bdd06cc83b104099fb25eb2f31f07ab1"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/routes.mjs",
+      "bytes": 2455,
+      "sha256": "c7a5a2538af405c8421ea2e7f8f97d846c59d954ed8d82a9f03bcf3bfb1a2eee",
+      "gitBlobSha1": "66e326d7e5bc10c810f8a35203833016a634bdcb"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/source/pip-analytical-coat.mjs",
+      "bytes": 3766,
+      "sha256": "9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241",
+      "gitBlobSha1": "de5bf572bf04e915c5cacb59eda26de79976e048"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/source/pip-rest-coat.glsl",
+      "bytes": 2781,
+      "sha256": "58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367",
+      "gitBlobSha1": "fc99bdbd66a4bec910919bce90ed613513af8281"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/vendor/three/LICENSE.txt",
+      "bytes": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc",
+      "gitBlobSha1": "8ada2a5f982916b0ba4b7a0aa7de347587e745d7"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/vendor/three/addons/loaders/GLTFLoader.js",
+      "bytes": 117570,
+      "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16",
+      "gitBlobSha1": "cd95b20593264ba8b503f8152484c456be64b1af"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/BufferGeometryUtils.js",
+      "bytes": 37712,
+      "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797",
+      "gitBlobSha1": "a167e11b0558954a00960dc3cad00ead6476fbe7"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/SkeletonUtils.js",
+      "bytes": 11535,
+      "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f",
+      "gitBlobSha1": "836c2e2bf2be3c5c5fd6b65ed260f84b3d589258"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.core.js",
+      "bytes": 1458113,
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+      "gitBlobSha1": "0a1d6cb9ef3cabc97a50bd02394c85e8d1c513c2"
+    },
+    {
+      "path": "vendor/r5/src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.module.js",
+      "bytes": 662772,
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+      "gitBlobSha1": "c52087acfabae80efabb8cc05e3a1d96e35a1426"
+    },
+    {
+      "path": "public/assets/yard-ui/r1-pip/e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b.png",
+      "bytes": 15589,
+      "sha256": "e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b",
+      "gitBlobSha1": "7593a176a59f5f1ef9153cac4291b3593b2ab338"
+    }
+  ],
+  "changedBehaviorRechecked": "Viewport admission, the added viewport pause reason, and cancellation of already-paused pending RAF are rechecked by the focused run. Prior clip is preserved point-in-time evidence and does not qualify those changes."
+}

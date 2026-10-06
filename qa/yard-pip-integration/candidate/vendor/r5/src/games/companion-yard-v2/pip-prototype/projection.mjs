@@ -1,8 +1,10 @@
 /** Separate inactive canonical domain. Never accepts or converts saved M2 XY. */
+export const CLEAN_STAGE_MIN=Object.freeze({width:280,height:192});
+export const supportsCleanViewport=(width,height)=>Number.isFinite(width)&&Number.isFinite(height)&&width>=CLEAN_STAGE_MIN.width&&height>=CLEAN_STAGE_MIN.height;
 export function createCleanProjection(descriptor,width,height){
  if(descriptor.id!=='pip-clean-garden-prototype-v1'||![width,height].every(x=>Number.isFinite(x)&&x>0))throw Error('Invalid clean-location viewport');
  const c=descriptor.camera,scale=Math.min(width/390,1),left=(width-390*scale)/2,top=height>=648*scale?(height-648*scale)/2:Math.max(height-648*scale,Math.min(0,height/2-362*scale));
- if(width<280||height<192)throw Error('Prototype stage requires at least 280×192 CSS pixels');
+ if(!supportsCleanViewport(width,height))throw Error('Prototype stage requires at least 280×192 CSS pixels');
  const project=p=>{
   const q=[p.x-c.projectionOriginCanonical[0],p.y-c.projectionOriginCanonical[1],p.z??0].map(x=>x/8);
   return{x:left+scale*(c.projectionOriginCss[0]+q.reduce((s,v,i)=>s+v*c.right[i],0)*c.pixelsPerSceneUnitCss),y:top+scale*(c.projectionOriginCss[1]+q.reduce((s,v,i)=>s+v*c.down[i],0)*c.pixelsPerSceneUnitCss)};
