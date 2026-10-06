@@ -1,0 +1,8 @@
+{
+  "name": "yard-pip-optional-consumer-integration",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "node --import ./tests/register-vendor.mjs --test tests/*.test.mjs vendor/r5/tests/yard-atlas-working-set.test.mjs"
+  }
+}

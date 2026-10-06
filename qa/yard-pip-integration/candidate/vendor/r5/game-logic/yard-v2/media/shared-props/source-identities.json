@@ -1,0 +1,319 @@
+{
+  "format": "yard-verified-intrinsic-prop-sources/v2",
+  "runtimeActivated": false,
+  "sourceIdentityNote": "Reconstructed r2 sources; historical r1 hashes are not proof. Provider registration and release remain independent.",
+  "sources": [
+    {
+      "goodieId": "fountain_bowl",
+      "revision": "fountain-bowl-source/r2-reconstructed-conditions",
+      "sourceGeometryKind": "canonical-editable-blend-sha256",
+      "sourceGeometrySha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+      "sourceContractSha256": "59f3ee077fefd939cd5e2c459dbc5eeab2a8b1e441966ee16e7ff0477c245285",
+      "stillSha256": "283439936c245694b48e722c958df8b69e7165df98ad1f8f5b5ef5663f900c0f",
+      "conditions": [
+        "new",
+        "worn",
+        "broken"
+      ],
+      "unitsPerWorld": 8,
+      "originWorld": [
+        0,
+        0,
+        0
+      ],
+      "rotationZ": 0,
+      "bounds": {
+        "min": [
+          -1.1539874076843262,
+          -1.2061333656311035,
+          0
+        ],
+        "max": [
+          1.2054322957992554,
+          1.1162787675857544,
+          1.2456690073013306
+        ]
+      },
+      "paddingWorld": 0.025,
+      "conditionSources": {
+        "new": {
+          "sourceBlendSha256": "78281d411c1e9695e4373431723bead147cd1804eb31736c39329d8699489eef",
+          "evaluatedGeometrySha256": "32ef8dbf560a57d7811eaebc8ee45db5bad68bfd20d225e853ede625d5141646",
+          "stillSha256": "283439936c245694b48e722c958df8b69e7165df98ad1f8f5b5ef5663f900c0f"
+        },
+        "worn": {
+          "sourceBlendSha256": "5e53fe871a380300375839db7263723b87211b7fdcc3e8f8436156911a3fd35a",
+          "evaluatedGeometrySha256": "4ff67a8ab6892cc1f38c06b20f46992cd156aa95358ef94d8633fb69a731b7c7",
+          "stillSha256": "6a732068dccbc5f4a45c73319f183d6bf15718cc581451ea210298644df9bfdc"
+        },
+        "broken": {
+          "sourceBlendSha256": "4c3aebc62d104e1cfd5ad6a50f46887341ab59ad08b062b7f2618e97e9cd9520",
+          "evaluatedGeometrySha256": "d15a0c40607eb3b6f08893ae62a84c5c9ea387f825e24231e2916f3ad0490bc1",
+          "stillSha256": "ebe646d5c90b38647273232a150ccbcab9078767f13f6f9c5967d977582f429b"
+        }
+      },
+      "providers": [
+        {
+          "actorId": "basil",
+          "actorRevision": "basil-actor/r2-fountain",
+          "visitorId": "basil_turtle",
+          "bindingId": "basil-fountain_bowl-watch-right-r2",
+          "bindingRevision": "basil-watch-right-conditions/r2",
+          "bindingCalibrationHash": "adbb35062bebc0c99f22926010d6326f367a49b4c515ca82dc1c6480056d753a",
+          "sourceRigSha256": "df1eae7125bbbc74f7bddc0aff8c87c017aa63be803a56377021978885b12fa6",
+          "sourceContractSha256": "4f1855bb40699241d61bc8611a361ac3fd61db53710831833ab0e4b6ff15e4a8",
+          "activityIds": [
+            "watch-right"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
+          "requiredPhases": [
+            "approach",
+            "watch",
+            "settle",
+            "breathing-rest",
+            "rise",
+            "withdraw",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "watch",
+            "settle",
+            "breathing-rest",
+            "rise",
+            "withdraw",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ]
+        },
+        {
+          "actorId": "sage",
+          "actorRevision": "sage-actor/r2-fountain",
+          "visitorId": "sage_turtle",
+          "bindingId": "sage-fountain_bowl-watch-right-r2",
+          "bindingRevision": "sage-watch-right-conditions/r2",
+          "bindingCalibrationHash": "54fb51b464f123d817c73b87990f2f844d46db6a4ccf4ed14ede8986e9583666",
+          "sourceRigSha256": "00c8ba3c79aab9918bbd70a52f4c1880fff1ae12837e331f0ee402bd5690932b",
+          "sourceContractSha256": "850b311487cc8d5f02de36b238fd271dee9337fb53565e5aaa4dd9184ca504e8",
+          "activityIds": [
+            "watch-right"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
+          "requiredPhases": [
+            "approach",
+            "watch",
+            "settle",
+            "breathing-rest",
+            "rise",
+            "withdraw",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "watch",
+            "settle",
+            "breathing-rest",
+            "rise",
+            "withdraw",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ]
+        }
+      ]
+    },
+    {
+      "goodieId": "moon_lamp",
+      "revision": "moon-lamp-source/r2-reconstruction",
+      "sourceGeometryKind": "canonical-editable-blend-sha256",
+      "sourceGeometrySha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+      "sourceContractSha256": "db67aff5f9d291198b87c6ae8c9e7f3c1c40a9580515784f6369bda2dc9d95a0",
+      "stillSha256": "15af1d29cf19906fe898d9f0139ba480e8e929b47e37a16215534893b31280d4",
+      "conditions": [
+        "new",
+        "worn",
+        "broken"
+      ],
+      "unitsPerWorld": 8,
+      "originWorld": [
+        0,
+        0,
+        0
+      ],
+      "rotationZ": 0,
+      "bounds": {
+        "min": [
+          -0.6800000071525574,
+          -0.4318297803401947,
+          0
+        ],
+        "max": [
+          0.6600000262260437,
+          0.42899999022483826,
+          1.6499394178390503
+        ]
+      },
+      "paddingWorld": 0,
+      "conditionSources": {
+        "new": {
+          "sourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+          "evaluatedGeometrySha256": "5eabaa3bbcdb138e07c1c6abf2c73be055ac72c1432b43ce86e497065cb69be3",
+          "stillSha256": "15af1d29cf19906fe898d9f0139ba480e8e929b47e37a16215534893b31280d4"
+        },
+        "worn": {
+          "sourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+          "evaluatedGeometrySha256": "9a23e1902b9bce2e81dc667b4022ed8df3b241f744781a2db2a6dca38b255c33",
+          "stillSha256": "de68b8d010ccfa8a006dba69f4e35255891dd42940efc19e95a245bcca9b9f80"
+        },
+        "broken": {
+          "sourceBlendSha256": "235109c092505775a91812eafe4d5ba680272c76a2ca10544ce3e5d40f4355eb",
+          "evaluatedGeometrySha256": "0991ad4da14cbca2ed10e66a438315ab2fa916c708bba95140d00969d3c49086",
+          "stillSha256": "3275260bb6ffdcc62b9c883e0cc63ed37731d82c572b8064c424104242bba4d2"
+        }
+      },
+      "providers": [
+        {
+          "actorId": "willow",
+          "actorRevision": "willow-actor/r2-moon",
+          "visitorId": "willow_fox",
+          "bindingId": "willow-moon_lamp-peek-r2",
+          "bindingRevision": "willow-peek-conditions/r2",
+          "bindingCalibrationHash": "b04c82987cfbc0ebb283724e80b2af0edf2a3bdefa27dab2310fec7c616a7b4d",
+          "sourceRigSha256": "be79b391edac00afac982b7a7c85bd3401a10abac878b60f95dfce45eef1ef55",
+          "sourceContractSha256": "df29b3cffed5a9004aa06d73001bdb079186a586deca7e6a94e2e0ab218820c2",
+          "activityIds": [
+            "peek"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
+          "requiredPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ]
+        },
+        {
+          "actorId": "starlit",
+          "actorRevision": "starlit-actor/r2-moon",
+          "visitorId": "starlit_fox",
+          "bindingId": "starlit-moon_lamp-watch-r2",
+          "bindingRevision": "starlit-watch-conditions/r2",
+          "bindingCalibrationHash": "8b98f47f2732b2872529bc191bd7fd5adfe129bb685abf30c7c8c840255f0467",
+          "sourceRigSha256": "af5dcecfe12ace76ae3b120c997eda6817de98b26be0166261dfa86099d14931",
+          "sourceContractSha256": "64a2d865813fce93ae6f06053870addcc569c127cf07577633e8265077e6fa31",
+          "activityIds": [
+            "watch"
+          ],
+          "conditions": [
+            "new",
+            "worn",
+            "broken"
+          ],
+          "requiredPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ]
+        },
+        {
+          "actorId": "starlit",
+          "actorRevision": "starlit-actor/r2-moon",
+          "visitorId": "starlit_fox",
+          "bindingId": "starlit-moon_lamp-glow-r2",
+          "bindingRevision": "starlit-glow-conditions/r2",
+          "bindingCalibrationHash": "378b8c21bc05277daf26675f6529824fe325353acca60d384510a59a43d36a56",
+          "sourceRigSha256": "e8824a65558d20b8019cfd18524018c6e266474d872856aa5a8cdd7fae194e20",
+          "sourceContractSha256": "93d44167125f54a48758a388e2605ec8dabda950a7028e9ebb1bc8f43a9294ba",
+          "activityIds": [
+            "glow"
+          ],
+          "conditions": [
+            "new"
+          ],
+          "requiredPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ],
+          "sourceValidatedPhases": [
+            "approach",
+            "align",
+            "settle",
+            "rest",
+            "rise",
+            "unalign",
+            "exit-turn",
+            "leave",
+            "route-approach",
+            "route-turn",
+            "route-departure"
+          ]
+        }
+      ]
+    }
+  ]
+}
