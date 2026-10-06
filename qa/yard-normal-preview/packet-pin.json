@@ -1,30 +1,56 @@
 {
-  "format": "normal-yard-native-qa-packet/v2",
-  "parent": "2a8fcd8e49d2aee308792f642cefb81bf57bb6ba",
+  "format": "coherent-yard-native-qa-packet/v1",
+  "parent": "e48f1b2dc63a9a5d96ec3e8654feb7e9d801adef",
   "publicationPaths": [
     ".github/workflows/yard-normal-preview-check.yml",
     "qa/yard-normal-preview/build.mjs",
     "qa/yard-normal-preview/closure.mjs",
     "qa/yard-normal-preview/packet-pin.json",
+    "qa/yard-normal-preview/refresh-pins.mjs",
     "qa/yard-normal-preview/run.mjs",
+    "qa/yard-normal-preview/source-pin.json",
     "qa/yard-normal-preview/verify.mjs",
-    "qa/yard-normal-preview/workflow-audit.json"
+    "qa/yard-normal-preview/workflow-audit.json",
+    "scripts/yard-pip-build-closure.mjs",
+    "scripts/yard-ui-media-budget.json",
+    "scripts/yard-ui-media-budget.mjs",
+    "src/games/companion-yard-v2/CourtyardGame.jsx",
+    "src/games/companion-yard-v2/courtyard.css",
+    "src/games/companion-yard-v2/i18n.js",
+    "src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb",
+    "src/games/companion-yard-v2/pip-prototype/data/fixture.json",
+    "src/games/companion-yard-v2/pip-prototype/data/location.json",
+    "src/games/companion-yard-v2/pip-prototype/planter-interaction.mjs",
+    "src/games/companion-yard-v2/pip-prototype/projection.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/adaptive-pose-driver.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-planter.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/planter-inspection-pose.mjs",
+    "src/games/companion-yard-v2/pip-prototype/resources.mjs",
+    "src/games/companion-yard-v2/pip-prototype/routes.mjs",
+    "src/games/companion-yard-v2/pip-prototype/world-scale.mjs",
+    "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+    "src/games/companion-yard-v2/scene-owner.mjs",
+    "tests/yard-pip-integration.test.mjs",
+    "tests/yard-pip-renderer.test.mjs",
+    "tests/yard-pip-viewport-recovery.test.mjs",
+    "tests/yard-ui-media-budget.test.mjs"
   ],
   "files": [
     {
       "path": ".github/workflows/yard-normal-preview-check.yml",
-      "bytes": 4387,
-      "sha256": "619ff2e63a249e5c57edade58cac5fde1360b8669ee419b02a2a7feccd036ef8"
+      "bytes": 4384,
+      "sha256": "bb880bdac472444cb315dcb03d8776bf73fe0069fd654f629f23a34c6b3cd4c2"
     },
     {
       "path": "qa/yard-normal-preview/build.mjs",
       "bytes": 4454,
-      "sha256": "52facf857fa625ddce76b7c1341dc211b809615a3b9bff25ecdc9dcf62a2903e"
+      "sha256": "63e77b327bf8a906618be3542992c66e9833bbf02620eccc581c08e2e4b03bc3"
     },
     {
       "path": "qa/yard-normal-preview/closure.mjs",
-      "bytes": 7284,
-      "sha256": "31bd68dc932bd6094c639f5335c1714c0d01ebe590ab2bd82a2e056397a277b4"
+      "bytes": 7308,
+      "sha256": "a24321ff1b758ad9ca7da1fb6ec6ab0aa0d55f8a07f0a64d2368518a542642d6"
     },
     {
       "path": "qa/yard-normal-preview/historical-findings.json",
@@ -42,9 +68,14 @@
       "sha256": "81f45dae4078a8e213f676f7a87ea741f0272a6e5749bdd4292fe536043ebd55"
     },
     {
+      "path": "qa/yard-normal-preview/refresh-pins.mjs",
+      "bytes": 4575,
+      "sha256": "0e9939db10f33f1dc0daa8fffbef66252bb12a46b9674abb1b72db0a11502fb3"
+    },
+    {
       "path": "qa/yard-normal-preview/run.mjs",
-      "bytes": 34325,
-      "sha256": "21f36036fb261fbc00db8b42aa58999943463705a88740e0d7edd3474e923558"
+      "bytes": 42667,
+      "sha256": "c694901bcd3c481f473233e28d45a2cd44f4f1b9fc495c10844193a7e87cbccd"
     },
     {
       "path": "qa/yard-normal-preview/runtime-urls.mjs",
@@ -53,8 +84,8 @@
     },
     {
       "path": "qa/yard-normal-preview/source-pin.json",
-      "bytes": 31273,
-      "sha256": "fcfaf096ecd174a46bf1f21ea0bc880d3f0caaf22ebbeb775d3c4f93f98e0a98"
+      "bytes": 39203,
+      "sha256": "03a27abcebf4e210372d048847c522185ce296217373ebeae104bb5ad8044cac"
     },
     {
       "path": "qa/yard-normal-preview/templates/index.html",
@@ -83,13 +114,13 @@
     },
     {
       "path": "qa/yard-normal-preview/verify.mjs",
-      "bytes": 2229,
-      "sha256": "76778d2762ba027d11238491957f2fdaccb2def21a0b4fe5812fb267c567e9f9"
+      "bytes": 4379,
+      "sha256": "691f7484d4b8e6f411d46b666d6c1df9aeb8a0e03ac97934d35c500ca241aa81"
     },
     {
       "path": "qa/yard-normal-preview/workflow-audit.json",
-      "bytes": 6438,
-      "sha256": "c866faae1ece6aa948eee6545f4f608c6d6a91042e1ec6868497a5df165faeab"
+      "bytes": 6489,
+      "sha256": "3fbde0d115d17345d2686010209afc58a67152ca06d31ea95c3868cd10405c39"
     }
   ]
 }

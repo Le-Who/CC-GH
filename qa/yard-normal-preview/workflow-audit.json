@@ -1,6 +1,6 @@
 {
-  "parent": "2a8fcd8e49d2aee308792f642cefb81bf57bb6ba",
-  "branch": "qa/yard-normal-preview-buildfix-20261006",
+  "parent": "e48f1b2dc63a9a5d96ec3e8654feb7e9d801adef",
+  "branch": "qa/yard-coherent-scene-20261006",
   "event": "push on initial branch creation; no PR or workflow_dispatch",
   "parentWorkflows": [
     {
@@ -8,7 +8,7 @@
       "gitBlob": "3b3867cb9b21a2eb256b6d74d1559ae1e5b7b1d9",
       "sha256": "b66850d4f89d512d2f608fcc46c3f52f540c19651174199c925c06a8865b338a",
       "bytes": 34689,
-      "triggerSummary": "on:\n  workflow_call:\n  pull_request:\n    branches: [codex/telegram-pixi-vps-migration]",
+      "triggerSummary": "on:\n  workflow_call:\n  pull_request:\n    branches: [codex/telegram-pixi-vps-migration]\n",
       "firesOnReviewedInitialPush": false
     },
     {
@@ -16,7 +16,7 @@
       "gitBlob": "269ac3142da0947cb8e2ac7803c2a6796a7b7df0",
       "sha256": "1ca789317a35d0f5d391d38efc7fe61ddc8a2470fbd1a531be112df706a749b6",
       "bytes": 21680,
-      "triggerSummary": "on:\n  push:\n    branches:\n      - codex/telegram-pixi-vps-migration\n  workflow_dispatch:",
+      "triggerSummary": "on:\n  push:\n    branches:\n      - codex/telegram-pixi-vps-migration\n  workflow_dispatch:\n",
       "firesOnReviewedInitialPush": false
     },
     {
@@ -24,7 +24,7 @@
       "gitBlob": "2e399eef8a16bedbf4bb878e64545b1c860b99db",
       "sha256": "57a834a36a179f6b8fded126afeb54903c14fa690f4b3f1a520fa08c8db45791",
       "bytes": 2925,
-      "triggerSummary": "on:\n  workflow_dispatch:\n    inputs:\n      domain:\n        description: \"Public domain for CC-GH\"\n        required: true\n        default: \"games.tri.mom\"\n      app_host_port:\n        description: \"Localhost port used by ccgh-app\"\n        required: true\n        default: \"18080\"",
+      "triggerSummary": "on:\n  workflow_dispatch:\n    inputs:\n      domain:\n        description: \"Public domain for CC-GH\"\n        required: true\n        default: \"games.tri.mom\"\n      app_host_port:\n        description: \"Localhost port used by ccgh-app\"\n        required: true\n        default: \"18080\"\n",
       "firesOnReviewedInitialPush": false
     },
     {
@@ -48,7 +48,15 @@
       "gitBlob": "160f32765c8574abb7f5e0b69d8faf6de7ede410",
       "sha256": "7d65562c3fdd5b90b57a54ef458ed643524410613b8f1d039c4258b9f092eb34",
       "bytes": 2863,
-      "triggerSummary": "on:\n  workflow_dispatch:\n  pull_request:\n    types: [opened, reopened, synchronize, labeled]",
+      "triggerSummary": "on:\n  workflow_dispatch:\n  pull_request:\n    types: [opened, reopened, synchronize, labeled]\n",
+      "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-normal-preview-check.yml",
+      "gitBlob": "415f8f2d1408a0d5c8b3ada501e83a08c3437098",
+      "sha256": "619ff2e63a249e5c57edade58cac5fde1360b8669ee419b02a2a7feccd036ef8",
+      "bytes": 4387,
+      "triggerSummary": "on:\n  push:\n    branches: ['qa/yard-normal-preview-buildfix-20261006']",
       "firesOnReviewedInitialPush": false
     },
     {
@@ -80,7 +88,7 @@
       "gitBlob": "c9839f2faf1bd448ee4fd6ce075e9bab9ac4b59d",
       "sha256": "02e6ecd1bcd62c05ba18d8ed6cb92e77cb499a2aee597823315620bc7939b7de",
       "bytes": 3197,
-      "triggerSummary": "on:\n  workflow_dispatch:\n    inputs:\n      active_commit:\n        description: Exact reviewed active B commit (40 hex)\n        required: true\n        type: string\n      closed_commit:\n        description: Exact published compatible closed A commit (40 hex)\n        required: true\n        type: string\n      closed_digest:\n        description: Immutable closed A GHCR sha256 digest\n        required: true\n        type: string",
+      "triggerSummary": "on:\n  workflow_dispatch:\n    inputs:\n      active_commit:\n        description: Exact reviewed active B commit (40 hex)\n        required: true\n        type: string\n      closed_commit:\n        description: Exact published compatible closed A commit (40 hex)\n        required: true\n        type: string\n      closed_digest:\n        description: Immutable closed A GHCR sha256 digest\n        required: true\n        type: string\n",
       "firesOnReviewedInitialPush": false
     },
     {
@@ -88,7 +96,7 @@
       "gitBlob": "61fdec0b3c6b50e32ae215d2cae7e05c3914b983",
       "sha256": "8048e6b828e4c33536392e3102104e5105c520a36362898de1710894ee06257c",
       "bytes": 4253,
-      "triggerSummary": "on:\n  push:\n    branches: [qa/yard-redesign-preview]",
+      "triggerSummary": "on:\n  push:\n    branches: [qa/yard-redesign-preview]\n",
       "firesOnReviewedInitialPush": false
     },
     {
@@ -96,29 +104,24 @@
       "gitBlob": "6317abd82d24e5dc563015532f31b0287fc8068a",
       "sha256": "0c8dcd4fd63753c343853db0ee08fc3b44d77f29dfb49c39fa35492be3c2b74e",
       "bytes": 2287,
-      "triggerSummary": "on:\n  push:\n    branches: [qa/yard-ui-functional-preview]",
-      "firesOnReviewedInitialPush": false
-    },
-    {
-      "path": ".github/workflows/yard-normal-preview-check.yml",
-      "bytes": 4323,
-      "sha256": "40186d8c29e621da9f63665e733b7be2add175ddce17c6ff8c0f06292a35712f",
-      "gitBlob": "234c65125a9a4c43900cfd1bab3b9b944e71fc98",
-      "triggerSummary": "push: exact branch qa/yard-normal-preview-check-20261006; first creation only",
+      "triggerSummary": "on:\n  push:\n    branches: [qa/yard-ui-functional-preview]\n",
       "firesOnReviewedInitialPush": false
     }
   ],
   "existingWorkflowsTriggered": 0,
   "jobs": 1,
   "timeoutMinutes": 10,
+  "browserSeconds": 230,
+  "artifactBytes": 8388608,
+  "retentionDays": 3,
   "runAttemptMustEqual": 1,
   "automaticRetries": 0,
   "deploys": false,
   "serverWrites": false,
   "secrets": false,
   "newCredentials": false,
-  "review": "All13 inherited workflow identities are pinned. The twelve unrelated workflows stay unchanged. Only the existing normal-preview workflow is updated to the new exact branch; one initial-creation job fires. No PR, workflow_dispatch, deployment or rerun.",
+  "review": "All 13 inherited workflow identities are pinned. Twelve unrelated workflows stay unchanged. Only the existing QA workflow targets this new exact branch; one first-creation job fires. No PR, dispatch, deployment, cache or rerun.",
   "updatedWorkflow": ".github/workflows/yard-normal-preview-check.yml",
   "updatedWorkflowsTriggered": 1,
-  "parentWorkflowTree": "14f7aa1427743a0259dcade2bbcddc317555a739"
+  "parentWorkflowTree": "eec22ae7244ffc32ec2ac737a7d974284952d3ad"
 }

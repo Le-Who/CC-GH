@@ -50,7 +50,7 @@ export async function closeBuild(root,dist,mode,{prune=false}={}) {
  for(const c of graph.chunks){assert(by.has(c.file),'Missing emitted chunk');for(const dep of [...c.imports,...c.dynamicImports])assert(by.has(dep),'Missing import: '+dep);}
  for(const url of urls){assert(url?.startsWith('/')&&!url.startsWith('//'),'Unclosed nonlocal UI URL: '+url);assert(by.has(new URL(url,'http://closure.invalid').pathname.slice(1)),'Missing UI URL: '+url);}
  for(const r of canonical.files){const a=by.get(r.path);assert(a&&a.bytes===r.bytes&&a.sha256===r.sha256,'Frozen media changed: '+r.path);}
- const sources=['data/fixture.json','data/location.json','data/calibration.json','source/pip-rest-coat.glsl','assets/clean-garden.png','assets/pip.glb'];
+ const sources=['data/fixture.json','data/location.json','data/calibration.json','source/pip-rest-coat.glsl','assets/clean-garden.png','assets/pip.glb','assets/planter-t2.glb'];
  const optional=[];
  for(const source of sources){const bytes=await fs.readFile(path.join(root,'src/games/companion-yard-v2/pip-prototype',source)),hash=sha(bytes),found=rows.filter(r=>r.sha256===hash);assert.equal(found.length,mode==='default'?0:1,'Optional asset identity boundary: '+source);if(found.length)optional.push({...found[0],source});}
  const optionalChunks=graph.chunks.filter(c=>c.modules.some(m=>m.includes('/pip-prototype/'))).map(c=>c.file);

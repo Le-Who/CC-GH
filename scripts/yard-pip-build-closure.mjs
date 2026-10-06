@@ -43,7 +43,7 @@ async function walk(dir, relative = '') {
 await walk(dist); files.sort((a, b) => a.path.localeCompare(b.path));
 const emitted = new Map(files.map(row => [row.path, row]));
 const assets = [];
-for (const name of ['data/fixture.json', 'data/location.json', 'data/calibration.json', 'source/pip-rest-coat.glsl', 'assets/clean-garden.png', 'assets/pip.glb']) {
+for (const name of ['data/fixture.json', 'data/location.json', 'data/calibration.json', 'source/pip-rest-coat.glsl', 'assets/clean-garden.png', 'assets/pip.glb', 'assets/planter-t2.glb']) {
   const bytes = await readFile(path.join(root, prefix, name)), sha256 = hash(bytes);
   const matches = files.filter(row => row.sha256 === sha256);
   assert.equal(matches.length, mode === 'preview' ? 1 : 0, `Optional asset gate/identity: ${name}`);

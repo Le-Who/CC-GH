@@ -1,6 +1,9 @@
 /** Explicit known allocations. These caps are not browser RSS or total GPU RAM. */
 export const LIMITS=Object.freeze({rgba:64*1024*1024,knownCPU:16*1024*1024,estimatedGPU:12*1024*1024,backing:192});
-export const KNOWN_CPU_BUFFER_PEAK=11872312;
+// Pip + authored T2 GLBs, parsed binaries, view copies, and contact lobe.
+export const MODEL_CPU_GLB_BYTES=4093160;
+export const MODEL_CPU_BINARY_BYTES=4052292;
+export const KNOWN_CPU_BUFFER_PEAK=12223676;
 export const BACKGROUND_ENCODED_BYTES=1444018;
 export const ENCODED_BACKGROUND_CPU_BYTES=BACKGROUND_ENCODED_BYTES*2;
 export const COMBINED_KNOWN_CPU_PEAK=KNOWN_CPU_BUFFER_PEAK+ENCODED_BACKGROUND_CPU_BYTES;
@@ -14,7 +17,7 @@ export function admitPipResources(row){
  if(row.separateFromYard64MiBRGBALedger!==true)return false;
  const encodedBackground=row.encodedBackgroundCPUBytes??0;
  if(![0,ENCODED_BACKGROUND_CPU_BYTES].includes(encodedBackground)||row.knownCPUBufferPeakBytes+encodedBackground>LIMITS.knownCPU)return false;
- if(row.stage==='before-import-and-load')return row.cpuGLBBytes===3972384&&row.cpuBufferViewCopiesBytes===3937068&&row.knownCPUBufferPeakBytes===KNOWN_CPU_BUFFER_PEAK&&row.knownCPUBufferPeakBytes<=LIMITS.knownCPU;
+ if(row.stage==='before-import-and-load')return row.cpuGLBBytes===MODEL_CPU_GLB_BYTES&&row.cpuParsedBinaryBufferBytes===MODEL_CPU_BINARY_BYTES&&row.cpuBufferViewCopiesBytes===MODEL_CPU_BINARY_BYTES&&row.knownCPUBufferPeakBytes===KNOWN_CPU_BUFFER_PEAK&&row.knownCPUBufferPeakBytes<=LIMITS.knownCPU;
  if(row.stage!=='before-drawing-buffer-allocation')return false;
  return row.knownCPUBufferPeakBytes===KNOWN_CPU_BUFFER_PEAK&&row.assetImageTextureBytes===0&&row.uniqueSkeletons===1&&row.antialias===false&&row.shadowMaps===false&&row.drawingBufferColorBytes===192*192*4&&row.geometryGPUBufferBytes+row.boneDataTextureGPUBytesEstimate+row.resizeDrawingBufferPeakEstimatedBytes+row.compositorResizePeakBytesEstimate<=LIMITS.estimatedGPU;
 }

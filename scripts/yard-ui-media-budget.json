@@ -628,16 +628,16 @@
   ],
   "optionalMedia": [
     {
-      "path": "assets/fixture-BXQqm2jH.json",
+      "path": "assets/fixture-BLfHxzRU.json",
       "source": "src/games/companion-yard-v2/pip-prototype/data/fixture.json",
-      "bytes": 8473,
-      "sha256": "15fb5f8199f13918958d270474885957cbb750a4569b3a445d29880ea7cfc21f"
+      "bytes": 10773,
+      "sha256": "8e39abd867f6833212d534e7cce0824d9a95cf76d5ca2aa073650528bdba1021"
     },
     {
-      "path": "assets/location-DA4NzWNv.json",
+      "path": "assets/location-zRAtPFrk.json",
       "source": "src/games/companion-yard-v2/pip-prototype/data/location.json",
-      "bytes": 2686,
-      "sha256": "1eb3bd23f7af2032fe9297e8c43e3d7de209f416d95e94d30e8e75fa94601b40"
+      "bytes": 2729,
+      "sha256": "a3c8ee0cf38f2c99e60184e4f0c904fb857fa6165d892a4be366c87a12438f9e"
     },
     {
       "path": "assets/calibration-CbNkq5tP.json",
@@ -662,6 +662,12 @@
       "source": "src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
       "bytes": 3972384,
       "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b"
+    },
+    {
+      "path": "assets/planter-t2-C70xm5W_.glb",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb",
+      "bytes": 120776,
+      "sha256": "c2f7c317511cfd84605bde3f6e32ffd24d35ee66a3d8bc365ae8d0742557f3fd"
     }
   ]
 }

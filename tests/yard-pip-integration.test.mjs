@@ -2,6 +2,7 @@ import test from'node:test';import assert from'node:assert/strict';import fs fro
 import{createSceneOwner}from'../src/games/companion-yard-v2/scene-owner.mjs';
 import{createCleanProjection,assertCleanComposition}from'../src/games/companion-yard-v2/pip-prototype/projection.mjs';
 import{makeRoute,sampleRoute,assertPlacement}from'../src/games/companion-yard-v2/pip-prototype/routes.mjs';
+import{makePlanterInspection,repeatPlanterInspection,samplePlanterInspection}from'../src/games/companion-yard-v2/pip-prototype/planter-interaction.mjs';
 import{acquirePipLease,admitPipResources,rgbaAdmission,KNOWN_CPU_BUFFER_PEAK}from'../src/games/companion-yard-v2/pip-prototype/resources.mjs';
 import{createUiImageReserve,uiImageLifetimeLedger}from'../src/games/companion-yard-v2/ui-image-reserve.mjs';
 const base=new URL('../src/games/companion-yard-v2/pip-prototype/',import.meta.url);
@@ -18,10 +19,10 @@ function env(){
  const host={appendChild(c){c.parentNode=this;},getBoundingClientRect:canvas.getBoundingClientRect};
  return{win,doc,frames,request,cancel,canvas,host,now:()=>now,advance(ms){now+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn(now));}};
 }
-test('frozen R1, coat, motion and clean plate retain exact bytes',async()=>{
+test('R1, coat and motion remain frozen; explicitly revised adapters retain candidate pins',async()=>{
  const hashes={'assets/pip.glb':'74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b','assets/clean-garden.png':'c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79'};
  for(const[p,h]of Object.entries(hashes))assert.equal(createHash('sha256').update(await fs.readFile(new URL(p,base))).digest('hex'),h);
- const frozenHashes={"source/pip-analytical-coat.mjs":"9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241","source/pip-rest-coat.glsl":"58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367","prototype/adaptive-pose-driver.mjs":"a7e187736eaf2970e844e340fbb964e923d07bc64b756e35145374be262d03f4","prototype/calibrated-planter.mjs":"3ec3065b1398434570f79ce4e60731909de88b6dfcb6f4a05b79b9a0d6d01354","motion/trajectory.mjs":"6d576e91c3f63ee1ba23435b06cc9d2f0d76cd408808650fa27e815eea6d06b1","motion/kinematics.mjs":"c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"};
+ const frozenHashes={"source/pip-analytical-coat.mjs":"9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241","source/pip-rest-coat.glsl":"58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367","prototype/adaptive-pose-driver.mjs":"541968e5b4780df5cfc152fa787e137de3d74d051b7b658287d233fdf958e028","prototype/calibrated-planter.mjs":"a5cba814b61f358abca97b5c9c7bbf87f05c29a994ed646e7ce3e76e81db8c56","motion/trajectory.mjs":"6d576e91c3f63ee1ba23435b06cc9d2f0d76cd408808650fa27e815eea6d06b1","motion/kinematics.mjs":"c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"};
  for(const[p,h]of Object.entries(frozenHashes))assert.equal(createHash('sha256').update(await fs.readFile(new URL(p,base))).digest('hex'),h);
 });
 test('camera shares uniform canonical XYZ mapping with image; short height does not shrink the pet',()=>{
@@ -37,9 +38,23 @@ test('finite routes keep original supported feet and explicit foreground refusal
  }}
  assert.throws(()=>makeRoute(setup,3,0));assert.throws(()=>assertCleanComposition(createCleanProjection(descriptor,390,648),{x:20,y:180,z:0},setup.placements[0]),/foreground|artwork/);
 });
+test('hold-only repeats reuse one immutable admission and reject changed geometry or owner',()=>{
+ const local=structuredClone(setup),first=makePlanterInspection(local),previous=samplePlanterInspection(local,first,first.route.totalMs).world;
+ const repeated=repeatPlanterInspection(local,first,{previous,attentionVariant:1});
+ assert.equal(repeated.approach,first.approach);assert.equal(repeated.gait,first.gait);assert.equal(repeated.check,first.check);assert.equal(repeated.route.totalMs,2025);
+ assert.ok(Object.isFrozen(first));assert.ok(Object.isFrozen(first.approach.start.position));assert.ok(Object.isFrozen(first.gait.events[0].to.position));
+ assert.throws(()=>repeatPlanterInspection(local,{...first},{previous}),/admission changed/);
+ assert.throws(()=>repeatPlanterInspection(structuredClone(local),first,{previous}),/admission changed/);
+ const wrong=structuredClone(previous);wrong.heading=.2;assert.throws(()=>repeatPlanterInspection(local,first,{previous:wrong}),/no implicit turn/);
+ for(const change of[s=>s.placements[0][0]++,s=>s.actor.unitsPerSource++,s=>s.location.ground[0][0]++,s=>s.planter.inspectionFocusLocalCanonical[0]--]){
+  const saved=JSON.stringify(local);change(local);assert.throws(()=>repeatPlanterInspection(local,first,{previous}),/admission changed/);Object.assign(local,JSON.parse(saved));
+ }
+ const completed=samplePlanterInspection(local,repeated,repeated.route.totalMs).world,again=repeatPlanterInspection(local,repeated,{previous:completed});assert.equal(again.approach,first.approach);assert.equal(again.gait,first.gait);assert.equal(again.route.totalMs,1965);
+ assert.deepEqual(samplePlanterInspection(local,again,0).world.feet,previous.feet);
+});
 test('separate CPU/GPU admission rejects the former undercount and concurrent owners',()=>{
  const release=acquirePipLease();assert.throws(acquirePipLease);release();release();acquirePipLease()();
- const pre={stage:'before-import-and-load',separateFromYard64MiBRGBALedger:true,cpuGLBBytes:3972384,cpuBufferViewCopiesBytes:3937068,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK};
+ const pre={stage:'before-import-and-load',separateFromYard64MiBRGBALedger:true,cpuGLBBytes:4093160,cpuParsedBinaryBufferBytes:4052292,cpuBufferViewCopiesBytes:4052292,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK};
  assert.equal(admitPipResources(pre),true);assert.equal(admitPipResources({...pre,knownCPUBufferPeakBytes:7909452}),false);
  assert.equal(rgbaAdmission({uiBytes:23145580,backgroundBytes:6289472,currentCanvasBytes:4043520,pendingCanvasBytes:4043520}).totalBytes,37522092);
  assert.equal(rgbaAdmission({uiBytes:64*1024*1024,currentCanvasBytes:4}).fits,false);
@@ -81,8 +96,9 @@ test('actual optional scene uses shared stage, remains read-only and cleans asyn
  const fetchImpl=async url=>{const bytes=await fs.readFile(url);return{ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),json:async()=>JSON.parse(bytes),text:async()=>bytes.toString()};};
  const scene=createPipYardScene(e.canvas,{directHost:e.host,uiImageOwner:createUiImageReserve(),onView:v=>views.push(v),onPrototypeState:s=>states.push(s),onFailure:error=>{throw error;},rendererFactory,fetchImpl,decodeImage:async()=>({width:973,height:1616,close(){closed++;}}),now:e.now,requestFrame:e.request,cancelFrame:e.cancel});
  scene.update({serverTime:0,yard:null});await scene.ready;assert.ok(renders>0);assert.equal(views.at(-1).mutable,false);assert.equal(scene.hit({}),null);assert.equal(scene.point({}),null);
- e.advance(4000);assert.equal(scene.diagnostics().settled,true);e.advance(1000);assert.equal(e.frames.size,0);const before=renders;
- scene.moveTo(1);e.advance(500);e.win.dispatchEvent(new Event('blur'));const at=scene.diagnostics().lastFrame.elapsedMs;e.advance(3000);assert.equal(scene.diagnostics().lastFrame.elapsedMs,at);assert.equal(paused,true);
+ const admitted=makePlanterInspection(setup);assert.equal(scene.diagnostics().route.durationMs,4885);assert.deepEqual(options[0].sample.world,samplePlanterInspection(setup,admitted,0).world);assert.throws(()=>scene.inspectAgain());assert.throws(()=>scene.moveTo(1));assert.throws(()=>scene.movePlanter(1));
+ e.advance(scene.diagnostics().route.durationMs);assert.equal(scene.diagnostics().settled,true);e.advance(1000);assert.equal(e.frames.size,0);const before=renders;
+ const supported=options.at(-1).sample.world;scene.inspectAgain();e.advance(0);assert.deepEqual(options.at(-1).sample.world.feet,supported.feet);assert.deepEqual(options.at(-1).sample.world.root,supported.root);assert.equal(scene.diagnostics().route.holdOnly,true);assert.equal(scene.diagnostics().inspectionCount,1);e.advance(500);e.win.dispatchEvent(new Event('blur'));const at=scene.diagnostics().lastFrame.elapsedMs;e.advance(3000);assert.equal(scene.diagnostics().lastFrame.elapsedMs,at);assert.equal(paused,true);
  e.doc.hidden=true;e.doc.dispatchEvent(new Event('visibilitychange'));e.win.dispatchEvent(new Event('focus'));assert.equal(paused,true);e.doc.hidden=false;e.doc.dispatchEvent(new Event('visibilitychange'));e.advance(5000);assert.ok(renders>before);
  assert.ok(options.every(o=>o.presentation&&o.sample.world.root.x>0));const d=scene.diagnostics();assert.equal(d.rgba.legacyAtlasBytes,0);assert.ok(d.peakRgba<=64*1024*1024);await scene.dispose();await scene.dispose();assert.equal(disposals,1);assert.equal(closed,1);assert.equal(e.frames.size,0);acquirePipLease()();
 });

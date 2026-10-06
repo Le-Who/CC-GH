@@ -1,4 +1,6 @@
-/** Optional one-pet + calibrated-proxy consumer. Disabled by default.
+import{RENDER_UNITS_TO_CANONICAL}from'../world-scale.mjs';
+import{MODEL_CPU_GLB_BYTES,MODEL_CPU_BINARY_BYTES,KNOWN_CPU_BUFFER_PEAK}from'../resources.mjs';
+/** Optional one-pet + authored-succulent consumer. Disabled by default.
  * Used by the optional inactive Yard visual mode; no saved visit, authoritative clock or server mutation.
  * Frozen direct renderer has separate browser evidence; this integrated mode remains unqualified.
  */
@@ -7,14 +9,16 @@ import {createAdaptivePoseDriver} from './adaptive-pose-driver.mjs';
 import {createCalibratedPlanter} from './calibrated-planter.mjs';
 import {projectedSurfaceRect,canvasRectToCSS,presentDirectSurface} from './surface-placement.mjs';
 
-export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,calibration,fragmentHelper,
-  setupLighting,admitResources,onResources=()=>{},onFrameMetrics=()=>{},planter=null,
+export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,loadPlanterAssetBytes,signal,calibration,fragmentHelper,
+  setupLighting,admitResources,onResources=()=>{},onFrameMetrics=()=>{},planter=null,actorUnitsPerSource=RENDER_UNITS_TO_CANONICAL,
   presentationMode='copy',directHost=null,rendererFactory=null,
   canvasFactory=()=>document.createElement('canvas'),widthCss=64,heightCss=76,dpr=1,sourcePixelsPerCss=43.98087}={}) {
   if(enabled!==true)return null;
+  if(![12,16].includes(actorUnitsPerSource))throw Error('Unqualified actor world scale');
   if(!['copy','direct'].includes(presentationMode))throw Error('Unknown presentation mode');
   if(presentationMode==='direct'&&!directHost?.appendChild)throw Error('Direct presentation host required');
   if(typeof loadAssetBytes!=='function'||typeof setupLighting!=='function'||typeof admitResources!=='function')throw Error('Explicit asset, lighting and separate resource owners required');
+  if(!planter||typeof loadPlanterAssetBytes!=='function')throw Error('Admitted authored planter required');
   const owner='private-one-pet-WebGL-prototype',geometries=new Set(),materials=new Set(),skeletons=new Set(),attributes=new Set();
   let THREE,bytes,gltf,proxy,scene,camera,direction,pose,restoreMaterial,canvas,renderer,cleanupLighting;
   let disposed=false,paused=false,contextLost=false,size=null,lastFrame=null;
@@ -39,13 +43,13 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,ca
     // Three0.186.1 Skeleton.computeBoneTexture: padded square RGBA32F texture.
     const boneTextureBytes=[...skeletons].reduce((n,s)=>{const side=Math.max(4,Math.ceil(Math.sqrt(s.bones.length*4)/4)*4);return n+side*side*16;},0);
     const estimate={stage:'before-drawing-buffer-allocation',owner,separateFromYard64MiBRGBALedger:true,
-      cpuGLBBytes:3972384,cpuParsedBinaryBufferBytes:3937068,cpuBufferViewCopiesBytes:3937068,knownCPUBufferPeakBytes:11872312,geometryGPUBufferBytes:geometryBytes,
+      cpuGLBBytes:MODEL_CPU_GLB_BYTES,cpuParsedBinaryBufferBytes:MODEL_CPU_BINARY_BYTES,cpuBufferViewCopiesBytes:MODEL_CPU_BINARY_BYTES,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK,geometryGPUBufferBytes:geometryBytes,
       assetImageTextureBytes:0,uniqueSkeletons:skeletons.size,boneDataTextureGPUBytesEstimate:boneTextureBytes,boneDataTextureCPUBytesEstimate:boneTextureBytes,
       drawingBufferColorBytes:pixels*4,depthStencilEstimatedBytes:pixels*4,resizeDrawingBufferPeakEstimatedBytes:(pixels+(size?.pixels??0))*8,
       antialias:false,shadowMaps:false,driverOverheadKnown:false,exactGPUAllocationKnown:false,
       presentationMode,compositorSurfaceBytesEstimate:presentationMode==='direct'?pixels*4:0,compositorResizePeakBytesEstimate:presentationMode==='direct'?(pixels+(size?.pixels??0))*4:0,
       compositorAllocationKnown:false,swapBufferCountKnown:false,
-      propMode:proxy?'same-depth-space calibrated planter':'pet only',poseAllocations:'Temporary matrices/vectors per pose; not pooled.'};
+      propMode:proxy?'same-depth-space authored terracotta succulent T2':'awaiting authored planter',poseAllocations:'Temporary matrices/vectors per pose; not pooled.'};
     if(geometryBytes>8*1024*1024||estimate.resizeDrawingBufferPeakEstimatedBytes>2*1024*1024||admitResources(estimate)!==true)throw Error('Separate prototype resource admission rejected');
     return{widthCss:w,heightCss:h,dpr:ratio,ppu,bw,bh,pixels,estimate};
   }
@@ -55,18 +59,22 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,ca
     camera.left=-w/(2*ppu);camera.right=w/(2*ppu);camera.top=h/(2*ppu);camera.bottom=-h/(2*ppu);camera.near=.01;camera.far=100;camera.updateProjectionMatrix();onResources(next.estimate);return true;
   }
   try{
-    if(admitResources({stage:'before-import-and-load',owner,separateFromYard64MiBRGBALedger:true,cpuGLBBytes:3972384,
-      cpuParsedBinaryBufferBytes:3937068,cpuBufferViewCopiesBytes:3937068,knownCPUBufferPeakBytes:11872312,engineAndLoaderObjectOverheadKnown:false})!==true)throw Error('Prototype preload admission rejected');
+    signal?.throwIfAborted();
+    if(admitResources({stage:'before-import-and-load',owner,separateFromYard64MiBRGBALedger:true,cpuGLBBytes:MODEL_CPU_GLB_BYTES,
+      cpuParsedBinaryBufferBytes:MODEL_CPU_BINARY_BYTES,cpuBufferViewCopiesBytes:MODEL_CPU_BINARY_BYTES,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK,engineAndLoaderObjectOverheadKnown:false})!==true)throw Error('Prototype preload admission rejected');
     let module;[THREE,module]=await Promise.all([import('../vendor/three/build/three.module.js'),import('../vendor/three/addons/loaders/GLTFLoader.js')]);
+    signal?.throwIfAborted();
     if(THREE.REVISION!=='186')throw Error('Unqualified Three revision');
-    bytes=await loadAssetBytes();if(!(bytes instanceof ArrayBuffer)||bytes.byteLength!==3972384)throw Error('Expected pinned GLB ArrayBuffer');
+    bytes=await loadAssetBytes();signal?.throwIfAborted();if(!(bytes instanceof ArrayBuffer)||bytes.byteLength!==3972384)throw Error('Expected pinned GLB ArrayBuffer');
     const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');
     if(hash!==PIP_PRIVATE_GLB_SHA256)throw Error('Private Pip asset identity mismatch');
-    gltf=await new module.GLTFLoader().parseAsync(bytes,'');if((gltf.parser.json.images?.length??0)!==0)throw Error('Asset image decoder not admitted');
-    gltf.scene.traverse(inventory);proxy=planter?createCalibratedPlanter(THREE,planter):null;proxy?.root.traverse(inventory);
+    signal?.throwIfAborted();
+    gltf=await new module.GLTFLoader().parseAsync(bytes,'');signal?.throwIfAborted();if((gltf.parser.json.images?.length??0)!==0)throw Error('Asset image decoder not admitted');
+    gltf.scene.traverse(inventory);proxy=await createCalibratedPlanter(THREE,{...planter,loader:new module.GLTFLoader(),loadAssetBytes:loadPlanterAssetBytes,signal});signal?.throwIfAborted();proxy.root.traverse(inventory);
     const material=[...materials].find(m=>m.name===PIP_COAT_MATERIAL_NAME);if(!material)throw Error('Pinned coat material missing');
-    restoreMaterial=installPipAnalyticalCoat(material,{glbSha256:hash,fragmentHelper});pose=createAdaptivePoseDriver(THREE,gltf,calibration);
-    scene=new THREE.Scene();scene.add(gltf.scene);if(proxy)scene.add(proxy.root);camera=new THREE.OrthographicCamera();direction=new THREE.Vector3(5.66,9.799775507632814,8);
+    restoreMaterial=installPipAnalyticalCoat(material,{glbSha256:hash,fragmentHelper});
+    scene=new THREE.Scene();const actorFrame=new THREE.Group();actorFrame.name='Pip uniform world-scale frame';actorFrame.scale.setScalar(actorUnitsPerSource/RENDER_UNITS_TO_CANONICAL);actorFrame.add(gltf.scene);scene.add(actorFrame);if(proxy)scene.add(proxy.root);scene.updateMatrixWorld(true);
+    pose=createAdaptivePoseDriver(THREE,gltf,calibration,{unitsPerSource:actorUnitsPerSource,sourceFrame:actorFrame});camera=new THREE.OrthographicCamera();direction=new THREE.Vector3(5.66,9.799775507632814,8);
     requestSize(widthCss,heightCss,dpr,sourcePixelsPerCss);canvas=canvasFactory();
     const rendererOptions={canvas,alpha:true,antialias:false,premultipliedAlpha:true,preserveDrawingBuffer:false};
     // Injectable only for Node source qualification; browser uses actual Three.
@@ -102,6 +110,6 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,ca
   }
   return{renderAndCopy:(ctx,options)=>renderFrame('copy',ctx,options),renderDirect:options=>renderFrame('direct',null,options),resize,dispose,
     setPaused(v){paused=Boolean(v);},setPlanterPlacement(p){if(disposed)return;if(!proxy)throw Error('No calibrated planter admitted');proxy.move(p);},get resources(){return size?.estimate;},
-    get diagnostics(){return{mode:presentationMode,disposed,paused,contextLost,mounted:Boolean(canvas?.parentNode),...counts,lastFrame:structuredClone(lastFrame)};},
+    get diagnostics(){return{mode:presentationMode,actorUnitsPerSource,actorModelScale:actorUnitsPerSource/RENDER_UNITS_TO_CANONICAL,disposed,paused,contextLost,mounted:Boolean(canvas?.parentNode),...counts,lastFrame:structuredClone(lastFrame)};},
     qualification:'Optional integrated clean-location candidate; integrated browser appearance and performance remain unqualified.'};
 }

@@ -17,7 +17,7 @@ run('node',['scripts/assets-pipeline.mjs']);
 const {runBuildPerfGuard}=await import(pathToFileURL(path.join(root,'scripts/perf-build-guard.mjs')));
 const results={execution:local?'EXPLICIT_LOCAL_BUILD_ONLY':'REVIEWED_GITHUB_BUILD',sourceBuilds:[],assetGuards:[],browser:'NOT_RUN',releaseAcceptance:false};
 for(const [mode,flag]of [['default','false'],['preview','true']]){
- const dist=path.join(work,mode);run('node',['--max-old-space-size=1536','node_modules/vite/bin/vite.js','build','--outDir',dist],root,{NODE_ENV:'production',VITE_YARD_PIP_PREVIEW:flag,VITE_BUILD_ID:'yard-normal-preview-qa-20261006'});
+ const dist=path.join(work,mode);run('node',['--max-old-space-size=1536','node_modules/vite/bin/vite.js','build','--outDir',dist],root,{NODE_ENV:'production',VITE_YARD_PIP_PREVIEW:flag,VITE_BUILD_ID:'yard-coherent-scene-qa-20261006'});
  const closure=await closeBuild(root,dist,mode);await fs.writeFile(path.join(work,mode+'-closure.json'),JSON.stringify(closure,null,2)+'\n');
  results.sourceBuilds.push({mode,passed:true,files:closure.totalFiles,bytes:closure.totalBytes,optionalAssets:closure.optional.length,fileInventory:closure.fileInventory,fullEmittedInventory:closure.fullEmittedInventory,compiledModules:closure.compiledModules,buildEnvironment:{NODE_ENV:'production',previewFlag:flag}});
  const fullReportPath=path.join(work,mode+'-asset-guard-full.json');
@@ -30,7 +30,7 @@ for(const [mode,flag]of [['default','false'],['preview','true']]){
  assert(guard.passed,'Current scoped asset guard failed: '+JSON.stringify(guard.failures));
 }
 run('python3',[path.join(here,'prepare-preview.py'),root]);
-const preview=path.join(work,'preview-source');run('node',['--max-old-space-size=1536','node_modules/vite/bin/vite.js','build','--config','vite.phone-preview.config.mjs'],preview,{NODE_ENV:'production',VITE_YARD_PIP_PREVIEW:'true',VITE_BUILD_ID:'yard-normal-preview-qa-20261006'});
+const preview=path.join(work,'preview-source');run('node',['--max-old-space-size=1536','node_modules/vite/bin/vite.js','build','--config','vite.phone-preview.config.mjs'],preview,{NODE_ENV:'production',VITE_YARD_PIP_PREVIEW:'true',VITE_BUILD_ID:'yard-coherent-scene-qa-20261006'});
 const phone=await closeBuild(preview,path.join(preview,'preview-dist'),'phone',{prune:true});await fs.writeFile(path.join(work,'phone-closure.json'),JSON.stringify(phone,null,2)+'\n');
 results.sourceBuilds.push({mode:'phone',passed:true,files:phone.totalFiles,bytes:phone.totalBytes,optionalAssets:phone.optional.length,fileInventory:phone.fileInventory,fullEmittedInventory:phone.fullEmittedInventory,compiledModules:phone.compiledModules,buildEnvironment:{NODE_ENV:'production',previewFlag:'true'}});
 await fs.writeFile(path.join(out,'phone-files-manifest.json'),JSON.stringify({format:'yard-tested-phone-file-manifest/v1',fileInventory:phone.fileInventory,files:phone.files.map(({path,bytes,sha256})=>({path,bytes,sha256})).sort((a,b)=>a.path<b.path?-1:a.path>b.path?1:0)})+'\n');

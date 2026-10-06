@@ -5,7 +5,7 @@ import{bounds}from'./motion/math.mjs';
 export function locationFor(setup,index){
  if(![0,1].includes(index))throw Error('Unknown prototype placement');
  const loc=structuredClone(setup.location),p=setup.planter,move=setup.placements[index];
- loc.obstacles=loc.obstacles.map(o=>o.id==='planter'?{...o,polygon:p.footprint.map(([x,y])=>[x+move[0]-p.groundPivotCanonical[0],y+move[1]-p.groundPivotCanonical[1]])}:o);return loc;
+ loc.obstacles=loc.obstacles.map(o=>o.id==='planter'?{...o,polygon:(p.navigationFootprint??p.footprint).map(([x,y])=>[x+move[0]-p.groundPivotCanonical[0],y+move[1]-p.groundPivotCanonical[1]])}:o);return loc;
 }
 export function makeRoute(setup,goalIndex,placementIndex,previous=null){
  if(![0,1,2].includes(goalIndex))throw Error('Only A, B and C are admitted');

@@ -1,11 +1,11 @@
-name: Normal Vite Yard and static phone evidence
+name: Coherent Yard approach and native phone evidence
 on:
   push:
-    branches: ['qa/yard-normal-preview-buildfix-20261006']
+    branches: ['qa/yard-coherent-scene-20261006']
 permissions:
   contents: read
 concurrency:
-  group: yard-normal-preview-${{ github.ref }}
+  group: yard-coherent-scene-${{ github.ref }}
   cancel-in-progress: false
 jobs:
   native-browser:
@@ -82,7 +82,7 @@ jobs:
       - uses: actions/upload-artifact@v7
         if: always() && steps.cap.outcome == 'success'
         with:
-          name: yard-normal-preview-${{ github.sha }}-${{ github.run_attempt }}
+          name: yard-coherent-scene-${{ github.sha }}-${{ github.run_attempt }}
           path: qa/yard-normal-preview/results/
           if-no-files-found: error
           retention-days: 3

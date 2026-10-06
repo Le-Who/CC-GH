@@ -1,7 +1,7 @@
 {
   "id": "pip-clean-garden-prototype-v1",
   "runtimeActivated": false,
-  "scaleApproval": "1.5x source scale provisional only",
+  "scaleApproval": "2.0x world-scale candidate; not user-approved",
   "camera": {
     "direction": [
       5.66,
@@ -46,7 +46,7 @@
     "canonicalZToR5BoundaryZ": 0.125,
     "exact": "Shared orthographic basis and uniform density. No background crop, draw-only prop scale, or perspective warp."
   },
-  "sourceToCanonical": 12,
+  "sourceToCanonical": 16,
   "canonicalPerSceneUnit": 8,
   "background": {
     "file": "../assets/clean-garden.png",
@@ -162,5 +162,6 @@
         ]
       ]
     }
-  ]
+  ],
+  "renderUnitsToCanonical": 12
 }

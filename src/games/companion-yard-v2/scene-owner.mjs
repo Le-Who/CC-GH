@@ -25,7 +25,7 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
  uiImageOwner?.setAdmissionCheck(()=>false);const initialEpoch=epoch;
  tail=retirementBarrier.then(()=>{if(disposed||suspended||epoch!==initialEpoch)return;active=createLegacy(canvas,guarded(initialEpoch));if(snapshot)active.update(snapshot);}).catch(blocked);
  return{update(value){snapshot=value;active?.update(value);},setGhost(value){active?.setGhost(value);},point:event=>active?.point(event)??null,hit:event=>active?.hit(event)??null,offsetPoint:(p,d)=>active?.offsetPoint(p,d)??null,
-  setPrototypeEnabled:switchMode,moveTo:index=>active?.moveTo?.(index),movePlanter:index=>active?.movePlanter?.(index),
+  setPrototypeEnabled:switchMode,inspectAgain:()=>active?.inspectAgain?.(),moveTo:index=>active?.moveTo?.(index),movePlanter:index=>active?.movePlanter?.(index),
   diagnostics:()=>({mode:currentMode,enabled:desired,transitioning:currentMode==='transition',transitions,retirements,lastRetired,uiImages:uiImageOwner?.snapshot?.()??null,scene:active?.diagnostics?.()}),
   get ready(){return active?.ready??tail;},
   dispose(){if(disposed)return tail;disposed=true;desired=false;++epoch;window.removeEventListener('pagehide',onHide);window.removeEventListener('pageshow',onShow);const previous=retire();tail=tail.then(()=>previous).catch(blocked);return tail;}

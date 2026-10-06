@@ -3,7 +3,11 @@ import "../companion-yard/i18n.js";
 
 export const PERSISTENT_YARD_TRANSLATIONS = {
   en: {
-    "yard.pipPreview.title": "Pip · Preview",
+    "yard.pipPreview.title": "Pip · Leaf",
+    "yard.pipPreview.inspectAgain": "Inspect again",
+    "yard.pipPreview.inspectAgainFull": "Pip inspects the succulent leaf again",
+    "yard.pipPreview.inspectionActive": "Pip inspects a leaf. View only.",
+    "yard.pipPreview.inspectionDone": "Leaf inspected. View only.",
     "yard.pipPreview.name": "Pip preview",
     "yard.pipPreview.enable": "Preview Pip",
     "yard.pipPreview.return": "Return to Yard",
@@ -56,6 +60,7 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.persistent.closePanel": "Close courtyard panel",
     "yard.persistent.guests": "Guests",
     "yard.persistent.decor": "Items",
+    "yard.persistent.decorShort": "Items",
     "yard.persistent.cancel": "Cancel",
     "yard.persistent.bowlFull": "Food is ready",
     "yard.persistent.addFood": "Add food",
@@ -139,7 +144,11 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.persistent.error.letter": "Today’s letter has already been opened.",
   },
   ru: {
-    "yard.pipPreview.title": "Pip · Просмотр",
+    "yard.pipPreview.title": "Pip · Лист",
+    "yard.pipPreview.inspectAgain": "Ещё раз",
+    "yard.pipPreview.inspectAgainFull": "Pip снова осмотрит лист суккулента",
+    "yard.pipPreview.inspectionActive": "Pip изучает листик. Только просмотр.",
+    "yard.pipPreview.inspectionDone": "Листик осмотрен. Только просмотр.",
     "yard.pipPreview.name": "Предпросмотр Pip",
     "yard.pipPreview.enable": "Предпросмотр Pip",
     "yard.pipPreview.return": "Вернуться во двор",
@@ -192,6 +201,7 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.persistent.closePanel": "Закрыть панель двора",
     "yard.persistent.guests": "Гости",
     "yard.persistent.decor": "Предметы",
+    "yard.persistent.decorShort": "Декор",
     "yard.persistent.cancel": "Отмена",
     "yard.persistent.bowlFull": "Миска полна",
     "yard.persistent.addFood": "Добавить корм",

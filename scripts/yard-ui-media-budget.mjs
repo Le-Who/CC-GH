@@ -7,7 +7,7 @@ import policy from './yard-ui-media-budget.json' with { type: 'json' };
 import family from './yard-public-media.json' with { type: 'json' };
 
 export const REQUIRED_YARD_UI_BYTES = 5_345_589;
-export const OPTIONAL_PIP_MEDIA_BYTES = 5_432_176;
+export const OPTIONAL_PIP_MEDIA_BYTES = 5_555_295;
 export const OTHER_NON_FAMILY_ASSET_CEILING = 73_470_314;
 const FAMILY_BYTES = 192_653_433;
 const optionalPrefix = 'src/games/companion-yard-v2/pip-prototype/';
@@ -18,7 +18,7 @@ const issue = (id, actual, expected, message) => ({ id, actual, budget: expected
 // A reviewed row never becomes a wildcard or a data-controlled allowance.
 assert.equal(policy.format, 'yard-ui-and-pip-media/v1');
 assert.equal(policy.requiredUi.length, 78);
-assert.equal(policy.optionalMedia.length, 6);
+assert.equal(policy.optionalMedia.length, 7);
 assert.equal(sum(policy.requiredUi), REQUIRED_YARD_UI_BYTES);
 assert.equal(sum(policy.optionalMedia), OPTIONAL_PIP_MEDIA_BYTES);
 const allPaths = new Set();
@@ -34,7 +34,7 @@ assert.equal(uiHashes.size, 78);
 assert.ok(policy.requiredUi.every(row => !familyHashes.has(row.sha256)));
 assert.ok(policy.optionalMedia.every(row => !familyHashes.has(row.sha256) && !uiHashes.has(row.sha256)));
 const optionalByHash = new Map(policy.optionalMedia.map(row => [row.sha256, row]));
-assert.equal(optionalByHash.size, 6);
+assert.equal(optionalByHash.size, 7);
 const familyByPath = new Map(family.files.map(row => [row.path, row]));
 const matches = (actual, expected) => actual?.bytes === expected.bytes && actual?.sha256 === expected.sha256;
 
