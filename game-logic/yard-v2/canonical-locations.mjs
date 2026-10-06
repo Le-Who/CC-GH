@@ -2,6 +2,7 @@
  * food, wear, gift or photo behavior. Canonical units never enter the old 0..100 yard. */
 import geometry from './canonical-location-geometry.json' with {type:'json'};
 import protocol from './canonical-item-protocol.json' with {type:'json'};
+import {CANONICAL_FOOD_LOCATION,CANONICAL_FOOD_LOCATION_ENABLED,CANONICAL_FOOD_NONCE_PREFIX,canonicalFoodOverlap} from './canonical-food-protocol.mjs';
 import {addCount,clone,deepFreeze,integer,lookup} from './util.mjs';
 
 deepFreeze(protocol);
@@ -15,23 +16,25 @@ const actions=protocol.actions;
 export const isCanonicalItemAction=action=>actions.includes(action);
 const fields=Object.keys(CANONICAL_LOCATION),own=(v,k)=>Object.hasOwn(v||{},k);
 const slotPattern=/^canonical:[A-Za-z0-9_.:-]{1,80}$/;
-const noncePattern=/^yard-v2:canonical-v1\/[A-Za-z0-9_.:-]{1,96}$/;
+const noncePattern=/^yard-v2:canonical-v[12]\/[A-Za-z0-9_.:-]{1,96}$/;
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 export const isCanonicalItemIntent=(payload,actionId)=>fields.some(k=>own(payload,k))
-  ||String(actionId||'').startsWith(CANONICAL_ACTION_NONCE_PREFIX);
+  ||/^yard-v2:canonical-v/.test(String(actionId||''));
 export const isCanonicalItemNonce=actionId=>typeof actionId==='string'&&noncePattern.test(actionId);
-export function canonicalItemCapabilities({canonicalItemPlacementEnabled=CANONICAL_ITEM_PLACEMENT_ENABLED}={}) {
-  const enabled=canonicalItemPlacementEnabled===true;
-  return {...CANONICAL_LOCATION,enabled,readOnly:!enabled,maxPlacements:CANONICAL_MAX_PLACEMENTS,actions:enabled?[...actions]:[],slotPrefix:protocol.slotPrefix,
-    actionNoncePrefix:CANONICAL_ACTION_NONCE_PREFIX,coordinateSpace:protocol.coordinateSpace,domain:clone(protocol.domain),
+export const canonicalCommandLocation=(options={})=>(options.canonicalFoodLocationEnabled??CANONICAL_FOOD_LOCATION_ENABLED)===true?CANONICAL_FOOD_LOCATION:CANONICAL_LOCATION;
+export function canonicalItemCapabilities({canonicalItemPlacementEnabled=CANONICAL_ITEM_PLACEMENT_ENABLED,...options}={}) {
+  const enabled=canonicalItemPlacementEnabled===true,location=canonicalCommandLocation(options),foodAware=location===CANONICAL_FOOD_LOCATION;
+  return {...location,...(foodAware?{storageLocation:{...CANONICAL_LOCATION},foodContractId:'canonical-food-r2/20261006',replayNoncePrefixes:[CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_FOOD_NONCE_PREFIX]}:{}),enabled,readOnly:!enabled,maxPlacements:CANONICAL_MAX_PLACEMENTS,actions:enabled?[...actions]:[],slotPrefix:protocol.slotPrefix,
+    actionNoncePrefix:foodAware?CANONICAL_FOOD_NONCE_PREFIX:CANONICAL_ACTION_NONCE_PREFIX,coordinateSpace:protocol.coordinateSpace,domain:clone(protocol.domain),
     items:{leaf_pot:{...clone(CANONICAL_ITEM),place:enabled,move:enabled,pickup:enabled}},
     visitAdmission:false,...(enabled?{}:{blockedReason:'CANONICAL_ITEM_PLACEMENT_DISABLED'})};
 }
 export function canonicalItemGate(action,payload,options={}) {
   if(!isCanonicalItemAction(action))return 'CANONICAL_ACTION_UNSUPPORTED';
-  if(payload.locationId!==CANONICAL_LOCATION.locationId)return 'CANONICAL_LOCATION_UNKNOWN';
-  if(payload.locationVersion!==CANONICAL_LOCATION.locationVersion)return 'CANONICAL_LOCATION_VERSION_MISMATCH';
-  if(payload.geometryRevision!==CANONICAL_LOCATION.geometryRevision)return 'CANONICAL_GEOMETRY_REVISION_MISMATCH';
+  const location=canonicalCommandLocation(options);
+  if(payload.locationId!==location.locationId)return 'CANONICAL_LOCATION_UNKNOWN';
+  if(payload.locationVersion!==location.locationVersion)return 'CANONICAL_LOCATION_VERSION_MISMATCH';
+  if(payload.geometryRevision!==location.geometryRevision)return 'CANONICAL_GEOMETRY_REVISION_MISMATCH';
   if((options.canonicalItemPlacementEnabled??CANONICAL_ITEM_PLACEMENT_ENABLED)!==true)return 'CANONICAL_ITEM_PLACEMENT_DISABLED';
   return null;
 }
@@ -85,9 +88,9 @@ export function canonicalStorageValid(rows,legacyRows=[]) {
   return rows.every(row=>canonicalFootprintValid(row.x,row.y,rows,row.slotId));
 }
 /** Mutates only a private working copy after all command and geometry guards. */
-export function applyCanonicalItemAction(state,action,payload,{now}={}) {
+export function applyCanonicalItemAction(state,action,payload,{now,...options}={}) {
   const fail=error=>({status:400,error}),yard=state.player.yard,rows=state.runtime.canonicalPlacements||[];
-  const {slotId}=payload;
+  const {slotId}=payload,commandLocation=canonicalCommandLocation(options);
   if(typeof slotId!=='string'||!slotPattern.test(slotId))return fail('CANONICAL_SLOT_ID_REQUIRED');
   if(own(payload,'condition')&&payload.condition!=='new'||own(payload,'uses')&&payload.uses!==0)return fail('CANONICAL_CONDITION_UNSUPPORTED');
   if(['z','rotation','rotationZ'].some(key=>own(payload,key)&&payload[key]!==0))return fail('CANONICAL_TRANSFORM_UNSUPPORTED');
@@ -101,6 +104,7 @@ export function applyCanonicalItemAction(state,action,payload,{now}={}) {
     if(own(payload,'goodieId')&&payload.goodieId!==row.goodieId)return fail('CANONICAL_SLOT_GOODIE_MISMATCH');
   }
   if(action!=='yard.pickupGoodie'&&!canonicalFootprintValid(payload.x,payload.y,rows,action==='yard.moveGoodie'?slotId:null))return fail('CANONICAL_PLACEMENT_INVALID');
+  if(action!=='yard.pickupGoodie'&&canonicalCommandLocation(options)===CANONICAL_FOOD_LOCATION&&canonicalFoodOverlap(payload.x,payload.y))return fail('CANONICAL_FOOD_REGION_RESERVED');
   const goodieId=CANONICAL_ITEM.goodieId,count=lookup(yard.goodieInventory,goodieId)??0;
   if(!integer(count)||action==='yard.pickupGoodie'&&!integer(count+1))return fail('CANONICAL_INVENTORY_REQUIRES_REVIEW');
   if(action==='yard.placeGoodie'){
@@ -108,12 +112,12 @@ export function applyCanonicalItemAction(state,action,payload,{now}={}) {
     const placement={...CANONICAL_LOCATION,slotId,goodieId,x:payload.x,y:payload.y,
       itemGeometryRevision:CANONICAL_ITEM.itemGeometryRevision,condition:'new',uses:0,placedAt:now};
     addCount(yard.goodieInventory,goodieId,-1);state.runtime.canonicalPlacements=[...rows,placement];
-    return {status:200,extras:{...CANONICAL_LOCATION,goodieId,slotId,x:placement.x,y:placement.y,placement:clone(placement)}};
+    return {status:200,extras:{...commandLocation,goodieId,slotId,x:placement.x,y:placement.y,placement:clone(placement)}};
   }
   if(action==='yard.pickupGoodie'){
     addCount(yard.goodieInventory,goodieId,1);state.runtime.canonicalPlacements=rows.filter(p=>p.slotId!==slotId);
-    return {status:200,extras:{...CANONICAL_LOCATION,goodieId,slotId}};
+    return {status:200,extras:{...commandLocation,goodieId,slotId}};
   }
   row.x=payload.x;row.y=payload.y;
-  return {status:200,extras:{...CANONICAL_LOCATION,goodieId,slotId,x:row.x,y:row.y,placement:clone(row)}};
+  return {status:200,extras:{...commandLocation,goodieId,slotId,x:row.x,y:row.y,placement:clone(row)}};
 }

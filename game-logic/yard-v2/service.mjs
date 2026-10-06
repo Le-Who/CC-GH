@@ -14,6 +14,8 @@ import { visitPhase, isReserved } from './simulation.mjs';
 import { clone, digest, integer, lookup, put } from './util.mjs';
 import {canonicalStorageValid,canonicalItemCapabilities} from './canonical-locations.mjs';
 
+import {canonicalFoodCapabilities,selectCanonicalFoodState} from './canonical-food-contract.mjs';
+
 export const YARD_STORAGE_FORMAT = 'yard-persistent/v1';
 export const YARD_SERVER_REVISION = 'persistent-mika/r1';
 const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -141,7 +143,7 @@ export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}
   const checked=inspectStored(player,now);
   if (checked.status!==200) return {version:1,revision:YARD_SERVER_REVISION,serverNow:now,status:'review-required',mutable:false,
     error:checked.error,issues:clone(checked.details||[]),visits:[],reservations:[],placementReadiness:[],
-    canonicalPlacements:[],itemPlacementCapabilities:canonicalItemCapabilities({canonicalItemPlacementEnabled:false})};
+    canonicalPlacements:[],foodLocationCapabilities:canonicalFoodCapabilities(),itemPlacementCapabilities:canonicalItemCapabilities({canonicalItemPlacementEnabled:false})};
   const defaults=getYardServerOptions();
   const state=checked.state,display=resolvePersistentDisplay(state,{scene:scene||defaults.scene});
   const readiness=options.placementReadiness||defaults.placementReadiness;
@@ -161,5 +163,7 @@ export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}
     placementReadiness:typeof readiness==='function'?clone(readiness(display.yard)):[],
     actionProtocol:'yard-v2:', supportedActions:Object.keys(ACTION_CONTRACTS),
     canonicalPlacements:clone(state.runtime.canonicalPlacements||[]),itemPlacementCapabilities:canonicalItemCapabilities(options),
+    foodLocationCapabilities:canonicalFoodCapabilities(options),
+    canonicalFoodState:selectCanonicalFoodState({yard:state.player.yard,yardRuntime:{version:1,status:'ready',canonicalPlacements:state.runtime.canonicalPlacements||[],foodLocationCapabilities:canonicalFoodCapabilities(options)}}),
     supportedBindings:supportedYardBindings(registry)};
 }

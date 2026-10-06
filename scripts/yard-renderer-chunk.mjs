@@ -34,7 +34,6 @@ export const YARD_RUNTIME_CORE_MODULES = new Set([
   'game-logic/yard-v2/prop-obstacles.mjs',
   'game-logic/yard-v2/released-actor-profiles.mjs',
   'game-logic/yard-v2/released-prop-profiles.mjs',
-  'game-logic/yard-v2/sha256.mjs',
   'game-logic/yard-v2/util.mjs',
   'game-logic/yard-v2/visit-reservations.mjs',
 ]);
@@ -49,6 +48,9 @@ export const YARD_CANONICAL_MOTION_MODULES = new Set([
 ].map(name=>`src/games/companion-yard-v2/pip-prototype/${name}`));
 export function yardRendererChunk(id, root) {
   const source = path.relative(root, id.split('?')[0]).replaceAll('\\', '/');
+  // Receipt validation needs only this small pure hash implementation at boot.
+  // Keep it shared without making the whole lazy Yard runtime an eager import.
+  if (source === 'game-logic/yard-v2/sha256.mjs') return 'yard-wire-hash';
   if (YARD_CANONICAL_MOTION_MODULES.has(source)) return 'yard-canonical-motion';
   if (['ui-image-inventory.json', 'ui-image-reserve.mjs', 'decoded-capacity.mjs', 'runtime-cells.mjs']
     .some(name => source === `src/games/companion-yard-v2/${name}`)) return 'yard-scene-resources';

@@ -143,6 +143,9 @@ export default defineConfig({
       output: {
         onlyExplicitManualChunks: true,
         chunkFileNames: yardChunkFileNames,
+        // One immutable private food asset, included only by the preview graph.
+        assetFileNames: asset => asset.names?.includes('yard-food-source-r2.glb')
+          ? 'assets/yard-food-source-r2-ed618ed41d65.glb' : 'assets/[name]-[hash][extname]',
         manualChunks(id) {
           const yardRenderer = yardRendererChunk(id, import.meta.dirname);
           if (yardRenderer) return yardRenderer;

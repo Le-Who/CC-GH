@@ -4,7 +4,7 @@ import {angleDelta} from './motion/trajectory.mjs';
 import {buildGaitRequest,sampleMotion} from './motion/kinematics.mjs';
 import {corners,transform} from './motion/math.mjs';
 import {createCanonicalNavigation,convexHull} from './dynamic-navigation.mjs';
-import {directContinuousTrajectory,reachablePolyline} from './dynamic-trajectory.mjs';
+import {directContinuousTrajectory,continuousDetourTrajectory,reachablePolyline} from './dynamic-trajectory.mjs';
 export const DYNAMIC_INSPECTION_VERSION='pip-canonical-inspection/v1';
 // An entry registration, used only for the first appearance in an unoccupied location.
 // It is checked against all current geometry before the actor becomes visible.
@@ -70,13 +70,14 @@ export function planCanonicalInspection({geometry,rows,actor,targetSlotId,previo
  }
  const away=departure(actor,previous,nav);if(!away.ok)return {...away,layoutKey:nav.layoutKey};
  const start=pose(away.world),lead=actor.headingLeadSource*actor.unitsPerSource;
- const modes=['continuous','supported-waypoints'];
+ const modes=['continuous','continuous-detour','supported-waypoints'];
  for(const mode of modes)for(const anchor of anchors){
   const staging=plus(target,anchor.outward,Math.max(anchor.standOff+lead,4.65+nav.clearance+.5));
   if(!nav.passable(staging)||!finalSweepClear(actor,staging,anchor.position,anchor.heading,nav)){failures.push({anchor:anchor.id,mode,code:'ANCHOR_BLOCKED'});continue;}
   let world=away.world,stages=[...away.stages],current=start;
-  if(mode==='continuous'){
-   const approach=directContinuousTrajectory(actor,current,{position:staging,heading:anchor.heading},nav);
+  if(mode!=='supported-waypoints'){
+   const trajectory=mode==='continuous'?directContinuousTrajectory:continuousDetourTrajectory;
+   const approach=trajectory(actor,current,{position:staging,heading:anchor.heading},nav);
    if(!approach){failures.push({anchor:anchor.id,mode,code:'NO_CLEAR_CONTINUOUS_CURVE'});continue;}
    const travel=qualifyStage(extendFinalApproach(actor,approach,anchor.position),actor,world,nav,'approach');if(!travel.ok){failures.push({anchor:anchor.id,mode,code:travel.code});continue;}stages.push(travel);world=travel.end;
   }else{
@@ -90,7 +91,7 @@ export function planCanonicalInspection({geometry,rows,actor,targetSlotId,previo
    if(!rejected&&Math.abs(angleDelta(anchor.heading,world.heading))>EPS){const turn=qualifyStage(turnRoute(actor,pose(world),anchor.heading),actor,world,nav,'face-leaf-with-steps');if(!turn.ok)rejected=turn;else {stages.push(turn);world=turn.end;}}
    if(rejected){failures.push({anchor:anchor.id,mode,code:rejected.code});continue;}
   }
-  if(mode!=='continuous'){const close=qualifyStage(lineRoute(actor,pose(world),anchor.position,anchor.heading),actor,world,nav,'close-approach');if(!close.ok){failures.push({anchor:anchor.id,mode,code:close.code});continue;}stages.push(close);world=close.end;}
+  if(mode==='supported-waypoints'){const close=qualifyStage(lineRoute(actor,pose(world),anchor.position,anchor.heading),actor,world,nav,'close-approach');if(!close.ok){failures.push({anchor:anchor.id,mode,code:close.code});continue;}stages.push(close);world=close.end;}
   return {ok:true,kind:DYNAMIC_INSPECTION_VERSION,layoutKey:nav.layoutKey,target:structuredClone(target),anchor,stages,settled:world,attentionVariant,holdOnly:false,attempts:failures};
  }
  return {ok:false,code:'NO_REACHABLE_INTERACTION_ANCHOR',layoutKey:nav.layoutKey,attempts:failures};

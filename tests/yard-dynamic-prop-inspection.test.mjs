@@ -34,10 +34,10 @@ test('blocked preferred side chooses another real leaf, with smoothly supported 
  const rows=[row(98,118),row(94,135,'b')],p=plan(rows);checkPlan(p,rows);assert.notEqual(p.anchor.id,'leaf-7');assert.ok(p.stages.some(s=>s.kind==='orient-with-steps'));
 });
 test('two stored T2 instances require a connected detour around the actual other item',()=>{
- const rows=[row(110,125),row(95,125,'b')],p=plan(rows);checkPlan(p,rows);assert.equal(p.anchor.id,'leaf-2');assert.ok(p.stages.filter(s=>s.kind==='approach').length>=2);
+ const rows=[row(110,125),row(95,125,'b')],p=plan(rows);checkPlan(p,rows);assert.equal(p.anchor.id,'leaf-2');assert.equal(p.stages.length,1);assert.ok(p.stages[0].route.planningWork);assert.ok(p.stages[0].route.segments.length>=2);
 });
 test('a placement valid for the smaller T2 can still have every actor anchor blocked',()=>{
- const p=plan([row(35,115)]);assert.equal(p.ok,false);assert.equal(p.code,'NO_REACHABLE_INTERACTION_ANCHOR');assert.equal(p.attempts.length,16);
+ const p=plan([row(35,115)]);assert.equal(p.ok,false);assert.equal(p.code,'NO_REACHABLE_INTERACTION_ANCHOR');assert.equal(p.attempts.length,24);assert.deepEqual([...new Set(p.attempts.map(a=>a.mode))],['continuous','continuous-detour','supported-waypoints']);
 });
 function controller(rows=[row(98,118)]){return createCanonicalInspectionController({geometry,actor,rows,planningNow:()=>0});}
 test('moving target midwalk invalidates route, preserves root/support, and replans from recovered actual pose',()=>{

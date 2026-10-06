@@ -22,6 +22,12 @@ export function createAdaptivePoseDriver(THREE, gltf, calibration, {unitsPerSour
   if (bones.size !== 11 || Object.keys(rest).some(n => !bones.has(n))) throw Error('Pinned eleven-bone identity mismatch');
   const nameOf = new Map([...bones].map(([n, b]) => [b, n]));
   const underTorso = [...bones].filter(([, b]) => {for(let p=b;p;p=p.parent) if(nameOf.get(p)==='torso')return true; return false;}).map(([n])=>n);
+  // The mixer skips writes when a channel's value has not changed. Keep its
+  // last authored local TRS separate from the displayed world-space pose so
+  // both skipped channels and unanimated scales start from the source pose.
+  // Restoring bind-pose TRS alone would disagree with the mixer's value cache.
+  const authoredLocals = [...bones.values()].map(bone => ({bone,
+    position:bone.position.clone(),quaternion:bone.quaternion.clone(),scale:bone.scale.clone()}));
   const mixer = new AnimationMixer(gltf.scene), action = mixer.clipAction(gltf.animations[0]);
   action.setLoop(LoopOnce, 1);action.clampWhenFinished = true;action.play();
   const T = v => new Matrix4().makeTranslation(v.x,v.y,v.z), Rz = a => new Matrix4().makeRotationZ(a);
@@ -29,7 +35,14 @@ export function createAdaptivePoseDriver(THREE, gltf, calibration, {unitsPerSour
   function style(frame, removeDrift = true) {
     // Sampling the cached settle at4s clamps LoopOnce and pauses the action.
     // Re-arm it before every explicit sample, or later style reads stay frozen.
-    action.paused=false;action.enabled=true;mixer.setTime(frame / 24);gltf.scene.updateMatrixWorld(true);
+    for(const {bone,position,quaternion,scale} of authoredLocals){
+      bone.position.copy(position);bone.quaternion.copy(quaternion);bone.scale.copy(scale);
+    }
+    action.paused=false;action.enabled=true;mixer.setTime(frame / 24);
+    for(const {bone,position,quaternion,scale} of authoredLocals){
+      position.copy(bone.position);quaternion.copy(bone.quaternion);scale.copy(bone.scale);
+    }
+    gltf.scene.updateMatrixWorld(true);
     // Recover the unchanged authored source frame before reading A2 style.
     const sourceFromWorld=sourceFrame?sourceFrame.matrixWorld.clone().invert():new Matrix4();
     const m=Object.fromEntries([...bones].map(([n,b])=>[n,inverseC.clone().multiply(sourceFromWorld).multiply(b.matrixWorld)]));

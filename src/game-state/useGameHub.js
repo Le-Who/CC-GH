@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
+import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,canonicalCommandScope,canonicalNoncePrefix,canonicalReplayCapability,canonicalSupersededReceipt,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
 import { readYardOutbox, writeYardOutbox } from "./yardOutboxStorage.js";
 import { VISIBLE_GAME_IDS } from "../app/gameRegistry.js";
 import { api } from "../services/apiClient.js";
@@ -36,7 +36,7 @@ function writableYardSnapshot(snapshot) {
 }
 
 function canDrainOutboxItem(item, snapshot) {
-  return item.status !== "failed" && !item.requiresCanonicalReview && (!isCanonicalItemIntent(item.payload,item.clientActionId) || (isCanonicalItemNonce(item.clientActionId) && canonicalCapability(snapshot,item.action)
+  return item.status !== "failed" && !item.requiresCanonicalReview && (!isCanonicalItemIntent(item.payload,item.clientActionId) || (canonicalReplayCapability(snapshot,item.action,item.clientActionId)
       && (!(item.requiresYardResume || item.status === "canonical-blocked" || item.status === "rollout-paused") || canonicalOutboxResumeSession === snapshotAccountSession)))
     && (!(item.requiresYardResume || item.status === "rollout-paused" || item.status === "canonical-blocked")
     || (yardOutboxResumeSession === snapshotAccountSession && writableYardSnapshot(snapshot)));
@@ -308,7 +308,7 @@ export const useGameHub = create((set, get) => ({
   performReliableAction: async (action, payload = {}, options = {}) => {
     const durability = options.durability || (shouldUseDurableOutbox(action) ? "outbox" : "receipt");
     const clientActionId = options.clientActionId || (isYardAction(action) && isCanonicalItemIntent(payload)
-      ? `${CANONICAL_ACTION_NONCE_PREFIX}${globalThis.crypto.randomUUID()}`
+      ? `${canonicalNoncePrefix(get().snapshot)}${globalThis.crypto.randomUUID()}`
       : createClientActionId(action, options.scope || "game", options.idParts || []));
     if (durability === "outbox") {
       return get().enqueueYardAction(action, payload, { ...options, clientActionId });
@@ -335,7 +335,7 @@ export const useGameHub = create((set, get) => ({
         ...(stored.items || []).filter(saved => !recoverable.some(item => saved.clientActionId === item.clientActionId)), ...recoverable,
       ]);
       set({ pendingActions, outboxLoaded: !stored.error, outboxAccountId: accountId, outboxStorageError: stored.error || null,
-        retainedLegacyOutbox: stored.retainedLegacyOutbox || [], busy: { ...get().busy, ...Object.fromEntries(pendingActions.map(item => [item.entityKey, true])) } });
+        retainedLegacyOutbox: stored.retainedLegacyOutbox || [], busy: { ...get().busy, ...Object.fromEntries(pendingActions.map(item => [item.entityKey, false])), ...Object.fromEntries(pendingActions.filter(item=>item.status!=="failed").map(item=>[item.entityKey,true])) } });
       if (!stored.error) scheduleOutboxDrain(get, 0);
       return stored.error ? { error: stored.error } : pendingActions;
     })().finally(() => { if (outboxHydration === hydration) outboxHydration = null; });
@@ -348,6 +348,8 @@ export const useGameHub = create((set, get) => ({
     if (isCanonicalItemIntent(payload,options.clientActionId)) {
       if (options.clientActionId && !isCanonicalItemNonce(options.clientActionId)) return {error:"CANONICAL_NONCE_REQUIRED"};
       if (!canonicalCapability(get().snapshot,action)) return {error:"CANONICAL_ITEM_PLACEMENT_DISABLED"};
+      if (!Object.entries(canonicalCommandScope(get().snapshot)).every(([k,v])=>payload[k]===v)
+        || options.clientActionId && !options.clientActionId.startsWith(canonicalNoncePrefix(get().snapshot))) return {error:"CANONICAL_NEW_INTENT_SCOPE_REQUIRED"};
     }
     const accountId = get().snapshot?.player?.id, session = snapshotAccountSession;
     if (!accountId) return { error: "ACCOUNT_REQUIRED" };
@@ -391,7 +393,7 @@ export const useGameHub = create((set, get) => ({
       } else {
         queuedItem = {
           accountId,
-          clientActionId: options.clientActionId || (isCanonicalItemIntent(payload) ? `${CANONICAL_ACTION_NONCE_PREFIX}${globalThis.crypto.randomUUID()}` : createYardActionId()),
+          clientActionId: options.clientActionId || (isCanonicalItemIntent(payload) ? `${canonicalNoncePrefix(get().snapshot)}${globalThis.crypto.randomUUID()}` : createYardActionId()),
           action,
           payload,
           entityKey,
@@ -499,7 +501,20 @@ export const useGameHub = create((set, get) => ({
         return result;
       }
 
-      if (isYardAction(sending.action) && (result.error === "YARD_ROLLOUT_PAUSED" || result.error === "CANONICAL_LOCATION_REQUIRED"
+      if (canonicalSupersededReceipt(sending,result)) {
+        // Keep the exact signed attempt visible across reloads. A definitive
+        // receipt releases its entity for a separate user-chosen replacement.
+        set((state)=>({pendingActions:normalizeOutboxItems(state.pendingActions).map(candidate=>candidate.clientActionId===sending.clientActionId
+          ? {...candidate,status:"failed",requiresUserDecision:true,blockedReason:result.error,rejection:structuredClone(result.details),nextAttemptAt:0}:candidate),
+          busy:{...state.busy,[sending.entityKey]:false},lastResult:result,status:"ready",message:result.error}));
+        const retained=await persistOutbox(accountId,get().pendingActions);
+        if(!isCurrent())return {error:"ACCOUNT_CHANGED"};
+        set({outboxStorageError:retained.error||null});
+        await get().loadSnapshot();
+        return result;
+      }
+
+      if (isYardAction(sending.action) && (result.error === "CANONICAL_COMMAND_SUPERSEDED" || result.error === "YARD_ROLLOUT_PAUSED" || result.error === "CANONICAL_LOCATION_REQUIRED"
         || result.error === "UNSUPPORTED_YARD_STORAGE_VERSION" && /^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(sending.clientActionId)
         || isCanonicalItemIntent(sending.payload,sending.clientActionId) && (Number(result._httpStatus) === 409 || CANONICAL_PENDING_ERRORS.has(result.error)))) {
         // Closed rollback and unsupported storage return before receipt lookup.

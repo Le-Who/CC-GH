@@ -3,7 +3,7 @@ import{isCanonicalItemIntent}from'../../game-state/canonicalYardProtocol.mjs';
 let retirementBarrier=Promise.resolve();
 export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAllowed=false,directHost,uiImageOwner,onView=()=>{},onError=()=>{},onPrototypeState=()=>{},onSceneFailure=()=>{},...options}){
  let active=null,snapshot=null,view=null,disposed=false,suspended=false,desired=false,canonicalItems=false,canonicalActionPending=false,epoch=0,tail=Promise.resolve(),currentMode='legacy',lastFailure=null,lastRetired=null,transitions=0,retirements=0;
- let failureDetail=null;
+ let failureDetail=null,ownerAccount=null,ownerSession=null,ownerObserved=false;
  const state=extra=>{if(extra?.error)lastFailure=extra.error;onPrototypeState({allowed:prototypeAllowed,enabled:desired,mode:currentMode,error:lastFailure,...extra});};
  function fail(error,context){
   failureDetail={mode:currentMode,name:String(error?.name||'Error'),message:String(error?.message||error).slice(0,1024),stack:String(error?.stack||'').slice(0,4096),context:context??null};
@@ -12,7 +12,7 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
   // durable outbox, including an unresolved committed-response loss.
   onSceneFailure(failureDetail);onError(Object.assign(new Error(failureDetail.message),{code:'YARD_PIP_SCENE_FAILED'}));
  }
- function guarded(token){return{...options,canonicalItems,canonicalActionPending,directHost,uiImageOwner,onView:value=>{if(token===epoch&&!disposed&&!suspended){view=value;onView(value);}},onError:error=>{if(token===epoch&&!disposed)onError(error);},onPrototypeState:value=>{if(token===epoch&&!disposed)state(value);},onFailure:(error,context)=>{if(token===epoch&&!disposed)fail(error,context);}};}
+ function guarded(token){return{...options,ownerKey:token,canonicalItems,canonicalActionPending,directHost,uiImageOwner,onRestartRequired:()=>{if(token===epoch&&!disposed&&desired)switchMode(true,canonicalItems?'canonical-items':'pip-prototype');},onView:value=>{if(token===epoch&&!disposed&&!suspended){view=value;onView(value);}},onError:error=>{if(token===epoch&&!disposed)onError(error);},onPrototypeState:value=>{if(token===epoch&&!disposed)state(value);},onFailure:(error,context)=>{if(token===epoch&&!disposed)fail(error,context);}};}
  function blocked(error){if(!disposed){state({phase:'failed',error:error.message});onError(error);}return false;}
  function retire(){const old=active;active=null;if(!old)return retirementBarrier;let finished;try{finished=old.dispose();}catch(error){finished=Promise.reject(error);}uiImageOwner?.setAdmissionCheck(()=>false);const done=Promise.resolve(finished).then(()=>{retirements++;try{lastRetired=old.diagnostics?.()??null;}catch(error){lastRetired={diagnosticsError:error.message};}canvas.width=0;canvas.height=0;});retirementBarrier=Promise.all([retirementBarrier,done]).then(()=>{});retirementBarrier.catch(()=>{});return retirementBarrier;}
  function switchMode(enabled,mode='pip-prototype'){
@@ -33,7 +33,14 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
  // all earlier scene retirements before allocating a legacy canvas or images.
  uiImageOwner?.setAdmissionCheck(()=>false);const initialEpoch=epoch;
  tail=retirementBarrier.then(()=>{if(disposed||suspended||epoch!==initialEpoch)return;active=createLegacy(canvas,guarded(initialEpoch));if(snapshot)active.update(snapshot);}).catch(blocked);
- return{update(value){snapshot=value;active?.update(value);},setGhost(value){if(value&&isCanonicalItemIntent(value)&&currentMode!=='canonical-items')return false;active?.setGhost(value);return true;},point:event=>active?.point(event)??null,hit:event=>active?.hit(event)??null,offsetPoint:(p,d)=>active?.offsetPoint(p,d)??null,
+ return{update(value,{accountSession=null}={}){
+   const account=value?.player?.id??null,changed=ownerObserved&&(account!==ownerAccount||accountSession!==ownerSession);
+   ownerObserved=true;ownerAccount=account;ownerSession=accountSession;snapshot=value;
+   // Retire the entire optional renderer before A→B or A→B→A can reuse an
+   // in-flight food owner. Session identity is opaque, never stringified.
+   if(changed&&desired){switchMode(true,canonicalItems?'canonical-items':'pip-prototype');return;}
+   active?.update(value);
+  },setGhost(value){if(value&&isCanonicalItemIntent(value)&&currentMode!=='canonical-items')return false;active?.setGhost(value);return true;},point:event=>active?.point(event)??null,hit:event=>active?.hit(event)??null,offsetPoint:(p,d)=>active?.offsetPoint(p,d)??null,
   setCanonicalActionPending:value=>{canonicalActionPending=!!value;active?.setCanonicalActionPending?.(value);},
   inspectCanonicalSlot:slotId=>active?.inspectCanonicalSlot?.(slotId),
   selectCanonicalSlot:slotId=>active?.selectCanonicalSlot?.(slotId),

@@ -1,0 +1,406 @@
+{
+  "base": "32981e328fbfc7993eb08c3bfcf6eb7634dceb53",
+  "baseTree": "e8530c918255a6826382fed42af1e4dd9fc82335",
+  "files": [
+    {
+      "path": ".github/workflows/yard-food-native.yml",
+      "bytes": 3902,
+      "sha256": "2b6c2a4a3625620135c0c2811c008dd529eed733885f6ba0c6af71f4b9e2aec0"
+    },
+    {
+      "path": "game-logic/yard-v2/CANONICAL-FOOD.md",
+      "bytes": 5722,
+      "sha256": "5e4f88f3a8ac6604534284681a6e4c1e2acdc619ff4d481ac160e59b2ac28d37"
+    },
+    {
+      "path": "game-logic/yard-v2/actions.mjs",
+      "bytes": 22727,
+      "sha256": "4d8cb5fbe4cc6394c130ef2d759295e560a4e65e1474e8274a1132cc432831d8"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-contract.json",
+      "bytes": 674,
+      "sha256": "d1abe6d5922fa855e4f4856bc633e628b767bdd0a22402e873d02882d5cb9461"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-contract.mjs",
+      "bytes": 2435,
+      "sha256": "667dd1877c20d1fa81ff0f688a862dac6bfb994667e5264ee1a0052646f05df0"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-protocol.mjs",
+      "bytes": 2125,
+      "sha256": "3297e848f038a5bd59ca25bbd8f5836a2079e54f0c6e563e7533590d01eeeaba"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-locations.mjs",
+      "bytes": 9553,
+      "sha256": "f7077c1e06005aa50a3873b2c16b020f4a2aa437ce2651ca25069c1df9e201e0"
+    },
+    {
+      "path": "game-logic/yard-v2/service.mjs",
+      "bytes": 11471,
+      "sha256": "75238caa094242d0ac83dcd7d72364c10e27f73ec21be19fe1421505f0d528ad"
+    },
+    {
+      "path": "qa/yard-food-native/README.md",
+      "bytes": 8923,
+      "sha256": "35ce6d4d09b775f1ba62da8b6cf1ca914fdea01b896a79e4fbe3d2e01e9db9ff"
+    },
+    {
+      "path": "qa/yard-food-native/allowed-files.json",
+      "bytes": 4257,
+      "sha256": "19e5048fe4c3865efab0b43a38b8b88f17576df2dd529bad9f47c162929f91a5"
+    },
+    {
+      "path": "qa/yard-food-native/analyze.mjs",
+      "bytes": 2300,
+      "sha256": "ffab6a352a7fd6d92f45e8774a08498afeb08d1068e70bf3e95b7536f4e6c193"
+    },
+    {
+      "path": "qa/yard-food-native/api-server.mjs",
+      "bytes": 1810,
+      "sha256": "fe62eb49e27b93ea25488724ec65f1bd4fead3328dd33af467b497e28ea39477"
+    },
+    {
+      "path": "qa/yard-food-native/browser.mjs",
+      "bytes": 4970,
+      "sha256": "0b2051ae8363d022e9a3d932b6c9c1504860cd4c713faf6442033ee6cad14697"
+    },
+    {
+      "path": "qa/yard-food-native/build.mjs",
+      "bytes": 2076,
+      "sha256": "0ab2b14615dee5149ca86a895b1c1740a9ef1f305810ac6f232c47ea5eb084f4"
+    },
+    {
+      "path": "qa/yard-food-native/config.mjs",
+      "bytes": 1286,
+      "sha256": "15430fa808fef431f0a8cfd59ecaa2738b6c2431e2ddc771af44e4293f8784ef"
+    },
+    {
+      "path": "qa/yard-food-native/evidence.mjs",
+      "bytes": 3657,
+      "sha256": "8ca7a6bad41fd10169c22348fa38e6519e6cfa3721c3992e1b93bb7996da82d7"
+    },
+    {
+      "path": "qa/yard-food-native/fixture-loader.mjs",
+      "bytes": 1720,
+      "sha256": "19fd0d5e7559b5cf66221abfed61029c80b0d444da438accf5901df81581b699"
+    },
+    {
+      "path": "qa/yard-food-native/fixture-options.mjs",
+      "bytes": 814,
+      "sha256": "bda5d4e70dbaff248911dfd70f9c92364df8b77e619a089388ddba984ffa47f0"
+    },
+    {
+      "path": "qa/yard-food-native/fixtures.mjs",
+      "bytes": 2734,
+      "sha256": "797f1fab40f02c01d932c37eb3aa43ceac02f0f3c33a6387ae4b94ba3604e6d3"
+    },
+    {
+      "path": "qa/yard-food-native/food.spec.mjs",
+      "bytes": 13247,
+      "sha256": "3e34660516bf660c86f33ab646a671e868b80db013e24ea28f3885a2c57fed23"
+    },
+    {
+      "path": "qa/yard-food-native/guard-run.mjs",
+      "bytes": 236,
+      "sha256": "9922cf00fb6a8ed9ced92737b0e4972b4ce785a9b4610a717aa0d8291f36e4e6"
+    },
+    {
+      "path": "qa/yard-food-native/harness.test.mjs",
+      "bytes": 7956,
+      "sha256": "4d53480566aa2bd06ce4dfa0ed272d4190e5d8dcdac604e94203b855689b1616"
+    },
+    {
+      "path": "qa/yard-food-native/identity.mjs",
+      "bytes": 558,
+      "sha256": "85db7703162c2c02a91c0fad5dc5121976798f09aeb980b4b8bcc8e73c9d8542"
+    },
+    {
+      "path": "qa/yard-food-native/path-audit.mjs",
+      "bytes": 2329,
+      "sha256": "54d8f126a0f5adbc8746c8fc6b54631ea168e1c38e9853b110ed646824894d41"
+    },
+    {
+      "path": "qa/yard-food-native/preflight.mjs",
+      "bytes": 4776,
+      "sha256": "acd1ac83e4ec03fb18f2cca178a8be81f032a49fd2b39342434dfd6b610461fd"
+    },
+    {
+      "path": "qa/yard-food-native/recorded-flow.mjs",
+      "bytes": 9828,
+      "sha256": "6523645dc924b232cb4ccd1f4b0eb4b9cb1c882a1ad7c07f83bdf166079ead29"
+    },
+    {
+      "path": "qa/yard-food-native/required-evidence.mjs",
+      "bytes": 2677,
+      "sha256": "576a10359da1bb41ad7d0dba71d22111cc57732c67b44a90b428c409fdcb6817"
+    },
+    {
+      "path": "qa/yard-food-native/seal.mjs",
+      "bytes": 1494,
+      "sha256": "e081763480d036cee5bc8f4987ad7bbd2d8bce20df158a1221b0e4c33c9582cf"
+    },
+    {
+      "path": "qa/yard-food-native/source-checks.mjs",
+      "bytes": 668,
+      "sha256": "0726fb38adffed44010a68d2eacfe80ba6395f320098fcbf874e9682908c275e"
+    },
+    {
+      "path": "qa/yard-food-native/source-gate.mjs",
+      "bytes": 1087,
+      "sha256": "726cf6be1edcf6a120839ba2624fcecea5dcb10b6b2df1f9f6def64776c631a5"
+    },
+    {
+      "path": "qa/yard-food-native/source-suites.json",
+      "bytes": 1580,
+      "sha256": "2f8ce275ebf108d8deeed577a8dc9b91bd31558034e0b7a18ff5b5b575ea30d2"
+    },
+    {
+      "path": "routes/player.js",
+      "bytes": 62683,
+      "sha256": "888f1ee9d25c51ed54eefef6b06678fe64f33cb9ec11c9977b826e4bb7199bd1"
+    },
+    {
+      "path": "scripts/yard-pip-build-closure.mjs",
+      "bytes": 6079,
+      "sha256": "da766b91c5556b4ccaf8581aa8f3c954a9ce4b29e5040cc282e9510ac866e520"
+    },
+    {
+      "path": "scripts/yard-renderer-chunk.mjs",
+      "bytes": 3413,
+      "sha256": "1ffdcbc95c1ca4df3c447efe19e694483bd56a8d7aea21f66cbeb67a6d1d9880"
+    },
+    {
+      "path": "scripts/yard-ui-media-budget.json",
+      "bytes": 28948,
+      "sha256": "65d5d2ce1d4506d195e1f47d46e1c86fea7bb7c45550677a42ca8d3278b5a523"
+    },
+    {
+      "path": "scripts/yard-ui-media-budget.mjs",
+      "bytes": 7681,
+      "sha256": "c7541b01be5ee80da5552e289a0488a2fed4c430b4200b563dd267abe9d3fa65"
+    },
+    {
+      "path": "src/game-state/canonicalYardItems.mjs",
+      "bytes": 2765,
+      "sha256": "a3be49668103eb979cf388be77e053214d12b4b3bf1c703cc83dba085259be59"
+    },
+    {
+      "path": "src/game-state/canonicalYardProtocol.mjs",
+      "bytes": 5035,
+      "sha256": "4694e1068ed05ca86b8ebed136c02de59262d221e7d5f8525337770bd76deafd"
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "bytes": 36264,
+      "sha256": "af1e78320d86b84647baaaed0237049d9a6d5c5a59dd6723013877bcdf38fff7"
+    },
+    {
+      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "bytes": 40971,
+      "sha256": "264b878fce90511807bf91731f062cd91e5cba9d706be1fa0b971ee02100c763"
+    },
+    {
+      "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
+      "bytes": 2038,
+      "sha256": "de0f3e83fb6dbb726cf1931a6e703d63b494b0ffed862c5766a36cec82fb52cd"
+    },
+    {
+      "path": "src/games/companion-yard-v2/feedback.mjs",
+      "bytes": 2030,
+      "sha256": "dbe46ad68b352c3de87ae12558a7d637b2204a4c962a214caa34cc72f8d5ec7d"
+    },
+    {
+      "path": "src/games/companion-yard-v2/i18n.js",
+      "bytes": 30101,
+      "sha256": "e358abfafa01f05a63b68f325df5f530b82e8dec39254a67d8735ce6d2189bd6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-preview-gate.mjs",
+      "bytes": 1141,
+      "sha256": "efb7ebb4223be0b9ccc6d54ea40ff351a195808143b699fdc2160685148c89b2"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/source-provenance.json",
+      "bytes": 955,
+      "sha256": "9b3341616be1c01f4eea2220d0d3e6ecfe3cebc590040ffc1a2ce51b38bc84bc"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb",
+      "bytes": 251996,
+      "sha256": "ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-food-scene.mjs",
+      "bytes": 1534,
+      "sha256": "5e5a9c6191f0de300c935eb96f251d980288e076fd3274cd51a68b1dc9c917e6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-navigation.mjs",
+      "bytes": 7152,
+      "sha256": "9f2da049d20e09f9fadd743149fd49cbc0572b6aeff014065946d4f0408a18df"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-controller.mjs",
+      "bytes": 8772,
+      "sha256": "a661bfd90adc55ac8ba3042d2a2ab40891742c065c76e00a5adf25892be37923"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-planner.mjs",
+      "bytes": 10630,
+      "sha256": "2d227cb987549ab4a5e26194292a2857e83ea3cd6cd5922749147a8d9680e0e5"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-trajectory.mjs",
+      "bytes": 5501,
+      "sha256": "8dc977a8af9cd8c141b3599a7cb0beff35c4ded5c2a4781cf06b0e2356fa35b7"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/fixture-clock.mjs",
+      "bytes": 1242,
+      "sha256": "40c45055c6e9248fa6af16e98213a98a8c5ab38128a7377abbdf8c35dd8d9a5b"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/adaptive-pose-driver.mjs",
+      "bytes": 7859,
+      "sha256": "31a6a1c165ec41b9951f41684a4188bb2d261e269c082250940314614125be8f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-food.mjs",
+      "bytes": 13206,
+      "sha256": "f13687a9daf377f3a6ec1240ff8ff5d41d8b87fdc53e38f50464ab7641b5882f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "bytes": 23641,
+      "sha256": "1b6767b1a641108521d8ada64c0da871f2afe7717cef4df20a037ca7662ac5b4"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "bytes": 28399,
+      "sha256": "b741b464e27ef64b06abc8e6d03d84aa09bff64aa75b06cf09bed6cd4538c3fb"
+    },
+    {
+      "path": "src/games/companion-yard-v2/placement-recovery.mjs",
+      "bytes": 3285,
+      "sha256": "6f27ca0285eed56ad1e08a3df4dfc8b7fae502ae27374a98b905a05bd0a9221f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-owner.mjs",
+      "bytes": 6587,
+      "sha256": "ad294ed7e4e80ccbb9e494eaaa2450940a52f487607db1d40c3748ca6922ff2d"
+    },
+    {
+      "path": "tests/fixtures/yard-pip-pose-replay/first-pass.json",
+      "bytes": 159383,
+      "sha256": "54ff0def77f7a9bcd107e1ef3f276085bfc55f72268407b63326bd2680330443"
+    },
+    {
+      "path": "tests/helpers/yard-food-prior-binary.mjs",
+      "bytes": 1119,
+      "sha256": "3c34c5323967389dc08ed3d634b841428d4e034abec769e8fd79e2a4ca3ca23c"
+    },
+    {
+      "path": "tests/yard-canonical-acquisition-ui.test.mjs",
+      "bytes": 14712,
+      "sha256": "bd9a06dee3d76993d5bd9b1f06dd50b0b38da5bb91cd98b3bfe1d9cf84fc3743"
+    },
+    {
+      "path": "tests/yard-canonical-food-api.test.mjs",
+      "bytes": 5379,
+      "sha256": "f03e7c3ed93a688cd78a0356b14dd9a3297416c52c1b79d2cd124f5df64a5cc0"
+    },
+    {
+      "path": "tests/yard-canonical-food-host-boundary.test.mjs",
+      "bytes": 3856,
+      "sha256": "8213dd87f626ecdf0337fe8794b488e2c8c77a06cfdbb1784e76c2e9c023c4b2"
+    },
+    {
+      "path": "tests/yard-canonical-food-host-navigation.test.mjs",
+      "bytes": 5082,
+      "sha256": "94179c13a458808aaa7507f682a371534eeee7ec99bf79c20f5da8bb99cba550"
+    },
+    {
+      "path": "tests/yard-canonical-food-host-scene.test.mjs",
+      "bytes": 16903,
+      "sha256": "d71eb6c9683aa45ed42cfc63311457ea5ce333b7dfdf53e06bb38ab0610fb19c"
+    },
+    {
+      "path": "tests/yard-canonical-food-host-ui.test.mjs",
+      "bytes": 12119,
+      "sha256": "67290a78e5fa161c862cf395e2a40a08a3648f4bc331dcf329075679fb8fe943"
+    },
+    {
+      "path": "tests/yard-canonical-food-location.test.mjs",
+      "bytes": 10970,
+      "sha256": "b7b27a2df71322e04e875b31cc655390d5d76b3118ba5139834054c48259917d"
+    },
+    {
+      "path": "tests/yard-canonical-food-outbox.test.mjs",
+      "bytes": 7940,
+      "sha256": "61b2dea5be3b739f81f2703b0b0a1c9863b9b10345eb409593ed4b4dc7681c5b"
+    },
+    {
+      "path": "tests/yard-canonical-food-render-host.test.mjs",
+      "bytes": 14056,
+      "sha256": "a363d5a0427d7b2c6df1e26bf3578851fc0b324002b4a9c2d62ec3a9dd288593"
+    },
+    {
+      "path": "tests/yard-canonical-food-renderer.test.mjs",
+      "bytes": 17569,
+      "sha256": "cd7a9a6406816d67cb914cc0decd87beee2e4e0bdc02c4605531301c2062a6b5"
+    },
+    {
+      "path": "tests/yard-canonical-pg-guard.test.mjs",
+      "bytes": 6246,
+      "sha256": "f266792587d82ff7b81c70b5f60b6bd96b1e451923c2acb903aa4ee99e23c60b"
+    },
+    {
+      "path": "tests/yard-continuous-obstacle-detour.test.mjs",
+      "bytes": 9722,
+      "sha256": "316db34c2e35ecc1f4bb9aef6fffbb2f3504e3db9433207222f3d695b6819ba7"
+    },
+    {
+      "path": "tests/yard-dynamic-prop-inspection.test.mjs",
+      "bytes": 13478,
+      "sha256": "fffdf115565f3f38d3ee7b89885be6e85be63ae3c3f922e3c37aa9f122f8d879"
+    },
+    {
+      "path": "tests/yard-pip-integration.test.mjs",
+      "bytes": 19378,
+      "sha256": "d7f5ad9f31bba5c5ac6d17fb94ad9c38065ce4b079399520f66048a9082ea579"
+    },
+    {
+      "path": "tests/yard-pip-pose-replay.test.mjs",
+      "bytes": 9987,
+      "sha256": "7a6071b2eb2175e7fd891fcc68c306edb55f57d3cef604b66abccc75ed5ce677"
+    },
+    {
+      "path": "tests/yard-renderer-chunk.test.mjs",
+      "bytes": 8260,
+      "sha256": "83ba17edd08c3ee48148597b77c38844bbcd84b2c2fd302812cfef91143d0687"
+    },
+    {
+      "path": "tests/yard-ui-media-budget.test.mjs",
+      "bytes": 6424,
+      "sha256": "fd1cb0f88214f7bc6ffaab6d575d2852f8004bda7bf0d5cc02a4e0843c91a90d"
+    },
+    {
+      "path": "vite.config.js",
+      "bytes": 8440,
+      "sha256": "9022b8213921ce834d9ad49f97f9bd1f09acfc505f463dfd70558079507ea515"
+    }
+  ],
+  "limits": {
+    "jobMinutes": 10,
+    "browserSeconds": 220,
+    "artifactBytes": 8388608,
+    "retentionDays": 3,
+    "retries": 0,
+    "rgba": 67108864,
+    "knownCPU": 16777216,
+    "estimatedGPU": 12582912
+  }
+}

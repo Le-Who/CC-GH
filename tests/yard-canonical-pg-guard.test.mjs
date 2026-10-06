@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {randomUUID} from 'node:crypto';
 import {readFileSync} from 'node:fs';
-import {spawnSync} from 'node:child_process';
+import {spawnSync,execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import {assertCanonicalPgEnvironment,assertCanonicalPgCommand,canonicalTestSource,assertCanonicalPgData,CANONICAL_PG_DATA_SHA256,CANONICAL_PG_NOW as NOW} from './helpers/yard-canonical-pg-guard.mjs';
 const env={YARD_CANONICAL_PG_TEST:'1',YARD_V2_PG_TEST:'1',YARD_V2_PG_TARGET:'integrated',CI:'true',NODE_ENV:'test',
@@ -29,8 +29,8 @@ test('canonical gate retains exact disposable database guards and excludes impli
   assert.throws(()=>assertCanonicalPgEnvironment({...api,YARD_PLAYER_WIRING_TEST:'1'},{api:true}));
 });
 
-test('test capability uses exactly the pinned closed source and changes one declaration only',()=>{
-  const source=readFileSync(new URL('../game-logic/yard-v2/canonical-locations.mjs',import.meta.url),'utf8');
+test('historical test capability uses the exact pinned parent source and changes one declaration only',()=>{
+  const source=execFileSync('git',['show','32981e328fbfc7993eb08c3bfcf6eb7634dceb53:game-logic/yard-v2/canonical-locations.mjs'],{cwd:new URL('../',import.meta.url),encoding:'utf8'});
   const changed=canonicalTestSource(source);
   assert.equal(changed.replace('export const CANONICAL_ITEM_PLACEMENT_ENABLED = true;','export const CANONICAL_ITEM_PLACEMENT_ENABLED = false;'),source);
   for(const text of [source+'\n',changed,source.replace('false;','false;\n// drift')])assert.throws(()=>canonicalTestSource(text));
@@ -39,6 +39,11 @@ test('test capability uses exactly the pinned closed source and changes one decl
     assert.doesNotThrow(()=>assertCanonicalPgData(name,data));assert.throws(()=>assertCanonicalPgData(name,data+'\n'));
     if(name==='canonical-item-protocol.json'){const p=JSON.parse(data);assert.equal(p.maxPlacements,2);assert.equal(p.item.capacity,1);}
   }
+});
+
+test('current food source is refused by the unchanged historical capability guard',()=>{
+  const current=readFileSync(new URL('../game-logic/yard-v2/canonical-locations.mjs',import.meta.url),'utf8');
+  assert.throws(()=>canonicalTestSource(current),/Canonical source changed/);
 });
 
 test('IPC command allowlist rejects arbitrary actions, payload geometry and timestamps',()=>{

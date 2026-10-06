@@ -1,3 +1,4 @@
+import {CANONICAL_FOOD_LOCATION} from '../../game-state/canonicalYardProtocol.mjs';
 import {CANONICAL_LOCATION,isCanonicalItemIntent,isCanonicalItemNonce} from '../../game-state/canonicalYardItems.mjs';
 /** UI guards only. The public outbox keeps sole ownership of nonce and payload. */
 export const LOCAL_PLACEMENT_ERRORS=new Set(['OUTBOX_STORAGE_UNAVAILABLE','OUTBOX_STORAGE_INVALID','ACCOUNT_REQUIRED','ACCOUNT_CHANGED']);
@@ -37,6 +38,6 @@ function validPlacementPayload(item){
  const p=item.payload||{},canonical=isCanonicalItemIntent(p,item.clientActionId);
  if(!canonical)return Object.keys(p).length===4&&['slotId','goodieId'].every(key=>typeof p[key]==='string'&&p[key]);
  return isCanonicalItemNonce(item.clientActionId)&&Object.keys(p).length===(item.action==='yard.placeGoodie'?7:6)
-  &&Object.entries(CANONICAL_LOCATION).every(([key,v])=>p[key]===v)&&/^canonical:[A-Za-z0-9_.:-]{1,80}$/.test(p.slotId)
+  &&[CANONICAL_LOCATION,CANONICAL_FOOD_LOCATION].some(scope=>Object.entries(scope).every(([key,v])=>p[key]===v))&&/^canonical:[A-Za-z0-9_.:-]{1,80}$/.test(p.slotId)
   &&(item.action!=='yard.placeGoodie'||p.goodieId==='leaf_pot');
 }

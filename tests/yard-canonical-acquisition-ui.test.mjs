@@ -6,9 +6,10 @@ import {registerHooks} from 'node:module';
 import {readFileSync} from 'node:fs';
 import {transformSync} from 'esbuild';
 import {createDefaultPlayer} from '../game-logic/player.js';
-import {ensurePersistentPlayerYard,publicPersistentYard} from '../game-logic/yard-v2/service.mjs';
+import {ensurePersistentPlayerYard,publicPersistentYard,executePersistentYardAction} from '../game-logic/yard-v2/service.mjs';
 import {courtyardPresentation} from '../src/games/companion-yard-v2/presentation.mjs';
 import {MIKA_CLIPS} from '../game-logic/yard-v2/media/mika-clips.mjs';
+import {checkCanonicalPlacement} from '../src/game-state/canonicalYardItems.mjs';
 import {NOW} from './helpers/yard-canonical-item-fixture.mjs';
 const componentURL=new URL('../src/games/companion-yard-v2/CourtyardGame.jsx',import.meta.url).href;
 const adapters={
@@ -51,7 +52,7 @@ function setup(t,snap=snapshot(),{canonical=true,ready=true}={}){
  useRef(initial){const index=cursor++;return slots[index]??=( {current:initial} );},
  useEffect(fn,deps){const index=effectCursor++,prior=effects[index];if(!prior||!deps||deps.some((d,i)=>d!==prior.deps[i]))pendingEffects.push(()=>{prior?.cleanup?.();effects[index]={deps,cleanup:fn()};});},
  element(type,props,children){if(props?.ref&&!props.ref.current)props.ref.current={open:false,focus(){},showModal(){this.open=true;},close(){this.open=false;}};return{type,props:{...props,children}};},
- scene(o){options=o;return{update(){},dispose(){},setCanonicalActionPending(){},setGhost(){},endPointer(){}};},
+ scene(o){options=o;return{update(){},dispose(){},setCanonicalActionPending(){},setGhost(){},endPointer(){},defaultItemAnchor(){return{x:98,y:118};},checkPlacement(ghost){return checkCanonicalPlacement(harness.state.snapshot,ghost);}};},
  render(){cursor=0;effectCursor=0;tree=CourtyardGame({allowPipPrototype:true});for(const effect of pendingEffects.splice(0))effect();return tree;},
  find(attribute,value){return nodes(tree).find(n=>n.props?.[attribute]===value);},
  publish({canonical:mode=canonical,ready:media=ready}={}){options.onView({...courtyardPresentation(harness.state.snapshot,NOW,MIKA_CLIPS),mutable:mode?false:media&&harness.state.snapshot.yardRuntime.mutable,canonicalItems:mode,mediaReady:media});harness.render();},
@@ -116,4 +117,24 @@ test('a retained purchase shows pending recovery after reload even after snapsho
 
 test('ordinary writable Yard shop keeps its existing supported catalog actions',async t=>{
  const ui=setup(t,snapshot(),{canonical:false}),button=ui.shop();assert.equal(button.props.disabled,false);await button.props.onClick();assert.equal(ui.sent.length,1);assert.equal(ui.sent[0].action,'yard.buyGoodie');assert.equal(ui.sent[0].payload.goodieId,'yarn_mouse');
+});
+
+
+test('food-aware UI retains a rejected original attempt visibly and permits an explicit new v2 placement',async t=>{
+ const p=createDefaultPlayer('acquisition-owner','Owner',NOW);p.yard.goodieInventory.leaf_pot=1;ensurePersistentPlayerYard(p,{now:NOW});
+ const snap={player:{id:p.id,syncSeq:0},serverTime:NOW,yard:structuredClone(p.yard),yardRuntime:publicPersistentYard(p,{now:NOW,canonicalItemPlacementEnabled:true,canonicalFoodLocationEnabled:true})};
+ const ui=setup(t,snap),rejected={accountId:p.id,action:'yard.placeGoodie',clientActionId:'yard-v2:canonical-v1/held',payload:{slotId:'canonical:original',goodieId:'leaf_pot',x:80,y:82,locationId:'pip-garden',locationVersion:1,geometryRevision:'pip-garden-t2-r1'},status:'failed',requiresUserDecision:true,blockedReason:'CANONICAL_COMMAND_SUPERSEDED'};
+ ui.state.pendingActions=[structuredClone(rejected)];ui.render();assert.equal(ui.find('id','yardVisitStatus').props.children[0],'yard.canonical.superseded');
+ ui.find('data-nav-item','decor').props.onClick();ui.render();assert.ok(ui.find('data-yard-rejected-intent',rejected.clientActionId));ui.find('data-decor-tab','inventory').props.onClick();ui.render();
+ const button=ui.find('data-yard-action','place');assert.equal(button.props.disabled,false);button.props.onClick();ui.render();
+ const commit=ui.find('data-yard-action','commit-placement');assert.equal(commit.props.disabled,false);await commit.props.onClick();
+ assert.equal(ui.sent.length,1);assert.equal(ui.sent[0].payload.geometryRevision,'pip-garden-t2-food-r2');assert.match(ui.sent[0].options.clientActionId,/^yard-v2:canonical-v2\//);assert.deepEqual(ui.state.pendingActions[0],rejected);
+});
+
+test('food-aware UI can pick up the unchanged saved v1 row that occupies its food socket',async t=>{
+ const p=createDefaultPlayer('acquisition-owner','Owner',NOW);p.yard.goodieInventory.leaf_pot=1;ensurePersistentPlayerYard(p,{now:NOW});
+ assert.equal(executePersistentYardAction(p,'yard.placeGoodie',{locationId:'pip-garden',locationVersion:1,geometryRevision:'pip-garden-t2-r1',slotId:'canonical:overlap',goodieId:'leaf_pot',x:80,y:82},{now:NOW,actionId:'yard-v2:canonical-v1/old',canonicalItemPlacementEnabled:true}).status,200);
+ const snap={player:{id:p.id,syncSeq:0},serverTime:NOW,yard:structuredClone(p.yard),yardRuntime:publicPersistentYard(p,{now:NOW,canonicalItemPlacementEnabled:true,canonicalFoodLocationEnabled:true})};
+ const ui=setup(t,snap);ui.find('data-nav-item','decor').props.onClick();ui.render();ui.find('data-decor-tab','placed').props.onClick();ui.render();
+ const button=ui.find('data-yard-action','pickup');assert.equal(button.props.disabled,false);await button.props.onClick();assert.equal(ui.sent.length,1);assert.equal(ui.sent[0].payload.geometryRevision,'pip-garden-t2-food-r2');assert.equal(ui.sent[0].payload.slotId,'canonical:overlap');assert.match(ui.sent[0].options.clientActionId,/^yard-v2:canonical-v2\//);
 });

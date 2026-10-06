@@ -40,13 +40,18 @@ export function createCanonicalNavigation({geometry,rows,actor,itemRadius=4.65,m
  const segment=(a,b)=>passable(a)&&passable(b)&&boundary.every(e=>segmentDistance(a,b,...e)>=clearance-EPS)&&visual.hull([a,b]);
  function clearPolygon(poly){const h=poly.map(xy);return h.every(p=>inside(p,ground))&&!edges(h).some(e=>edges(ground).some(f=>segmentDistance(...e,...f)<EPS))&&!ground.some(p=>inside(p,h))&&!obstacles.some(o=>overlap(h,o));}
  function clearControlHull(points){const h=convexHull(points);if(!h.length)return false;if(h.length===1)return passable(h[0]);return h.every(passable)&&!obstacles.some(o=>o.some(p=>inside(p,h)))&&boundary.every(e=>edges(h).every(f=>segmentDistance(...e,...f)>=clearance-EPS))&&visual.hull(h);}
- let cells=null;
+ let cells=null,cachedEntry=null,cachedReachable=null;
  function withEntry(entry){
+  // All anchor candidates in one plan share the actual supported departure.
+  // Keep just one bounded flood, replacing it when that entry changes.
+  if(cachedEntry&&entry.x===cachedEntry.x&&entry.y===cachedEntry.y)return cachedReachable;
   if(!cells){cells=new Map();for(let y=0;y<=220;y+=2)for(let x=0;x<=200;x+=2){const p={x,y};if(passable(p))cells.set(`${x},${y}`,p);}}
   const nearest=p=>[...cells].filter(([,q])=>distance(p,q)<=3&&segment(p,q)).sort((a,b)=>distance(p,a[1])-distance(p,b[1])||a[0].localeCompare(b[0]))[0]?.[0];
   const start=nearest(entry),parents=new Map(),queue=[];if(start){parents.set(start,null);queue.push(start);}
   for(let i=0;i<queue.length;i++){const k=queue[i],p=cells.get(k);for(const [dx,dy] of [[0,-2],[-2,0],[2,0],[0,2],[-2,-2],[2,-2],[-2,2],[2,2]]){const key=`${p.x+dx},${p.y+dy}`,q=cells.get(key);if(q&&!parents.has(key)&&segment(p,q)){parents.set(key,k);queue.push(key);}}}
-  return {...api,entryReachable:!!start,reachableCells:parents.size,routeTo(target){const end=nearest(target);if(!end||!parents.has(end))return null;const points=[target];let k=end;while(k!==null){points.push(cells.get(k));k=parents.get(k);}points.push(entry);points.reverse();return {points};}};
+  const origin={x:entry.x,y:entry.y};cachedEntry=origin;
+  cachedReachable={...api,entryReachable:!!start,reachableCells:parents.size,routeTo(target){const end=nearest(target);if(!end||!parents.has(end))return null;const points=[target];let k=end;while(k!==null){points.push(cells.get(k));k=parents.get(k);}points.push({...origin});points.reverse();return {points};}};
+  return cachedReachable;
  }
  const api={passable,segment,clearance,clearPolygon,clearControlHull,withEntry,visualPoint:visual.point,visualHull:visual.hull,clearBox:r=>clearPolygon([{x:r.x,y:r.y},{x:r.x+r.width,y:r.y},{x:r.x+r.width,y:r.y+r.height},{x:r.x,y:r.y+r.height}]),rows:structuredClone(rows),layoutKey:canonicalLayoutKey(geometry,rows)};return api;
 }

@@ -7,7 +7,9 @@ import {FOUNDATION_FORMAT} from './migration.mjs';
 import {YARD_FOODS,YARD_GOODIES,YARD_VISITORS,YARD_REMODELS,YARD_EXPANSIONS,YARD_SPECIES,YARD_SLOT_LAYOUTS} from './catalog.mjs';
 import {clone,digest,hash32,integer,assertInteger,addCount,lookup,put,deepFreeze,workingCopy} from './util.mjs';
 import {hexToBase64url} from './sha256.mjs';
-import {isCanonicalItemIntent,isCanonicalItemNonce,canonicalItemGate,applyCanonicalItemAction,CANONICAL_LOCATION} from './canonical-locations.mjs';
+import {isCanonicalItemIntent,isCanonicalItemNonce,canonicalItemGate,applyCanonicalItemAction,CANONICAL_LOCATION,canonicalCommandLocation,CANONICAL_ACTION_NONCE_PREFIX,isCanonicalItemAction} from './canonical-locations.mjs';
+
+import {CANONICAL_FOOD_LOCATION,CANONICAL_FOOD_NONCE_PREFIX} from './canonical-food-protocol.mjs';
 
 const receiptPolicy='Required stable actionId; digest(action,payload); exact old player receipt replay before simulation; new intent must use yard-v2: nonce; mismatch409; state+receipt must commit atomically';
 const contract=(payload,effects,extras,guards=[],deviations=[])=>({payload,effects,extras,guards,deviations,receiptPolicy});
@@ -81,14 +83,27 @@ export function applyYardAction(input,action,payload={},options={}) {
  if(!canonicalIntent&&!/^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(actionId))return rawFailure(409,'LEGACY_NONCE_REQUIRES_NEW_PROTOCOL_INTENT');
  if(!integer(now)||now<input.runtime.cursorMs||now>8640000000000000)return rawFailure(400,'INVALID_ACTION_TIME');
  if(canonicalIntent){
+  const scope=canonicalCommandLocation(options);
+  // A durable rejection is only legitimate under the actually enabled v2
+  // command contract. Disabled/unknown deployments still quarantine unchanged.
+  if(scope===CANONICAL_FOOD_LOCATION&&canonicalItemGate(action,{...payload,...scope},options)===null&&isCanonicalItemAction(action)
+    &&actionId.startsWith(CANONICAL_ACTION_NONCE_PREFIX)&&Object.entries(CANONICAL_LOCATION).every(([k,v])=>payload[k]===v)){
+   const state=workingCopy(input);state.runtime.commandReceipts??={};
+   const details={disposition:'retained-user-decision',actionId,requestHash,replacementScope:clone(scope)};
+   const receipt={format:RECEIPT_FORMAT,actionId,action,requestHash,at:now,status:400,error:'CANONICAL_COMMAND_SUPERSEDED',details};
+   put(state.runtime.commandReceipts,actionId,receipt);
+   return {state,status:400,error:receipt.error,details:clone(details),receipt:clone(receipt)};
+  }
+  const expectedPrefix=scope===CANONICAL_FOOD_LOCATION?CANONICAL_FOOD_NONCE_PREFIX:CANONICAL_ACTION_NONCE_PREFIX;
+  if(!actionId.startsWith(expectedPrefix))return rawFailure(409,'CANONICAL_NONCE_REQUIRED');
   const gate=canonicalItemGate(action,payload,options);
   if(gate)return rawFailure(409,gate);
   // Canonical item operations do not advance or rewrite the historical scene.
   // The existing old-yard clock catches up through its ordinary entry points.
-  const state=workingCopy(input),result=applyCanonicalItemAction(state,action,payload,{now});
+  const state=workingCopy(input),result=applyCanonicalItemAction(state,action,payload,{...options,now});
   const next=result.status===200?state:workingCopy(input);next.runtime.commandReceipts??={};
   const receipt={format:RECEIPT_FORMAT,actionId,action,requestHash,at:now,status:result.status,
-   ...CANONICAL_LOCATION,...(result.error?{error:result.error}:{}),...(result.extras?{extras:clone(result.extras)}:{})};
+   ...scope,...(result.error?{error:result.error}:{}),...(result.extras?{extras:clone(result.extras)}:{})};
   put(next.runtime.commandReceipts,actionId,receipt);
   return {...result,state:next,receipt:clone(receipt)};
  }

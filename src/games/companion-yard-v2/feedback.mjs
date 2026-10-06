@@ -1,5 +1,8 @@
 /** Display translation only; persisted transport/domain codes stay unchanged. */
 export const YARD_FEEDBACK_KEYS={
+  "CANONICAL_COMMAND_SUPERSEDED": "yard.canonical.superseded",
+  "CANONICAL_NEW_INTENT_SCOPE_REQUIRED": "yard.canonical.refreshPlacement",
+  "CANONICAL_FOOD_REGION_RESERVED": "yard.canonical.foodReserved",
   "CANONICAL_INTERACTION_UNAVAILABLE": "yard.canonical.interaction.unavailable",
   "CANONICAL_ACTOR_OCCUPIED": "yard.persistent.placement.actor",
   "LEGACY_NONCE_REQUIRES_NEW_PROTOCOL_INTENT": "yard.canonical.pending",

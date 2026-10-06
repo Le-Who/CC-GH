@@ -66,7 +66,7 @@ import {
 } from "../game-logic.js";
 import {initializeReleasedPlayerYard,executeReleasedYardAction,releasedYardSnapshot,requireReleasedPlayerYard,inspectReleasedYardTarget,usesPersistentYard} from '../game-logic/yard-v2/player-release.mjs';
 import {yardCommandConflict} from '../game-logic/yard-v2/service.mjs';
-import {CANONICAL_ACTION_NONCE_PREFIX,isCanonicalItemAction} from '../game-logic/yard-v2/canonical-locations.mjs';
+import {isCanonicalItemAction} from '../game-logic/yard-v2/canonical-locations.mjs';
 import { withPlayerLock, afterPlayerCommit } from "../playerManager.js";
 import { GARDEN_ACCOUNTING_ACTIONS, getGardenAccounting, gardenAccountingView, validateGardenSync, reconcileGardenIntent, applyGardenTransaction } from "../game-logic/garden-transactions.js";
 import { GARDEN_R2_RELEASE_POLICY } from "../game-logic/garden-r2/catalog.js";
@@ -1288,7 +1288,7 @@ export async function applyAction(p, action, payload = {}, options = {}) {
 export async function applyActionWithReceipt(p, action, payload = {}, meta = {}) {
   // Reserve this namespace before any domain dispatch. The generic normalizer
   // excludes '/', so falling through would silently execute without a receipt.
-  if (typeof meta.clientActionId==='string' && meta.clientActionId.trimStart().startsWith(CANONICAL_ACTION_NONCE_PREFIX)
+  if (typeof meta.clientActionId==='string' && /^yard-v2:canonical-v/.test(meta.clientActionId.trimStart())
     && !isCanonicalItemAction(action)) {
     const conflict=yardCommandConflict(p,action,meta.clientActionId);
     return fail(409,conflict||'CANONICAL_ACTION_UNSUPPORTED',{code:conflict||'CANONICAL_ACTION_UNSUPPORTED',clientActionId:meta.clientActionId});

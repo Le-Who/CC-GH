@@ -676,6 +676,12 @@
       "sha256": "526eb18659598971fd7f8b32a78ce860727e2f3197a86cfe688a6bad025b21c0",
       "width": 128,
       "height": 128
+    },
+    {
+      "path": "assets/yard-food-source-r2-ed618ed41d65.glb",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb",
+      "bytes": 251996,
+      "sha256": "ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66"
     }
   ]
 }

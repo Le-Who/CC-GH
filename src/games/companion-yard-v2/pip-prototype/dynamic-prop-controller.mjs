@@ -61,10 +61,10 @@ export function createCanonicalInspectionController({geometry,actor,rows=[],entr
   if(phase==='settled'){completed++;plan=null;}
   return sample;
  }
- function updateLayout(nextRows,at=lastAt){
-  tick(at);const next=structuredClone(nextRows),nextKey=canonicalLayoutKey(geometry,next);if(nextKey===key)return false;
+ function updateLayout(nextRows,at=lastAt,{geometry:nextGeometry=geometry}={}){
+  tick(at);const next=structuredClone(nextRows),nextKey=canonicalLayoutKey(nextGeometry,next);if(nextKey===key)return false;
   // Validate the new authoritative rows before replacing the current registry.
-  createCanonicalNavigation({geometry,rows:next,actor,composition});committed=next;key=nextKey;
+  createCanonicalNavigation({geometry:nextGeometry,rows:next,actor,composition});geometry=nextGeometry;committed=next;key=nextKey;
   if(planning){planning=null;invalidations++;if(committed.some(r=>r.slotId===targetSlotId)&&valid(sample.world))admit(targetSlotId,at);else {phase=valid(sample.world)?'cancelled':'blocked-occupancy';error=committed.some(r=>r.slotId===targetSlotId)?'COMMITTED_LAYOUT_OVERLAPS_ACTOR':'TARGET_REMOVED';}return true;}
   if(recovery){pendingTarget=pendingTarget&&committed.some(r=>r.slotId===pendingTarget)?pendingTarget:null;recovery={...recovery,id:++serial,start:at,from:structuredClone(sample)};if(!valid(sample.world)){phase='blocked-occupancy';error='COMMITTED_LAYOUT_OVERLAPS_ACTOR';}return true;}
   if(plan)startRecovery(committed.some(r=>r.slotId===targetSlotId)?'LAYOUT_CHANGED':'TARGET_REMOVED',at,committed.some(r=>r.slotId===targetSlotId)?targetSlotId:null);

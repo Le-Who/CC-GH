@@ -1,7 +1,8 @@
+import{canonicalFoodSceneState,canonicalFoodNavigationGeometry}from'./canonical-food-scene.mjs';
 import canonicalGeometry from '../../../../game-logic/yard-v2/canonical-location-geometry.json' with {type:'json'};
 import{createCanonicalInspectionController}from'./dynamic-prop-controller.mjs';
 import{createCanonicalPlannerWorker}from'./dynamic-prop-worker-client.mjs';
-import{CANONICAL_LOCATION,CANONICAL_ITEM,canonicalCapability,canonicalPlacements,canonicalItemState,checkCanonicalPlacement}from'../../../game-state/canonicalYardItems.mjs';
+import{CANONICAL_LOCATION,CANONICAL_ITEM,canonicalCapability,canonicalCommandScope,canonicalPlacements,canonicalItemState,checkCanonicalPlacement}from'../../../game-state/canonicalYardItems.mjs';
 import{canonicalItemCatalog}from'./item-catalog.mjs';
 import{assertWorldScale}from'./world-scale.mjs';
 import{pipGroundingRecipe,createPipGardenLighting}from'./grounding-recipe.mjs';
@@ -16,12 +17,13 @@ import{courtyardPresentation}from'../presentation.mjs';
 import{MIKA_CLIPS}from'../../../../game-logic/yard-v2/media/mika-clips.mjs';
 
 /** Real Yard scene interface, separate inactive location, no gameplay writes. */
-export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{},onPrototypeState=()=>{},onFailure=()=>{},onPointerInterrupt=()=>{},now=()=>performance.now(),
- groundingRecipe='baseline',canonicalItems=false,canonicalActionPending=false,plannerWorkerFactory=createCanonicalPlannerWorker,rendererFactory=createOptionalPipRenderer,fetchImpl=fetch,decodeImage=createImageBitmap,requestFrame=requestAnimationFrame,cancelFrame=cancelAnimationFrame}={}){
+export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{},onPrototypeState=()=>{},onFailure=()=>{},onPointerInterrupt=()=>{},onRestartRequired=()=>{},now=()=>performance.now(),
+ groundingRecipe='baseline',canonicalFoodPreview=false,ownerKey={},canonicalItems=false,canonicalActionPending=false,plannerWorkerFactory=createCanonicalPlannerWorker,rendererFactory=createOptionalPipRenderer,fetchImpl=fetch,decodeImage=createImageBitmap,requestFrame=requestAnimationFrame,cancelFrame=cancelAnimationFrame}={}){
  const grounding=pipGroundingRecipe(groundingRecipe);
  if(!directHost?.appendChild||!uiImageOwner)throw Error('Stage and UI resource owners required');
  if(canonicalItems)uiImageOwner.registerCatalog(canonicalItemCatalog);
  const abort=new AbortController(),ctx=canvas.getContext('2d');
+ let restartPending=false,foodReentryRequired=false,admittedFoodReservation=null,foodSelection=null,foodLoad=null,foodLoading=false,foodOwnerKey=ownerKey,lastRendererDiagnostics=null,rendererRetirement=Promise.resolve();
  let disposed=false,api=null,image=null,setup=null,descriptor=null,projection=null,run=null,snapshot=null,lastFrame=null,inspectionCount=0,placementIndex=0,ghost=null,itemPointerActive=false,selectedSlotId=null,interaction=null,plannerWorker=null,interactionError=null;
  // Full current UI lifetime, including 1,516,600 B catalogue and new R1 portrait.
  let uiBytes=Math.max(uiImageLifetimeLedger(canonicalItems?canonicalItemCatalog:null).bytes,19138304,uiImageOwner.snapshot().bytes),backgroundBytes=0,directSurfaceBytes=0,lastResources=null,peakRgba=0,frameCount=0,lastPhase='loading',retirement=null;
@@ -30,15 +32,17 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  const viewportReady=new Promise(resolve=>{resolveViewport=resolve;});
  const initialVisibility={canvas:canvas.style?.visibility??'',direct:directHost.style?.visibility??''};
  function hideSurface(hidden){if(canvas.style)canvas.style.visibility=hidden?'hidden':initialVisibility.canvas;if(directHost.style)directHost.style.visibility=hidden?'hidden':initialVisibility.direct;}
- const phase=()=>viewportBlocked?'viewport-blocked':!api?'loading':canonicalItems?(!canonicalItemState(snapshot).available?'unavailable':ghost||canonicalActionPending?'editing':interaction?.state.phase||'items'):clock.paused?'paused':lastFrame?.elapsedMs>=run?.route.totalMs?'settled':'moving';
+ const phase=()=>foodReentryRequired?'reentry-required':restartPending?'loading':viewportBlocked?'viewport-blocked':!api?'loading':canonicalItems?(!canonicalItemState(snapshot).available?'unavailable':ghost||canonicalActionPending?'editing':interaction?.state.phase||'items'):clock.paused?'paused':lastFrame?.elapsedMs>=run?.route.totalMs?'settled':'moving';
  clock.setReason('ready',true);clock.setReason('hidden',document.hidden);clock.setReason('blur',!document.hasFocus());
- const state=()=>({enabled:!disposed,groundingRecipe:grounding.id,canonicalItems,itemEditing:!!ghost,itemActionPending:canonicalActionPending,plannerWorkerActive:!!plannerWorker,selectedCanonicalSlotId:selectedCommitted()?.slotId??null,interaction:interaction?.state??(interactionError?{phase:"unavailable",error:interactionError,savedVisitor:false}:null),phase:lastPhase,viewportBlocked,rejectedViewport,viewportRefusals,viewportRecoveries,minimumStage:CLEAN_STAGE_MIN,intention:canonicalItems?'canonical-item-inspection':run?.kind??null,attention:lastFrame?.intention??null,inspectionCount,placementIndex,settled:canonicalItems?interaction?.state.phase==='settled':!!lastFrame&&lastFrame.elapsedMs>=run?.route.totalMs,pauseReasons:clock.reasons,ready:!!api,domain:'pip-clean-garden-prototype-v1',actorUnitsPerSource:setup?.actor.unitsPerSource??null,scaleApproval:descriptor?.scaleApproval??null,savedVisitor:false});
+ const foodState=()=>canonicalFoodSceneState(snapshot,{enabled:canonicalItems&&canonicalFoodPreview});
+ const navigationGeometry=()=>canonicalFoodNavigationGeometry(canonicalGeometry,foodState());
+ const state=()=>({canonicalFood:canonicalItems&&canonicalFoodPreview?{...foodState(),render:foodSelection,loading:foodLoading,reentryRequired:foodReentryRequired}:null,enabled:!disposed,restartPending,groundingRecipe:grounding.id,canonicalItems,itemEditing:!!ghost,itemActionPending:canonicalActionPending,plannerWorkerActive:!!plannerWorker,selectedCanonicalSlotId:selectedCommitted()?.slotId??null,interaction:interaction?.state??(interactionError?{phase:"unavailable",error:interactionError,savedVisitor:false}:null),phase:lastPhase,viewportBlocked,rejectedViewport,viewportRefusals,viewportRecoveries,minimumStage:CLEAN_STAGE_MIN,intention:canonicalItems?'canonical-item-inspection':run?.kind??null,attention:lastFrame?.intention??null,inspectionCount,placementIndex,settled:canonicalItems?interaction?.state.phase==='settled':!!lastFrame&&lastFrame.elapsedMs>=run?.route.totalMs,pauseReasons:clock.reasons,ready:!!api,domain:'pip-clean-garden-prototype-v1',actorUnitsPerSource:setup?.actor.unitsPerSource??null,scaleApproval:descriptor?.scaleApproval??null,savedVisitor:false});
  const notify=phase=>{if(disposed)return;if(phase)lastPhase=phase;onPrototypeState(state());};
  const reportFailure=(error,operation)=>{let renderer=null;try{renderer=api?.diagnostics??null;}catch(secondary){renderer={diagnosticsError:String(secondary?.message||secondary)};}
   onFailure(error,{operation,phase:phase(),canonicalItems,ghost:ghost?{slotId:ghost.slotId,x:ghost.x,y:ghost.y,placing:ghost.placing,valid:ghost.valid}:null,viewport:projection?{width:projection.width,height:projection.height,art:{...projection.art}}:null,backing:{width:canvas.width,height:canvas.height},lastVisibility:lastFrame?.visibility??null,renderer});};
  function publish(){if(snapshot&&!disposed)onView({...courtyardPresentation(snapshot,snapshot.yardRuntime?.serverNow||snapshot.serverTime||0,MIKA_CLIPS),mutable:false,
-  ...(canonicalItems?{props:canonicalPlacements(snapshot),renderCatalog:canonicalItemCatalog,canonicalItems:true,canonicalState:canonicalItemState(snapshot),itemMutable:!!canonicalCapability(snapshot)&&Boolean(api)&&!viewportBlocked}:{}),
-  mediaReady:Boolean(api)&&!viewportBlocked,visualPrototype:state()});}
+  ...(canonicalItems?{canonicalFood:canonicalFoodPreview?{...foodState(),render:foodSelection,loading:foodLoading,reentryRequired:foodReentryRequired}:null,props:canonicalPlacements(snapshot),renderCatalog:canonicalItemCatalog,canonicalItems:true,canonicalState:canonicalItemState(snapshot),itemMutable:!!canonicalCapability(snapshot)&&Boolean(api)&&!viewportBlocked&&!restartPending&&!foodReentryRequired}:{}),
+  mediaReady:Boolean(api)&&!viewportBlocked&&!restartPending&&!foodReentryRequired,visualPrototype:state()});}
  function reserve(pendingCanvasBytes=0,nextUiBytes=uiBytes){
   const row=rgbaAdmission({uiBytes:nextUiBytes,backgroundBytes,currentCanvasBytes:canvas.width*canvas.height*4,pendingCanvasBytes,directSurfaceBytes});
   if(!row.fits)throw Error('Optional Yard image/backing admission rejected');peakRgba=Math.max(peakRgba,row.totalBytes);return row;
@@ -48,7 +52,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  function pause(reason,value){if(disposed)return;clock.setReason(reason,value);api?.setPaused(clock.paused);scheduler.setPaused(clock.paused);notify(phase());}
  function background(){if(viewportBlocked||!image||!projection)return;ctx.clearRect(0,0,projection.width,projection.height);ctx.fillStyle='#d8e3c1';ctx.fillRect(0,0,projection.width,projection.height);const a=projection.art;ctx.drawImage(image,a.x,a.y,a.width,a.height);}
  function resize(){
-  if(disposed||!descriptor)return;const r=canvas.getBoundingClientRect();
+  if(disposed||restartPending||foodReentryRequired||!descriptor)return;const r=canvas.getBoundingClientRect();
   if(canonicalItems&&itemPointerActive&&(projection?.width!==r.width||projection?.height!==r.height)){
    // End the pointer session before changing its coordinate transform.
    itemPointerActive=false;ghost=null;onPointerInterrupt();
@@ -79,7 +83,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
 
  function presentation(){const r=canvas.getBoundingClientRect(),h=directHost.getBoundingClientRect(),t=ctx.getTransform();return{a:t.a,d:t.d,b:t.b,c:t.c,e:t.e,f:t.f,backingWidth:canvas.width,backingHeight:canvas.height,contentWidth:r.width,contentHeight:r.height,offsetLeft:r.left-h.left,offsetTop:r.top-h.top};}
  function draw({paused=false,reason='motion'}={}){
-  if(disposed||viewportBlocked||!api||!run||!projection)return false;
+  if(disposed||restartPending||foodReentryRequired||viewportBlocked||!api||!run||!projection)return false;
   if(canonicalItems)return drawItems({paused,reason});
   try{const elapsedMs=(paused||frozenResizePending)&&lastFrame?lastFrame.elapsedMs:Math.min(clock.read(),run.route.totalMs),sample=samplePlanterInspection(setup,run,elapsedMs);
    const composition=assertCleanComposition(projection,sample.world.root,setup.placements[placementIndex]);
@@ -101,14 +105,19 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   api?.setPaused(clock.paused);scheduler.setPaused(clock.paused);
  }
  function interactionChanged(){if(disposed)return;syncInteractionClock();scheduler.invalidate('inspection-ready',{whilePaused:true});notify(phase());publish();}
+ function syncFood(){
+  if(!canonicalItems||!canonicalFoodPreview||!api?.setCanonicalFoodSnapshot)return;
+  const pending=api.setCanonicalFoodSnapshot(snapshot,{ownerKey:foodOwnerKey});foodLoad=pending;foodLoading=true;
+  return Promise.resolve(pending).then(selection=>{if(disposed||foodReentryRequired||foodLoad!==pending)return;foodLoading=false;foodSelection=selection;scheduler.invalidate('food-state',{whilePaused:true});notify(phase());publish();},error=>{if(!disposed&&foodLoad===pending)reportFailure(error,'canonical-food');});
+ }
  function syncCanonicalInteraction(){
-  if(!canonicalItems||!setup||!api)return;
+  if(!canonicalItems||!setup||!api||foodReentryRequired||restartPending)return;
   if(canonicalItemState(snapshot).available){
    if(!interaction&&!interactionError)try{
     plannerWorker=plannerWorkerFactory();
-    interaction=createCanonicalInspectionController({geometry:canonicalGeometry,actor:setup.actor,rows:canonicalPlacements(snapshot),planner:plannerWorker.plan,onChange:interactionChanged});
+    interaction=createCanonicalInspectionController({geometry:navigationGeometry(),actor:setup.actor,rows:canonicalPlacements(snapshot),planner:plannerWorker.plan,onChange:interactionChanged});
    }catch(error){plannerWorker?.dispose();plannerWorker=null;interactionError=String(error.message);}
-   interaction?.updateLayout(canonicalPlacements(snapshot),clock.read());
+   interaction?.updateLayout(canonicalPlacements(snapshot),clock.read(),{geometry:navigationGeometry()});if(interaction)admittedFoodReservation=foodState().reserved;
   }
   syncInteractionClock();
  }
@@ -131,7 +140,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  const scheduler=createFixtureScheduler({draw,requestFrame,cancelFrame});scheduler.setPaused(true);
  const observer=new ResizeObserver(()=>{try{resize();}catch(error){reportFailure(error,'resize');}});observer.observe(canvas);
  listen(document,'visibilitychange',()=>{pause('hidden',document.hidden);if(!document.hidden&&!viewportBlocked)scheduler.invalidate('visible',{whilePaused:true});});listen(window,'blur',()=>pause('blur',true));listen(window,'focus',()=>pause('blur',false));
- function cleanup(){retireInteraction();hideSurface(false);api?.dispose();api=null;image?.close();image=null;backgroundBytes=0;directSurfaceBytes=0;release();}
+ async function cleanup(){retireInteraction();hideSurface(false);if(api){const old=api;api=null;rendererRetirement=Promise.all([rendererRetirement,old.dispose()]).then(()=>{lastRendererDiagnostics=old.diagnostics??null;});}await rendererRetirement;image?.close();image=null;backgroundBytes=0;directSurfaceBytes=0;release();}
  async function checked(path,kind='json',expectedHash=null){
   const paths={
    './data/fixture.json':new URL('./data/fixture.json',import.meta.url),
@@ -155,23 +164,24 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   image=decoded;if(image.width!==973||image.height!==1616)throw Error('Clean background dimensions changed');
   resize();run=makePlanterInspection(setup,placementIndex);
   const [calibration,fragmentHelper]=await Promise.all([checked('./data/calibration.json'),checked('./source/pip-rest-coat.glsl','text')]);if(disposed)return;
-  const made=await rendererFactory({enabled:true,groundingRecipe:grounding.id,signal:abort.signal,actorUnitsPerSource:setup.actor.unitsPerSource,presentationMode:'direct',directHost,calibration,fragmentHelper,viewport:projection.renderViewport,
+  const made=await rendererFactory({enabled:true,canonicalFoodEnabled:canonicalItems&&canonicalFoodPreview,getBaseResourceUsage:()=>{const row=api?.resources||lastResources;if(!row?.geometryGPUBufferBytes)throw Error('Renderer allocation is not ready');return{rgba:Math.max(reserve().totalBytes,peakRgba),knownCPU:COMBINED_KNOWN_CPU_PEAK+row.boneDataTextureCPUBytesEstimate,estimatedGPU:row.geometryGPUBufferBytes+row.boneDataTextureGPUBytesEstimate+row.resizeDrawingBufferPeakEstimatedBytes+row.compositorResizePeakBytesEstimate};},groundingRecipe:grounding.id,signal:abort.signal,actorUnitsPerSource:setup.actor.unitsPerSource,presentationMode:'direct',directHost,calibration,fragmentHelper,viewport:projection.renderViewport,
    planter:{descriptor:setup.planter,placement:setup.placements[0]},admitResources:row=>{if(!admitPipResources({...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES}))return false;
     if(row.stage==='before-drawing-buffer-allocation'){const previous=directSurfaceBytes;directSurfaceBytes=row.ownedRGBASurfacePeakBytes;try{reserve();}catch{directSurfaceBytes=previous;return false;}}return true;},
+   loadCanonicalFoodAssetBytes:async(url,signal)=>{const response=await fetchImpl(url,{signal});if(!response.ok)throw Error('Canonical food asset request '+response.status);return response.arrayBuffer();},
    loadAssetBytes:()=>checked('./assets/pip.glb','arrayBuffer'),loadPlanterAssetBytes:()=>checked('./assets/planter-t2.glb','arrayBuffer'),
-   onResources:row=>{if(disposed)return;lastResources={...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,combinedKnownCPUBufferPeakBytes:COMBINED_KNOWN_CPU_PEAK};if(row.event==='context-lost')pause('context-lost',true);else if(row.event==='context-restored'){pause('context-lost',false);if(!viewportBlocked)scheduler.invalidate('context-restored',{whilePaused:true});}},
+   onResources:row=>{if(disposed)return;if(row.stage==='before-drawing-buffer-allocation')lastResources={...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,combinedKnownCPUBufferPeakBytes:COMBINED_KNOWN_CPU_PEAK};if(row.event==='canonical-food-context-restart-required'){restartPending=true;pause('context-lost',true);hideSurface(true);onRestartRequired();return;}if(row.event==='canonical-food-changed'){foodLoading=row.selection?.reason==='CANONICAL_FOOD_LOADING';foodSelection=row.selection;scheduler.invalidate('food-state',{whilePaused:true});notify(phase());publish();}if(row.event==='context-lost')pause('context-lost',true);else if(row.event==='context-restored'){pause('context-lost',false);if(!viewportBlocked)scheduler.invalidate('context-restored',{whilePaused:true});}},
    setupLighting:({THREE,scene,renderer})=>{
     const target=new THREE.Vector3(run.approach.start.position.x/12,.5,-run.approach.start.position.y/12);
     const lighting=createPipGardenLighting({THREE,scene,renderer,target,recipe:grounding.id});return()=>lighting.dispose();}});
-  if(disposed){made.dispose();return;}api=made;api.setPaused(true);
+  if(disposed){await made.dispose();return;}api=made;api.setPaused(true);
   // A canonical controller owns one monotonic active-time epoch. Establish it
   // before updateLayout/tick, never after the controller's first displayed pose.
-  if(canonicalItems)clock.reset();syncCanonicalInteraction();draw({reason:'startup',paused:true});
+  if(canonicalItems)clock.reset();syncCanonicalInteraction();await syncFood();if(disposed)return;draw({reason:'startup',paused:true});
   if(disposed)return;if(!canonicalItems)clock.reset();clock.setReason('ready',false);syncInteractionClock();api.setPaused(clock.paused);scheduler.setPaused(clock.paused);scheduler.invalidate('route');notify(phase());publish();
- })().catch(error=>{if(!disposed)reportFailure(error,'startup');}).finally(()=>{if(disposed)cleanup();});
- return{ready,update(value){const old=selectedCommitted();if(snapshot?.player?.id&&snapshot.player.id!==value?.player?.id){retireInteraction();ghost=null;selectedSlotId=null;}snapshot=value;syncCanonicalInteraction();const next=selectedCommitted();if(canonicalItems&&!itemPointerActive&&descriptor&&(old?.slotId!==next?.slotId||old?.x!==next?.x||old?.y!==next?.y))resize();publish();if(canonicalItems)scheduler.invalidate('snapshot',{whilePaused:true});},
+ })().catch(error=>{if(!disposed)reportFailure(error,'startup');}).finally(()=>{if(disposed)return cleanup();});
+ return{ready,get foodReady(){return foodLoad??Promise.resolve(null);},update(value){const old=selectedCommitted();if(snapshot?.player?.id&&snapshot.player.id!==value?.player?.id){retireInteraction();ghost=null;selectedSlotId=null;foodOwnerKey={};}snapshot=value;if(api&&canonicalItems&&canonicalFoodPreview&&admittedFoodReservation===false&&foodState().reserved){foodReentryRequired=true;api.setCanonicalFoodSnapshot?.(null,{ownerKey:foodOwnerKey});foodSelection={available:false,state:null,reason:'CANONICAL_FOOD_REENTRY_REQUIRED'};foodLoading=false;pause('food-version-change',true);scheduler.cancelPending();publish();return;}if(restartPending||foodReentryRequired)return;syncCanonicalInteraction();syncFood();const next=selectedCommitted();if(canonicalItems&&!itemPointerActive&&descriptor&&(old?.slotId!==next?.slotId||old?.x!==next?.x||old?.y!==next?.y))resize();publish();if(canonicalItems)scheduler.invalidate('snapshot',{whilePaused:true});},
   setCanonicalActionPending(value){canonicalActionPending=!!value;syncInteractionClock();scheduler.invalidate("item-intent",{whilePaused:true});},
-  inspectCanonicalSlot(slotId){if(!canonicalItems||ghost||canonicalActionPending||!canonicalCapability(snapshot)||!interaction||!canonicalPlacements(snapshot).some(row=>row.slotId===slotId))return false;selectedSlotId=slotId;const accepted=interaction.request(slotId,clock.read());syncInteractionClock();scheduler.invalidate("inspect-selected",{whilePaused:true});notify(phase());publish();return accepted;},
+  inspectCanonicalSlot(slotId){if(!canonicalItems||foodReentryRequired||restartPending||ghost||canonicalActionPending||!canonicalCapability(snapshot)||!interaction||!canonicalPlacements(snapshot).some(row=>row.slotId===slotId))return false;selectedSlotId=slotId;const accepted=interaction.request(slotId,clock.read());syncInteractionClock();scheduler.invalidate("inspect-selected",{whilePaused:true});notify(phase());publish();return accepted;},
   beginPointer(){if(canonicalItems)itemPointerActive=true;},endPointer(){
    // Layout may change before ResizeObserver is delivered. Reconcile while
    // the pointer still owns its old transform, so pointer-up cannot hide an
@@ -184,7 +194,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   hit(event){if(!canonicalItems||!canonicalCapability(snapshot)||viewportBlocked||!projection)return null;const r=canvas.getBoundingClientRect();return canonicalPlacements(snapshot).map(item=>{const p=projection.project({x:item.x,y:item.y,z:5.5});return{item,distance:Math.hypot(event.clientX-r.left-p.x,event.clientY-r.top-p.y)};}).filter(row=>row.distance<=Math.max(22,22*projection.scale)).sort((a,b)=>a.distance-b.distance)[0]?.item??null;},
   offsetPoint(p,d){if(!canonicalItems||!projection||viewportBlocked)return null;const q=projection.project(p);return projection.unprojectGround({x:q.x+d.x,y:q.y+d.y});},
   checkPlacement(value){if(!canonicalItems)return null;const result=checkCanonicalPlacement(snapshot,value);if(result.ok&&interaction&&!interaction.placementIsSafe({...value,itemGeometryRevision:CANONICAL_ITEM.itemGeometryRevision}))return{ok:false,errors:[{code:'CANONICAL_ACTOR_OCCUPIED'}]};return result;},
-  defaultItemAnchor(){if(!canonicalItems||!setup)return null;const p=setup.placements.find(p=>checkCanonicalPlacement(snapshot,{...CANONICAL_LOCATION,slotId:'canonical:preview-anchor',goodieId:'leaf_pot',placing:true,x:p[0],y:p[1]}).ok)||setup.placements[0];return{x:p[0],y:p[1]};},
+  defaultItemAnchor(){if(!canonicalItems||!setup)return null;const p=setup.placements.find(p=>checkCanonicalPlacement(snapshot,{...canonicalCommandScope(snapshot),slotId:'canonical:preview-anchor',goodieId:'leaf_pot',placing:true,x:p[0],y:p[1]}).ok)||setup.placements[0];return{x:p[0],y:p[1]};},
   inspectAgain(){
    if(canonicalItems||disposed||viewportBlocked||!api||!lastFrame||lastFrame.elapsedMs<run.route.totalMs)throw Error('Wait until Pip finishes inspecting the leaf');
    const previous=samplePlanterInspection(setup,run,run.route.totalMs).world;
@@ -194,7 +204,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   // Legacy diagnostic calls must never relocate or turn this supported actor.
   moveTo(){throw Error('The leaf inspection admits no arbitrary destinations');},
   movePlanter(){throw Error('The leaf inspection keeps its admitted planter anchor');},
-  diagnostics(){return{...state(),frameCount,lastFrame,route:canonicalItems?(interaction?{kind:'canonical-item-inspection',...interaction.state}:null):run?{kind:PLANTER_INSPECTION_VERSION,holdOnly:run.holdOnly,focus:run.focus,approach:run.approach.start,durationMs:run.route.totalMs,displayedElapsedMs:lastFrame?.elapsedMs??0,activeElapsedMs:Math.min(clock.read(),run.route.totalMs)}:null,projection:projection?{width:projection.width,height:projection.height,scale:projection.scale,sourcePixelsPerCss:projection.sourcePixelsPerCss,art:projection.art,fit:canonicalItems?"uniform width-fit; vertical crop follows committed item without changing canonical coordinates":"uniform width-fit capped at reference density; shared vertical camera crop around finite route"}:null,uiImageOwner:uiImageOwner.snapshot(),resources:lastResources,knownCPUBufferPeak:COMBINED_KNOWN_CPU_PEAK,knownModelCPUBufferPeak:KNOWN_CPU_BUFFER_PEAK,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,limits:LIMITS,rgba:reserve(),peakRgba,scheduler:scheduler.state,renderer:api?.diagnostics,unknowns:['engine modules retained for browser session','JS objects and decoder scratch','programs, driver, swap buffers, physical GPU release timing'],savedStateUsedForGeometry:canonicalItems,canonicalRecords:canonicalItems?canonicalPlacements(snapshot):undefined,dynamicSample:interaction?.sample?structuredClone(interaction.sample):null};},
-  dispose(){if(retirement)return retirement;disposed=true;retireInteraction();resolveViewport?.();resolveViewport=null;abort.abort();scheduler.dispose();clock.dispose();observer.disconnect();listeners.forEach(remove=>remove());api?.dispose();api=null;image?.close();image=null;uiImageOwner.setAdmissionCheck(()=>false);retirement=ready.finally(cleanup);return retirement;}
+  diagnostics(){return{...state(),frameCount,lastFrame,route:canonicalItems?(interaction?{kind:'canonical-item-inspection',...interaction.state}:null):run?{kind:PLANTER_INSPECTION_VERSION,holdOnly:run.holdOnly,focus:run.focus,approach:run.approach.start,durationMs:run.route.totalMs,displayedElapsedMs:lastFrame?.elapsedMs??0,activeElapsedMs:Math.min(clock.read(),run.route.totalMs)}:null,projection:projection?{width:projection.width,height:projection.height,scale:projection.scale,sourcePixelsPerCss:projection.sourcePixelsPerCss,art:projection.art,fit:canonicalItems?"uniform width-fit; vertical crop follows committed item without changing canonical coordinates":"uniform width-fit capped at reference density; shared vertical camera crop around finite route"}:null,uiImageOwner:uiImageOwner.snapshot(),resources:lastResources,foodResources:(api?.diagnostics??lastRendererDiagnostics)?.canonicalFood?.ledger??null,knownCPUBufferPeak:COMBINED_KNOWN_CPU_PEAK,knownModelCPUBufferPeak:KNOWN_CPU_BUFFER_PEAK,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,limits:LIMITS,rgba:reserve(),peakRgba,scheduler:scheduler.state,renderer:api?.diagnostics??lastRendererDiagnostics,unknowns:['engine modules retained for browser session','JS objects and decoder scratch','programs, driver, swap buffers, physical GPU release timing'],savedStateUsedForGeometry:canonicalItems,canonicalRecords:canonicalItems?canonicalPlacements(snapshot):undefined,dynamicSample:interaction?.sample?structuredClone(interaction.sample):null};},
+  dispose(){if(retirement)return retirement;disposed=true;retireInteraction();resolveViewport?.();resolveViewport=null;abort.abort();scheduler.dispose();clock.dispose();observer.disconnect();listeners.forEach(remove=>remove());if(api){const old=api;api=null;rendererRetirement=Promise.resolve(old.dispose()).then(()=>{lastRendererDiagnostics=old.diagnostics??null;});}image?.close();image=null;uiImageOwner.setAdmissionCheck(()=>false);retirement=ready.finally(cleanup);return retirement;}
  };
 }

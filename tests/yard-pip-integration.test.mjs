@@ -22,7 +22,9 @@ function env(){
 test('R1 and coat remain frozen; reviewed motion and recovery adapters retain exact pins',async()=>{
  const hashes={'assets/pip.glb':'74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b','assets/clean-garden.png':'c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79'};
  for(const[p,h]of Object.entries(hashes))assert.equal(createHash('sha256').update(await fs.readFile(new URL(p,base))).digest('hex'),h);
- const frozenHashes={"source/pip-analytical-coat.mjs":"9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241","source/pip-rest-coat.glsl":"58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367","prototype/adaptive-pose-driver.mjs":"5caf9eddc141247655a8ca76e85987e063dcd502d5a7f37d5b04bb184f01fe3e","prototype/calibrated-planter.mjs":"a5cba814b61f358abca97b5c9c7bbf87f05c29a994ed646e7ce3e76e81db8c56","motion/trajectory.mjs":"c004ccd88f71ff35e69fef3433e0c77b461b787d207eef45b1d8e3dd1878669e","motion/kinematics.mjs":"c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"};
+ // The corrected sampler restores authored TRS. Its original first-pass poses
+ // and old failing identity remain pinned in yard-pip-pose-replay fixtures.
+ const frozenHashes={"source/pip-analytical-coat.mjs":"9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241","source/pip-rest-coat.glsl":"58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367","prototype/adaptive-pose-driver.mjs":"31a6a1c165ec41b9951f41684a4188bb2d261e269c082250940314614125be8f","prototype/calibrated-planter.mjs":"a5cba814b61f358abca97b5c9c7bbf87f05c29a994ed646e7ce3e76e81db8c56","motion/trajectory.mjs":"c004ccd88f71ff35e69fef3433e0c77b461b787d207eef45b1d8e3dd1878669e","motion/kinematics.mjs":"c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"};
  for(const[p,h]of Object.entries(frozenHashes))assert.equal(createHash('sha256').update(await fs.readFile(new URL(p,base))).digest('hex'),h);
 });
 test('camera shares uniform canonical XYZ mapping with image; short height does not shrink the pet',()=>{

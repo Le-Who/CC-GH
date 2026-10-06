@@ -12,3 +12,9 @@ export function pipPreviewGroundingRecipe(options = {}) {
   const values = new URLSearchParams(options.search ?? '').getAll('yardPipGrounding');
   return values.length === 1 && values[0] === PIP_GROUNDING_PREVIEW_RECIPE ? PIP_GROUNDING_PREVIEW_RECIPE : 'baseline';
 }
+
+/** Private display gate only. It cannot grant a server capability. */
+export function isCanonicalFoodPreviewAllowed(options={}) {
+ const values=new URLSearchParams(options.search??'').getAll('yardCanonicalFood');
+ return isPipPreviewAllowed(options)&&values.length===1&&values[0]==='1';
+}

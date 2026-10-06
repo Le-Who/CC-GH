@@ -1,0 +1,7 @@
+export const BASE='32981e328fbfc7993eb08c3bfcf6eb7634dceb53';
+export const BRANCH='qa/yard-food-native-20261006';
+export const DIR='qa/yard-food-native';
+export const FOOD_SOURCE='src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb';
+export const FOOD_SHA='ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66';
+export const FOOD_BYTES=251996;
+export const LIMITS=Object.freeze({jobMinutes:10,browserSeconds:220,artifactBytes:8388608,retentionDays:3,retries:0,rgba:67108864,knownCPU:16777216,estimatedGPU:12582912});
