@@ -1,0 +1,122 @@
+{
+  "format": "Pip-direct-candidate-pin/v1",
+  "treeSHA256": "06fed6a907ec3acf00e972e0908897e857a17a69743f9076e10d0326720d032b",
+  "treeDefinition": "sorted relative path + NUL + file hex SHA256 + LF",
+  "files": [
+    {
+      "path": "assets/pip.glb",
+      "bytes": 3972384,
+      "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b"
+    },
+    {
+      "path": "data/calibration.json",
+      "bytes": 1834,
+      "sha256": "a06c5ebb322e3fe6690868552ec9223dd55672c710f365667cfea7a882b53306"
+    },
+    {
+      "path": "data/fixture.json",
+      "bytes": 8473,
+      "sha256": "15fb5f8199f13918958d270474885957cbb750a4569b3a445d29880ea7cfc21f"
+    },
+    {
+      "path": "fixture-clock.mjs",
+      "bytes": 1123,
+      "sha256": "3f31d1f5077b7c2cb55256714475fc70994d2dbb6d93fe16e6d6dba3c6cd53e7"
+    },
+    {
+      "path": "fixture-scheduler.mjs",
+      "bytes": 1553,
+      "sha256": "086acc9862d667670c35f2ac04745042ec0dc0677d6f900b5c2bda75bb227edc"
+    },
+    {
+      "path": "fixture.mjs",
+      "bytes": 18753,
+      "sha256": "b31071adafd91bbadd7b43b55d5068035cb5946e1a02a5f51b98143848e75188"
+    },
+    {
+      "path": "index.html",
+      "bytes": 3043,
+      "sha256": "3750da970e819dc01dce01eaf15925025575e03222179096024dd00ae5dc5857"
+    },
+    {
+      "path": "motion/kinematics.mjs",
+      "bytes": 5000,
+      "sha256": "c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"
+    },
+    {
+      "path": "motion/math.mjs",
+      "bytes": 900,
+      "sha256": "9a52990677f0445f09d18f4cf8c98b16c231215c1b5c5bc080d178f0dfc1d0b9"
+    },
+    {
+      "path": "motion/polygon-domain.mjs",
+      "bytes": 5195,
+      "sha256": "778d2f02dcbdadf6787b223c27229d2c09e55e9beab8fd22e58320aa71de0f0c"
+    },
+    {
+      "path": "motion/trajectory.mjs",
+      "bytes": 5560,
+      "sha256": "6d576e91c3f63ee1ba23435b06cc9d2f0d76cd408808650fa27e815eea6d06b1"
+    },
+    {
+      "path": "prototype/adaptive-pose-driver.mjs",
+      "bytes": 5594,
+      "sha256": "a7e187736eaf2970e844e340fbb964e923d07bc64b756e35145374be262d03f4"
+    },
+    {
+      "path": "prototype/calibrated-planter.mjs",
+      "bytes": 1796,
+      "sha256": "3ec3065b1398434570f79ce4e60731909de88b6dfcb6f4a05b79b9a0d6d01354"
+    },
+    {
+      "path": "prototype/optional-pip-renderer.mjs",
+      "bytes": 11016,
+      "sha256": "178dc41b269364c9d56562a2589ad99e25b2f9c93f74e13eb15ee4c37d0b4e53"
+    },
+    {
+      "path": "prototype/surface-placement.mjs",
+      "bytes": 1994,
+      "sha256": "7f18086dda4d92d3a4ce2d8a40c6573f336f38687534d90b15620c4709d8071b"
+    },
+    {
+      "path": "source/pip-analytical-coat.mjs",
+      "bytes": 3766,
+      "sha256": "9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241"
+    },
+    {
+      "path": "source/pip-rest-coat.glsl",
+      "bytes": 2781,
+      "sha256": "58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367"
+    },
+    {
+      "path": "vendor/three/LICENSE.txt",
+      "bytes": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+    },
+    {
+      "path": "vendor/three/addons/loaders/GLTFLoader.js",
+      "bytes": 117570,
+      "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16"
+    },
+    {
+      "path": "vendor/three/addons/utils/BufferGeometryUtils.js",
+      "bytes": 37712,
+      "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797"
+    },
+    {
+      "path": "vendor/three/addons/utils/SkeletonUtils.js",
+      "bytes": 11535,
+      "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f"
+    },
+    {
+      "path": "vendor/three/build/three.core.js",
+      "bytes": 1458113,
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+    },
+    {
+      "path": "vendor/three/build/three.module.js",
+      "bytes": 662772,
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea"
+    }
+  ]
+}
