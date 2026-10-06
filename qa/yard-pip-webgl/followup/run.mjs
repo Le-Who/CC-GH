@@ -10,7 +10,7 @@ import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 const exec = promisify(execFile), HERE = path.dirname(fileURLToPath(import.meta.url));
 const CANDIDATE = process.argv.includes('--verify-only') && process.argv[3] ? path.resolve(process.argv[3]) : path.resolve(HERE, '../candidate'), OUT = path.resolve(HERE, '../followup-results');
-const BRANCH = 'refs/heads/qa/yard-pip-webgl-followup-20261006', CAP = 8 * 1024 * 1024;
+const BRANCH = 'refs/heads/qa/yard-pip-webgl-followup-setupfix-20261006', CAP = 8 * 1024 * 1024;
 const CAPTURE_MS = 6500, PIXEL_TOLERANCE = 14, OVERLAP_MIN_PIXELS = 32;
 const report = { format: 'Pip-native-followup-QA/v1', status: 'RUNNING', retries: 0, browserFlagsAdded: [],
   visualAcceptance: 'PENDING_NATIVE_PIXEL_AND_CLEAN_VIDEO_REVIEW', hardwareMobilePerformance: 'NOT_TESTED',

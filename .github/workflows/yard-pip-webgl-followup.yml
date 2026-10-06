@@ -1,7 +1,7 @@
 name: Bounded Pip direct and depth follow-up
 on:
   push:
-    branches: ['qa/yard-pip-webgl-followup-20261006']
+    branches: ['qa/yard-pip-webgl-followup-setupfix-20261006']
 permissions:
   contents: read
 concurrency:
@@ -11,7 +11,7 @@ jobs:
   native-followup:
     if: github.run_attempt == 1 && github.event.created == true
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 9
     env:
       CI: 'true'
       NODE_ENV: test
@@ -25,13 +25,18 @@ jobs:
             /package.json
             /pnpm-lock.yaml
             /qa/yard-pip-webgl/
-      - name: Verify immutable parent and existing native QA utilities
+      - name: Verify immutable parent and existing Xvfb
         run: |
-          test "$(git rev-parse HEAD^)" = 3ac1558f8971016780ffbd227fbfca5f0de61a93
+          test "$(git rev-parse HEAD^)" = a23c9cbe2d3a48a0bc5a1bdea1c41f0ca355cc35
           command -v xvfb-run
+          node qa/yard-pip-webgl/followup/run.mjs --verify-only
+      - name: Install ffmpeg from the official Ubuntu package repository
+        run: |
+          sudo apt-get update
+          apt-cache policy ffmpeg
+          sudo apt-get install --no-install-recommends -y ffmpeg
           command -v ffmpeg
           command -v ffprobe
-          node qa/yard-pip-webgl/followup/run.mjs --verify-only
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
