@@ -42,7 +42,7 @@ function Row({title,detail,src,children}) { return <div className="cy-row">{src 
 function Card({title,detail,src,photo,children}) { return <article className="cy-card"><Preview src={src} photo={photo}/><strong>{title}</strong><small>{detail}</small>{children && <div className="cy-card-actions">{children}</div>}</article>; }
 function Empty({src,children}) { return <div className="cy-empty"><Preview src={src}/><p>{children}</p></div>; }
 
-export default function CourtyardGame({allowPipPrototype=false}={}) {
+export default function CourtyardGame({allowPipPrototype=false,pipGroundingRecipe='baseline'}={}) {
   const {language,t}=useAppI18n();
   const name=id=>{
     if(id==='alchemy_living_arbor')return t('yard.persistent.alchemyArbor');
@@ -86,12 +86,12 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
     return ()=>{const s=useGameHub.getState();if(s.activeGameShell?.id==='room')s.setActiveGameShell(null);};
   },[panel,closePanel]);
   useEffect(()=>{
-    const renderer=createCourtyardScene(canvas.current,{uiImageOwner:uiImages,directHost:directHost.current,prototypeAllowed:allowPipPrototype,onPrototypeState:setPipPreview,onPointerInterrupt:cancel,onSceneFailure:()=>cancel(true),onView:setView,onError:error=>setError(error?.code||'YARD_SCENE_FAILED')});scene.current=renderer;renderer.update(latest.current);
+    const renderer=createCourtyardScene(canvas.current,{uiImageOwner:uiImages,directHost:directHost.current,prototypeAllowed:allowPipPrototype,groundingRecipe:allowPipPrototype?pipGroundingRecipe:'baseline',onPrototypeState:setPipPreview,onPointerInterrupt:cancel,onSceneFailure:()=>cancel(true),onView:setView,onError:error=>setError(error?.code||'YARD_SCENE_FAILED')});scene.current=renderer;renderer.update(latest.current);
     const blur=()=>cancel();window.addEventListener('blur',blur);
     const visibility=()=>{if(document.hidden)cancel();else useGameHub.getState().loadSnapshot();};document.addEventListener('visibilitychange',visibility);
     const interval=setInterval(()=>{if(!document.hidden)useGameHub.getState().loadSnapshot();},10000);
     return ()=>{clearInterval(interval);window.removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility);renderer.dispose();scene.current=null;};
-  },[cancel,uiImages,allowPipPrototype]);
+  },[cancel,uiImages,allowPipPrototype,pipGroundingRecipe]);
   useEffect(()=>{
     if(!allowPipPrototype)return;
     const diagnostics=Object.freeze({snapshot:()=>scene.current?.diagnostics()||null});window.__yardPipIntegration=diagnostics;

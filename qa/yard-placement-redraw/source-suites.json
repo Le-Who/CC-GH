@@ -1,0 +1,18 @@
+{
+  "tests": [
+    "tests/yard-pip-resize-presentation.test.mjs",
+    "tests/yard-pip-viewport-recovery.test.mjs",
+    "tests/yard-canonical-item-ui.test.mjs",
+    "tests/yard-pip-integration.test.mjs",
+    "tests/yard-canonical-pg-guard.test.mjs",
+    "tests/yard-compact-hud-layout.test.mjs",
+    "qa/yard-canonical-acceptance/scroll-reachability.test.mjs",
+    "qa/yard-canonical-acceptance/package-evidence.test.mjs",
+    "qa/yard-canonical-acceptance/readiness.test.mjs",
+    "qa/yard-canonical-acceptance/failure-evidence.test.mjs",
+    "qa/yard-placement-redraw/encoded-frames.test.mjs",
+    "qa/yard-placement-redraw/harness.test.mjs",
+    "tests/yard-pip-grounding-runtime.test.mjs",
+    "tests/yard-pip-preview-gate.test.mjs"
+  ]
+}

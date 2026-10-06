@@ -1,0 +1,148 @@
+{
+  "base": "67d68fec4b750c5ead5b759ebbfec3239d6f3da5",
+  "baseTree": "9e161ef373524637e1a164720c1696c3ad898193",
+  "files": [
+    {
+      "path": ".github/workflows/yard-placement-redraw.yml",
+      "bytes": 3839,
+      "sha256": "398dc98a988aac828d897bd8ccf51004c92365bb5c8885d9012e6a31963809ce"
+    },
+    {
+      "path": "qa/yard-placement-redraw/.gitignore",
+      "bytes": 8,
+      "sha256": "f18f559df056c682b09f5c8bb885149733d7f3e96ed4aaad75e3dbbe769bab90"
+    },
+    {
+      "path": "qa/yard-placement-redraw/README.md",
+      "bytes": 7441,
+      "sha256": "73440f602116cbb9007771fd6191aa4779cea5f01d7ffb97a18eb72115fab079"
+    },
+    {
+      "path": "qa/yard-placement-redraw/allowed-files.json",
+      "bytes": 2402,
+      "sha256": "11e30d0b797ae259f317c09c22d3a2a1fb35711fdfb99205ae0d00f9a7ff81cc"
+    },
+    {
+      "path": "qa/yard-placement-redraw/analyze.mjs",
+      "bytes": 1085,
+      "sha256": "c082e6048ce66022597665d7b1b21650307f40fe70d0f2fd268eae99bff8b443"
+    },
+    {
+      "path": "qa/yard-placement-redraw/config.mjs",
+      "bytes": 1273,
+      "sha256": "c335d2914c35b715dcef5799d435eabb98fc98f1ddbe4700b0897e8de4c98de1"
+    },
+    {
+      "path": "qa/yard-placement-redraw/encoded-frames.mjs",
+      "bytes": 4624,
+      "sha256": "a80bd802ef52508a51b967e50baf762fccfda2f1e281b528c09e2aacca708644"
+    },
+    {
+      "path": "qa/yard-placement-redraw/encoded-frames.test.mjs",
+      "bytes": 1405,
+      "sha256": "fcf24a11ff414e33ed0441002d0080d34a7a7288f6d3bda7b2996b4fadd0ab62"
+    },
+    {
+      "path": "qa/yard-placement-redraw/evidence.mjs",
+      "bytes": 2889,
+      "sha256": "e6e3fda92827f00d9eda3d802dc366829eeb7ca89c9bb93f478e94bb91f8186f"
+    },
+    {
+      "path": "qa/yard-placement-redraw/harness.test.mjs",
+      "bytes": 5572,
+      "sha256": "eaca165e8f12b053ed54efe7090bdbdab7e6a608be8f64c3fc27ea465ab6f14c"
+    },
+    {
+      "path": "qa/yard-placement-redraw/original-failure.json",
+      "bytes": 3436,
+      "sha256": "57f4911a6cf688cfda196976b3c0fc67265ba97f589ac1357c6db42b04830d6e"
+    },
+    {
+      "path": "qa/yard-placement-redraw/preflight.mjs",
+      "bytes": 4071,
+      "sha256": "cb915868053ebd0ce0c46a3e37ab5f2b8fad5db09b9a8ae7e7aa55f0cceb4257"
+    },
+    {
+      "path": "qa/yard-placement-redraw/seal.mjs",
+      "bytes": 1692,
+      "sha256": "7f273d2f5eee83e3d048ada0838fae149ddf6bcb7193ec2183c67978c931b5ce"
+    },
+    {
+      "path": "qa/yard-placement-redraw/source-checks.mjs",
+      "bytes": 629,
+      "sha256": "96d67b5ef98b823a3e634696bb300a14a7d660b10fb93e1d43b99efbe93ecf8e"
+    },
+    {
+      "path": "qa/yard-placement-redraw/source-suites.json",
+      "bytes": 742,
+      "sha256": "201c6aca3d3b158f60063345cb3c6803d95ddcf4cba2635ce0dca6f68a299b78"
+    },
+    {
+      "path": "qa/yard-placement-redraw/transitions.spec.mjs",
+      "bytes": 14152,
+      "sha256": "b4ba37dbb70190c586da8674d58bd261762ece062bfa76cc5953cfe710f06977"
+    },
+    {
+      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "bytes": 37012,
+      "sha256": "65b93d18cd615bf8dac1fb8fd91eae7cb77bd300e7b79177a6c8382cb9746db0"
+    },
+    {
+      "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
+      "bytes": 1822,
+      "sha256": "1ed41e2a7c4522e265a69eda3d2323bf36ee17463ca645f6b551c006da143d9c"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-preview-gate.mjs",
+      "bytes": 850,
+      "sha256": "db12109f94d16085d85d8447009091f02e0b2e17a26f2156c15afc2a891e3ee5"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/grounding-recipe.mjs",
+      "bytes": 2770,
+      "sha256": "69952f142064efadff304375dcdd717bae262f8d65476133d9b94ac9a8c34a03"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "bytes": 16428,
+      "sha256": "dd4b3730ccfe45617ee1d5275e5fcc882f0f7433b89d178fb0680e62c6e39058"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/pip-contact-shadow.mjs",
+      "bytes": 5693,
+      "sha256": "2f23791f966768ac1ed98465fce9f4ffa492efdd54dc5b626262512d598d649b"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "bytes": 24518,
+      "sha256": "31db0c0cec238a31ef64e5ae5638359e0f3024bc537aff0a3f77f03ef8b07d55"
+    },
+    {
+      "path": "tests/yard-pip-grounding-runtime.test.mjs",
+      "bytes": 9332,
+      "sha256": "ec2b33892b44085ff377c2da56641734dda571a3bf59f50e2fc13d9278794595"
+    },
+    {
+      "path": "tests/yard-pip-preview-gate.test.mjs",
+      "bytes": 1950,
+      "sha256": "28504c26d375e6e58d06228ae9b8230b9b6e47188e35895e5ec4f43d43d03396"
+    },
+    {
+      "path": "tests/yard-pip-resize-presentation.test.mjs",
+      "bytes": 13519,
+      "sha256": "cfa79b3621846791a268937f46a4a299556c71d68c244cdbfd845f21cd4e974c"
+    },
+    {
+      "path": "tests/yard-pip-viewport-recovery.test.mjs",
+      "bytes": 8543,
+      "sha256": "b3ccf329216aa0ba5942b8c6663b3a153d7cb5db88c2d76db41f14d8b049aac4"
+    }
+  ],
+  "limits": {
+    "branch": "qa/yard-placement-redraw-20261006",
+    "jobMinutes": 10,
+    "artifactBytes": 8388608,
+    "retentionDays": 3,
+    "retries": 0
+  }
+}

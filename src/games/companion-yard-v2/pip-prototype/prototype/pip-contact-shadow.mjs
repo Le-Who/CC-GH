@@ -1,3 +1,4 @@
+import {pipGroundingRecipe} from '../grounding-recipe.mjs';
 import {RENDER_UNITS_TO_CANONICAL} from '../world-scale.mjs';
 
 // One immutable XZ quad, three analytical lobes, no image, render target or
@@ -8,7 +9,8 @@ export const PIP_CONTACT_SHADOW = Object.freeze({
   drawPrimitives: 1, triangles: 2, groundY: .015 / RENDER_UNITS_TO_CANONICAL,
 });
 
-export function createPipContactShadow(THREE, {actorUnitsPerSource} = {}) {
+export function createPipContactShadow(THREE, {actorUnitsPerSource, groundingRecipe = 'baseline'} = {}) {
+  let recipe = pipGroundingRecipe(groundingRecipe);
   if (![12, 16].includes(actorUnitsPerSource)) throw Error('Unqualified contact shadow scale');
   const scale = actorUnitsPerSource / RENDER_UNITS_TO_CANONICAL;
   const geometry = new THREE.BufferGeometry();
@@ -46,6 +48,7 @@ export function createPipContactShadow(THREE, {actorUnitsPerSource} = {}) {
   mesh.visible = false;
   let state = null;
   function update(sample) {
+    const profile = recipe.contact;
     const world = sample.world, feet = [world.feet.L, world.feet.R];
     // This owner is qualified only for the current flat-ground toddle. Do not
     // leave a false floor contact under any future raised support or cushion.
@@ -56,16 +59,16 @@ export function createPipContactShadow(THREE, {actorUnitsPerSource} = {}) {
     const axis = (target, heading) => target.set(Math.cos(heading), -Math.sin(heading));
     // Small diffuse body offset goes away from the existing upper-left key.
     // The paw lobes remain centred on the actual sole goals, with no screen-Y offset.
-    uniforms.body.value.set(rootX + .02 * scale, rootZ - .025 * scale, .34 * scale, .44 * scale);
+    uniforms.body.value.set(rootX + .02 * scale, rootZ - .025 * scale, profile.body[0] * scale, profile.body[1] * scale);
     axis(uniforms.bodyAxis.value, world.heading);
-    uniforms.strength.value.x = .21 / (1 + Math.max(0, world.root.z ?? 0) / actorUnitsPerSource * 4);
+    uniforms.strength.value.x = profile.body[2] / (1 + Math.max(0, world.root.z ?? 0) / actorUnitsPerSource * 4);
     for (let i = 0; i < feet.length; i++) {
       const foot = feet[i], height = Math.max(0, foot.position.z / RENDER_UNITS_TO_CANONICAL);
       const oval = uniforms[i === 0 ? 'left' : 'right'].value;
       oval.set(foot.position.x / RENDER_UNITS_TO_CANONICAL, -foot.position.y / RENDER_UNITS_TO_CANONICAL,
-        .13 * scale + height * .7, .105 * scale + height * .7);
+        profile.foot[0] * scale + height * .7, profile.foot[1] * scale + height * .7);
       axis(uniforms[i === 0 ? 'leftAxis' : 'rightAxis'].value, foot.heading);
-      uniforms.strength.value.setComponent(i + 1, .29 * Math.exp(-height / (.025 * scale)));
+      uniforms.strength.value.setComponent(i + 1, profile.foot[2] * Math.exp(-height / (.025 * scale)));
     }
     // A conservative axis-aligned quad bounds all lobes. Its buffers are never
     // replaced as the actor moves, turns, or switches support feet.
@@ -80,8 +83,8 @@ export function createPipContactShadow(THREE, {actorUnitsPerSource} = {}) {
     mesh.updateMatrixWorld(true);
     state = {flatSupport, groundY: PIP_CONTACT_SHADOW.groundY};
   }
-  return {mesh, update, get diagnostics() {
-    return {...state, version: PIP_CONTACT_SHADOW.version,
+  return {mesh, update, setRecipe(value) { recipe = pipGroundingRecipe(value); }, get diagnostics() {
+    return {...state, recipe: recipe.id, version: PIP_CONTACT_SHADOW.version,
       body: uniforms.body.value.toArray(), left: uniforms.left.value.toArray(), right: uniforms.right.value.toArray(),
       bodyAxis: uniforms.bodyAxis.value.toArray(), leftAxis: uniforms.leftAxis.value.toArray(), rightAxis: uniforms.rightAxis.value.toArray(),
       strength: uniforms.strength.value.toArray(), pixelAppearanceQualified: false};

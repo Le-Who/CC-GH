@@ -30,7 +30,7 @@ test('undersized moving preview remains charged, pauses without RAF, then redraw
  const e=environment();try{await e.scene.ready;e.tick(700);const held=structuredClone(e.scene.diagnostics().lastFrame),backing=[e.canvas.width,e.canvas.height],resources=e.scene.diagnostics().rgba.totalBytes,resizes=e.resizes;
   e.resize(478,160.25);const blocked=e.scene.diagnostics();assert.equal(blocked.enabled,true);assert.equal(blocked.viewportBlocked,true);assert.deepEqual(blocked.rejectedViewport,{width:478,height:160.25});assert.ok(blocked.pauseReasons.includes('viewport'));
   assert.deepEqual([e.canvas.width,e.canvas.height],backing);assert.equal(blocked.rgba.totalBytes,resources);assert.equal(e.resizes,resizes);assert.equal(e.canvas.style.visibility,'hidden');assert.equal(e.host.style.visibility,'hidden');assert.equal(e.frames.size,0);assert.throws(()=>e.scene.inspectAgain());assert.throws(()=>e.scene.moveTo(1));assert.throws(()=>e.scene.movePlanter(1));
-  e.tick(10000);assert.deepEqual(e.scene.diagnostics().lastFrame,held);e.resize(754,230.25);e.tick(16);const resumed=e.scene.diagnostics();assert.equal(resumed.viewportBlocked,false);assert.equal(resumed.viewportRecoveries,1);assert.deepEqual(resumed.lastFrame.root,held.root);assert.equal(resumed.lastFrame.elapsedMs,held.elapsedMs);assert.equal(e.creates,1);assert.equal(e.disposals,0);assert.equal(e.host.style.visibility,'');
+  e.tick(10000);assert.deepEqual(e.scene.diagnostics().lastFrame,held);e.resize(754,230.25);const resumed=e.scene.diagnostics();assert.equal(resumed.viewportBlocked,false);assert.equal(resumed.viewportRecoveries,1);assert.deepEqual(resumed.lastFrame.root,held.root);assert.equal(resumed.lastFrame.elapsedMs,held.elapsedMs);assert.equal(e.creates,1);assert.equal(e.disposals,0);assert.equal(e.host.style.visibility,'');
   e.tick(16);assert.ok(e.scene.diagnostics().lastFrame.elapsedMs>held.elapsedMs);assert.ok(e.scene.diagnostics().lastFrame.elapsedMs<1000);assert.deepEqual(e.failures,[]);
  }finally{await e.scene.dispose();}
 });
@@ -50,8 +50,8 @@ test('disable while waiting for viewport releases the wait and lease without sta
  assert.equal(e.creates,0);assert.equal(e.requests.length,2);assert.equal(e.frames.size,0);assert.equal(e.canvas.style.visibility,'');assert.equal(e.host.style.visibility,'');acquirePipLease()();e.resize(754,230);assert.equal(e.creates,0);
 });
 
-test('supported resize hides both old surfaces until matching redraw, and a blocked resize cancels queued paused work',async()=>{
- const e=environment();try{await e.scene.ready;e.tick(e.scene.diagnostics().route.durationMs);const held=structuredClone(e.scene.diagnostics().lastFrame);e.resize(478,212);assert.equal(e.canvas.style.visibility,'hidden');assert.equal(e.host.style.visibility,'hidden');e.tick(16);assert.equal(e.canvas.style.visibility,'');assert.equal(e.host.style.visibility,'');
+test('supported resize completes matching redraw before returning, and a blocked resize cancels queued paused work',async()=>{
+ const e=environment();try{await e.scene.ready;e.tick(e.scene.diagnostics().route.durationMs);const held=structuredClone(e.scene.diagnostics().lastFrame),renders=e.renders.length;e.resize(478,212);assert.equal(e.renders.length,renders+1);assert.equal(e.canvas.style.visibility,'');assert.equal(e.host.style.visibility,'');e.tick(16);assert.equal(e.canvas.style.visibility,'');assert.equal(e.host.style.visibility,'');
   e.win.dispatchEvent(new Event('blur'));e.resize(754,230);assert.equal(e.frames.size,1);e.resize(478,120);assert.equal(e.frames.size,0);e.tick(3000);assert.deepEqual(e.scene.diagnostics().lastFrame.root,held.root);assert.equal(e.host.style.visibility,'hidden');
   e.resize(754,230);assert.equal(e.frames.size,1);e.tick(16);assert.equal(e.host.style.visibility,'');assert.ok(e.scene.diagnostics().pauseReasons.includes('blur'));assert.equal(e.frames.size,0);assert.deepEqual(e.failures,[]);
  }finally{await e.scene.dispose();}

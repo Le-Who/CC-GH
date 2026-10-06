@@ -1,0 +1,152 @@
+{
+  "file": "actual-time-alternate-route.webm",
+  "width": 390,
+  "height": 844,
+  "frameRate": "25/1",
+  "decodedFrames": 478,
+  "analyzedFrames": 368,
+  "postArmFrames": 368,
+  "dialogOccludedFrames": 0,
+  "intervals": [
+    {
+      "visibility": "stage-visible",
+      "firstFrame": 110,
+      "lastFrame": 477,
+      "firstSeconds": 4.4,
+      "lastSeconds": 19.08,
+      "frames": 368
+    }
+  ],
+  "firstArmedFrame": 110,
+  "roi": {
+    "x": 25,
+    "y": 100,
+    "width": 340,
+    "height": 280
+  },
+  "markerContract": {
+    "x": 0,
+    "y": 0,
+    "width": 16,
+    "height": 16,
+    "visibleRgb": [
+      255,
+      0,
+      255
+    ],
+    "occludedDomRgb": [
+      0,
+      255,
+      255
+    ],
+    "occludedEncodedRgb": [
+      18,
+      162,
+      156
+    ],
+    "backdropRgba": [
+      37,
+      60,
+      48,
+      0.47843137254901963
+    ],
+    "encodedChannelTolerance": 16
+  },
+  "thresholds": {
+    "backgroundRgb": [
+      166,
+      189,
+      106
+    ],
+    "channelTolerance": 8,
+    "backgroundFraction": 0.95,
+    "uniformMaxChannelStddev": 2
+  },
+  "flatFrames": [
+    {
+      "frame": 117,
+      "seconds": 4.68,
+      "backgroundFraction": 1,
+      "mean": [
+        166.04214285714286,
+        188.00071428571428,
+        105.99058823529411
+      ],
+      "stddev": [
+        0.3117604333855919,
+        0.2220973230172478,
+        0.41752027902058364
+      ],
+      "markerFraction": 0,
+      "occludedMarkerFraction": 0,
+      "flat": true
+    },
+    {
+      "frame": 124,
+      "seconds": 4.96,
+      "backgroundFraction": 1,
+      "mean": [
+        166.2629306722689,
+        187.97007352941176,
+        105.80498949579832
+      ],
+      "stddev": [
+        0.6790501146616972,
+        0.24856181883764422,
+        0.6163274768434952
+      ],
+      "markerFraction": 0,
+      "occludedMarkerFraction": 0,
+      "flat": true
+    }
+  ],
+  "passed": false,
+  "range": {
+    "first": {
+      "frame": 110,
+      "seconds": 4.4,
+      "backgroundFraction": 0.0013025210084033614,
+      "mean": [
+        169.96781512605043,
+        169.70060924369747,
+        90.53223739495799
+      ],
+      "stddev": [
+        42.40390339293563,
+        37.380937987681754,
+        33.59449970352585
+      ],
+      "markerFraction": 0,
+      "occludedMarkerFraction": 0,
+      "flat": false
+    },
+    "last": {
+      "frame": 477,
+      "seconds": 19.08,
+      "backgroundFraction": 0.0003046218487394958,
+      "mean": [
+        169.96156512605043,
+        170.79159663865545,
+        90.96196428571429
+      ],
+      "stddev": [
+        42.05230216407033,
+        37.0406016268543,
+        33.323253053097055
+      ],
+      "markerFraction": 0,
+      "occludedMarkerFraction": 0,
+      "flat": false
+    }
+  },
+  "qualification": "Every post-arm encoded sample is accounted for. Only stage-visible intervals can establish stage continuity; dialog-occluded intervals are explicitly reported. No screenshots, readPixels, retiming or interpolation. This is not physical-device frame timing.",
+  "original": {
+    "sha256": "ff54410518a69cebcdeda4d8b25d38e41ec5cd209825cd7f148bbd39103959d6",
+    "bytes": 921102,
+    "runId": "37507167039",
+    "head": "db044806e18c5c7649a0f360c6238efcaae14746",
+    "url": "https://github.com/Le-Who/CC-GH/actions/runs/37507167039"
+  },
+  "expectedFailure": true,
+  "retention": "Original raw WebM remains unchanged in the preserved prior evidence. No media is uploaded by this packet."
+}

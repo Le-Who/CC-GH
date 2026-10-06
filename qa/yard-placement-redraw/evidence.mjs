@@ -1,0 +1,14 @@
+/** Green needs fresh functional, HUD and encoded-video evidence, then human review. */
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {packageEvidence} from '../yard-canonical-acceptance/package-evidence.mjs';
+const root=path.resolve(import.meta.dirname,'../yard-canonical-acceptance'),out=path.join(root,'results');await fs.mkdir(out,{recursive:true});
+const read=async name=>JSON.parse(await fs.readFile(path.join(out,name),'utf8').catch(()=>'{"missing":true}'));
+const stages=Object.fromEntries(['PREFLIGHT','DEPENDENCIES','SOURCE','BUILD','BROWSER','ENCODED'].map(k=>[k,process.env[k+'_OUTCOME']??'unknown']));
+const browser=await read('browser.json'),encoded=await read('encoded-video.json');
+const passed=Object.values(stages).every(v=>v==='success')&&browser.sections?.hud==='passed'&&browser.sections?.redraw==='passed'&&browser.matrix?.length===11&&browser.matrix.every(r=>r.status==='passed')&&browser.errors?.length===0&&encoded.passed===true&&encoded.flatFrames?.length===0&&encoded.analyzedFrames>=10&&encoded.dialogOccludedFrames>0&&encoded.postArmFrames===encoded.analyzedFrames+encoded.dialogOccludedFrames&&JSON.stringify(encoded.intervals?.map(i=>i.visibility))===JSON.stringify(['stage-visible','dialog-occluded','stage-visible','dialog-occluded','stage-visible','dialog-occluded','stage-visible'])&&encoded.intervals?.at(-1)?.frames>=10&&browser.redraw?.originalPreserved===true;
+const receipt={head:process.env.GITHUB_SHA,stages,acceptance:passed?'ENCODED_NO_GAP_AND_MECHANICAL_GATES_PASSED_VISUAL_REVIEW_REQUIRED':'FAILED_OR_INCOMPLETE',visualAcceptance:'PENDING_HUMAN_REVIEW_OF_UNALTERED_VIDEO_AND_HUD_ORIGINALS',limits:{jobMinutes:10,browserSeconds:220,artifactBytes:8388608,retentionDays:3,retries:0},historicalFailure:{runId:'37507167039',frames:[117,124],originalSha256:'ff54410518a69cebcdeda4d8b25d38e41ec5cd209825cd7f148bbd39103959d6'},fresh:{hudCases:browser.matrix?.length??0,redraw:browser.sections?.redraw??'missing',encodedStageFrames:encoded.analyzedFrames??0,encodedDialogOccludedFrames:encoded.dialogOccludedFrames??0,encodedIntervals:encoded.intervals??[],flatFrames:encoded.flatFrames??null},excluded:['production deployment or activation','physical-device GPU/FPS claims','trusted native Telegram lifecycle events','art-quality acceptance from numeric tests']};
+await fs.writeFile(path.join(out,'redraw-receipt.json'),JSON.stringify(receipt,null,2)+'\n');
+const result=await packageEvidence({rawDir:out,workDir:path.join(root,'work'),uploadDir:path.join(import.meta.dirname,'upload'),metadata:{head:process.env.GITHUB_SHA,acceptance:receipt.acceptance}});
+if(process.env.GITHUB_STEP_SUMMARY)await fs.appendFile(process.env.GITHUB_STEP_SUMMARY,`Redraw evidence: ${receipt.acceptance}. Complete lossless originals under8MiB: ${result.ok}. Human visual review remains required.\n`);
+if(!passed||!result.ok)process.exitCode=1;

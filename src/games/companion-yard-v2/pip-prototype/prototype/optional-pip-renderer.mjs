@@ -1,3 +1,4 @@
+import{pipGroundingRecipe}from'../grounding-recipe.mjs';
 import{RENDER_UNITS_TO_CANONICAL}from'../world-scale.mjs';
 import{MODEL_CPU_GLB_BYTES,MODEL_CPU_BINARY_BYTES,KNOWN_CPU_BUFFER_PEAK,GARDEN_RASTER}from'../resources.mjs';
 /** Optional one-pet + authored-succulent consumer. Disabled by default.
@@ -12,9 +13,10 @@ import {validateGardenViewport,configureGardenCamera,gardenSurfaceRect,canvasRec
 
 export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,loadPlanterAssetBytes,signal,calibration,fragmentHelper,
   setupLighting,admitResources,onResources=()=>{},onFrameMetrics=()=>{},planter=null,actorUnitsPerSource=RENDER_UNITS_TO_CANONICAL,
-  presentationMode='copy',directHost=null,rendererFactory=null,
+  presentationMode='copy',directHost=null,rendererFactory=null,groundingRecipe='baseline',
   canvasFactory=()=>document.createElement('canvas'),viewport=null}={}) {
   if(enabled!==true)return null;
+  const grounding=pipGroundingRecipe(groundingRecipe);
   if(![12,16].includes(actorUnitsPerSource))throw Error('Unqualified actor world scale');
   if(!['copy','direct'].includes(presentationMode))throw Error('Unknown presentation mode');
   if(presentationMode==='direct'&&!directHost?.appendChild)throw Error('Direct presentation host required');
@@ -89,7 +91,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     // lobe. No second GLB parse, typed array, texture or shadow buffer exists.
     propRoots=[proxy.root,proxy.root.clone(true),proxy.root.clone(true)];propGroup=new THREE.Group();propGroup.name='Bounded shared T2 instances';
     propRoots.forEach((root,i)=>{root.visible=i===0;root.userData.canonicalSlotId=null;root.userData.ghost=i===2;propGroup.add(root);});presentationProp=proxy.root;scene.add(propGroup);scene.updateMatrixWorld(true);
-    contactShadow=createPipContactShadow(THREE,{actorUnitsPerSource});scene.add(contactShadow.mesh);contactShadow.mesh.traverse(inventory);
+    contactShadow=createPipContactShadow(THREE,{actorUnitsPerSource,groundingRecipe:grounding.id});scene.add(contactShadow.mesh);contactShadow.mesh.traverse(inventory);
     pose=createAdaptivePoseDriver(THREE,gltf,calibration,{unitsPerSource:actorUnitsPerSource,sourceFrame:actorFrame});camera=new THREE.OrthographicCamera();direction=new THREE.Vector3(5.66,9.799775507632814,8);
     validateGardenViewport(viewport);requestSize();canvas=canvasFactory();
     const rendererOptions={canvas,alpha:true,antialias:false,premultipliedAlpha:true,preserveDrawingBuffer:false};
@@ -141,6 +143,6 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
   }
   return{renderAndCopy:(ctx,options)=>renderFrame('copy',ctx,options),renderDirect:options=>renderFrame('direct',null,options),resize,dispose,setCanonicalPlacements,
     setPaused(v){paused=Boolean(v);},setPlanterPlacement(p){if(disposed)return;if(!proxy)throw Error('No calibrated planter admitted');proxy.move(p);propRoots.forEach((root,i)=>{root.visible=i===0;root.userData.canonicalSlotId=null;});presentationProp=proxy.root;},get resources(){return size?.estimate;},
-    get diagnostics(){return{mode:presentationMode,actorUnitsPerSource,actorModelScale:actorUnitsPerSource/RENDER_UNITS_TO_CANONICAL,disposed,paused,contextLost,mounted:Boolean(canvas?.parentNode),...counts,contactShadow:contactShadow?.diagnostics??null,propInstances:propRoots.map(root=>({slotId:root.userData.canonicalSlotId,ghost:root.userData.ghost,visible:root.visible,position:root.position.toArray()})),lastFrame:structuredClone(lastFrame)};},
+    get diagnostics(){return{mode:presentationMode,groundingRecipe:grounding.id,actorUnitsPerSource,actorModelScale:actorUnitsPerSource/RENDER_UNITS_TO_CANONICAL,disposed,paused,contextLost,mounted:Boolean(canvas?.parentNode),...counts,contactShadow:contactShadow?.diagnostics??null,propInstances:propRoots.map(root=>({slotId:root.userData.canonicalSlotId,ghost:root.userData.ghost,visible:root.visible,position:root.position.toArray()})),lastFrame:structuredClone(lastFrame)};},
     qualification:'Optional integrated clean-location candidate; integrated browser appearance and performance remain unqualified.'};
 }

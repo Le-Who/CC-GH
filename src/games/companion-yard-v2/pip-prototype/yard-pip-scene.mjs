@@ -4,6 +4,7 @@ import{createCanonicalPlannerWorker}from'./dynamic-prop-worker-client.mjs';
 import{CANONICAL_LOCATION,CANONICAL_ITEM,canonicalCapability,canonicalPlacements,canonicalItemState,checkCanonicalPlacement}from'../../../game-state/canonicalYardItems.mjs';
 import{canonicalItemCatalog}from'./item-catalog.mjs';
 import{assertWorldScale}from'./world-scale.mjs';
+import{pipGroundingRecipe,createPipGardenLighting}from'./grounding-recipe.mjs';
 import{createOptionalPipRenderer}from'./prototype/optional-pip-renderer.mjs';
 import{createFixtureClock}from'./fixture-clock.mjs';
 import{createFixtureScheduler}from'./fixture-scheduler.mjs';
@@ -16,7 +17,8 @@ import{MIKA_CLIPS}from'../../../../game-logic/yard-v2/media/mika-clips.mjs';
 
 /** Real Yard scene interface, separate inactive location, no gameplay writes. */
 export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{},onPrototypeState=()=>{},onFailure=()=>{},onPointerInterrupt=()=>{},now=()=>performance.now(),
- canonicalItems=false,canonicalActionPending=false,plannerWorkerFactory=createCanonicalPlannerWorker,rendererFactory=createOptionalPipRenderer,fetchImpl=fetch,decodeImage=createImageBitmap,requestFrame=requestAnimationFrame,cancelFrame=cancelAnimationFrame}={}){
+ groundingRecipe='baseline',canonicalItems=false,canonicalActionPending=false,plannerWorkerFactory=createCanonicalPlannerWorker,rendererFactory=createOptionalPipRenderer,fetchImpl=fetch,decodeImage=createImageBitmap,requestFrame=requestAnimationFrame,cancelFrame=cancelAnimationFrame}={}){
+ const grounding=pipGroundingRecipe(groundingRecipe);
  if(!directHost?.appendChild||!uiImageOwner)throw Error('Stage and UI resource owners required');
  if(canonicalItems)uiImageOwner.registerCatalog(canonicalItemCatalog);
  const abort=new AbortController(),ctx=canvas.getContext('2d');
@@ -30,7 +32,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  function hideSurface(hidden){if(canvas.style)canvas.style.visibility=hidden?'hidden':initialVisibility.canvas;if(directHost.style)directHost.style.visibility=hidden?'hidden':initialVisibility.direct;}
  const phase=()=>viewportBlocked?'viewport-blocked':!api?'loading':canonicalItems?(!canonicalItemState(snapshot).available?'unavailable':ghost||canonicalActionPending?'editing':interaction?.state.phase||'items'):clock.paused?'paused':lastFrame?.elapsedMs>=run?.route.totalMs?'settled':'moving';
  clock.setReason('ready',true);clock.setReason('hidden',document.hidden);clock.setReason('blur',!document.hasFocus());
- const state=()=>({enabled:!disposed,canonicalItems,itemEditing:!!ghost,itemActionPending:canonicalActionPending,plannerWorkerActive:!!plannerWorker,selectedCanonicalSlotId:selectedCommitted()?.slotId??null,interaction:interaction?.state??(interactionError?{phase:"unavailable",error:interactionError,savedVisitor:false}:null),phase:lastPhase,viewportBlocked,rejectedViewport,viewportRefusals,viewportRecoveries,minimumStage:CLEAN_STAGE_MIN,intention:canonicalItems?'canonical-item-inspection':run?.kind??null,attention:lastFrame?.intention??null,inspectionCount,placementIndex,settled:canonicalItems?interaction?.state.phase==='settled':!!lastFrame&&lastFrame.elapsedMs>=run?.route.totalMs,pauseReasons:clock.reasons,ready:!!api,domain:'pip-clean-garden-prototype-v1',actorUnitsPerSource:setup?.actor.unitsPerSource??null,scaleApproval:descriptor?.scaleApproval??null,savedVisitor:false});
+ const state=()=>({enabled:!disposed,groundingRecipe:grounding.id,canonicalItems,itemEditing:!!ghost,itemActionPending:canonicalActionPending,plannerWorkerActive:!!plannerWorker,selectedCanonicalSlotId:selectedCommitted()?.slotId??null,interaction:interaction?.state??(interactionError?{phase:"unavailable",error:interactionError,savedVisitor:false}:null),phase:lastPhase,viewportBlocked,rejectedViewport,viewportRefusals,viewportRecoveries,minimumStage:CLEAN_STAGE_MIN,intention:canonicalItems?'canonical-item-inspection':run?.kind??null,attention:lastFrame?.intention??null,inspectionCount,placementIndex,settled:canonicalItems?interaction?.state.phase==='settled':!!lastFrame&&lastFrame.elapsedMs>=run?.route.totalMs,pauseReasons:clock.reasons,ready:!!api,domain:'pip-clean-garden-prototype-v1',actorUnitsPerSource:setup?.actor.unitsPerSource??null,scaleApproval:descriptor?.scaleApproval??null,savedVisitor:false});
  const notify=phase=>{if(disposed)return;if(phase)lastPhase=phase;onPrototypeState(state());};
  const reportFailure=(error,operation)=>{let renderer=null;try{renderer=api?.diagnostics??null;}catch(secondary){renderer={diagnosticsError:String(secondary?.message||secondary)};}
   onFailure(error,{operation,phase:phase(),canonicalItems,ghost:ghost?{slotId:ghost.slotId,x:ghost.x,y:ghost.y,placing:ghost.placing,valid:ghost.valid}:null,viewport:projection?{width:projection.width,height:projection.height,art:{...projection.art}}:null,backing:{width:canvas.width,height:canvas.height},lastVisibility:lastFrame?.visibility??null,renderer});};
@@ -56,10 +58,12 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
    rejectedViewport={width:r.width,height:r.height};viewportBlocked=true;hideSurface(true);pause('viewport',true);scheduler.cancelPending();publish();return;
   }
   const wasBlocked=viewportBlocked;
+  // ResizeObserver runs before paint. Keep both layers private until this
+  // admitted projection has a fresh background and direct render together.
+  hideSurface(true);
   const dpr=Math.min(globalThis.devicePixelRatio||1,2),bw=Math.max(1,Math.round(r.width*dpr)),bh=Math.max(1,Math.round(r.height*dpr));
   const changed=canvas.width!==bw||canvas.height!==bh;reserve(changed?bw*bh*4:0);
   const nextProjection=createCleanProjection(descriptor,r.width,r.height,{focus:canonicalItems?(displayedItem()||{x:setup.placements[0][0],y:setup.placements[0][1]}):null});
-  if(api&&(changed||projection?.width!==r.width||projection?.height!==r.height))hideSurface(true);
   if(changed){canvas.width=0;canvas.height=bh;canvas.width=bw;}
   // One shared transform. A recoverable size refusal never destroys this owner.
   ctx.setTransform(bw/r.width,0,0,bh/r.height,0,0);projection=nextProjection;viewportBlocked=false;
@@ -67,6 +71,9 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   if(wasBlocked){viewportRecoveries++;frozenResizePending=Boolean(lastFrame);}
   background();resolveViewport?.();resolveViewport=null;
   clock.setReason('viewport',false);api?.setPaused(clock.paused);scheduler.setPaused(clock.paused);
+  // Do not expose a cleared canvas for one paint while waiting for the RAF.
+  // draw owns success-only exposure; its return value is motion continuation.
+  if(image&&api&&run&&!document.hidden&&(!canonicalItems||canonicalItemState(snapshot).available))draw({reason:'resize',paused:clock.paused});
   scheduler.invalidate('resize',{whilePaused:true});notify(phase());publish();
  }
 
@@ -77,7 +84,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   try{const elapsedMs=(paused||frozenResizePending)&&lastFrame?lastFrame.elapsedMs:Math.min(clock.read(),run.route.totalMs),sample=samplePlanterInspection(setup,run,elapsedMs);
    const composition=assertCleanComposition(projection,sample.world.root,setup.placements[placementIndex]);
    if(!api.renderDirect({sample,point:projection.project(sample.world.root),presentation:presentation(),forcePausedRedraw:paused||frozenResizePending||reason==='startup'}))return false;
-   lastFrame={elapsedMs,root:sample.world.root,intention:sample.intention,composition};frozenResizePending=false;hideSurface(false);frameCount++;const moving=elapsedMs<run.route.totalMs;
+   lastFrame={elapsedMs,root:sample.world.root,intention:sample.intention,composition};frozenResizePending=false;hideSurface(document.hidden);frameCount++;const moving=elapsedMs<run.route.totalMs;
    if(!moving&&lastPhase!==phase()){notify(phase());publish();}return moving&&!clock.paused;
   }catch(error){reportFailure(error,'finite-render');return false;}
  }
@@ -117,13 +124,13 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
    operation='canonical-render';
    if(!api.renderDirect({sample,point:projection.project(anchor),presentation:presentation(),forcePausedRedraw:true,visibility}))return false;
    lastFrame={elapsedMs:clock.read(),root:sample.world.root,intention:dynamicSample?.intention||'item-placement',item:item?{...item}:null,records:rows.map(row=>({...row})),ghost:ghost?{...ghost}:null,committed:rows.length>0&&!ghost,canonicalState:canonicalItemState(snapshot).status,visibility};
-   operation='canonical-publish';frozenResizePending=false;hideSurface(false);frameCount++;syncInteractionClock();const nextPhase=phase();if(nextPhase!==lastPhase){notify(nextPhase);publish();}return !!interaction?.state.active&&!clock.paused;
+   operation='canonical-publish';frozenResizePending=false;hideSurface(document.hidden);frameCount++;syncInteractionClock();const nextPhase=phase();if(nextPhase!==lastPhase){notify(nextPhase);publish();}return !!interaction?.state.active&&!clock.paused;
   }catch(error){reportFailure(error,operation);return false;}
  }
  function point(event){if(!canonicalItems||!projection||viewportBlocked)return null;const r=canvas.getBoundingClientRect();return projection.unprojectGround({x:event.clientX-r.left,y:event.clientY-r.top});}
  const scheduler=createFixtureScheduler({draw,requestFrame,cancelFrame});scheduler.setPaused(true);
  const observer=new ResizeObserver(()=>{try{resize();}catch(error){reportFailure(error,'resize');}});observer.observe(canvas);
- listen(document,'visibilitychange',()=>pause('hidden',document.hidden));listen(window,'blur',()=>pause('blur',true));listen(window,'focus',()=>pause('blur',false));
+ listen(document,'visibilitychange',()=>{pause('hidden',document.hidden);if(!document.hidden&&!viewportBlocked)scheduler.invalidate('visible',{whilePaused:true});});listen(window,'blur',()=>pause('blur',true));listen(window,'focus',()=>pause('blur',false));
  function cleanup(){retireInteraction();hideSurface(false);api?.dispose();api=null;image?.close();image=null;backgroundBytes=0;directSurfaceBytes=0;release();}
  async function checked(path,kind='json',expectedHash=null){
   const paths={
@@ -148,14 +155,14 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   image=decoded;if(image.width!==973||image.height!==1616)throw Error('Clean background dimensions changed');
   resize();run=makePlanterInspection(setup,placementIndex);
   const [calibration,fragmentHelper]=await Promise.all([checked('./data/calibration.json'),checked('./source/pip-rest-coat.glsl','text')]);if(disposed)return;
-  const made=await rendererFactory({enabled:true,signal:abort.signal,actorUnitsPerSource:setup.actor.unitsPerSource,presentationMode:'direct',directHost,calibration,fragmentHelper,viewport:projection.renderViewport,
+  const made=await rendererFactory({enabled:true,groundingRecipe:grounding.id,signal:abort.signal,actorUnitsPerSource:setup.actor.unitsPerSource,presentationMode:'direct',directHost,calibration,fragmentHelper,viewport:projection.renderViewport,
    planter:{descriptor:setup.planter,placement:setup.placements[0]},admitResources:row=>{if(!admitPipResources({...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES}))return false;
     if(row.stage==='before-drawing-buffer-allocation'){const previous=directSurfaceBytes;directSurfaceBytes=row.ownedRGBASurfacePeakBytes;try{reserve();}catch{directSurfaceBytes=previous;return false;}}return true;},
    loadAssetBytes:()=>checked('./assets/pip.glb','arrayBuffer'),loadPlanterAssetBytes:()=>checked('./assets/planter-t2.glb','arrayBuffer'),
    onResources:row=>{if(disposed)return;lastResources={...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,combinedKnownCPUBufferPeakBytes:COMBINED_KNOWN_CPU_PEAK};if(row.event==='context-lost')pause('context-lost',true);else if(row.event==='context-restored'){pause('context-lost',false);if(!viewportBlocked)scheduler.invalidate('context-restored',{whilePaused:true});}},
-   setupLighting:({THREE,scene,renderer})=>{renderer.toneMapping=THREE.NoToneMapping;const target=new THREE.Vector3(run.approach.start.position.x/12,.5,-run.approach.start.position.y/12),lights=[];
-    const ambient=new THREE.AmbientLight(new THREE.Color().setRGB(.78,.83,.93,THREE.LinearSRGBColorSpace),.55);scene.add(ambient);lights.push(ambient);
-    for(const [position,intensity]of[[[-2.4,4,3],1.8],[[2.5,2.4,1.7],.76],[[0,2.8,-2],1.2]]){const l=new THREE.DirectionalLight(0xffffff,intensity);l.position.copy(target).add(new THREE.Vector3(...position));l.target.position.copy(target);scene.add(l,l.target);lights.push(l,l.target);}return()=>lights.forEach(l=>scene.remove(l));}});
+   setupLighting:({THREE,scene,renderer})=>{
+    const target=new THREE.Vector3(run.approach.start.position.x/12,.5,-run.approach.start.position.y/12);
+    const lighting=createPipGardenLighting({THREE,scene,renderer,target,recipe:grounding.id});return()=>lighting.dispose();}});
   if(disposed){made.dispose();return;}api=made;api.setPaused(true);
   // A canonical controller owns one monotonic active-time epoch. Establish it
   // before updateLayout/tick, never after the controller's first displayed pose.

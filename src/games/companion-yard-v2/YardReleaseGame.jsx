@@ -3,7 +3,7 @@ import {useGameHub} from '../../game-state/useGameHub.js';
 import {useAppI18n} from '../../app/i18n.jsx';
 import {openHome} from '../../app/homeNavigation.js';
 import {yardReleasePresentation} from './release-presentation.mjs';
-import {isPipPreviewAllowed} from './pip-preview-gate.mjs';
+import {isPipPreviewAllowed,pipPreviewGroundingRecipe} from './pip-preview-gate.mjs';
 import './i18n.js';
 const Legacy=React.lazy(()=>import('../companion-yard/CompanionYardGame.jsx'));
 const Persistent=React.lazy(()=>import('./CourtyardGame.jsx'));
@@ -24,5 +24,6 @@ export default function YardReleaseGame(){
   enabled:import.meta.env.VITE_YARD_PIP_PREVIEW==='true',
   search:globalThis.location?.search||'',
  });
- return <View allowPipPrototype={allowPipPrototype}/>;
+ const pipGroundingRecipe=pipPreviewGroundingRecipe({enabled:allowPipPrototype,search:globalThis.location?.search||''});
+ return <View allowPipPrototype={allowPipPrototype} pipGroundingRecipe={pipGroundingRecipe}/>;
 }
