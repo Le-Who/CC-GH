@@ -1,0 +1,135 @@
+# INACTIVE LOCAL REVIEW FILE: publishing this as the named workflow on the
+# named new branch would execute the one-shot read-only audit.
+name: Yard preview host audit (review required)
+on:
+  push:
+    branches: [qa/yard-preview-host-audit-20261006]
+permissions: {}
+concurrency:
+  group: ccgh-yard-preview-host-audit
+  cancel-in-progress: false
+jobs:
+  audit:
+    if: github.event.created == true && github.event.deleted == false && github.event.forced == false && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read only selected host prerequisites
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262 # v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          command_timeout: 90s
+          script: |
+            set -eu
+            python3 - <<'YARD_PREVIEW_READ_ONLY_AUDIT'
+            #!/usr/bin/env python3
+            """REVIEW ONLY. Read-only VPS preflight; no server files, services, or DNS writes.
+            
+            Output is allowlisted. Never print Caddy source/JSON, environment, SSH values,
+            unrelated hosts, database contents, or subprocess stderr into public CI logs.
+            Run only after authorization for this exact script and existing credential use.
+            """
+            import fnmatch, hashlib, json, os, pathlib, socket, subprocess, urllib.request
+            
+            HOST = 'yard-preview.tri.mom'  # Proposed hostname; availability is unverified.
+            PRODUCTION_HOST = 'games.tri.mom'
+            EXPECTED_BUILD = '6b80c9a2cca146e20afcaced6a34a035c30c13aa'
+            CADDYFILE = pathlib.Path('/etc/caddy/Caddyfile')
+            PRODUCTION_SNIPPET = pathlib.Path('/etc/caddy/sites-enabled/ccgh.caddy')
+            PREVIEW_SNIPPET = pathlib.Path('/etc/caddy/sites-enabled/ccgh-yard-preview.caddy')
+            RELEASES = pathlib.Path('/srv/ccgh-yard-preview')
+            checks = {}
+            def safe(name, fn):
+                try:
+                    checks[name] = fn()
+                except Exception:
+                    checks[name] = {'verified':False}
+            def read_hash(p):
+                return hashlib.sha256(p.read_bytes()).hexdigest()
+            safe('rootConfigSha256', lambda:read_hash(CADDYFILE))
+            safe('productionSnippetSha256', lambda:read_hash(PRODUCTION_SNIPPET))
+            safe('expectedImportPresent', lambda:'import /etc/caddy/sites-enabled/*.caddy' in CADDYFILE.read_text().splitlines())
+            safe('previewSnippetAbsent', lambda:not PREVIEW_SNIPPET.exists() and not PREVIEW_SNIPPET.is_symlink())
+            safe('previewDirectoryAbsent', lambda:not RELEASES.exists() and not RELEASES.is_symlink())
+            def inspect_routes():
+                # Adapt only: do not validate/provision certificates, reload, or write config.
+                p = subprocess.run(['caddy','adapt','--adapter','caddyfile','--config',str(CADDYFILE)],
+                                   capture_output=True, check=False, timeout=20)
+                if p.returncode:
+                    return {'verified':False}
+                config = json.loads(p.stdout)
+                hosts, production_proxies = set(), set()
+                conflicts = {'hostlessTerminalRoute':False,'hostlessTerminalHandler':False}
+                terminal_handlers = {'reverse_proxy','file_server','static_response','acme_server'}
+                def matches(host,patterns):
+                    # Conservative wildcard match: any possible overlap requires review.
+                    return any(fnmatch.fnmatchcase(host,pattern) for pattern in patterns)
+                def walk(value, unbounded=True, production_possible=True):
+                    if isinstance(value,list):
+                        for child in value: walk(child,unbounded,production_possible)
+                    elif isinstance(value,dict):
+                        matchers=value.get('match')
+                        if matchers:
+                            hostless=any(not row.get('host') for row in matchers)
+                            patterns={host for row in matchers for host in row.get('host',[])}
+                            hosts.update(patterns)
+                            unbounded=unbounded and hostless
+                            production_possible=production_possible and (hostless or matches(PRODUCTION_HOST,patterns))
+                        if unbounded and value.get('terminal') is True:
+                            conflicts['hostlessTerminalRoute']=True
+                        if unbounded and value.get('handler') in terminal_handlers:
+                            conflicts['hostlessTerminalHandler']=True
+                        if value.get('handler')=='reverse_proxy' and production_possible:
+                            production_proxies.update(row.get('dial','') for row in value.get('upstreams',[]))
+                        for key,child in value.items():
+                            if key!='match':walk(child,unbounded,production_possible)
+                walk(config)
+                exact=HOST in hosts
+                wildcard=matches(HOST,[pattern for pattern in hosts if '*' in pattern or '?' in pattern])
+                catch_all=any(conflicts.values())
+                return {'verified':True,'exactHostnameConflict':exact,
+                        'wildcardHostnameConflict':wildcard,'catchAllRouteConflict':catch_all,
+                        'hostlessTerminalRoutePresent':conflicts['hostlessTerminalRoute'],
+                        'hostlessTerminalHandlerPresent':conflicts['hostlessTerminalHandler'],
+                        'proposedHostIsAbsent':not (exact or wildcard or catch_all),
+                        'productionHostPresent':PRODUCTION_HOST in hosts,
+                        'productionProxyIsExpected':production_proxies=={'127.0.0.1:18080'},
+                        'adaptedConfigSha256':hashlib.sha256(p.stdout).hexdigest()}
+            safe('routing',inspect_routes)
+            def storage_capacity():
+                # Find the existing parent on the intended /srv target filesystem.
+                parent=RELEASES
+                while True:
+                    try:
+                        parent.stat()
+                        break
+                    except FileNotFoundError:
+                        parent=parent.parent
+                v=os.statvfs(parent)
+                available=v.f_bavail*v.f_frsize
+                archive_bytes=323516770
+                unpacked_bytes=346769874
+                required=archive_bytes+unpacked_bytes
+                return {'verified':True,'availableBytes':available,'totalBytes':v.f_blocks*v.f_frsize,
+                        'archiveBytes':archive_bytes,'unpackedBytes':unpacked_bytes,
+                        'stagingPlusUnpackedBytes':required,'remainingBytesAfterStaging':available-required,
+                        'oneGiBHeadroomAfterStaging':available-required>=1073741824}
+            safe('targetFilesystemCapacity',storage_capacity)
+            def dns_matches():
+                resolve=lambda host:{row[4][0] for row in socket.getaddrinfo(host,443,type=socket.SOCK_STREAM)}
+                proposed,current=resolve(HOST),resolve(PRODUCTION_HOST)
+                return {'verified':bool(proposed and current),'sameAddressesAsProduction':proposed==current}
+            safe('proposedHostnameDns',dns_matches)
+            def health():
+                with urllib.request.urlopen('https://'+PRODUCTION_HOST+'/api/health',timeout=15) as r:
+                    data=json.load(r)
+                    return {'httpStatus':r.status,'status':data.get('status'),
+                            'buildUnchanged':data.get('buildId')==EXPECTED_BUILD,
+                            'postgres':data.get('postgres') is True,'redis':data.get('redis') is True}
+            safe('productionHealth',health)
+            print(json.dumps({'format':'yard-preview-host-preflight/v1','readOnly':True,
+                              'candidateHostname':HOST,'checks':checks},separators=(',',':')))
+            YARD_PREVIEW_READ_ONLY_AUDIT
