@@ -1,0 +1,159 @@
+{
+  "format": "pip-grounding-ci-reviewed-source/v1",
+  "base": "9275f870f923184f15bc03a25979ac2667566ac2",
+  "baseTree": "b967bfaf977338ba521f87efe1bf3816ec6fb659",
+  "protectedEntryCount": 4960,
+  "protectedGitEntriesSha256": "7b38b14144c92d79a043459d5fa02c1dc1a947e4c78b2b532bfadd4bc4e77af3",
+  "files": [
+    {
+      "path": ".github/workflows/yard-pip-grounding-ab.yml",
+      "bytes": 3305,
+      "sha256": "878ca20b896a7cebb3cfa704ee3d1e5daaa1354a16eb73ddecd704d93734ef04"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/.gitignore",
+      "bytes": 19,
+      "sha256": "9eb776f8cd5f83a4a3a6a5860ea2e4e673811ba724e1d99a63bd686404a60dd6"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/README.md",
+      "bytes": 9722,
+      "sha256": "04213fc19a7ca00ad1e32e8303ec95d5ce42a369b2626e3bac3663d45fa0e773"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/base-files.json",
+      "bytes": 771,
+      "sha256": "b8bb7774b1e64ced6a4e7b2245ec0f52099ea5f72203362ec2adc20d244a5ffb"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/correctness-proof.json",
+      "bytes": 1216,
+      "sha256": "aa01bffbd1b049fbf2f46d873eb8e1b251bb2acec993f99428891c3f815f1167"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/file-allowlist.json",
+      "bytes": 2041,
+      "sha256": "7d61fae429176409ba930e022c3b05f2fcb9fa78237940485dfab4ded02bb842"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/proof/MANIFEST.sha256.json",
+      "bytes": 9870,
+      "sha256": "6f48333ac7cceba1abb993efdf07a60c95fbe6d79fbbcbc1b5c6d58fb03a2087"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/proof/receipt.json",
+      "bytes": 10888,
+      "sha256": "cbe6ae4ec4519c6754447731eecef0cb9e8677bf9947d677eef694ac6fa5953e"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/browser-entry.mjs",
+      "bytes": 2241,
+      "sha256": "850efe69f3ba72f9af1b43c42ca11e94d85d6a2a6c0e7ce3f872f279fc633684"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/build.mjs",
+      "bytes": 3325,
+      "sha256": "db53eca67fde2f00d802a407e570e7f2fdaab5f59276ba569061db9c75306185"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/ci-build.mjs",
+      "bytes": 866,
+      "sha256": "c5d572f9a1d52496b42058219f29ff572ff379d7563bdc4d21f2b9ac40ff6337"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/ci-contract.mjs",
+      "bytes": 6417,
+      "sha256": "de1f9ce2936fc4bd97385f46c83008adb39004ef572623ccc97df007e38f0f2b"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/ci-native.mjs",
+      "bytes": 623,
+      "sha256": "8aebae305112d90b27251b42352f7f1ac34395800e97606b71fd6f8086c60205"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/ci.test.mjs",
+      "bytes": 7075,
+      "sha256": "d411b205a4b55eb3d59fcc89097479febcaf27ebce797a72ab44e445e2faf5c2"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/diagnostics.mjs",
+      "bytes": 3483,
+      "sha256": "b207fe5044897caeb5e7490cc3b539fc49fe54504014b9fde775b114345a2464"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/evidence.mjs",
+      "bytes": 4603,
+      "sha256": "8223fe5dbfe707204ef57e1a6e0f41680ea9ad91789d7ce8b6eaabe6e43eeedb"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/fixture.mjs",
+      "bytes": 1177,
+      "sha256": "e954a6f9047df77f93f5207d7a03753ba67431d3b65b51b7153c7d1082ca3d52"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/harness.test.mjs",
+      "bytes": 8265,
+      "sha256": "51ab35ecd78e1da65bb55c7395fc22701e31db60ea8b591aa1943b0609a45dfb"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/overlay.mjs",
+      "bytes": 2258,
+      "sha256": "5ad30d3e5eaed9fafd1d4bc587c60ea9d4791846ce20d86a90b902eadf695818"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/path-audit.mjs",
+      "bytes": 2291,
+      "sha256": "a0256d235bbb4c353394e8b6caae0daa88072ef95f8680c5c35b520852178992"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/pixels.mjs",
+      "bytes": 4727,
+      "sha256": "e43e40e6b2b1fb6f0a029345cce244eaf8b281e0e1a965dc960953bad6658b3b"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/preflight.mjs",
+      "bytes": 2821,
+      "sha256": "1b5495426e8bad564e281783acde0d82b8ae33e76c2966fbb3f5b1feb48ed54c"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/run.mjs",
+      "bytes": 23254,
+      "sha256": "06416f73f915d68f676e923b35f0a6a82f8b01cf26121ae6d272534afb4bc701"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/seal.mjs",
+      "bytes": 2073,
+      "sha256": "222b57b52d7aa6dadd59b2e03dd17bcd34264051d311ec5a60634f382c1b82b0"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/qa/validate-source.mjs",
+      "bytes": 1766,
+      "sha256": "a152e328afe440797f40f16fdfea63da3fda8adfb6ff03864b37a8c9f12ee6cb"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "bytes": 16332,
+      "sha256": "91769cf459d6046091b327457e2ee6b985b7dc04af5acbdf9eb7f94c2979e7a7"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/prototype/pip-contact-shadow.mjs",
+      "bytes": 5955,
+      "sha256": "f86845df3fcf7e1e940a62b9a688aa6e035ab341387b184deff4b87256d458bb"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/source-overlay/tests/yard-pip-grounding-browser-probe.mjs",
+      "bytes": 9762,
+      "sha256": "fccfbae2f6ea15e5e46d4efae1e29778ca6b041deea9640aceec0e8d632e3f1a"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/source-overlay/tests/yard-pip-grounding-probe.test.mjs",
+      "bytes": 8060,
+      "sha256": "6d3b2268b82dc059eca99f10ba8aba8e1867bad2994b177d46093e82cdafd91d"
+    },
+    {
+      "path": "qa/yard-pip-grounding-native-packet/workflow/yard-pip-grounding-ab.yml",
+      "bytes": 3305,
+      "sha256": "878ca20b896a7cebb3cfa704ee3d1e5daaa1354a16eb73ddecd704d93734ef04"
+    }
+  ]
+}

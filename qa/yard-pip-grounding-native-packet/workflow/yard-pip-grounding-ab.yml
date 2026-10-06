@@ -1,0 +1,83 @@
+name: Pip held native grounding comparison
+on:
+  push:
+    branches: ['qa/yard-pip-grounding-ab-20261006']
+permissions:
+  contents: read
+concurrency:
+  group: yard-pip-grounding-ab-20261006
+  cancel-in-progress: false
+jobs:
+  grounding:
+    if: github.run_attempt == 1 && github.event.created == true && github.event.forced == false && github.event.deleted == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      NODE_OPTIONS: ''
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+      YARD_CANONICAL_PG_TEST: ''
+      YARD_GROUNDING_SOURCE_ROOT: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Exact parent tree, reviewed QA delta and successful correctness receipt
+        id: preflight
+        run: node qa/yard-pip-grounding-native-packet/qa/preflight.mjs
+      - name: Official locked dependencies and one Chromium
+        id: dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+          command -v xvfb-run
+          command -v python3
+      - name: Focused source and evidence guards, paths without launch
+        id: source
+        run: |
+          set -o pipefail
+          node qa/yard-pip-grounding-native-packet/qa/path-audit.mjs | tee qa/yard-pip-grounding-native-packet/results/path-audit.json
+          node qa/yard-pip-grounding-native-packet/qa/validate-source.mjs | tee qa/yard-pip-grounding-native-packet/results/source.tap
+      - name: One private real-app build with exact asset closure
+        id: build
+        run: |
+          set -o pipefail
+          node --max-old-space-size=1536 qa/yard-pip-grounding-native-packet/qa/ci-build.mjs | tee qa/yard-pip-grounding-native-packet/results/build.log
+      - name: One held pose and sequential real-motion comparison
+        id: browser
+        timeout-minutes: 4
+        run: |
+          set -o pipefail
+          xvfb-run -a --server-args='-screen 0 1280x1800x24' node qa/yard-pip-grounding-native-packet/qa/ci-native.mjs | tee qa/yard-pip-grounding-native-packet/results/native.log
+      - name: Record every outcome and losslessly package all originals
+        id: cap
+        if: always()
+        env:
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
+          DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
+          SOURCE_OUTCOME: ${{ steps.source.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+        run: node qa/yard-pip-grounding-native-packet/qa/evidence.mjs
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: yard-pip-grounding-${{ github.sha }}-${{ github.run_attempt }}
+          path: qa/yard-pip-grounding-native-packet/upload/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0
