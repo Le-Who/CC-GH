@@ -1,9 +1,7 @@
 {
-  "parent": "9269231c1d952b056fddf056758b61034d72c63c",
-  "parentWorkflowTree": "d3607f186a1eb79fdd52af917fd38316f8fe58d0",
-  "branch": "qa/yard-normal-preview-check-20261006",
+  "parent": "2a8fcd8e49d2aee308792f642cefb81bf57bb6ba",
+  "branch": "qa/yard-normal-preview-buildfix-20261006",
   "event": "push on initial branch creation; no PR or workflow_dispatch",
-  "newWorkflow": ".github/workflows/yard-normal-preview-check.yml",
   "parentWorkflows": [
     {
       "path": ".github/workflows/ci.yml",
@@ -100,10 +98,17 @@
       "bytes": 2287,
       "triggerSummary": "on:\n  push:\n    branches: [qa/yard-ui-functional-preview]",
       "firesOnReviewedInitialPush": false
+    },
+    {
+      "path": ".github/workflows/yard-normal-preview-check.yml",
+      "bytes": 4323,
+      "sha256": "40186d8c29e621da9f63665e733b7be2add175ddce17c6ff8c0f06292a35712f",
+      "gitBlob": "234c65125a9a4c43900cfd1bab3b9b944e71fc98",
+      "triggerSummary": "push: exact branch qa/yard-normal-preview-check-20261006; first creation only",
+      "firesOnReviewedInitialPush": false
     }
   ],
   "existingWorkflowsTriggered": 0,
-  "newWorkflowsTriggered": 1,
   "jobs": 1,
   "timeoutMinutes": 10,
   "runAttemptMustEqual": 1,
@@ -112,5 +117,8 @@
   "serverWrites": false,
   "secrets": false,
   "newCredentials": false,
-  "review": "All twelve full immutable workflow blobs inspected; push triggers use other exact branch names. CI and native QA PR triggers are outside this initial-push operation. Manual workflows are not dispatched."
+  "review": "All13 inherited workflow identities are pinned. The twelve unrelated workflows stay unchanged. Only the existing normal-preview workflow is updated to the new exact branch; one initial-creation job fires. No PR, workflow_dispatch, deployment or rerun.",
+  "updatedWorkflow": ".github/workflows/yard-normal-preview-check.yml",
+  "updatedWorkflowsTriggered": 1,
+  "parentWorkflowTree": "14f7aa1427743a0259dcade2bbcddc317555a739"
 }

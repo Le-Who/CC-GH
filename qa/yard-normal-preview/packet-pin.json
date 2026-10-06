@@ -1,21 +1,30 @@
 {
-  "format": "normal-yard-native-qa-packet/v1",
-  "parent": "9269231c1d952b056fddf056758b61034d72c63c",
+  "format": "normal-yard-native-qa-packet/v2",
+  "parent": "2a8fcd8e49d2aee308792f642cefb81bf57bb6ba",
+  "publicationPaths": [
+    ".github/workflows/yard-normal-preview-check.yml",
+    "qa/yard-normal-preview/build.mjs",
+    "qa/yard-normal-preview/closure.mjs",
+    "qa/yard-normal-preview/packet-pin.json",
+    "qa/yard-normal-preview/run.mjs",
+    "qa/yard-normal-preview/verify.mjs",
+    "qa/yard-normal-preview/workflow-audit.json"
+  ],
   "files": [
     {
       "path": ".github/workflows/yard-normal-preview-check.yml",
-      "bytes": 4323,
-      "sha256": "40186d8c29e621da9f63665e733b7be2add175ddce17c6ff8c0f06292a35712f"
+      "bytes": 4387,
+      "sha256": "619ff2e63a249e5c57edade58cac5fde1360b8669ee419b02a2a7feccd036ef8"
     },
     {
       "path": "qa/yard-normal-preview/build.mjs",
-      "bytes": 3355,
-      "sha256": "78c0311a5c488e88ee7f11f64f0323b043677a91514f57b396324b766a2c0481"
+      "bytes": 4454,
+      "sha256": "52facf857fa625ddce76b7c1341dc211b809615a3b9bff25ecdc9dcf62a2903e"
     },
     {
       "path": "qa/yard-normal-preview/closure.mjs",
-      "bytes": 6556,
-      "sha256": "c2141f5b14e6905e4e3b6aaff288f322c739bf26d176561a3d9f64e16a567b75"
+      "bytes": 7284,
+      "sha256": "31bd68dc932bd6094c639f5335c1714c0d01ebe590ab2bd82a2e056397a277b4"
     },
     {
       "path": "qa/yard-normal-preview/historical-findings.json",
@@ -34,8 +43,8 @@
     },
     {
       "path": "qa/yard-normal-preview/run.mjs",
-      "bytes": 28909,
-      "sha256": "249c9433e150005d060bca1eafc14fd4309694049c2abd9b4c0810bcf0bf9fde"
+      "bytes": 34325,
+      "sha256": "21f36036fb261fbc00db8b42aa58999943463705a88740e0d7edd3474e923558"
     },
     {
       "path": "qa/yard-normal-preview/runtime-urls.mjs",
@@ -74,13 +83,13 @@
     },
     {
       "path": "qa/yard-normal-preview/verify.mjs",
-      "bytes": 2119,
-      "sha256": "ad539ed810f27e2f610129e84f5b20283a254a02305d2b949b47a302187131b8"
+      "bytes": 2229,
+      "sha256": "76778d2762ba027d11238491957f2fdaccb2def21a0b4fe5812fb267c567e9f9"
     },
     {
       "path": "qa/yard-normal-preview/workflow-audit.json",
-      "bytes": 5987,
-      "sha256": "0bf9cc006ee94e4db8a1a1e6886151acaf31b2a2493fd5c8742def7d07621bfb"
+      "bytes": 6438,
+      "sha256": "c866faae1ece6aa948eee6545f4f608c6d6a91042e1ec6868497a5df165faeab"
     }
   ]
 }

@@ -6,6 +6,13 @@ import {createHash} from 'node:crypto';
 import {pathToFileURL} from 'node:url';
 import {runtimeUrls} from './runtime-urls.mjs';
 export const sha=b=>createHash('sha256').update(b).digest('hex');
+// Canonical UTF-8 JSON array of [path,bytes,sha256], sorted by Unicode code-unit
+// path order, with one final LF. No cwd, timestamp, locale or build machine data.
+export function inventoryDigest(files){
+ const rows=files.map(({path,bytes,sha256})=>[path,bytes,sha256]).sort((a,b)=>a[0]<b[0]?-1:a[0]>b[0]?1:0);
+ return{format:'yard-file-inventory-sha256/v1',files:rows.length,totalBytes:rows.reduce((n,r)=>n+r[1],0),sha256:sha(Buffer.from(JSON.stringify(rows)+'\n','utf8'))};
+}
+
 export async function inventory(root,prefix='') {
  const rows=[];
  for(const e of await fs.readdir(path.join(root,prefix),{withFileTypes:true})){
@@ -58,6 +65,6 @@ export async function closeBuild(root,dist,mode,{prune=false}={}) {
  const files=rows.filter(r=>!prune||!r.path.startsWith('games/')||urls.has('/'+r.path));
  const selected=new Set(files.map(r=>r.path));for(const url of urls)assert(selected.has(new URL(url,'http://closure.invalid').pathname.slice(1)));
  assert(!files.some(r=>r.path.endsWith('.map')),'Source maps forbidden');
- return {format:'yard-normal-native-build-closure/v1',complete:true,mode,dist,files,totalFiles:files.length,totalBytes:files.reduce((n,r)=>n+r.bytes,0),optional,optionalChunks,uiUrls:[...urls].sort(),catalogCalls:calls,nativeEnumeration:{actors:native.actors,clipObjects:native.clipObjects,pageReferences:native.pageReferences},canonicalFiles:canonical.files.length,canonicalBytes:canonical.totalBytes,startup:[...startup],removed:rows.filter(r=>!selected.has(r.path)),qualification:'Static source/byte/URL closure; browser requests and pixels still untested'};
+ return {format:'yard-normal-native-build-closure/v1',complete:true,mode,dist,files,fileInventory:inventoryDigest(files),fullEmittedInventory:inventoryDigest(rows),compiledModules:{unique:new Set(modules).size,rootSource:new Set(modules.filter(m=>m.startsWith('src/')||m.startsWith('game-logic/'))).size,chunks:graph.chunks.length},totalFiles:files.length,totalBytes:files.reduce((n,r)=>n+r.bytes,0),optional,optionalChunks,uiUrls:[...urls].sort(),catalogCalls:calls,nativeEnumeration:{actors:native.actors,clipObjects:native.clipObjects,pageReferences:native.pageReferences},canonicalFiles:canonical.files.length,canonicalBytes:canonical.totalBytes,startup:[...startup],removed:rows.filter(r=>!selected.has(r.path)),qualification:'Static source/byte/URL closure; browser requests and pixels still untested'};
 }
 if(process.argv[1]===import.meta.filename){const[root,dist,mode,out]=process.argv.slice(2);const result=await closeBuild(root,dist,mode,{prune:mode==='phone'});await fs.writeFile(out,JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify({mode,files:result.totalFiles,bytes:result.totalBytes,optional:result.optional.length,complete:result.complete}));}

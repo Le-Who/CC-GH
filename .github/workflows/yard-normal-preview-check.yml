@@ -1,7 +1,7 @@
 name: Normal Vite Yard and static phone evidence
 on:
   push:
-    branches: ['qa/yard-normal-preview-check-20261006']
+    branches: ['qa/yard-normal-preview-buildfix-20261006']
 permissions:
   contents: read
 concurrency:
@@ -14,7 +14,6 @@ jobs:
     timeout-minutes: 10
     env:
       CI: 'true'
-      NODE_ENV: test
     steps:
       - uses: actions/checkout@v6
         with:
@@ -44,12 +43,16 @@ jobs:
           command -v ffprobe
       - name: Focused source checks
         id: source
+        env:
+          NODE_ENV: test
         run: |
           set -o pipefail
           mkdir -p qa/yard-normal-preview/results
           node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-pip-integration.test.mjs tests/yard-pip-legacy-m2.test.mjs tests/yard-pip-renderer.test.mjs tests/yard-pip-viewport-recovery.test.mjs tests/yard-pip-preview-gate.test.mjs tests/yard-pip-build-boundary.test.mjs tests/yard-atlas-working-set.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-mochi-scene-lifecycle.test.mjs tests/yard-pebble-scene-lifecycle.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/sw-shell-precache.test.mjs tests/perf-build-guard.test.js tests/yard-public-media.test.mjs tests/yard-actor-profiles.test.mjs tests/yard-ui-media-budget.test.mjs | tee qa/yard-normal-preview/results/source-tests.tap
       - name: Build actual default, opt-in and read-only Vite outputs and close assets
         id: build
+        env:
+          NODE_ENV: production
         run: node qa/yard-normal-preview/build.mjs
       - name: One bounded native consumer and phone-preview pass
         id: browser
