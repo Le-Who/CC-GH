@@ -1,7 +1,7 @@
 name: Bounded actual Yard optional Pip integration
 on:
   push:
-    branches: ['qa/yard-pip-integrated-check-20261006']
+    branches: ['qa/yard-pip-integrated-buildfix-20261006']
 permissions:
   contents: read
 concurrency:
@@ -11,7 +11,7 @@ jobs:
   actual-yard-pip:
     if: github.run_attempt == 1 && github.event.created == true
     runs-on: ubuntu-24.04
-    timeout-minutes: 10
+    timeout-minutes: 8
     env:
       CI: 'true'
       NODE_ENV: test
@@ -23,7 +23,7 @@ jobs:
       - name: Verify immutable parent and candidate, and existing Xvfb
         id: verify
         run: |
-          test "$(git rev-parse HEAD^)" = d691e7a26fa726091e363702feade8cfe291456d
+          test "$(git rev-parse HEAD^)" = d0c412717c15cb46d41e04913f58904e8adbe598
           command -v xvfb-run
           node qa/yard-pip-integration/run.mjs --verify-only
       - name: Install ffmpeg from official Ubuntu repositories

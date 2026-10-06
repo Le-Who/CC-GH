@@ -10,11 +10,11 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 const exec=promisify(execFile),HERE=path.dirname(fileURLToPath(import.meta.url));
 const OUT=path.join(HERE,'results'),DIST=path.join(HERE,'dist'),CAP=8*1024*1024;
-const BRANCH='refs/heads/qa/yard-pip-integrated-check-20261006',PARENT='d691e7a26fa726091e363702feade8cfe291456d';
+const BRANCH='refs/heads/qa/yard-pip-integrated-buildfix-20261006',PARENT='d0c412717c15cb46d41e04913f58904e8adbe598';
 const MODEL='pip-prototype/assets/pip.glb',OPTIONAL_PREFIX='pip-prototype/';
 const report={format:'Actual-Yard-optional-Pip-QA/v1',status:'RUNNING',parent:PARENT,commit:process.env.GITHUB_SHA,retries:0,browserFlagsAdded:[],
  visualAcceptance:'PENDING_HUMAN_ACTUAL_STAGE_PORTRAIT_SCALE_FOREGROUND_DEPTH_AND_VIDEO_REVIEW',hardwareMobilePerformance:'NOT_TESTED',nativeLifecycle:'UNQUALIFIED_UNTIL_TRUSTED_EVENTS_OBSERVED',
- limits:{jobMinutes:10,browserSeconds:150,artifactBytes:CAP,retentionDays:3},errors:[],cases:[],requests:[],blockedRequests:[],failedResponses:[],
+ limits:{jobMinutes:8,browserSeconds:150,artifactBytes:CAP,retentionDays:3},errors:[],cases:[],requests:[],blockedRequests:[],failedResponses:[],
  boundaries:['Actual CourtyardGame, scene-owner and Canvas2D source; isolated disposable read-only snapshot and static HTTP transport.',
  'Known model CPU11,872,312 B plus2,888,036 B encoded-background copies =14,760,348 B /16 MiB policy and12 MiB estimated GPU policy are separate from owned image/backing RGBA ledger; browser RSS and driver allocation are unknown.',
  'The clean 200×220 domain cannot convert or mutate saved 0–100 Yard positions.',

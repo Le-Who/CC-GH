@@ -17,7 +17,9 @@ for(const rel of ['games/companion-yard','games/hud-redesign/room'])await mkdirC
 await mkdirCopy(path.join(baseline,'public'),dist);await mkdirCopy(path.join(candidate,'public'),dist);
 for(const rel of ['assets','data','source','vendor'])await mkdirCopy(path.join(prototype,rel),path.join(dist,'pip-prototype',rel));
 function resolver(){return{name:'actual-yard-sources',setup(api){api.onResolve({filter:/^(@repo\/|@baseline\/|\.{1,2}\/)/},async args=>{
- const resolved=args.path.startsWith('@repo/')?path.join(REPO,args.path.slice(6)):args.path.startsWith('@baseline/')?path.join(baseline,args.path.slice(10)):path.resolve(path.dirname(args.importer),args.path);
+ let resolved=args.path.startsWith('@repo/')?path.join(REPO,args.path.slice(6)):args.path.startsWith('@baseline/')?path.join(baseline,args.path.slice(10)):path.resolve(path.dirname(args.importer),args.path);
+ const baselineOverlay=path.join(baseline,'vendor/r5');
+ if(resolved.startsWith(baselineOverlay+path.sep))resolved=path.join(overlay,path.relative(baselineOverlay,resolved));
  if(resolved===path.join(prototype,'yard-pip-scene.mjs')&&args.kind==='dynamic-import')return{path:'/pip-prototype/yard-pip-scene.mjs',external:true};
  if(resolved.startsWith(path.join(prototype,'vendor')+path.sep))return{path:'/pip-prototype/'+path.relative(prototype,resolved).split(path.sep).join('/'),external:true};
  if(resolved.startsWith(overlay+path.sep))return{path:await exists(resolved)?resolved:path.join(REPO,path.relative(overlay,resolved))};
