@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
+import {createHash} from 'node:crypto';
 import postcss from 'postcss';
 import {supportsCleanViewport,CLEAN_STAGE_MIN} from '../src/games/companion-yard-v2/pip-prototype/projection.mjs';
 
@@ -27,6 +28,33 @@ function declarations(tree,selectors,viewport){
 const viewport={width:568,height:320};
 const effective=(selectors,v=viewport)=>declarations(css,selectors,v);
 const dialogWidth=(value,width)=>value.startsWith('min(')?Math.min(Number.parseFloat(value.slice(4)),width-16):value.startsWith('calc(')?width-16:Number.parseFloat(value);
+
+test('base action rows wrap the actual Russian copy at 320/360 portrait and the 340px tablet drawer',async()=>{
+ // Unshaped hmtx advances extracted from the exact delivered Nunito 900 WOFF2
+ // faces (1000 units/em), the matching face for the existing 850 weight.
+ // This source/line-packing check is not a browser shaping or pixel assertion.
+ const fonts={'cyrillic':'50f32003ea66176e5a07b9dc4a3292b02bb36f6a6660fad04b8e2af79a1af343','latin':'9ca32f5d8334579387361096944286df451272a557bb09bd906254a623aba99e'};
+ for(const [subset,sha]of Object.entries(fonts)){const bytes=await fs.readFile(new URL(`../node_modules/@fontsource/nunito/files/nunito-${subset}-900-normal.woff2`,import.meta.url));assert.equal(createHash('sha256').update(bytes).digest('hex'),sha);}
+ const oldCopy=await fs.readFile(new URL('../src/games/companion-yard/i18n.js',import.meta.url),'utf8'),newCopy=await fs.readFile(new URL('../src/games/companion-yard-v2/i18n.js',import.meta.url),'utf8');
+ const ru=(source,key)=>{const start=source.indexOf('  ru: {');assert.ok(start>=0);return JSON.parse(source.slice(start).match(new RegExp('"'+key.replaceAll('.','\\.')+'"\\s*:\\s*("[^"\\n]*")'))[1]);};
+ const labels=[ru(oldCopy,'yard.move'),ru(oldCopy,'yard.store'),ru(newCopy,'yard.canonical.inspect')];assert.deepEqual(labels,['Передвинуть','Убрать','Позвать Пипа']);
+ const advances=[6707,3605,7115];
+ for(const v of[{width:360,height:800},{width:1024,height:768},{width:320,height:568}]){
+  const dialog=effective(['.cy-dialog',root+' .cy-dialog'],v),footer=effective(['.cy-selected-actions',root+' .cy-dialog>.cy-selected-actions'],v);
+  const button=effective(['.cy-app button','.cy-dialog button','.cy-selected-actions button',root+' .cy-selected-actions button'],v),row=effective(['.cy-row-actions','.cy-selected-actions .cy-row-actions',root+' .cy-selected-actions .cy-row-actions'],v);
+  const widthMatch=dialog.width.match(/min\((\d+)px,calc\(100vw - (\d+)px\)\)/),outer=widthMatch?Math.min(Number(widthMatch[1]),v.width-Number(widthMatch[2])):Number.parseFloat(dialog.width);
+  const available=outer-2*Number.parseFloat(dialog['border-width']||dialog.border)-2*Number.parseFloat(footer.padding.split(' ')[1]);
+  assert.equal(available,v.width===320?276:308);
+  const font=effective(['.cy-app','.cy-dialog'],v).font,fontSize=Number(font.match(/(\d+)px\//)[1]);assert.equal(fontSize,14);assert.equal(button['min-height'],'44px');assert.equal(row['flex-wrap'],'wrap');
+  const padding=2*Number.parseFloat(button.padding.split(' ')[1]||button.padding),gap=Number.parseFloat(row.gap),copies=advances.map(n=>n/1000*fontSize);
+  assert.ok(['1','1 0 auto'].includes(button.flex),'bounded source flex model must be updated for a changed contract');
+  const bases=copies.map(width=>button.flex.endsWith('auto')?width+padding:0),lines=[[]];
+  for(let i=0;i<bases.length;i++){let line=lines.at(-1);if(line.length&&line.reduce((n,index)=>n+bases[index],0)+gap*line.length+bases[i]>available)lines.push(line=[]);line.push(i);}
+  for(const line of lines){const extra=(available-line.reduce((n,i)=>n+bases[i],0)-gap*(line.length-1))/line.length;for(const i of line)assert.ok(bases[i]+extra-padding>=copies[i],`${v.width}x${v.height} ${labels[i]} needs ${copies[i]}px but has ${bases[i]+extra-padding}px`);}
+  assert.equal(lines.length,2,'three Russian actions form two natural rows');assert.equal(button['max-width'],'100%');
+ }
+ for(const v of[viewport,{width:844,height:390}])assert.equal(effective(['.cy-selected-actions button',root+' .cy-selected-actions button'],v).flex,'0 0 auto','landscape side-action sizing stays intact');
+});
 
 test('compact canonical stage includes the real outer shell gutter and retains its unchanged live minimum',async()=>{
  const shell=postcss.parse(await fs.readFile(new URL('../src/index.css',import.meta.url),'utf8'));

@@ -229,8 +229,8 @@
   "allowedReviewedFiles": {
     "src/app/hud-layout/defaultLayouts/room.json": "8b9b7b1e68c07d400fd97bacc2c65279a13ab7b3c8c8bbfe207c9ad4a6262c72",
     "src/app/hud-layout/registry.js": "3110cf714198966dab52b9a0c5633ab4041482f2d2ae3d508ad45ecdd80b0bb0",
-    "src/games/companion-yard-v2/courtyard.css": "904a86713d2d473a0cad2abbda653232456b3ab30f9ee15aa7825aaaaf6df8ec",
-    "tests/yard-compact-hud-layout.test.mjs": "c47061a2c762cf7b1a16bdb87101de720af2d0e5084d48d67218f9598eb936f6"
+    "src/games/companion-yard-v2/courtyard.css": "8cc0c9c13a5865df466cf40de9d8684d296b892d6631fcfb19b82171ae24626d",
+    "tests/yard-compact-hud-layout.test.mjs": "f8851376c8edea7c5ccda18bb4ff8ce19f232fe85325d22f4b5b43924728dc83"
   },
   "protectedEntryCount": 4891,
   "protectedGitEntriesSha256": "8f296df57f3b77eaede991f3ba29e3651b2912e21a5382b40c546571a32a270c",
@@ -521,5 +521,23 @@
       }
     ],
     "qualification": "Actions passed; full run failed at 568x320 HUD. Core renderer/dynamic implementation unchanged. Changed UI and startup are tested fresh; historical visual acceptance is not promoted to current full-matrix acceptance."
+  },
+  "lastHudAttempt": {
+    "head": "cf8457110c5e1395b2635ff960bd50b38400be3d",
+    "tree": "dab9c17cc8a3932497fd5e2013a49b8e817ed126",
+    "runId": "37517534767",
+    "logSha256": "b2ea35faa8a779640ad52c2c36a3f9cd532ad4785b8137dfc6ccf8512271a780",
+    "sourceChecks": {
+      "tests": 25,
+      "pass": 25
+    },
+    "builds": "default and preview caps passed",
+    "loggedFailures": [
+      "360x800 RU: Clipped control \u041f\u0435\u0440\u0435\u0434\u0432\u0438\u043d\u0443\u0442\u044c",
+      "1024x768 RU: Clipped control \u041f\u0435\u0440\u0435\u0434\u0432\u0438\u043d\u0443\u0442\u044c"
+    ],
+    "rawEvidenceBytes": 10063320,
+    "artifactUploaded": false,
+    "qualification": "Only logs survived upload rejection. No full or nine-profile visual/mechanical acceptance is claimed from absent screenshots and records."
   }
 }

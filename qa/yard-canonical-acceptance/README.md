@@ -1,8 +1,8 @@
 # Finite native HUD scroll qualification
 
-One first-attempt push on `qa/yard-canonical-scroll-hud-20261006`, one ordinary
+One first-attempt push on `qa/yard-canonical-wrap-evidence-20261006`, one ordinary
 Ubuntu 24.04 job, ten-minute limit, PostgreSQL 15 on the existing guarded local
-credentials. No deployment, secrets, cache or retries. Evidence is capped at
+credentials. No deployment, secrets, cache or retries. The actual artifact transfer is capped at
 8 MiB and retained for three days. The existing API listener expires at 240 seconds;
 Playwright remains bounded to 220 seconds globally, with a 200-second HUD test.
 
@@ -67,3 +67,31 @@ lane does not execute historical-service tests. The installed Playwright 1.58.2 
 audit resolves the API entry, selected HUD spec, outputs and build paths without
 launching anything. After reviewing the final integrated files, run
 `node qa/yard-canonical-acceptance/seal.mjs --reviewed-final-source` before committing.
+
+
+## Lossless evidence packaging
+
+Every regular original in `results/`, including receipt, logs, JSON and native
+images, is preserved byte-for-byte inside `upload/evidence.zip`. The embedded
+`MANIFEST.sha256.json` records every original name, byte count and SHA-256.
+Python standard-library ZIP/deflate uses sorted names and fixed ZIP metadata;
+all entries are read back and verified. No lossy recompression, evidence selection,
+truncation or original-file removal occurs. The raw originals remain in the job.
+
+The gate measures the ZIP plus the actual summary bytes and reserves another
+4096 bytes for upload-artifact's outer ZIP framing over its two short filenames.
+Their total must remain at most 8,388,608 bytes. The uploader uses compression
+level 0, retention three days, and always uploads the staging directory, including
+when an earlier check or packaging gate fails. A package over the limit is never
+staged. Instead, the cap step stays failed and uploads only an at-most-8192-byte
+summary that explicitly says the originals were not uploaded. It also writes the
+same bounded status to job output/step summary. Raw originals and the full candidate
+ZIP remain only in the running job and cannot be recovered after runner removal.
+A small failure diagnostic is never reported as complete evidence or acceptance.
+
+Run37517534767/cf845 had two logged label-clipping errors at 360x800 RU and
+1024x768 RU. Its 10,063,320-byte raw evidence exceeded the old cap; no artifact
+was uploaded. The preserved log hash is in the reuse proof. Other profiles are
+not promoted to accepted evidence based solely on the lack of further log errors.
+The next job retains the same eleven-tuple native scope and all strict control
+gates; it does not repeat purchases or motion recordings.

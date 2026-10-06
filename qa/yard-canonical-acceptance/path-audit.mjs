@@ -63,10 +63,12 @@ assert.match(seal,/git',\['diff','--name-only',base\]/);
 assert.match(api,/new URL\('\.\.\/\.\.\/dist\/index\.html',import\.meta\.url\)/);
 assert.match(loader,/resolve\(process\.cwd\(\)\)!==resolve\(fileURLToPath\(root\)\)/);
 assert.match(workflow,/working-directory: \$\{\{ github\.workspace \}\}/);
-assert.match(workflow,/path: qa\/yard-canonical-acceptance\/results\//);
+assert.match(workflow,/path: qa\/yard-canonical-acceptance\/upload\//);
+assert.match(evidence,/uploadDir:path\.join\(import\.meta\.dirname,'upload'\)/);
+const packager=await read('package-evidence.mjs');assert.match(packager,/path\.join\(import\.meta\.dirname,'evidence-zip.py'\)/);assert.match(packager,/path\.join\(workDir,'evidence-candidate.zip'\)/);assert.match(packager,/path\.join\(uploadDir,'summary.json'\)/);
 for(const line of browser.split('\n').filter(line=>/writeFile|copyFile|screenshot\(\{path/.test(line)))assert.match(line,/OUT|target/,'Browser file output must use an absolute evidence target');
 assert.equal(fileURLToPath(new URL('../../dist/index.html',new URL('file://'+expectedEntry))),path.join(root,'dist/index.html'));
 console.log(JSON.stringify({status:'PATHS_VERIFIED_WITHOUT_LAUNCH',playwrightVersion:'1.58.2',checks,
- evidenceDirectory:path.relative(root,OUT),nativeRecording:'not repeated; prior raw clips referenced by hash',buildOutput:'dist',artifactUpload:'qa/yard-canonical-acceptance/results/',
+ evidenceDirectory:path.relative(root,OUT),nativeRecording:'not repeated; prior raw clips referenced by hash',buildOutput:'dist',artifactUpload:'qa/yard-canonical-acceptance/upload/',
  coverage:['actual Playwright config and webServer cwd resolver','test discovery/output','selected HUD spec, browser images and combined report','build subprocess cwd and dist','API entry, loader root and dist','preflight/seal/TAP/upload repository cwd'],
  processLaunches:0,listeners:0,browsers:0,databaseConnections:0,sourceGuards:'unchanged'},null,2));

@@ -1,11 +1,11 @@
 name: Canonical Yard finite acceptance
 on:
   push:
-    branches: ['qa/yard-canonical-scroll-hud-20261006']
+    branches: ['qa/yard-canonical-wrap-evidence-20261006']
 permissions:
   contents: read
 concurrency:
-  group: yard-canonical-scroll-hud-20261006
+  group: yard-canonical-wrap-evidence-20261006
   cancel-in-progress: false
 jobs:
   acceptance:
@@ -66,7 +66,7 @@ jobs:
           set -o pipefail
           node qa/yard-canonical-acceptance/path-audit.mjs | tee qa/yard-canonical-acceptance/results/path-audit.json
           pnpm run hud-layout:validate
-          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 qa/yard-canonical-acceptance/scroll-reachability.test.mjs qa/yard-canonical-acceptance/readiness.test.mjs qa/yard-canonical-acceptance/failure-evidence.test.mjs tests/yard-canonical-pg-guard.test.mjs tests/yard-compact-hud-layout.test.mjs | tee qa/yard-canonical-acceptance/results/source.tap
+          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 qa/yard-canonical-acceptance/scroll-reachability.test.mjs qa/yard-canonical-acceptance/package-evidence.test.mjs qa/yard-canonical-acceptance/readiness.test.mjs qa/yard-canonical-acceptance/failure-evidence.test.mjs tests/yard-canonical-pg-guard.test.mjs tests/yard-compact-hud-layout.test.mjs | tee qa/yard-canonical-acceptance/results/source.tap
       - name: Fresh default and preview production builds with every asset/startup budget
         id: build
         run: node qa/yard-canonical-acceptance/build.mjs
@@ -74,7 +74,7 @@ jobs:
         id: browser
         timeout-minutes: 4
         run: pnpm exec playwright test --config qa/yard-canonical-acceptance/config.mjs
-      - name: Preserve every outcome and enforce the eight MiB evidence cap
+      - name: Losslessly package all originals under the eight MiB transfer cap
         id: cap
         if: always()
         env:
@@ -85,10 +85,10 @@ jobs:
           BROWSER_OUTCOME: ${{ steps.browser.outcome }}
         run: node qa/yard-canonical-acceptance/evidence.mjs
       - uses: actions/upload-artifact@v7
-        if: always() && steps.cap.outcome == 'success'
+        if: always()
         with:
           name: yard-canonical-${{ github.sha }}-${{ github.run_attempt }}
-          path: qa/yard-canonical-acceptance/results/
+          path: qa/yard-canonical-acceptance/upload/
           if-no-files-found: error
           retention-days: 3
           compression-level: 0
