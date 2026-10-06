@@ -1,0 +1,63 @@
+name: Bounded Pip WebGL pilot
+on:
+  push:
+    branches: ['qa/yard-pip-webgl-pilot-20261006']
+permissions:
+  contents: read
+concurrency:
+  group: pip-webgl-pilot-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  pip-webgl:
+    if: github.run_attempt == 1 && github.event.created == true
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      CI: 'true'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 2
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /pnpm-lock.yaml
+            /qa/yard-pip-webgl/
+      - name: Verify immutable parent and frozen candidate before dependencies
+        run: |
+          test "$(git rev-parse HEAD^)" = d8a8a839e3a644f6e317b22594bab5c9aee6cddc
+          node qa/yard-pip-webgl/run-pip-webgl.mjs --verify-only
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install ordinary locked repository QA tools without cache
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+      - name: Run one bounded native Chromium WebGL check with no retries
+        timeout-minutes: 3
+        run: node qa/yard-pip-webgl/run-pip-webgl.mjs
+      - name: Enforce total eight MiB artifact cap
+        id: cap
+        if: always()
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p=Path('qa/yard-pip-webgl/results')
+          total=sum(f.stat().st_size for f in p.rglob('*') if f.is_file())
+          assert total <= 8*1024*1024, 'Evidence exceeds eight MiB; upload refused'
+          print('Artifact bytes:', total)
+          PY
+      - name: Preserve only bounded native QA evidence
+        if: always() && steps.cap.outcome == 'success'
+        uses: actions/upload-artifact@v7
+        with:
+          name: pip-webgl-${{ github.sha }}-${{ github.run_attempt }}
+          path: qa/yard-pip-webgl/results/
+          if-no-files-found: ignore
+          retention-days: 3
+          compression-level: 0

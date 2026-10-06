@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Private Pip consumer test</title>
+<style>body{margin:0;background:#ece8df;color:#292820;font:15px system-ui}main{max-width:430px;margin:auto;padding:16px}h1{font-size:20px;margin:0 0 8px}p{line-height:1.4}canvas{display:block;width:100%;height:300px;border:1px solid #aaa28e;border-radius:12px;background:#f4ebda;box-sizing:border-box}section{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}button,select{font:inherit;min-height:44px;padding:8px 12px;border:1px solid #918875;background:#fff9eb;border-radius:8px;color:inherit}button:disabled{opacity:.5}output{display:block;white-space:pre-wrap;font-size:12px;overflow-wrap:anywhere}.note{font-size:12px;color:#696050}</style>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js","three/addons/":"./vendor/three/addons/"}}</script>
+<main><h1>Private Pip consumer test</h1><p id="status">Disabled. No model or WebGL canvas has been loaded.</p>
+<canvas id="view" aria-label="One pet and one calibrated planter on an empty background"></canvas>
+<section><label>First destination <select id="first-goal"><option value="">Choose…</option><option value="0">A</option><option value="1">B</option><option value="2">C</option></select></label><button id="enable" disabled>Enable private test</button><button id="disable" disabled>Disable</button></section>
+<section><button class="goal" data-goal="0" disabled>Run to A</button><button class="goal" data-goal="1" disabled>Run to B</button><button class="goal" data-goal="2" disabled>Run to C</button></section>
+<section><label>Planter <select id="placement"><option value="0">Placement 1</option><option value="1">Placement 2</option></select></label></section>
+<p class="note">This short test moves forward through A → B → C. Choose the next destination after Pip settles; C ends the sequence. Earlier destinations stay disabled. Only Disable resets the test. The empty background leaves no baked planter duplicate; both objects share one depth buffer.</p>
+<p class="note">Analytical coat; approximate WebGL lighting. Subsurface scattering and contact shadows are not reproduced. Browser quality, timing and lifecycle are awaiting review.</p>
+<output id="metrics"></output></main><script type="module" src="./fixture.mjs"></script></html>
