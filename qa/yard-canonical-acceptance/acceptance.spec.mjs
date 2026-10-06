@@ -12,7 +12,7 @@ let owner,fixture;
 test.beforeAll(async()=>{await fs.mkdir(OUT,{recursive:true});await fs.mkdir(WORK,{recursive:true});owner=await fixtureOwner();fixture=await owner.seed();});
 test.afterAll(async()=>{try{await owner?.close();}catch(error){report.errors.push({type:'fixture-cleanup',message:String(error)});report.status='FAILED_OR_INCOMPLETE';throw error;}finally{await fs.writeFile(path.join(OUT,'browser.json'),JSON.stringify(report,null,2)+'\n');}});
 async function rows(n){await expect.poll(async()=>canonicalRows(await owner.saved(fixture)).length).toBe(n);return canonicalRows(await owner.saved(fixture));}
-async function context(browser,options={}){const {language='en',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);await boot(p);return{c,p};}
+async function context(browser,options={}){const {language='en',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p);return{c,p};}catch(error){await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
 async function visibleCount(page,n){await expect.poll(async()=>(await scene(page))?.canonicalRecords?.length).toBe(n);}
 async function switchFresh(page){await page.locator('[data-pip-control="toggle"]').click();await expect.poll(async()=>(await shot(page))?.mode).toBe('legacy');await enter(page);}
 async function settled(page){await expect.poll(async()=>(await scene(page))?.interaction?.phase,{timeout:24000}).toBe('settled');}
@@ -46,7 +46,7 @@ async function jitter(page,slotId){
 test('finite real persistence, dynamic inspection and full HUD matrix',async({browser})=>{
  let active;
  try{
-  active=await context(browser);let{p,c}=active;await enter(p);await visibleCount(p,0);
+  active=await context(browser);let{p,c}=active;await enter(p);await visibleCount(p,0);await capture(p,'new-hud-initial');
   const baseline=economy(await owner.saved(fixture));
   const commands=[];let firstReply,release,committed;const didCommit=new Promise(r=>committed=r),gate=new Promise(r=>release=r);
   await p.route('**/api/player/mutate',async route=>{

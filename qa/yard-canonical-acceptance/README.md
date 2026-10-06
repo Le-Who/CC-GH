@@ -7,7 +7,7 @@ runs no browser, HTTP listener, database, or GitHub action.
 ## Before the one authorized publication
 
 Integrate the reviewed final backend, dynamic planner, UI and this test packet on
-base `592356e97b67bc5cda3b4b0eeccff94101f8c300`. Review the exact final diff and
+published parent `c0c3574f1d1b4567466ded04bf0f86bf4b3cae7c`. Review the exact final diff and
 only then run:
 
 ```
@@ -21,12 +21,30 @@ The manifest is provenance, not a substitute for source review. Exclude local
 provenance, unpublished asset work, credentials and unrequested historical QA
 changes before sealing. Do not reuse historical preview source-pin checks.
 
-Publishing the new branch `qa/yard-canonical-dynamic-20261006` would trigger the
+Publishing the new branch `qa/yard-canonical-browser-cwdfix-20261006` would trigger the
 single workflow `.github/workflows/yard-canonical-dynamic.yml`. It accepts only a
 non-forced first branch-creation push and run attempt 1. Reruns and later pushes do
 not execute the job. There is no PR, dispatch, schedule, deployment, image push,
 secret, cache, persistent environment, or production connection in this lane.
 Publication must be separately authorized by the coordinating agent/user.
+
+## Corrective path verification
+
+Original run `37487170407` passed 190 source tests, real PostgreSQL and both
+production builds/budgets, then stopped before browser launch because Playwright
+resolved the relative server command from this config directory. The original
+failure evidence remains unchanged. This correction pins the server cwd to the
+repository root and makes Playwright outputDir absolute.
+
+`path-audit.mjs` exercises the installed Playwright 1.58.2 config resolver and
+WebServerPlugin cwd resolution with process start and readiness methods replaced
+by observation-only stubs. It opens no listener, browser or database. It checks
+positive paths and the original failing defaults, both from repository root and
+config directory; evidence/video/build/fixture paths are also audited.
+
+The corrective ancestry is new → c0c3574 → 592356 → 4660, checked with checkout
+depth 4. The corrective seal covers harness/workflow changes only; product source
+and runtime assets must be byte-identical to the published parent.
 
 ## Exact build and run
 
