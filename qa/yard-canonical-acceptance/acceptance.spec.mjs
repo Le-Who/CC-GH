@@ -25,6 +25,20 @@ async function recoveryWitness(page){
  for(const side of before.dynamicSample.world.support){assert.deepEqual(after.dynamicSample.world.feet[side].position,before.dynamicSample.world.feet[side].position);assert.equal(after.dynamicSample.world.feet[side].heading,before.dynamicSample.world.feet[side].heading);}
  return{before,after};
 }
+async function captureHeldContact(page){
+ await page.evaluate(()=>document.fonts.ready);
+ const before=await scene(page);assert.equal(before.interaction.active,false);assert.equal(before.renderer.paused,true);assert.equal(before.renderer.contactShadow?.version,'pip-flat-ground-contact-v1');
+ assert(before.pauseReasons.includes('canonical-idle'),'Use the existing idle pause; do not alter pose or clock');
+ const box=await page.locator('.cy-scene').boundingBox(),anchor=project(before,before.dynamicSample.world.root.x,before.dynamicSample.world.root.y);
+ const viewport=page.viewportSize(),clip={x:Math.max(0,Math.min(viewport.width-144,Math.floor(box.x+anchor.x-72))),y:Math.max(0,Math.min(viewport.height-96,Math.floor(box.y+anchor.y-60))),width:144,height:96};
+ await page.screenshot({path:path.join(OUT,'new-hud-dpr2-native.png')});
+ await page.screenshot({path:path.join(OUT,'contact-shadow-dpr2-native.png'),clip});
+ const after=await scene(page);assert.deepEqual(after.dynamicSample.world,before.dynamicSample.world);assert.deepEqual(after.renderer.contactShadow,before.renderer.contactShadow);assert.equal(after.lastFrame.elapsedMs,before.lastFrame.elapsedMs);assert.deepEqual(after.renderer.lastFrame.cameraWorld,before.renderer.lastFrame.cameraWorld);
+ const dpr=await page.evaluate(()=>devicePixelRatio);assert.equal(dpr,2);
+ report.captures.push('new-hud-dpr2-native.png','contact-shadow-dpr2-native.png');
+ report.contactEvidence={dpr,clip,sourceRaster:{width:390,height:648,dpr:1},world:before.dynamicSample.world,contactAnchors:before.renderer.contactShadow,rendererFrame:before.renderer.lastFrame,
+  pausedReasons:before.pauseReasons,samePoseAndClockVerified:true,qualification:'Native DPR2 screenshot of the existing paused scene. World raster remains DPR1. No on/off toggle exists; this crop and anchor record do not establish grounding or shadow appearance quality.'};
+}
 function propSignature(s){return{props:s.renderer.propInstances.filter(p=>p.visible&&!p.ghost).map(p=>({slotId:p.slotId,position:p.position})),camera:s.renderer.lastFrame.cameraWorld,projection:s.renderer.lastFrame.cameraProjection,css:s.renderer.lastFrame.cssRect};}
 async function jitter(page,slotId){
  const samples=[],pixels=[],r=(await scene(page)).canonicalRecords.find(r=>r.slotId===slotId),box=await page.locator('.cy-scene').boundingBox();
@@ -47,6 +61,7 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
  let active;
  try{
   report.browserVersion=browser.version();
+  active=await context(browser,{deviceScaleFactor:2});await enter(active.p);await visibleCount(active.p,0);await captureHeldContact(active.p);await active.c.close();active=null;
   active=await context(browser);let{p,c}=active;await enter(p);await visibleCount(p,0);
   report.renderingBackend=await p.locator('.cy-pip-direct-layer canvas').evaluate(canvas=>{
    // Three has already initialized this visible direct canvas as WebGL2. This

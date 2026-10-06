@@ -156,8 +156,11 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
    setupLighting:({THREE,scene,renderer})=>{renderer.toneMapping=THREE.NoToneMapping;const target=new THREE.Vector3(run.approach.start.position.x/12,.5,-run.approach.start.position.y/12),lights=[];
     const ambient=new THREE.AmbientLight(new THREE.Color().setRGB(.78,.83,.93,THREE.LinearSRGBColorSpace),.55);scene.add(ambient);lights.push(ambient);
     for(const [position,intensity]of[[[-2.4,4,3],1.8],[[2.5,2.4,1.7],.76],[[0,2.8,-2],1.2]]){const l=new THREE.DirectionalLight(0xffffff,intensity);l.position.copy(target).add(new THREE.Vector3(...position));l.target.position.copy(target);scene.add(l,l.target);lights.push(l,l.target);}return()=>lights.forEach(l=>scene.remove(l));}});
-  if(disposed){made.dispose();return;}api=made;api.setPaused(true);syncCanonicalInteraction();draw({reason:'startup',paused:true});
-  if(disposed)return;clock.reset();clock.setReason('ready',false);syncInteractionClock();api.setPaused(clock.paused);scheduler.setPaused(clock.paused);scheduler.invalidate('route');notify(phase());publish();
+  if(disposed){made.dispose();return;}api=made;api.setPaused(true);
+  // A canonical controller owns one monotonic active-time epoch. Establish it
+  // before updateLayout/tick, never after the controller's first displayed pose.
+  if(canonicalItems)clock.reset();syncCanonicalInteraction();draw({reason:'startup',paused:true});
+  if(disposed)return;if(!canonicalItems)clock.reset();clock.setReason('ready',false);syncInteractionClock();api.setPaused(clock.paused);scheduler.setPaused(clock.paused);scheduler.invalidate('route');notify(phase());publish();
  })().catch(error=>{if(!disposed)reportFailure(error,'startup');}).finally(()=>{if(disposed)cleanup();});
  return{ready,update(value){const old=selectedCommitted();if(snapshot?.player?.id&&snapshot.player.id!==value?.player?.id){retireInteraction();ghost=null;selectedSlotId=null;}snapshot=value;syncCanonicalInteraction();const next=selectedCommitted();if(canonicalItems&&!itemPointerActive&&descriptor&&(old?.slotId!==next?.slotId||old?.x!==next?.x||old?.y!==next?.y))resize();publish();if(canonicalItems)scheduler.invalidate('snapshot',{whilePaused:true});},
   setCanonicalActionPending(value){canonicalActionPending=!!value;syncInteractionClock();scheduler.invalidate("item-intent",{whilePaused:true});},

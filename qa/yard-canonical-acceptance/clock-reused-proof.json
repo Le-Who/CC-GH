@@ -1,0 +1,330 @@
+{
+  "base": "17fc659a45b3ffe8559020019cf7453b6e222a11",
+  "baseTree": "e1d11bd7eeb50079eeed4dc2e59247cefc42dcd0",
+  "runId": "37498940977",
+  "receiptSha256": "270e0a370c50a8d0c24fee5133eaf326559b2e0b20a70b427cfb66270d6b36bb",
+  "receipt": {
+    "head": "17fc659a45b3ffe8559020019cf7453b6e222a11",
+    "stages": {
+      "PREFLIGHT": "success",
+      "DEPENDENCIES": "success",
+      "SOURCE": "success",
+      "DATABASE": "success",
+      "BUILD": "success",
+      "BROWSER": "failure"
+    },
+    "acceptance": "FAILED_OR_INCOMPLETE",
+    "limits": {
+      "jobMinutes": 10,
+      "artifactBytes": 8388608,
+      "retentionDays": 3,
+      "retries": 0
+    },
+    "excluded": [
+      "production activation or deployment",
+      "real-device GPU/FPS",
+      "trusted native Telegram WebView events",
+      "subjective visual acceptance"
+    ],
+    "files": [
+      {
+        "path": "browser.json",
+        "bytes": 83564,
+        "sha256": "1cb9ecbe86cc61a7b858781d43bd63b2cec47ff5aa87bfaae4726a6de1315cb7"
+      },
+      {
+        "path": "builds.json",
+        "bytes": 19337,
+        "sha256": "52d69cb4d3878ccb44f1012fb59e57cf85a3c166cbedfc0b96cabad4a71b47fc"
+      },
+      {
+        "path": "failure-diagnostics.json",
+        "bytes": 144594,
+        "sha256": "f89d07900eb99855f551d548a3f59183b3edf5655f38187ad5a159743db825ae"
+      },
+      {
+        "path": "failure.webp",
+        "bytes": 111372,
+        "sha256": "315a6e547b12fddc5dbd2a5d8125f8843b0c2d902ff87cc63a288e92616a7703"
+      },
+      {
+        "path": "new-hud-initial.webp",
+        "bytes": 35078,
+        "sha256": "d944a79f8b36037b559c5715e77d02b2a7f5e2efbb0e4a7832aa8e9da0844aba"
+      },
+      {
+        "path": "path-audit.json",
+        "bytes": 1333,
+        "sha256": "9398f3ae53fdc173a861560ce24766b3bfb52b71743f0cf890e1208f80f1854d"
+      },
+      {
+        "path": "postgres.tap",
+        "bytes": 5033,
+        "sha256": "47190aa6f21b5ae21a9e0b37cf30b9620c640d5a3fd686b6bfc4bed9a99d28c3"
+      },
+      {
+        "path": "source.json",
+        "bytes": 5970,
+        "sha256": "95536f652fecf43348969d40616ed1a8407893bd74976be60010daa0d8f3c207"
+      },
+      {
+        "path": "source.tap",
+        "bytes": 20985,
+        "sha256": "a1fdd7b7106536545705a726035ccd0b53ee9160749037f0c12b2cdef53eb767"
+      }
+    ]
+  },
+  "postgres": {
+    "tests": 9,
+    "pass": 9,
+    "fail": 0,
+    "skipped": 0
+  },
+  "defaultBuild": {
+    "mode": "default",
+    "command": "pnpm run build",
+    "environment": {
+      "NODE_ENV": "production",
+      "VITE_YARD_PIP_PREVIEW": "false",
+      "VITE_BUILD_ID": "17fc659a45b3ffe8559020019cf7453b6e222a11"
+    },
+    "fileInventory": {
+      "format": "yard-file-inventory-sha256/v1",
+      "files": 2343,
+      "totalBytes": 456179986,
+      "sha256": "35d9ba8e5e452bd9dadc8a1efed8679ebd009e66bb3a3b15b00573be43404e09"
+    },
+    "compiledModules": {
+      "unique": 302,
+      "rootSource": 301,
+      "chunks": 121
+    },
+    "startup": [
+      "assets/index-CbZJPq5e.js",
+      "assets/react-vendor-Drt1XSs7.js",
+      "assets/icon-vendor-9oXjjkPJ.js",
+      "assets/storage-vendor-CFZHzLVB.js",
+      "assets/state-vendor-DTUH_Vni.js"
+    ],
+    "optional": [],
+    "assetGuard": {
+      "schemaVersion": 1,
+      "generatedAt": "2026-10-06T16:55:08.973Z",
+      "budgets": {
+        "initialScriptRawBytes": 575000,
+        "initialScriptGzipBytes": 190000,
+        "initialCssRawBytes": 95000,
+        "initialCssGzipBytes": 20000,
+        "asyncPixiRawBytes": 660000,
+        "maxGameChunkRawBytes": 75000,
+        "runtimeManifestRawBytes": 40000,
+        "runtimeManifestGzipBytes": 5000,
+        "runtimeAssetsTotalRawBytes": 12000000,
+        "runtimeAssetMaxRawBytes": 2500000,
+        "publicGamesTotalRawBytes": 181000000,
+        "publicAssetsTotalRawBytes": 267653433,
+        "publicMediaTotalRawBytes": 455653433,
+        "nonFamilyPublicAssetsTotalRawBytes": 75000000,
+        "nonFamilyPublicMediaTotalRawBytes": 263000000
+      },
+      "appliedPublicAssetsCeiling": 271469336,
+      "yardAssetPartition": {
+        "format": "yard-encoded-asset-partition/v1",
+        "mode": "off",
+        "source": "fresh recursive dist/assets walk; no cached report or inventory",
+        "requiredUi": {
+          "count": 78,
+          "rawBytes": 5335835
+        },
+        "optionalMedia": {
+          "count": 0,
+          "rawBytes": 0
+        },
+        "otherNonFamilyAssets": {
+          "count": 321,
+          "rawBytes": 73457507,
+          "ceilingBytes": 73470314,
+          "qualification": "Aggregate byte ceiling, not a hash freeze of every remaining file"
+        },
+        "aggregate": {
+          "actualBytes": 271446775,
+          "ceilingBytes": 271469336
+        },
+        "historicalCeilings": {
+          "publicAssets": 267653433,
+          "nonFamilyAssets": 75000000,
+          "preIntegrationNonFamilyBytes": 75113382,
+          "preIntegrationOverageBytes": 113382
+        },
+        "failures": []
+      },
+      "metrics": {
+        "initialScripts": {
+          "count": 5,
+          "rawBytes": 387190,
+          "gzipBytes": 120050,
+          "maxRawBytes": 192452,
+          "maxGzipBytes": 60348
+        },
+        "initialCss": {
+          "count": 1,
+          "rawBytes": 79261,
+          "gzipBytes": 15095,
+          "maxRawBytes": 79261,
+          "maxGzipBytes": 15095
+        },
+        "asyncPixiChunks": {
+          "count": 23,
+          "rawBytes": 589208,
+          "gzipBytes": 181789,
+          "maxRawBytes": 197804,
+          "maxGzipBytes": 61342
+        },
+        "gameChunks": {
+          "count": 46,
+          "rawBytes": 895087,
+          "gzipBytes": 303172,
+          "maxRawBytes": 69781,
+          "maxGzipBytes": 24694
+        },
+        "gameData": {
+          "count": 34,
+          "rawBytes": 14518461,
+          "gzipBytes": 2149780,
+          "maxRawBytes": 3476599,
+          "maxGzipBytes": 452523
+        },
+        "runtimeAssetManifest": {
+          "count": 1,
+          "rawBytes": 10009,
+          "gzipBytes": 2936,
+          "maxRawBytes": 10009,
+          "maxGzipBytes": 2936,
+          "assetCount": 199,
+          "bundleCount": 1
+        },
+        "runtimeAssets": {
+          "count": 199,
+          "rawBytes": 5701176,
+          "gzipBytes": 5703765,
+          "maxRawBytes": 738042,
+          "maxGzipBytes": 737481
+        },
+        "publicGames": {
+          "count": 888,
+          "rawBytes": 160973418,
+          "gzipBytes": 160644747,
+          "maxRawBytes": 3724766,
+          "maxGzipBytes": 3725924
+        },
+        "publicAssets": {
+          "count": 1105,
+          "rawBytes": 271446775,
+          "gzipBytes": 263752644,
+          "maxRawBytes": 1995877,
+          "maxGzipBytes": 1068283
+        },
+        "publicMedia": {
+          "count": 2192,
+          "rawBytes": 438121369,
+          "gzipBytes": 430101156,
+          "maxRawBytes": 3724766,
+          "maxGzipBytes": 3725924
+        },
+        "frozenYard": {
+          "count": 706,
+          "rawBytes": 192653433,
+          "gzipBytes": 186540438,
+          "maxRawBytes": 1995877,
+          "maxGzipBytes": 429258
+        },
+        "nonFamilyPublicAssets": {
+          "count": 399,
+          "rawBytes": 78793342,
+          "gzipBytes": 77212206,
+          "maxRawBytes": 1068160,
+          "maxGzipBytes": 1068283
+        },
+        "nonFamilyPublicMedia": {
+          "count": 1486,
+          "rawBytes": 245467936,
+          "gzipBytes": 243560718,
+          "maxRawBytes": 3724766,
+          "maxGzipBytes": 3725924
+        },
+        "requiredYardUi": {
+          "count": 78,
+          "rawBytes": 5335835,
+          "gzipBytes": 5326839,
+          "maxRawBytes": 571554,
+          "maxGzipBytes": 571747
+        },
+        "optionalPipMedia": {
+          "count": 0,
+          "rawBytes": 0,
+          "gzipBytes": 0,
+          "maxRawBytes": 0,
+          "maxGzipBytes": 0
+        },
+        "otherNonFamilyPublicAssets": {
+          "count": 321,
+          "rawBytes": 73457507,
+          "gzipBytes": 71885367,
+          "maxRawBytes": 1068160,
+          "maxGzipBytes": 1068283
+        }
+      },
+      "failures": [],
+      "passed": true
+    },
+    "pipClosure": {
+      "mode": "off",
+      "complete": true,
+      "output": "dist",
+      "emittedFiles": 2343,
+      "emittedBytes": 456179986,
+      "startup": {
+        "rawBytes": 387190,
+        "gzipBytes": 120050
+      },
+      "staticYard": {
+        "rawBytes": 2032606,
+        "gzipBytes": 563054
+      },
+      "incrementalPip": {
+        "rawBytes": 0,
+        "gzipBytes": 0
+      },
+      "optionalAssets": [],
+      "optionalAssetBytes": 0,
+      "uiRowsVerified": 84,
+      "optionalModuleCount": 0,
+      "vendor": {
+        "format": "yard-pip-vendor-report/v2",
+        "previewBuild": false,
+        "included": false,
+        "rawBytes": 0,
+        "gzipBytes": 0,
+        "chunks": [],
+        "modules": [],
+        "budget": {
+          "rawBytes": 800000,
+          "gzipBytes": 210000
+        },
+        "startupBytes": 0
+      },
+      "qualification": "Actual emitted bytes and import/URL closure; not browser network, pixel or hardware performance evidence"
+    }
+  },
+  "allowedClockFiles": {
+    "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs": "5f4dfd5d53ec39c71b02d13bb412a835482319145c2d4e5fd95308bf79e67bc7",
+    "tests/yard-canonical-real-renderer.test.mjs": "3ff5a25050c81aeaceb2760d2a7d14708e177b39fdc9a37c63e1a867b2d69803"
+  },
+  "protectedEntryCount": 4890,
+  "protectedGitEntriesSha256": "51bf793619500df24dbf8a02e2d6c0d191e6d2b26fcdff336b538dc3c8647368",
+  "scope": [
+    "unchanged backend/dependencies PostgreSQL9",
+    "unchanged default-off startup/assets with optional scene absent"
+  ],
+  "browserReused": false
+}

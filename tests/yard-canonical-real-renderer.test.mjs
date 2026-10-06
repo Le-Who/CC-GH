@@ -19,16 +19,16 @@ function contextStub(canvas){
   if(/^[A-Z_0-9]+$/.test(key)){const value=constant++;names.set(value,key);return target[key]=value;}
   return target[key]=key.startsWith('create')?()=>({}):()=>{};}});
 }
-function environment({nativeRenderer=false,owned=false,failGhost=false}={}){
+function environment({nativeRenderer=false,owned=false,failGhost=false,startupClockGap=0}={}){
  const win=new EventTarget(),doc=new EventTarget();doc.hidden=false;doc.hasFocus=()=>true;
  globalThis.window=win;globalThis.document=doc;globalThis.devicePixelRatio=2;
- let observer,width=378,height=622,next=0,at=0,failureCount=0;const frames=new Map(),failures=[],renders=[],notices=[],legacyGhosts=[];
+ let observer,width=378,height=622,next=0,at=0,failureCount=0,clockStarted=false;const frames=new Map(),failures=[],renders=[],notices=[],legacyGhosts=[];
  globalThis.ResizeObserver=class{constructor(fn){observer=fn;}observe(){}disconnect(){}};
  const ctx={setTransform(a,b,c,d,e,f){this.transform={a,b,c,d,e,f};},getTransform(){return this.transform;},clearRect(){},fillRect(){},drawImage(){}};
  const rect=()=>({left:6,top:60,width,height}),canvas={style:{},width:0,height:0,getContext:()=>ctx,getBoundingClientRect:rect};
  const host={style:{},appendChild(c){c.parentNode=this;},getBoundingClientRect:rect};
  const fetchImpl=async url=>{const b=await fs.readFile(url);return{ok:true,arrayBuffer:async()=>b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),json:async()=>JSON.parse(b),text:async()=>b.toString()};};
- const options={canonicalItems:true,directHost:host,uiImageOwner:createUiImageReserve(),onFailure:(error,context)=>failures.push({message:error.message,stack:error.stack,context}),fetchImpl,decodeImage:async()=>({width:973,height:1616,close(){}}),now:()=>at,requestFrame:fn=>{frames.set(++next,fn);return next;},cancelFrame:id=>frames.delete(id),
+ const options={canonicalItems:true,directHost:host,uiImageOwner:createUiImageReserve(),onFailure:(error,context)=>failures.push({message:error.message,stack:error.stack,context}),fetchImpl,decodeImage:async()=>({width:973,height:1616,close(){}}),now:()=>{const current=at;if(!clockStarted){clockStarted=true;at+=startupClockGap;}return current;},requestFrame:fn=>{frames.set(++next,fn);return next;},cancelFrame:id=>frames.delete(id),
   plannerWorkerFactory:()=>({plan:args=>Promise.resolve(planCanonicalInspection(args)),dispose(){}}),
   rendererFactory:args=>createOptionalPipRenderer({...args,canvasFactory:()=>{const c=new EventTarget();c.style={};c.dataset={};c.remove=()=>{c.parentNode=null;};return c;},
    rendererFactory:({THREE,canvas})=>{const renderer=nativeRenderer?new THREE.WebGLRenderer({canvas,context:contextStub(canvas)}):({shadowMap:{},setClearColor(){},setPixelRatio(){},setSize(w,h){canvas.width=w;canvas.height=h;},dispose(){},forceContextLoss(){},render(world,camera){world.updateMatrixWorld(true);renders.push({children:world.children.map(o=>({name:o.name,visible:o.visible})),camera:camera.matrixWorld.toArray()});}});
@@ -56,6 +56,24 @@ test('actual canonical scene and R1/T2 renderer enter the UI ghost and resize wi
   e.scene.setGhost({...moving,valid:true});e.tick();assert.deepEqual(e.failures,[]);assert.equal(e.scene.diagnostics().lastFrame.visibility,'planter');
   assert.deepEqual(e.scene.diagnostics().renderer.propInstances.filter(row=>row.visible).map(row=>row.position),[[6,0,-145/12]]);
   e.scene.setGhost(null);e.tick();assert.deepEqual(e.scene.diagnostics().renderer.propInstances.filter(row=>row.visible).map(row=>row.position),[[98/12,0,-118/12]]);
+ }finally{await e.scene.dispose();}
+});
+
+test('real browser submillisecond startup gap cannot rewind the canonical controller on first ghost',async()=>{
+ // Observed first displayed elapsedMs in browser run37498940977. The prior
+ // constant-time harness concealed this gap between clock creation/ready pause.
+ const e=environment({nativeRenderer:true,startupClockGap:0.09999999997671694});
+ try{
+  e.scene.update(snapshot);await e.scene.ready;assert.deepEqual(e.failures,[]);
+  const first=e.scene.diagnostics();assert.equal(first.lastFrame.visibility,'pet');
+  const ghost={...CANONICAL_LOCATION,slotId:'canonical:browser-timing',goodieId:'leaf_pot',x:98,y:118,placing:true,ownerAccountId:'owner',ownerSession:1,valid:true};
+  e.scene.setGhost(ghost);e.tick();assert.deepEqual(e.failures,[]);
+  assert.equal(e.scene.diagnostics().lastFrame.visibility,'planter');assert.ok(e.scene.diagnostics().lastFrame.elapsedMs>=first.lastFrame.elapsedMs);
+  const held=e.scene.diagnostics().lastFrame.elapsedMs;e.tick(1500);e.scene.setCanonicalActionPending(true);e.scene.setGhost(null);e.resize(378,599.75);e.tick();
+  assert.deepEqual(e.failures,[]);assert.equal(e.scene.diagnostics().lastFrame.elapsedMs,held);
+  e.scene.update({...snapshot,yardRuntime:{...snapshot.yardRuntime,canonicalPlacements:[{...CANONICAL_LOCATION,slotId:ghost.slotId,goodieId:'leaf_pot',itemGeometryRevision:'yard-succulent-T2',x:98,y:118,condition:'new',uses:0,placedAt:1000}]}});
+  e.scene.setCanonicalActionPending(false);assert.equal(e.scene.inspectCanonicalSlot(ghost.slotId),true);await Promise.resolve();e.tick(80);
+  assert.deepEqual(e.failures,[]);assert.ok(e.scene.diagnostics().lastFrame.elapsedMs>=held+80);assert.equal(e.scene.diagnostics().lastFrame.visibility,'both');
  }finally{await e.scene.dispose();}
 });
 

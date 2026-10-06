@@ -1,43 +1,39 @@
-# Fresh render-failure and UI acceptance
+# Clock correction: narrow fresh browser acceptance
 
-Base:720dd25ec1e326a5cd50ce986c4bb48373a796c8, tree
-9f41d167920bcfc57af9a17b4d144bed8ccb3a0d. This packet changes only the
-acceptance harness/workflow. Integrate the separately reviewed final UI, renderer,
-menu/surface/shadow and diagnostic source packet before sealing the full delta.
+Base17fc659a45b3ffe8559020019cf7453b6e222a11, tree
+e1d11bd7eeb50079eeed4dc2e59247cefc42dcd0. Integrate the separately reviewed
+clock source/test fix before sealing this harness delta.
 
-Run37493090357 reached the actual authenticated New Yard and rendered R1 using
-Chromium145/WebGL2/ANGLE SwiftShader. It then returned to the legacy scene while
-preparing the first ghost. The original product cause remains unknown; passing
-Node/Three/no-op-GL tests does not establish shader or browser correctness.
+Run37498940977 captured MONOTONIC_ACTIVE_CLOCK_REQUIRED in canonical-sample on the
+first valid ghost. Its initial pet frame had already consumed a sub-millisecond
+time before the scene reset the clock. The source correction moves initialization
+before the first consumer and retains the monotonic guard. The fresh real-scene
+regression covers the exact0.09999999997671694→0 counterexample.
 
-The browser retains its exact owner snapshot, including lastFailure operation,
-stack, ghost, viewport and pre-retirement renderer details, before closing the
-context. It captures at most48 recent console warnings/errors,2048 text characters
-each. Initial New Yard pixels/owner state and both startup/main failure evidence
-remain. Observing duplicate-response rejection suppresses a secondary unhandled
-rejection without changing the promise awaited by the main flow. Strict ghost,
-placement/outbox, dynamic motion and viewport assertions remain intact.
+No browser behavior predicate is relaxed. Real auth/API/disposable PostgreSQL,
+owned inventory/outbox/exactly-once replay, all dynamic cases, menu/viewport checks,
+startup/failure snapshots and bounded console records remain. An early native-DPR2
+frame and contact crop use the existing idle pause, verify identical pose/clock and
+camera before/after, and retain contact-anchor diagnostics. No renderer toggle or
+new product hook is added. The garden raster remains390×648/DPR1; this is not an
+on/off comparison or a claim that grounding is visually solved.
 
-Product/HUD/shadow changes invalidate the former blanket source/default-build
-reuse. This job freshly runs affected source/UI/renderer checks (including the
-actual-Three scene regression), the existing9-case PostgreSQL CAS/receipt pass,
-both real NODE_ENV=production default-off/preview-on builds with all current
-asset/startup/worker closure and budget gates, then the full real auth/API/DB/UI
-browser acceptance. It does not run an old full-family native-render suite.
-Historical reused-proof.json remains historical and is not read or credited.
+Only prior9-case PostgreSQL and default-off build proof is reused. The reuse guard
+requires every tracked file except this harness/workflow and the exact two pinned
+clock source/test files to retain its17fc Git identity. This includes all backend,
+auth, DB, dependencies/lockfile, assets, build plugins and configuration. The old
+default graph proves optionalModuleCount0, no optional assets and vendor excluded,
+so the sole runtime change cannot enter that build. Original browser failure stays
+labelled failure. No old complete source-test result is credited as a fresh pass.
 
-One standard runner, PostgreSQL15,10-minute hard job limit, zero retries,
-8MiB maximum artifact retained3days. Checkout depth6 is required now because the
-fresh compatibility source tests again use4660: new→720→4591→c0→592→4660.
-No limits are raised, no browser flags change, no deploy/cache/production target
-is added. Actual browser/WebGL backend is recorded; device FPS remains unmeasured.
+Fresh checks cover the current clock, actual scene/renderer, viewport/raster and
+planner, plus harness/guards. The preview production build and every current
+asset/startup/worker closure and budget run fresh, followed by the full browser.
+PostgreSQL15 still starts fresh for actual API persistence. Same one10-minute job,
+zero retries,8MiB artifact retained3days. Depth2 suffices: selected current checks
+no longer read historical4660. No assets, software flags or resource caps change.
 
-After exact final source review, from the integration repository root:
-
-    node qa/yard-canonical-acceptance/seal.mjs --reviewed-final-source
-
-Commit that manifest with exactly the reviewed delta, as one child of720.
-Only first creation of qa/yard-canonical-render-diagnostics-20261006 triggers
-the single job. No publication or dispatch was performed while preparing this
-packet. Existing failed-run artifacts are preserved unchanged. No placement fix,
-dynamic clip or subjective visual acceptance is claimed before real browser proof.
+After exact final review, run seal.mjs --reviewed-final-source from the integration
+root and commit the complete seal/delta as one child of17fc. Branch:
+qa/yard-canonical-clock-fix-20261006. No dispatch, publication, browser or listener
+was launched while preparing this packet. Preserve all prior failure evidence.
