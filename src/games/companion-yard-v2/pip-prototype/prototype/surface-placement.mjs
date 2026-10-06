@@ -1,3 +1,28 @@
+import{GARDEN_RASTER}from'../resources.mjs';
+
+/** Camera and raster belong to the garden, never to an animated object.
+ * A fixed reference raster avoids both moving world sampling and a second,
+ * changing fractional CSS sampling phase. Layout may translate/uniformly scale
+ * the whole artwork without changing any world-to-raster matrix.
+ */
+export function validateGardenViewport(viewport){
+ const {x,y,width,height,pixelsPerRenderUnit,anchorRender,anchorRaster}=viewport??{};
+ if(![x,y,width,height,pixelsPerRenderUnit,anchorRaster?.x,anchorRaster?.y].every(Number.isFinite)||!Array.isArray(anchorRender)||anchorRender.length!==3||!anchorRender.every(Number.isFinite)||width<=0||height<=0||width>GARDEN_RASTER.width||height>GARDEN_RASTER.height||pixelsPerRenderUnit<=0||Math.abs(width/GARDEN_RASTER.width-height/GARDEN_RASTER.height)>1e-12)throw Error('Explicit bounded garden viewport required');
+ return{x,y,width,height,pixelsPerRenderUnit,anchorRender:[...anchorRender],anchorRaster:{...anchorRaster}};
+}
+export function configureGardenCamera(camera,direction,viewport){
+ const {anchorRender,anchorRaster,pixelsPerRenderUnit:ppu}=viewport;
+ camera.position.set(...anchorRender).add(direction);camera.lookAt(...anchorRender);
+ camera.left=-anchorRaster.x/ppu;camera.right=(GARDEN_RASTER.width-anchorRaster.x)/ppu;
+ camera.top=anchorRaster.y/ppu;camera.bottom=-(GARDEN_RASTER.height-anchorRaster.y)/ppu;
+ camera.near=.01;camera.far=100;camera.updateProjectionMatrix();camera.updateMatrixWorld(true);
+}
+export function gardenSurfaceRect(viewport,rootGLTF,camera){
+ const projected=rootGLTF.clone().project(camera);
+ return{x:viewport.x,y:viewport.y,width:viewport.width,height:viewport.height,
+  rootInSurface:{x:(projected.x+1)*viewport.width/2,y:(1-projected.y)*viewport.height/2}};
+}
+
 /** The direct DOM surface uses the identical orthographic drawImage rectangle.
  * Only the final presentation changes. No scene-Y sorting or camera change.
  */

@@ -19,10 +19,10 @@ function env(){
  const host={appendChild(c){c.parentNode=this;},getBoundingClientRect:canvas.getBoundingClientRect};
  return{win,doc,frames,request,cancel,canvas,host,now:()=>now,advance(ms){now+=ms;const callbacks=[...frames.values()];frames.clear();callbacks.forEach(fn=>fn(now));}};
 }
-test('R1, coat and motion remain frozen; explicitly revised adapters retain candidate pins',async()=>{
+test('R1 and coat remain frozen; reviewed motion and recovery adapters retain exact pins',async()=>{
  const hashes={'assets/pip.glb':'74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b','assets/clean-garden.png':'c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79'};
  for(const[p,h]of Object.entries(hashes))assert.equal(createHash('sha256').update(await fs.readFile(new URL(p,base))).digest('hex'),h);
- const frozenHashes={"source/pip-analytical-coat.mjs":"9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241","source/pip-rest-coat.glsl":"58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367","prototype/adaptive-pose-driver.mjs":"541968e5b4780df5cfc152fa787e137de3d74d051b7b658287d233fdf958e028","prototype/calibrated-planter.mjs":"a5cba814b61f358abca97b5c9c7bbf87f05c29a994ed646e7ce3e76e81db8c56","motion/trajectory.mjs":"6d576e91c3f63ee1ba23435b06cc9d2f0d76cd408808650fa27e815eea6d06b1","motion/kinematics.mjs":"c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"};
+ const frozenHashes={"source/pip-analytical-coat.mjs":"9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241","source/pip-rest-coat.glsl":"58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367","prototype/adaptive-pose-driver.mjs":"5caf9eddc141247655a8ca76e85987e063dcd502d5a7f37d5b04bb184f01fe3e","prototype/calibrated-planter.mjs":"a5cba814b61f358abca97b5c9c7bbf87f05c29a994ed646e7ce3e76e81db8c56","motion/trajectory.mjs":"c004ccd88f71ff35e69fef3433e0c77b461b787d207eef45b1d8e3dd1878669e","motion/kinematics.mjs":"c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"};
  for(const[p,h]of Object.entries(frozenHashes))assert.equal(createHash('sha256').update(await fs.readFile(new URL(p,base))).digest('hex'),h);
 });
 test('camera shares uniform canonical XYZ mapping with image; short height does not shrink the pet',()=>{
@@ -87,7 +87,7 @@ test('new React owner waits for the previous owner retirement across component r
 test('R1 default portrait is separately charged; legacy aliases retain their owners',async()=>{
  const inv=JSON.parse(await fs.readFile(new URL('../src/games/companion-yard-v2/ui-image-inventory.json',import.meta.url)));
  assert.equal(inv.rows.some(r=>r.url.includes('2ad3a018')),false);assert.ok(inv.rows.some(r=>String(r.sourceUrls).includes('78d5a3dfdddf')||r.url.includes('78d5a3dfdddf')));const r1=inv.rows.find(r=>r.url.includes('/r1-pip/'));assert.equal(r1.width*r1.height*4,34768);
- assert.equal(uiImageLifetimeLedger().bytes,23145580);
+ assert.equal(uiImageLifetimeLedger().bytes,24037868);
 });
 test('actual optional scene uses shared stage, remains read-only and cleans asynchronous resources',async()=>{
  const e=env();const{createPipYardScene}=await import('../src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs');
@@ -101,6 +101,20 @@ test('actual optional scene uses shared stage, remains read-only and cleans asyn
  const supported=options.at(-1).sample.world;scene.inspectAgain();e.advance(0);assert.deepEqual(options.at(-1).sample.world.feet,supported.feet);assert.deepEqual(options.at(-1).sample.world.root,supported.root);assert.equal(scene.diagnostics().route.holdOnly,true);assert.equal(scene.diagnostics().inspectionCount,1);e.advance(500);e.win.dispatchEvent(new Event('blur'));const at=scene.diagnostics().lastFrame.elapsedMs;e.advance(3000);assert.equal(scene.diagnostics().lastFrame.elapsedMs,at);assert.equal(paused,true);
  e.doc.hidden=true;e.doc.dispatchEvent(new Event('visibilitychange'));e.win.dispatchEvent(new Event('focus'));assert.equal(paused,true);e.doc.hidden=false;e.doc.dispatchEvent(new Event('visibilitychange'));e.advance(5000);assert.ok(renders>before);
  assert.ok(options.every(o=>o.presentation&&o.sample.world.root.x>0));const d=scene.diagnostics();assert.equal(d.rgba.legacyAtlasBytes,0);assert.ok(d.peakRgba<=64*1024*1024);await scene.dispose();await scene.dispose();assert.equal(disposals,1);assert.equal(closed,1);assert.equal(e.frames.size,0);acquirePipLease()();
+});
+test('real renderer charges its bounded color/compositor reserve to the scene before creating a surface',async()=>{
+ const {createPipYardScene}=await import('../src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs'),{createOptionalPipRenderer}=await import('../src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs');
+ for(const deny of[false,true]){
+  const e=env(),failures=[];let allocations=0;
+  const extraUI=64*1024*1024-973*1616*4-780*1296*4-4043520+1;
+  const ui=deny?{setAdmissionCheck(){},snapshot:()=>({bytes:extraUI})}:createUiImageReserve();
+  const fetchImpl=async url=>{const bytes=await fs.readFile(url);return{ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength),json:async()=>JSON.parse(bytes),text:async()=>bytes.toString()};};
+  const scene=createPipYardScene(e.canvas,{directHost:e.host,uiImageOwner:ui,onFailure:error=>failures.push(error.message),fetchImpl,decodeImage:async()=>({width:973,height:1616,close(){}}),now:e.now,requestFrame:e.request,cancelFrame:e.cancel,
+   rendererFactory:args=>createOptionalPipRenderer({...args,canvasFactory:()=>{allocations++;const c=new EventTarget();c.style={};c.dataset={};c.remove=()=>{};return c;},rendererFactory:({canvas})=>({shadowMap:{},setClearColor(){},setPixelRatio(){},setSize(w,h){canvas.width=w;canvas.height=h;},render(){},dispose(){},forceContextLoss(){}})})});
+  try{await scene.ready;const d=scene.diagnostics();assert.equal(allocations,deny?0:1);assert.equal(d.rgba.directSurfaceBytes,deny?0:4043520);assert.equal(d.rgba.totalBytes,d.rgba.uiBytes+d.rgba.backgroundBytes+d.rgba.currentCanvasBytes+d.rgba.directSurfaceBytes);
+   if(deny)assert.match(failures[0],/resource admission rejected/);else{assert.deepEqual(failures,[]);assert.equal(d.renderer.renders,1);assert.equal(d.resources.ownedRGBASurfacePeakBytes,4043520);}
+  }finally{await scene.dispose();}
+ }
 });
 test('interrupted actual renderer creation holds lease until stale renderer is disposed',async()=>{
  const e=env();const{createPipYardScene}=await import('../src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs');

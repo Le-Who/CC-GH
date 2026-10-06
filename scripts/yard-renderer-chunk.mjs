@@ -38,8 +38,18 @@ export const YARD_RUNTIME_CORE_MODULES = new Set([
   'game-logic/yard-v2/util.mjs',
   'game-logic/yard-v2/visit-reservations.mjs',
 ]);
+// Pure optional motion is executable game code in its own bounded chunk.
+// Sharing it avoids a scene/controller initialization cycle and retains all budgets.
+export const YARD_CANONICAL_MOTION_MODULES = new Set([
+  'dynamic-navigation.mjs','dynamic-trajectory.mjs','dynamic-prop-planner.mjs',
+  'dynamic-prop-controller.mjs','dynamic-prop-worker-client.mjs',
+  'data/interaction-leaf-anchors.json','world-scale.mjs',
+  'motion/math.mjs','motion/trajectory.mjs','motion/kinematics.mjs','motion/polygon-domain.mjs',
+  'prototype/planter-inspection-pose.mjs',
+].map(name=>`src/games/companion-yard-v2/pip-prototype/${name}`));
 export function yardRendererChunk(id, root) {
   const source = path.relative(root, id.split('?')[0]).replaceAll('\\', '/');
+  if (YARD_CANONICAL_MOTION_MODULES.has(source)) return 'yard-canonical-motion';
   if (['ui-image-inventory.json', 'ui-image-reserve.mjs', 'decoded-capacity.mjs', 'runtime-cells.mjs']
     .some(name => source === `src/games/companion-yard-v2/${name}`)) return 'yard-scene-resources';
   if (YARD_RENDERER_MODULES.has(source)) return 'yard-renderer';

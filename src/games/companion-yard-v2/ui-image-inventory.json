@@ -4,12 +4,12 @@
   "sourceUiTree": "7a5ea1ff031f6b46d8727d89b5201e37dc54bcb4",
   "rows": [
     {
-      "owner": "css-url:/assets/yard-ui/surfaces/yard-ui-wood-strip.webp",
-      "url": "/assets/yard-ui/surfaces/yard-ui-wood-strip.webp",
-      "width": 512,
-      "height": 128,
-      "sha256": "914232bc949de0ecc103f91afec1a8687d63643ea9cf962e89d8e5e030afe557",
-      "evidence": "exact accepted surface manifest",
+      "owner": "css-url:/assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
+      "url": "/assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
+      "width": 1808,
+      "height": 214,
+      "sha256": "79a2e1bbcc0a400ef8695ac971ab41dc19ca7c4c91ef244108df170923fe2455",
+      "evidence": "Exact original source re-export; uniform corners; native high-density rails/fill without source upscaling. See header export receipt.",
       "alwaysReserved": true
     },
     {
@@ -516,26 +516,24 @@
       "alwaysReserved": true
     },
     {
-      "owner": "css-url:/assets/yard-ui/delivery/hud-treats.webp",
-      "url": "/assets/yard-ui/delivery/hud-treats.webp",
-      "width": 256,
-      "height": 256,
-      "sha256": "4db6432caf78465f6dc11d2dce06625a15e8d887d57fa3fda0c377ccdfacc562",
-      "sourceGitBlob": "c3c8ad68fbecc36cc613f268f5e026f88a9b09b2",
-      "sourceSha256": "bcb666fc893955d083f07c0947de91f05f8c233a4b7a3754066ca026f863db60",
+      "owner": "css-url:/assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+      "url": "/assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+      "width": 128,
+      "height": 128,
+      "sha256": "60bf94f0d8bcf60f75c9479d9c47093c1c9978874d03c12b6daad714bf37f26a",
+      "encodedBytes": 19178,
       "alwaysReserved": true,
-      "evidence": "verified same-source delivery export, exact encoded RGBA readback"
+      "evidence": "Separate approved source edit; true-size and alpha reviewed; bare token has no tile. See bare-currency provenance manifest."
     },
     {
-      "owner": "css-url:/assets/yard-ui/delivery/hud-shiny.webp",
-      "url": "/assets/yard-ui/delivery/hud-shiny.webp",
-      "width": 256,
-      "height": 256,
-      "sha256": "670cbbfa3f828285dcf881329684eef9f0ea8bc65d3a53ddadebe33ce151b76f",
-      "sourceGitBlob": "c3c8ad68fbecc36cc613f268f5e026f88a9b09b2",
-      "sourceSha256": "bcb666fc893955d083f07c0947de91f05f8c233a4b7a3754066ca026f863db60",
+      "owner": "css-url:/assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+      "url": "/assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+      "width": 128,
+      "height": 128,
+      "sha256": "2b54e02b34f56818ac4f4537f1ca64ae2c0665e6672266228449f4c5a1c9edc7",
+      "encodedBytes": 13192,
       "alwaysReserved": true,
-      "evidence": "verified same-source delivery export, exact encoded RGBA readback"
+      "evidence": "Separate approved source edit; true-size and alpha reviewed; bare token has no tile. See bare-currency provenance manifest."
     },
     {
       "owner": "css-url:/assets/yard-ui/delivery/hud-back.webp",
@@ -1180,5 +1178,6 @@
       2
     ],
     "browserQualified": false
-  }
+  },
+  "revision": "yard-ui-calm-navigation/20261006"
 }

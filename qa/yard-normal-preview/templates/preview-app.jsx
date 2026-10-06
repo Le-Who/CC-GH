@@ -6,6 +6,7 @@ import {useGameHub} from './src/game-state/useGameHub.js';
 import {AppI18nContext,appTranslate} from './src/app/i18n.jsx';
 import {HudLayoutProvider} from './src/app/hud-layout/HudLayoutContext.jsx';
 import {fixtureSnapshot} from './preview-fixture.mjs';
+import './src/fonts.css';
 import './preview.css';
 
 // This adapter exists only in the isolated preview entry. It is never imported

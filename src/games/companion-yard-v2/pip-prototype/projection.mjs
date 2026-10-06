@@ -1,16 +1,38 @@
 import{RENDER_UNITS_TO_CANONICAL,CANONICAL_PER_SCENE_UNIT}from'./world-scale.mjs';
+import{GARDEN_RASTER}from'./resources.mjs';
 /** Separate inactive canonical domain. Never accepts or converts saved M2 XY. */
 export const CLEAN_STAGE_MIN=Object.freeze({width:280,height:192});
 export const supportsCleanViewport=(width,height)=>Number.isFinite(width)&&Number.isFinite(height)&&width>=CLEAN_STAGE_MIN.width&&height>=CLEAN_STAGE_MIN.height;
-export function createCleanProjection(descriptor,width,height){
+export function createCleanProjection(descriptor,width,height,{focus=null}={}){
  if(descriptor.id!=='pip-clean-garden-prototype-v1'||![width,height].every(x=>Number.isFinite(x)&&x>0))throw Error('Invalid clean-location viewport');
- const c=descriptor.camera,scale=Math.min(width/390,1),left=(width-390*scale)/2,top=height>=648*scale?(height-648*scale)/2:Math.max(height-648*scale,Math.min(0,height/2-362*scale));
+ const c=descriptor.camera,scale=Math.min(width/390,1),left=(width-390*scale)/2;let top=height>=648*scale?(height-648*scale)/2:Math.max(height-648*scale,Math.min(0,height/2-362*scale));
  if(!supportsCleanViewport(width,height))throw Error('Prototype stage requires at least 280×192 CSS pixels');
+ // Only the camera crop changes for a saved item. World scale and camera basis stay fixed.
+ if(focus&&[focus.x,focus.y].every(Number.isFinite)){
+  const q=[focus.x-c.projectionOriginCanonical[0],focus.y-c.projectionOriginCanonical[1],5.5].map(v=>v/CANONICAL_PER_SCENE_UNIT);
+  const center=(c.projectionOriginCss[1]+q.reduce((sum,v,i)=>sum+v*c.down[i],0)*c.pixelsPerSceneUnitCss)*scale;
+  const artHeight=descriptor.background.height/descriptor.background.width*390*scale;
+  top=height>=artHeight?(height-artHeight)/2:Math.max(height-artHeight,Math.min(0,height/2-center));
+ }
  const project=p=>{
   const q=[p.x-c.projectionOriginCanonical[0],p.y-c.projectionOriginCanonical[1],p.z??0].map(x=>x/CANONICAL_PER_SCENE_UNIT);
   return{x:left+scale*(c.projectionOriginCss[0]+q.reduce((s,v,i)=>s+v*c.right[i],0)*c.pixelsPerSceneUnitCss),y:top+scale*(c.projectionOriginCss[1]+q.reduce((s,v,i)=>s+v*c.down[i],0)*c.pixelsPerSceneUnitCss)};
  };
- return{width,height,scale,actorUnitsPerSource:descriptor.sourceToCanonical,sourcePixelsPerCss:c.pixelsPerSceneUnitCss*(RENDER_UNITS_TO_CANONICAL/CANONICAL_PER_SCENE_UNIT)*scale,project,
+ // Exact inverse at z=0 of this same orthographic basis, including CSS crop.
+ const unprojectGround=p=>{
+  if(!Number.isFinite(p?.x)||!Number.isFinite(p?.y))return null;
+  const sx=((p.x-left)/scale-c.projectionOriginCss[0])/c.pixelsPerSceneUnitCss;
+  const sy=((p.y-top)/scale-c.projectionOriginCss[1])/c.pixelsPerSceneUnitCss;
+  const determinant=c.right[0]*c.down[1]-c.right[1]*c.down[0];
+  if(!Number.isFinite(determinant)||Math.abs(determinant)<1e-12)throw Error('Non-invertible clean ground projection');
+  return{x:c.projectionOriginCanonical[0]+CANONICAL_PER_SCENE_UNIT*(sx*c.down[1]-sy*c.right[1])/determinant,
+   y:c.projectionOriginCanonical[1]+CANONICAL_PER_SCENE_UNIT*(sy*c.right[0]-sx*c.down[0])/determinant};
+ };
+ const referencePixelsPerRenderUnit=c.pixelsPerSceneUnitCss*(RENDER_UNITS_TO_CANONICAL/CANONICAL_PER_SCENE_UNIT);
+ const renderViewport={x:left,y:top,width:GARDEN_RASTER.width*scale,height:GARDEN_RASTER.height*scale,
+  pixelsPerRenderUnit:referencePixelsPerRenderUnit,anchorRaster:{x:c.projectionOriginCss[0],y:c.projectionOriginCss[1]},
+  anchorRender:[c.projectionOriginCanonical[0]/RENDER_UNITS_TO_CANONICAL,(c.projectionOriginCanonical[2]??0)/RENDER_UNITS_TO_CANONICAL,-c.projectionOriginCanonical[1]/RENDER_UNITS_TO_CANONICAL]};
+ return{width,height,scale,unprojectGround,renderViewport,actorUnitsPerSource:descriptor.sourceToCanonical,sourcePixelsPerCss:referencePixelsPerRenderUnit*scale,project,
   art:{x:left,y:top,width:390*scale,height:descriptor.background.height/descriptor.background.width*390*scale},
   exclusions:descriptor.foregroundExclusions.map(row=>({id:row.id,x:left+Math.min(...row.sourceScreenCss.map(p=>p[0]))*scale,y:top+Math.min(...row.sourceScreenCss.map(p=>p[1]))*scale,right:left+Math.max(...row.sourceScreenCss.map(p=>p[0]))*scale,bottom:top+Math.max(...row.sourceScreenCss.map(p=>p[1]))*scale}))};
 }

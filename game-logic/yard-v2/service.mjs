@@ -12,6 +12,7 @@ import { applyYardAction, ACTION_CONTRACTS } from './actions.mjs';
 import { advancePersistentYard, resolvePersistentDisplay } from './orchestrator.mjs';
 import { visitPhase, isReserved } from './simulation.mjs';
 import { clone, digest, integer, lookup, put } from './util.mjs';
+import {canonicalStorageValid,canonicalItemCapabilities} from './canonical-locations.mjs';
 
 export const YARD_STORAGE_FORMAT = 'yard-persistent/v1';
 export const YARD_SERVER_REVISION = 'persistent-mika/r1';
@@ -45,11 +46,14 @@ function inspectStored(player,now) {
   if (player.schemaVersion!==11) return failure('UNSUPPORTED_PLAYER_VERSION');
   const stored=player._yardV2;
   if (has(player,'_yardV2')) {
-    if (!object(stored)||stored.format!==YARD_STORAGE_FORMAT||stored.version!==1)
+    if (!object(stored)||stored.format!==YARD_STORAGE_FORMAT||![1,2].includes(stored.version))
       return failure('UNSUPPORTED_YARD_STORAGE_VERSION');
     if (!object(stored.runtime)||!object(stored.migration)||!object(stored.migration.receipt)
       ||!object(stored.migration.rawBackup)||!Array.isArray(stored.legacyReceipts))
       return failure('MALFORMED_YARD_STORAGE');
+    if (stored.version===1&&has(stored.runtime,'canonicalPlacements')
+      ||stored.version===2&&!canonicalStorageValid(stored.runtime.canonicalPlacements,player.yard?.placedGoodies||[]))
+      return failure('MALFORMED_CANONICAL_YARD_STORAGE');
     const state={format:FOUNDATION_FORMAT,player:yardInputs(player,stored.legacyReceipts),runtime:stored.runtime,migration:stored.migration};
     const result=dispatchInput(state,{now});
     return result.status===200?{status:200,state,stored,mutable:true}:failure(result.reason,result.issues);
@@ -63,7 +67,7 @@ function inspectStored(player,now) {
 }
 function commitYard(player,state,previous) {
   player.yard=state.player.yard;
-  player._yardV2={...(previous||{}),format:YARD_STORAGE_FORMAT,version:1,
+  player._yardV2={...(previous||{}),format:YARD_STORAGE_FORMAT,version:previous?.version===2||has(state.runtime,'canonicalPlacements')?2:1,
     revision:YARD_SERVER_REVISION,runtime:state.runtime,migration:state.migration,
     legacyReceipts:previous?.legacyReceipts||clone(state.migration.rawBackup?._actionReceipts?.items||[])};
 }
@@ -106,7 +110,7 @@ export function executePersistentYardAction(player,action,payload={}, {now=Date.
 export function yardCommandConflict(player,action,actionId) {
   if (typeof actionId!=='string'||!has(player,'_yardV2')) return null;
   const stored=player._yardV2;
-  if (!object(stored)||stored.format!==YARD_STORAGE_FORMAT||stored.version!==1) return null;
+  if (!object(stored)||stored.format!==YARD_STORAGE_FORMAT||![1,2].includes(stored.version)) return null;
   if (lookup(stored.runtime?.commandReceipts,actionId)!==undefined
     ||lookup(stored.runtime?.actionReceipts,actionId)!==undefined
     ||stored.legacyReceipts?.some(r=>r?.clientActionId===actionId)) return 'ACTION_ID_PAYLOAD_CONFLICT';
@@ -136,7 +140,8 @@ export function requireMutablePlayerYard(player,options={}) {
 export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}) {
   const checked=inspectStored(player,now);
   if (checked.status!==200) return {version:1,revision:YARD_SERVER_REVISION,serverNow:now,status:'review-required',mutable:false,
-    error:checked.error,issues:clone(checked.details||[]),visits:[],reservations:[],placementReadiness:[]};
+    error:checked.error,issues:clone(checked.details||[]),visits:[],reservations:[],placementReadiness:[],
+    canonicalPlacements:[],itemPlacementCapabilities:canonicalItemCapabilities({canonicalItemPlacementEnabled:false})};
   const defaults=getYardServerOptions();
   const state=checked.state,display=resolvePersistentDisplay(state,{scene:scene||defaults.scene});
   const readiness=options.placementReadiness||defaults.placementReadiness;
@@ -155,5 +160,6 @@ export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}
     display:{placements:display.placements,ok:display.ok,issues:display.issues},
     placementReadiness:typeof readiness==='function'?clone(readiness(display.yard)):[],
     actionProtocol:'yard-v2:', supportedActions:Object.keys(ACTION_CONTRACTS),
+    canonicalPlacements:clone(state.runtime.canonicalPlacements||[]),itemPlacementCapabilities:canonicalItemCapabilities(options),
     supportedBindings:supportedYardBindings(registry)};
 }

@@ -615,3 +615,76 @@ test('verified local fallback remains writable without overwriting an unreadable
   assert.equal(result.pending, true);
   assert.deepEqual(JSON.parse(localStorage.getItem(key(accountId))).items.map(value => value.clientActionId), [item(accountId).clientActionId, 'yard-v2:fallback-new']);
 });
+
+const {canonicalItemCapabilities,CANONICAL_LOCATION,CANONICAL_ACTION_NONCE_PREFIX}=await import('../game-logic/yard-v2/canonical-locations.mjs');
+const canonicalRuntime=()=>({...writableRuntime,itemPlacementCapabilities:canonicalItemCapabilities({canonicalItemPlacementEnabled:true}),canonicalPlacements:[]});
+const canonicalSnapshot=(id='account-a',seq=12,time=12000)=>({...snap(id,seq,time),yardRuntime:canonicalRuntime()});
+const canonicalPayload=()=>({...CANONICAL_LOCATION,slotId:'canonical:owned',goodieId:'leaf_pot',x:98,y:118});
+const canonicalItem=()=>({...item(),action:'yard.placeGoodie',payload:canonicalPayload(),entityKey:'slot:canonical:owned',clientActionId:`${CANONICAL_ACTION_NONCE_PREFIX}owned`});
+for(const error of['LEGACY_NONCE_REQUIRES_NEW_PROTOCOL_INTENT','UNSUPPORTED_YARD_STORAGE_VERSION','CANONICAL_LOCATION_UNKNOWN','CANONICAL_LOCATION_VERSION_MISMATCH','CANONICAL_GEOMETRY_REVISION_MISMATCH','CANONICAL_ITEM_PLACEMENT_DISABLED','ACTION_ID_PAYLOAD_CONFLICT'])test(`canonical ${error} holds the exact durable intent through reload and account changes`,async t=>{
+ let now=12000,enabled=true,reject=true,sends=0;const bodies=[];t.mock.method(Date,'now',()=>now);
+ const current=id=>({...canonicalSnapshot(id,now/1000,now),...(!enabled?{yardRuntime:{...writableRuntime}}:{})});
+ globalThis.fetch=async(path,options)=>{
+  if(path==='/api/config')return response({devAuthEnabled:false});
+  if(new URL(path,'https://fixture.invalid').pathname==='/api/player/snapshot')return response(current('account-a'));
+  sends++;const body=JSON.parse(options.body);bodies.push(body);
+  return reject?response({error},409):response({success:true,clientActionId:body.clientActionId,snapshot:current('account-a')});
+ };
+ hub.getState().applySnapshot(current('account-a'));
+ const queued=await hub.getState().performReliableAction('yard.placeGoodie',canonicalPayload(),{feedback:false});
+ assert.ok(queued.clientActionId.startsWith(CANONICAL_ACTION_NONCE_PREFIX));
+ assert.equal((await hub.getState().drainOutbox()).error,error);
+ const held=structuredClone(storage.values.get(key('account-a')).items[0]);assert.equal(held.status,'canonical-blocked');assert.equal(held.requiresYardResume,true);
+ assert.equal(hub.getState().isBusy(held.entityKey),true);
+ await hub.getState().drainOutbox();assert.equal(sends,1,'denial reconciliation cannot grant its own retry');
+ hub.getState().applySnapshot(current('account-b'));hub.getState().applySnapshot(current('account-a'));
+ hub.setState({outboxLoaded:false});await hub.getState().hydrateOutbox();await hub.getState().drainOutbox();assert.equal(sends,1);
+ assert.deepEqual(storage.values.get(key('account-a')).items[0],held);
+ enabled=false;now=13000;await hub.getState().loadSnapshot();await hub.getState().drainOutbox();assert.equal(sends,1);
+ enabled=true;reject=false;now=14000;hub.getState().applySnapshot(current('account-a'));await hub.getState().drainOutbox();assert.equal(sends,1,'cached enabled capability is insufficient');
+ await hub.getState().loadSnapshot();assert.equal((await hub.getState().drainOutbox()).success,true);assert.equal(sends,2);assert.deepEqual(bodies[1],bodies[0]);assert.deepEqual(storage.values.get(key('account-a')).items,[]);
+});
+
+test('canonical pending intent never drains or changes payload under absent, disabled or unknown capability',async()=>{
+ for(const patch of[null,{enabled:false},{locationVersion:2},{geometryRevision:'future'},{actionNoncePrefix:'yard-v2:'},{maxPlacements:3},{visitAdmission:true}]){
+  reset();const held=canonicalItem(),runtime=canonicalRuntime();runtime.itemPlacementCapabilities=patch===null?undefined:{...runtime.itemPlacementCapabilities,...patch};
+  hub.getState().applySnapshot({...snap(),yardRuntime:runtime});storage.values.set(key('account-a'),envelope('account-a',[held]));hub.setState({outboxLoaded:false});
+  await hub.getState().hydrateOutbox();assert.equal(await hub.getState().drainOutbox(),null);assert.deepEqual(storage.values.get(key('account-a')).items[0],held);
+  const rejected=await hub.getState().performReliableAction('yard.placeGoodie',{...canonicalPayload(),x:101},{feedback:false});assert.equal(rejected.error,'CANONICAL_ITEM_PLACEMENT_DISABLED');assert.deepEqual(storage.values.get(key('account-a')).items[0],held);
+ }
+});
+
+test('canonical action with a plain v2 nonce is refused before journal write or transport',async()=>{
+ hub.getState().applySnapshot(canonicalSnapshot());
+ const result=await hub.getState().enqueueYardAction('yard.placeGoodie',canonicalPayload(),{clientActionId:'yard-v2:old',feedback:false});
+ assert.equal(result.error,'CANONICAL_NONCE_REQUIRED');assert.equal(storage.values.has(key('account-a')),false);assert.deepEqual(hub.getState().pendingActions,[]);
+});
+
+test('canonical capability closure invalidates an already in-flight enabled HTTP resume observation',async()=>{
+ const held={...canonicalItem(),status:'canonical-blocked',requiresYardResume:true};
+ hub.getState().applySnapshot(canonicalSnapshot());storage.values.set(key('account-a'),envelope('account-a',[held]));hub.setState({outboxLoaded:false});await hub.getState().hydrateOutbox();
+ const req=request('/api/player/snapshot'),read=hub.getState().loadSnapshot();await req.ready;
+ hub.getState().applySnapshot({...canonicalSnapshot(),yardRuntime:{...canonicalRuntime(),itemPlacementCapabilities:canonicalItemCapabilities()}});
+ req.finish(canonicalSnapshot());await read;
+ assert.equal(await hub.getState().drainOutbox(),null);assert.deepEqual(storage.values.get(key('account-a')).items[0],held);
+});
+
+test('historical canonical-prefixed legacy slot keeps ordinary protocol, and a location-required refusal retains it for review',async()=>{
+ const payload={slotId:'canonical:historical',goodieId:'leaf_pot',x:50,y:50},nonce='yard-v2:legacy-history';let sends=0;
+ globalThis.fetch=async(path,options)=>{
+  if(path==='/api/config')return response({devAuthEnabled:false});
+  if(new URL(path,'https://fixture.invalid').pathname==='/api/player/snapshot')return response({...snap('account-a',12,12000),yardRuntime:writableRuntime});
+  sends++;const body=JSON.parse(options.body);assert.equal(body.clientActionId,nonce);assert.deepEqual(body.payload,payload);return response({error:'CANONICAL_LOCATION_REQUIRED'},409);
+ };
+ const queued=await hub.getState().enqueueYardAction('yard.moveGoodie',payload,{clientActionId:nonce,feedback:false});assert.equal(queued.clientActionId,nonce);
+ assert.equal((await hub.getState().drainOutbox()).error,'CANONICAL_LOCATION_REQUIRED');const held=structuredClone(storage.values.get(key('account-a')).items[0]);assert.equal(held.requiresCanonicalReview,true);
+ reset();hub.setState({outboxLoaded:false});await hub.getState().hydrateOutbox();await hub.getState().loadSnapshot();assert.equal(await hub.getState().drainOutbox(),null);
+ assert.equal(sends,1);assert.deepEqual(storage.values.get(key('account-a')).items[0],held);assert.deepEqual(held.payload,payload);assert.equal(held.clientActionId,nonce);
+});
+
+test('unsupported storage read invalidates a stale enabled capability without changing records or unresolved intent',async()=>{
+ const held=canonicalItem(),known=canonicalSnapshot();hub.getState().applySnapshot(known);storage.values.set(key('account-a'),envelope('account-a',[held]));hub.setState({outboxLoaded:false});await hub.getState().hydrateOutbox();
+ globalThis.fetch=async path=>path==='/api/config'?response({devAuthEnabled:false}):response({error:'UNSUPPORTED_YARD_STORAGE_VERSION'},409);
+ assert.equal((await hub.getState().loadSnapshot()).error,'UNSUPPORTED_YARD_STORAGE_VERSION');assert.equal(hub.getState().snapshot.yardRuntime.mutable,false);assert.equal(hub.getState().snapshot.yardRuntime.error,'UNSUPPORTED_YARD_STORAGE_VERSION');
+ assert.deepEqual(hub.getState().snapshot.yardRuntime.canonicalPlacements,known.yardRuntime.canonicalPlacements);assert.equal(await hub.getState().drainOutbox(),null);assert.deepEqual(storage.values.get(key('account-a')).items[0],held);
+});

@@ -1,3 +1,8 @@
+import canonicalGeometry from '../../../../game-logic/yard-v2/canonical-location-geometry.json' with {type:'json'};
+import{createCanonicalInspectionController}from'./dynamic-prop-controller.mjs';
+import{createCanonicalPlannerWorker}from'./dynamic-prop-worker-client.mjs';
+import{CANONICAL_LOCATION,CANONICAL_ITEM,canonicalCapability,canonicalPlacements,canonicalItemState,checkCanonicalPlacement}from'../../../game-state/canonicalYardItems.mjs';
+import{canonicalItemCatalog}from'./item-catalog.mjs';
 import{assertWorldScale}from'./world-scale.mjs';
 import{createOptionalPipRenderer}from'./prototype/optional-pip-renderer.mjs';
 import{createFixtureClock}from'./fixture-clock.mjs';
@@ -10,25 +15,28 @@ import{courtyardPresentation}from'../presentation.mjs';
 import{MIKA_CLIPS}from'../../../../game-logic/yard-v2/media/mika-clips.mjs';
 
 /** Real Yard scene interface, separate inactive location, no gameplay writes. */
-export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{},onPrototypeState=()=>{},onFailure=()=>{},now=()=>performance.now(),
- rendererFactory=createOptionalPipRenderer,fetchImpl=fetch,decodeImage=createImageBitmap,requestFrame=requestAnimationFrame,cancelFrame=cancelAnimationFrame}={}){
+export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{},onPrototypeState=()=>{},onFailure=()=>{},onPointerInterrupt=()=>{},now=()=>performance.now(),
+ canonicalItems=false,canonicalActionPending=false,plannerWorkerFactory=createCanonicalPlannerWorker,rendererFactory=createOptionalPipRenderer,fetchImpl=fetch,decodeImage=createImageBitmap,requestFrame=requestAnimationFrame,cancelFrame=cancelAnimationFrame}={}){
  if(!directHost?.appendChild||!uiImageOwner)throw Error('Stage and UI resource owners required');
+ if(canonicalItems)uiImageOwner.registerCatalog(canonicalItemCatalog);
  const abort=new AbortController(),ctx=canvas.getContext('2d');
- let disposed=false,api=null,image=null,setup=null,descriptor=null,projection=null,run=null,snapshot=null,lastFrame=null,inspectionCount=0,placementIndex=0;
+ let disposed=false,api=null,image=null,setup=null,descriptor=null,projection=null,run=null,snapshot=null,lastFrame=null,inspectionCount=0,placementIndex=0,ghost=null,itemPointerActive=false,selectedSlotId=null,interaction=null,plannerWorker=null,interactionError=null;
  // Full current UI lifetime, including 1,516,600 B catalogue and new R1 portrait.
- let uiBytes=Math.max(uiImageLifetimeLedger().bytes,19138304,uiImageOwner.snapshot().bytes),backgroundBytes=0,lastResources=null,peakRgba=0,frameCount=0,lastPhase='loading',retirement=null;
+ let uiBytes=Math.max(uiImageLifetimeLedger(canonicalItems?canonicalItemCatalog:null).bytes,19138304,uiImageOwner.snapshot().bytes),backgroundBytes=0,directSurfaceBytes=0,lastResources=null,peakRgba=0,frameCount=0,lastPhase='loading',retirement=null;
  const release=acquirePipLease(),clock=createFixtureClock({now}),listeners=[];
  let viewportBlocked=false,rejectedViewport=null,viewportRefusals=0,viewportRecoveries=0,frozenResizePending=false,resolveViewport;
  const viewportReady=new Promise(resolve=>{resolveViewport=resolve;});
  const initialVisibility={canvas:canvas.style?.visibility??'',direct:directHost.style?.visibility??''};
  function hideSurface(hidden){if(canvas.style)canvas.style.visibility=hidden?'hidden':initialVisibility.canvas;if(directHost.style)directHost.style.visibility=hidden?'hidden':initialVisibility.direct;}
- const phase=()=>viewportBlocked?'viewport-blocked':!api?'loading':clock.paused?'paused':lastFrame?.elapsedMs>=run?.route.totalMs?'settled':'moving';
+ const phase=()=>viewportBlocked?'viewport-blocked':!api?'loading':canonicalItems?(!canonicalItemState(snapshot).available?'unavailable':ghost||canonicalActionPending?'editing':interaction?.state.phase||'items'):clock.paused?'paused':lastFrame?.elapsedMs>=run?.route.totalMs?'settled':'moving';
  clock.setReason('ready',true);clock.setReason('hidden',document.hidden);clock.setReason('blur',!document.hasFocus());
- const state=()=>({enabled:!disposed,phase:lastPhase,viewportBlocked,rejectedViewport,viewportRefusals,viewportRecoveries,minimumStage:CLEAN_STAGE_MIN,intention:run?.kind??null,attention:lastFrame?.intention??null,inspectionCount,placementIndex,settled:!!lastFrame&&lastFrame.elapsedMs>=run?.route.totalMs,pauseReasons:clock.reasons,ready:!!api,domain:'pip-clean-garden-prototype-v1',actorUnitsPerSource:setup?.actor.unitsPerSource??null,scaleApproval:descriptor?.scaleApproval??null,savedVisitor:false});
+ const state=()=>({enabled:!disposed,canonicalItems,itemEditing:!!ghost,itemActionPending:canonicalActionPending,plannerWorkerActive:!!plannerWorker,selectedCanonicalSlotId:selectedCommitted()?.slotId??null,interaction:interaction?.state??(interactionError?{phase:"unavailable",error:interactionError,savedVisitor:false}:null),phase:lastPhase,viewportBlocked,rejectedViewport,viewportRefusals,viewportRecoveries,minimumStage:CLEAN_STAGE_MIN,intention:canonicalItems?'canonical-item-inspection':run?.kind??null,attention:lastFrame?.intention??null,inspectionCount,placementIndex,settled:canonicalItems?interaction?.state.phase==='settled':!!lastFrame&&lastFrame.elapsedMs>=run?.route.totalMs,pauseReasons:clock.reasons,ready:!!api,domain:'pip-clean-garden-prototype-v1',actorUnitsPerSource:setup?.actor.unitsPerSource??null,scaleApproval:descriptor?.scaleApproval??null,savedVisitor:false});
  const notify=phase=>{if(disposed)return;if(phase)lastPhase=phase;onPrototypeState(state());};
- function publish(){if(snapshot&&!disposed)onView({...courtyardPresentation(snapshot,snapshot.yardRuntime?.serverNow||snapshot.serverTime||0,MIKA_CLIPS),mutable:false,mediaReady:Boolean(api)&&!viewportBlocked,visualPrototype:state()});}
+ function publish(){if(snapshot&&!disposed)onView({...courtyardPresentation(snapshot,snapshot.yardRuntime?.serverNow||snapshot.serverTime||0,MIKA_CLIPS),mutable:false,
+  ...(canonicalItems?{props:canonicalPlacements(snapshot),renderCatalog:canonicalItemCatalog,canonicalItems:true,canonicalState:canonicalItemState(snapshot),itemMutable:!!canonicalCapability(snapshot)&&Boolean(api)&&!viewportBlocked}:{}),
+  mediaReady:Boolean(api)&&!viewportBlocked,visualPrototype:state()});}
  function reserve(pendingCanvasBytes=0,nextUiBytes=uiBytes){
-  const row=rgbaAdmission({uiBytes:nextUiBytes,backgroundBytes,currentCanvasBytes:canvas.width*canvas.height*4,pendingCanvasBytes});
+  const row=rgbaAdmission({uiBytes:nextUiBytes,backgroundBytes,currentCanvasBytes:canvas.width*canvas.height*4,pendingCanvasBytes,directSurfaceBytes});
   if(!row.fits)throw Error('Optional Yard image/backing admission rejected');peakRgba=Math.max(peakRgba,row.totalBytes);return row;
  }
  uiImageOwner.setAdmissionCheck(next=>{try{reserve(0,Math.max(uiBytes,next.bytes));uiBytes=Math.max(uiBytes,next.bytes);return true;}catch{return false;}});
@@ -37,6 +45,10 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  function background(){if(viewportBlocked||!image||!projection)return;ctx.clearRect(0,0,projection.width,projection.height);ctx.fillStyle='#d8e3c1';ctx.fillRect(0,0,projection.width,projection.height);const a=projection.art;ctx.drawImage(image,a.x,a.y,a.width,a.height);}
  function resize(){
   if(disposed||!descriptor)return;const r=canvas.getBoundingClientRect();
+  if(canonicalItems&&itemPointerActive&&(projection?.width!==r.width||projection?.height!==r.height)){
+   // End the pointer session before changing its coordinate transform.
+   itemPointerActive=false;ghost=null;onPointerInterrupt();
+  }
   if(!supportsCleanViewport(r.width,r.height)){
    if(!viewportBlocked||rejectedViewport?.width!==r.width||rejectedViewport?.height!==r.height)viewportRefusals++;
    rejectedViewport={width:r.width,height:r.height};viewportBlocked=true;hideSurface(true);pause('viewport',true);scheduler.cancelPending();publish();return;
@@ -44,12 +56,12 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   const wasBlocked=viewportBlocked;
   const dpr=Math.min(globalThis.devicePixelRatio||1,2),bw=Math.max(1,Math.round(r.width*dpr)),bh=Math.max(1,Math.round(r.height*dpr));
   const changed=canvas.width!==bw||canvas.height!==bh;reserve(changed?bw*bh*4:0);
-  const nextProjection=createCleanProjection(descriptor,r.width,r.height);
+  const nextProjection=createCleanProjection(descriptor,r.width,r.height,{focus:canonicalItems?(displayedItem()||{x:setup.placements[0][0],y:setup.placements[0][1]}):null});
   if(api&&(changed||projection?.width!==r.width||projection?.height!==r.height))hideSurface(true);
   if(changed){canvas.width=0;canvas.height=bh;canvas.width=bw;}
   // One shared transform. A recoverable size refusal never destroys this owner.
   ctx.setTransform(bw/r.width,0,0,bh/r.height,0,0);projection=nextProjection;viewportBlocked=false;
-  api?.resize({widthCss:192,heightCss:192,dpr:1,sourcePixelsPerCss:projection.sourcePixelsPerCss});
+  api?.resize({viewport:projection.renderViewport});
   if(wasBlocked){viewportRecoveries++;frozenResizePending=Boolean(lastFrame);}
   background();resolveViewport?.();resolveViewport=null;
   clock.setReason('viewport',false);api?.setPaused(clock.paused);scheduler.setPaused(clock.paused);
@@ -59,6 +71,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  function presentation(){const r=canvas.getBoundingClientRect(),h=directHost.getBoundingClientRect(),t=ctx.getTransform();return{a:t.a,d:t.d,b:t.b,c:t.c,e:t.e,f:t.f,backingWidth:canvas.width,backingHeight:canvas.height,contentWidth:r.width,contentHeight:r.height,offsetLeft:r.left-h.left,offsetTop:r.top-h.top};}
  function draw({paused=false,reason='motion'}={}){
   if(disposed||viewportBlocked||!api||!run||!projection)return false;
+  if(canonicalItems)return drawItems({paused,reason});
   try{const elapsedMs=(paused||frozenResizePending)&&lastFrame?lastFrame.elapsedMs:Math.min(clock.read(),run.route.totalMs),sample=samplePlanterInspection(setup,run,elapsedMs);
    const composition=assertCleanComposition(projection,sample.world.root,setup.placements[placementIndex]);
    if(!api.renderDirect({sample,point:projection.project(sample.world.root),presentation:presentation(),forcePausedRedraw:paused||frozenResizePending||reason==='startup'}))return false;
@@ -66,10 +79,48 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
    if(!moving&&lastPhase!==phase()){notify(phase());publish();}return moving&&!clock.paused;
   }catch(error){onFailure(error);return false;}
  }
+ // The item editor never samples a new route or changes the finite Pip's root.
+ // An uncommitted ghost is separate from the authoritative record and is never saved locally.
+ function selectedCommitted(){const rows=canonicalPlacements(snapshot);return rows.find(row=>row.slotId===selectedSlotId)||rows[0]||null;}
+ function displayedItem(){return ghost||selectedCommitted();}
+ function retireInteraction(){interaction?.dispose();plannerWorker?.dispose();interaction=null;plannerWorker=null;interactionError=null;}
+ function syncInteractionClock(){
+  if(!canonicalItems)return;
+  const flags={'item-editor':!!ghost||canonicalActionPending,'canonical-unavailable':!canonicalItemState(snapshot).available,
+   'canonical-idle':!interaction?.state.active,'planning':interaction?.state.phase==='planning','canonical-stalled':interaction?.state.phase==='blocked-occupancy'};
+  for(const [reason,value]of Object.entries(flags))clock.setReason(reason,value);
+  api?.setPaused(clock.paused);scheduler.setPaused(clock.paused);
+ }
+ function interactionChanged(){if(disposed)return;syncInteractionClock();scheduler.invalidate('inspection-ready',{whilePaused:true});notify(phase());publish();}
+ function syncCanonicalInteraction(){
+  if(!canonicalItems||!setup||!api)return;
+  if(canonicalItemState(snapshot).available){
+   if(!interaction&&!interactionError)try{
+    plannerWorker=plannerWorkerFactory();
+    interaction=createCanonicalInspectionController({geometry:canonicalGeometry,actor:setup.actor,rows:canonicalPlacements(snapshot),planner:plannerWorker.plan,onChange:interactionChanged});
+   }catch(error){plannerWorker?.dispose();plannerWorker=null;interactionError=String(error.message);}
+   interaction?.updateLayout(canonicalPlacements(snapshot),clock.read());
+  }
+  syncInteractionClock();
+ }
+ function drawItems(){
+  try{
+   const rows=canonicalPlacements(snapshot),item=displayedItem(),available=canonicalItemState(snapshot).available;
+   const dynamicSample=available?interaction?.tick(clock.read()):interaction?.sample;
+   const sample=dynamicSample||samplePlanterInspection(setup,run,0),actorVisible=available&&!!dynamicSample&&!ghost&&!canonicalActionPending;
+   const visible=rows.length>0||!!ghost,visibility=actorVisible?(visible?'both':'pet'):(visible?'planter':'empty');
+   const anchor=actorVisible?sample.world.root:item?{x:item.x,y:item.y}:sample.world.root;
+   api.setCanonicalPlacements(rows,{ghost,selectedSlotId:selectedCommitted()?.slotId??null});
+   if(!api.renderDirect({sample,point:projection.project(anchor),presentation:presentation(),forcePausedRedraw:true,visibility}))return false;
+   lastFrame={elapsedMs:clock.read(),root:sample.world.root,intention:dynamicSample?.intention||'item-placement',item:item?{...item}:null,records:rows.map(row=>({...row})),ghost:ghost?{...ghost}:null,committed:rows.length>0&&!ghost,canonicalState:canonicalItemState(snapshot).status,visibility};
+   frozenResizePending=false;hideSurface(false);frameCount++;syncInteractionClock();const nextPhase=phase();if(nextPhase!==lastPhase){notify(nextPhase);publish();}return !!interaction?.state.active&&!clock.paused;
+  }catch(error){onFailure(error);return false;}
+ }
+ function point(event){if(!canonicalItems||!projection||viewportBlocked)return null;const r=canvas.getBoundingClientRect();return projection.unprojectGround({x:event.clientX-r.left,y:event.clientY-r.top});}
  const scheduler=createFixtureScheduler({draw,requestFrame,cancelFrame});scheduler.setPaused(true);
  const observer=new ResizeObserver(()=>{try{resize();}catch(error){onFailure(error);}});observer.observe(canvas);
  listen(document,'visibilitychange',()=>pause('hidden',document.hidden));listen(window,'blur',()=>pause('blur',true));listen(window,'focus',()=>pause('blur',false));
- function cleanup(){hideSurface(false);api?.dispose();api=null;image?.close();image=null;backgroundBytes=0;release();}
+ function cleanup(){retireInteraction();hideSurface(false);api?.dispose();api=null;image?.close();image=null;backgroundBytes=0;directSurfaceBytes=0;release();}
  async function checked(path,kind='json',expectedHash=null){
   const paths={
    './data/fixture.json':new URL('./data/fixture.json',import.meta.url),
@@ -93,19 +144,29 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   image=decoded;if(image.width!==973||image.height!==1616)throw Error('Clean background dimensions changed');
   resize();run=makePlanterInspection(setup,placementIndex);
   const [calibration,fragmentHelper]=await Promise.all([checked('./data/calibration.json'),checked('./source/pip-rest-coat.glsl','text')]);if(disposed)return;
-  const made=await rendererFactory({enabled:true,signal:abort.signal,actorUnitsPerSource:setup.actor.unitsPerSource,presentationMode:'direct',directHost,calibration,fragmentHelper,widthCss:192,heightCss:192,dpr:1,sourcePixelsPerCss:projection.sourcePixelsPerCss,
-   planter:{descriptor:setup.planter,placement:setup.placements[0]},admitResources:row=>admitPipResources({...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES}),
+  const made=await rendererFactory({enabled:true,signal:abort.signal,actorUnitsPerSource:setup.actor.unitsPerSource,presentationMode:'direct',directHost,calibration,fragmentHelper,viewport:projection.renderViewport,
+   planter:{descriptor:setup.planter,placement:setup.placements[0]},admitResources:row=>{if(!admitPipResources({...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES}))return false;
+    if(row.stage==='before-drawing-buffer-allocation'){const previous=directSurfaceBytes;directSurfaceBytes=row.ownedRGBASurfacePeakBytes;try{reserve();}catch{directSurfaceBytes=previous;return false;}}return true;},
    loadAssetBytes:()=>checked('./assets/pip.glb','arrayBuffer'),loadPlanterAssetBytes:()=>checked('./assets/planter-t2.glb','arrayBuffer'),
    onResources:row=>{if(disposed)return;lastResources={...row,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,combinedKnownCPUBufferPeakBytes:COMBINED_KNOWN_CPU_PEAK};if(row.event==='context-lost')pause('context-lost',true);else if(row.event==='context-restored'){pause('context-lost',false);if(!viewportBlocked)scheduler.invalidate('context-restored',{whilePaused:true});}},
    setupLighting:({THREE,scene,renderer})=>{renderer.toneMapping=THREE.NoToneMapping;const target=new THREE.Vector3(run.approach.start.position.x/12,.5,-run.approach.start.position.y/12),lights=[];
     const ambient=new THREE.AmbientLight(new THREE.Color().setRGB(.78,.83,.93,THREE.LinearSRGBColorSpace),.55);scene.add(ambient);lights.push(ambient);
     for(const [position,intensity]of[[[-2.4,4,3],1.8],[[2.5,2.4,1.7],.76],[[0,2.8,-2],1.2]]){const l=new THREE.DirectionalLight(0xffffff,intensity);l.position.copy(target).add(new THREE.Vector3(...position));l.target.position.copy(target);scene.add(l,l.target);lights.push(l,l.target);}return()=>lights.forEach(l=>scene.remove(l));}});
-  if(disposed){made.dispose();return;}api=made;api.setPaused(true);draw({reason:'startup',paused:true});
-  if(disposed)return;clock.reset();clock.setReason('ready',false);api.setPaused(clock.paused);scheduler.setPaused(clock.paused);scheduler.invalidate('route');notify(phase());publish();
+  if(disposed){made.dispose();return;}api=made;api.setPaused(true);syncCanonicalInteraction();draw({reason:'startup',paused:true});
+  if(disposed)return;clock.reset();clock.setReason('ready',false);syncInteractionClock();api.setPaused(clock.paused);scheduler.setPaused(clock.paused);scheduler.invalidate('route');notify(phase());publish();
  })().catch(error=>{if(!disposed)onFailure(error);}).finally(()=>{if(disposed)cleanup();});
- return{ready,update(value){snapshot=value;publish();},setGhost(){},point:()=>null,hit:()=>null,offsetPoint:()=>null,
+ return{ready,update(value){const old=selectedCommitted();if(snapshot?.player?.id&&snapshot.player.id!==value?.player?.id){retireInteraction();ghost=null;selectedSlotId=null;}snapshot=value;syncCanonicalInteraction();const next=selectedCommitted();if(canonicalItems&&!itemPointerActive&&descriptor&&(old?.slotId!==next?.slotId||old?.x!==next?.x||old?.y!==next?.y))resize();publish();if(canonicalItems)scheduler.invalidate('snapshot',{whilePaused:true});},
+  setCanonicalActionPending(value){canonicalActionPending=!!value;syncInteractionClock();scheduler.invalidate("item-intent",{whilePaused:true});},
+  inspectCanonicalSlot(slotId){if(!canonicalItems||ghost||canonicalActionPending||!canonicalCapability(snapshot)||!interaction||!canonicalPlacements(snapshot).some(row=>row.slotId===slotId))return false;selectedSlotId=slotId;const accepted=interaction.request(slotId,clock.read());syncInteractionClock();scheduler.invalidate("inspect-selected",{whilePaused:true});notify(phase());publish();return accepted;},
+  beginPointer(){if(canonicalItems)itemPointerActive=true;},endPointer(){itemPointerActive=false;},
+  selectCanonicalSlot(slotId){if(!canonicalItems||ghost||itemPointerActive||!canonicalPlacements(snapshot).some(row=>row.slotId===slotId))return false;selectedSlotId=slotId;if(descriptor)resize();publish();return true;},
+  setGhost(value){if(!canonicalItems)return;if(value)selectedSlotId=value.slotId;ghost=value;syncInteractionClock(); scheduler.invalidate('ghost',{whilePaused:true});},point,
+  hit(event){if(!canonicalItems||!canonicalCapability(snapshot)||viewportBlocked||!projection)return null;const r=canvas.getBoundingClientRect();return canonicalPlacements(snapshot).map(item=>{const p=projection.project({x:item.x,y:item.y,z:5.5});return{item,distance:Math.hypot(event.clientX-r.left-p.x,event.clientY-r.top-p.y)};}).filter(row=>row.distance<=Math.max(22,22*projection.scale)).sort((a,b)=>a.distance-b.distance)[0]?.item??null;},
+  offsetPoint(p,d){if(!canonicalItems||!projection||viewportBlocked)return null;const q=projection.project(p);return projection.unprojectGround({x:q.x+d.x,y:q.y+d.y});},
+  checkPlacement(value){if(!canonicalItems)return null;const result=checkCanonicalPlacement(snapshot,value);if(result.ok&&interaction&&!interaction.placementIsSafe({...value,itemGeometryRevision:CANONICAL_ITEM.itemGeometryRevision}))return{ok:false,errors:[{code:'CANONICAL_ACTOR_OCCUPIED'}]};return result;},
+  defaultItemAnchor(){if(!canonicalItems||!setup)return null;const p=setup.placements.find(p=>checkCanonicalPlacement(snapshot,{...CANONICAL_LOCATION,slotId:'canonical:preview-anchor',goodieId:'leaf_pot',placing:true,x:p[0],y:p[1]}).ok)||setup.placements[0];return{x:p[0],y:p[1]};},
   inspectAgain(){
-   if(disposed||viewportBlocked||!api||!lastFrame||lastFrame.elapsedMs<run.route.totalMs)throw Error('Wait until Pip finishes inspecting the leaf');
+   if(canonicalItems||disposed||viewportBlocked||!api||!lastFrame||lastFrame.elapsedMs<run.route.totalMs)throw Error('Wait until Pip finishes inspecting the leaf');
    const previous=samplePlanterInspection(setup,run,run.route.totalMs).world;
    run=repeatPlanterInspection(setup,run,{previous,attentionVariant:(inspectionCount+1)%2});inspectionCount++;
    clock.reset();lastFrame=null;notify(phase());publish();scheduler.invalidate('inspection',{whilePaused:true});
@@ -113,7 +174,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   // Legacy diagnostic calls must never relocate or turn this supported actor.
   moveTo(){throw Error('The leaf inspection admits no arbitrary destinations');},
   movePlanter(){throw Error('The leaf inspection keeps its admitted planter anchor');},
-  diagnostics(){return{...state(),frameCount,lastFrame,route:run?{kind:PLANTER_INSPECTION_VERSION,holdOnly:run.holdOnly,focus:run.focus,approach:run.approach.start,durationMs:run.route.totalMs,displayedElapsedMs:lastFrame?.elapsedMs??0,activeElapsedMs:Math.min(clock.read(),run.route.totalMs)}:null,projection:projection?{width:projection.width,height:projection.height,scale:projection.scale,sourcePixelsPerCss:projection.sourcePixelsPerCss,art:projection.art,fit:"uniform width-fit capped at reference density; shared vertical camera crop around finite route"}:null,uiImageOwner:uiImageOwner.snapshot(),resources:lastResources,knownCPUBufferPeak:COMBINED_KNOWN_CPU_PEAK,knownModelCPUBufferPeak:KNOWN_CPU_BUFFER_PEAK,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,limits:LIMITS,rgba:reserve(),peakRgba,scheduler:scheduler.state,renderer:api?.diagnostics,unknowns:['engine modules retained for browser session','JS objects and decoder scratch','programs, driver, swap buffers, physical GPU release timing'],savedStateUsedForGeometry:false};},
-  dispose(){if(retirement)return retirement;disposed=true;resolveViewport?.();resolveViewport=null;abort.abort();scheduler.dispose();clock.dispose();observer.disconnect();listeners.forEach(remove=>remove());api?.dispose();api=null;image?.close();image=null;uiImageOwner.setAdmissionCheck(()=>false);retirement=ready.finally(cleanup);return retirement;}
+  diagnostics(){return{...state(),frameCount,lastFrame,route:canonicalItems?(interaction?{kind:'canonical-item-inspection',...interaction.state}:null):run?{kind:PLANTER_INSPECTION_VERSION,holdOnly:run.holdOnly,focus:run.focus,approach:run.approach.start,durationMs:run.route.totalMs,displayedElapsedMs:lastFrame?.elapsedMs??0,activeElapsedMs:Math.min(clock.read(),run.route.totalMs)}:null,projection:projection?{width:projection.width,height:projection.height,scale:projection.scale,sourcePixelsPerCss:projection.sourcePixelsPerCss,art:projection.art,fit:canonicalItems?"uniform width-fit; vertical crop follows committed item without changing canonical coordinates":"uniform width-fit capped at reference density; shared vertical camera crop around finite route"}:null,uiImageOwner:uiImageOwner.snapshot(),resources:lastResources,knownCPUBufferPeak:COMBINED_KNOWN_CPU_PEAK,knownModelCPUBufferPeak:KNOWN_CPU_BUFFER_PEAK,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES,limits:LIMITS,rgba:reserve(),peakRgba,scheduler:scheduler.state,renderer:api?.diagnostics,unknowns:['engine modules retained for browser session','JS objects and decoder scratch','programs, driver, swap buffers, physical GPU release timing'],savedStateUsedForGeometry:canonicalItems,canonicalRecords:canonicalItems?canonicalPlacements(snapshot):undefined,dynamicSample:interaction?.sample?structuredClone(interaction.sample):null};},
+  dispose(){if(retirement)return retirement;disposed=true;retireInteraction();resolveViewport?.();resolveViewport=null;abort.abort();scheduler.dispose();clock.dispose();observer.disconnect();listeners.forEach(remove=>remove());api?.dispose();api=null;image?.close();image=null;uiImageOwner.setAdmissionCheck(()=>false);retirement=ready.finally(cleanup);return retirement;}
  };
 }

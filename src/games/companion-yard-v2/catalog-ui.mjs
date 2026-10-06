@@ -25,9 +25,9 @@ const stillAssets = {
   snack_table: '/assets/yard-pip/snack-table-new.webp',
 };
 export const YARD_UI_ART = Object.freeze({
-  food: '/games/hud-redesign/room/semantic-icons/dock-food.png',
-  decor: '/games/hud-redesign/room/semantic-icons/dock-goodies.png',
-  guests: '/games/hud-redesign/room/semantic-icons/dock-petbook.png',
+  food: '/assets/yard-ui/previews/ba0eb9cb82af.webp',
+  decor: '/assets/yard-ui/previews/2da963c7e75d.webp',
+  guests: '/assets/yard-ui/r1-pip/e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b.png',
   gift: `${root}/ui/gift_box.png`, letter: `${root}/ui/daily_letter.png`,
   album: '/games/hud-redesign/room/semantic-icons/dock-album.png',
 });
@@ -52,7 +52,7 @@ export function catalogPreviewSource(kind, id, {condition = 'new', pose = ''} = 
 }
 export function catalogPreview(kind,id,options) {
   const source=catalogPreviewSource(kind,id,options);
-  if(kind==='visitor'&&!options?.pose&&Object.hasOwn(CURRENT_CARTOON_PORTRAITS,source))return CURRENT_CARTOON_PORTRAITS[source];
+  if(kind==='visitor'&&!(Object.hasOwn(visitorPoses,id)&&visitorPoses[id].includes(options?.pose))&&Object.hasOwn(CURRENT_CARTOON_PORTRAITS,source))return CURRENT_CARTOON_PORTRAITS[source];
   const preview=source && (kind==='remodel'?`/assets/yard-ui/delivery/background-${id}.webp`:(CATALOG_PREVIEW_PATHS[source] || source));
   return preview && (PREVIEW_THUMBNAIL_OVERRIDES[preview] || preview);
 }
@@ -66,6 +66,7 @@ export function canAffordCatalogCost(cost = {}, currencies = {}) {
 }
 
 const placementMessages = Object.freeze({
+  CANONICAL_ACTOR_OCCUPIED: 'actor',
   FOOTPRINT_OUTSIDE_PLAYZONE: 'outside', FOOTPRINT_COLLISION: 'overlap',
   EXCLUSION_COLLISION: 'exclusion', VISITOR_PATH_RESERVED: 'reservedPath',
   PROP_RESERVED: 'occupied', PROP_UNREACHABLE: 'unreachable', ENTRY_BLOCKED: 'entry',

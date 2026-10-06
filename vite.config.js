@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import {yardPlannerWorkerGraph} from "./scripts/yard-planner-worker-graph.mjs";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
@@ -14,6 +15,7 @@ import { retiredPublicAssets } from "./scripts/retired-public-assets.mjs";
 const shellPrecache = createShellPrecache();
 
 export default defineConfig({
+  worker: {format:"es",plugins:()=>[yardPlannerWorkerGraph()]},
   // An absent flag must be a literal false value so Rollup removes the optional
   // import entirely. Only the explicit build command may include the preview.
   define: {

@@ -2,12 +2,12 @@
   "format": "yard-ui-and-pip-media/v1",
   "requiredUi": [
     {
-      "path": "assets/yard-ui/surfaces/yard-ui-wood-strip.webp",
-      "bytes": 78540,
-      "sha256": "914232bc949de0ecc103f91afec1a8687d63643ea9cf962e89d8e5e030afe557",
-      "source": "public/assets/yard-ui/surfaces/yard-ui-wood-strip.webp",
-      "width": 512,
-      "height": 128
+      "path": "assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
+      "bytes": 59018,
+      "sha256": "79a2e1bbcc0a400ef8695ac971ab41dc19ca7c4c91ef244108df170923fe2455",
+      "source": "public/assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
+      "width": 1808,
+      "height": 214
     },
     {
       "path": "assets/yard-ui/surfaces/yard-ui-panel-frame.webp",
@@ -274,20 +274,20 @@
       "height": 226
     },
     {
-      "path": "assets/yard-ui/delivery/hud-treats.webp",
-      "bytes": 54068,
-      "sha256": "4db6432caf78465f6dc11d2dce06625a15e8d887d57fa3fda0c377ccdfacc562",
-      "source": "public/assets/yard-ui/delivery/hud-treats.webp",
-      "width": 256,
-      "height": 256
+      "path": "assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+      "bytes": 19178,
+      "sha256": "60bf94f0d8bcf60f75c9479d9c47093c1c9978874d03c12b6daad714bf37f26a",
+      "source": "public/assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+      "width": 128,
+      "height": 128
     },
     {
-      "path": "assets/yard-ui/delivery/hud-shiny.webp",
-      "bytes": 54740,
-      "sha256": "670cbbfa3f828285dcf881329684eef9f0ea8bc65d3a53ddadebe33ce151b76f",
-      "source": "public/assets/yard-ui/delivery/hud-shiny.webp",
-      "width": 256,
-      "height": 256
+      "path": "assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+      "bytes": 13192,
+      "sha256": "2b54e02b34f56818ac4f4537f1ca64ae2c0665e6672266228449f4c5a1c9edc7",
+      "source": "public/assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+      "width": 128,
+      "height": 128
     },
     {
       "path": "assets/yard-ui/delivery/hud-back.webp",
@@ -668,6 +668,14 @@
       "source": "src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb",
       "bytes": 120776,
       "sha256": "c2f7c317511cfd84605bde3f6e32ffd24d35ee66a3d8bc365ae8d0742557f3fd"
+    },
+    {
+      "path": "assets/leaf-pot-t2-preview-g2db27vs.webp",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/leaf-pot-t2-preview.webp",
+      "bytes": 10640,
+      "sha256": "526eb18659598971fd7f8b32a78ce860727e2f3197a86cfe688a6bad025b21c0",
+      "width": 128,
+      "height": 128
     }
   ]
 }

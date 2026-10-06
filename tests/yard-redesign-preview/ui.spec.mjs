@@ -30,6 +30,7 @@ async function capture(page,testInfo,name){
       if(!button.closest('.cy-panel')&&(r.left<-.5||r.right>innerWidth+.5||r.top<-.5||r.bottom>innerHeight+.5))faults.push({type:'control-clipped',text:button.textContent.trim(),rect:{x:r.x,y:r.y,width:r.width,height:r.height}});
     }
     for(const label of document.querySelectorAll('.cy-header h1,.cy-wallet,.cy-actions button,.cy-tabs button,.cy-selected-actions strong,.cy-card>strong,.cy-catalog-choice>strong')){
+      if(label.classList.contains('cy-visually-hidden'))continue;
       if(label.clientWidth&&label.scrollWidth>label.clientWidth+1)faults.push({type:'label-clipped',text:label.textContent.trim()});
     }
     return{scope:document.body.dataset.fixtureScope,viewport,faults,mutationAttempts:Number(document.body.dataset.blockedMutationAttempts||0)};

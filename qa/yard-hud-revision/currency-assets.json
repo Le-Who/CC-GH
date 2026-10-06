@@ -1,0 +1,60 @@
+{
+  "revision": "yard-bare-currency/20261006",
+  "method": "Two independently produced bare token sources; normalized transparent128px exports; native-size24/28/32px review; no plaques. Full source and generation records retained privately.",
+  "assets": [
+    {
+      "currency": "treats",
+      "source": {
+        "width": 1254,
+        "height": 1254,
+        "sha256": "ec06007f7a64675e680c9fe26b9e114a4fb473df7348b4f4ca40b53dd23745b8"
+      },
+      "runtime": {
+        "width": 128,
+        "height": 128,
+        "sha256": "60bf94f0d8bcf60f75c9479d9c47093c1c9978874d03c12b6daad714bf37f26a",
+        "bytes": 19178
+      },
+      "processing": {
+        "crop": [
+          127,
+          132,
+          1151,
+          1128
+        ],
+        "contentSize": [
+          112,
+          109
+        ],
+        "format": "lossless WebP with alpha"
+      }
+    },
+    {
+      "currency": "shiny",
+      "source": {
+        "width": 1254,
+        "height": 1254,
+        "sha256": "4bc4a6faf52b2cfbdb8502f1c1ab434b627806a1a3a0668c51e0139ad15fb1d9"
+      },
+      "runtime": {
+        "width": 128,
+        "height": 128,
+        "sha256": "2b54e02b34f56818ac4f4537f1ca64ae2c0665e6672266228449f4c5a1c9edc7",
+        "bytes": 13192
+      },
+      "processing": {
+        "crop": [
+          66,
+          132,
+          1210,
+          1161
+        ],
+        "contentSize": [
+          112,
+          101
+        ],
+        "format": "lossless WebP with alpha"
+      }
+    }
+  ]
+}

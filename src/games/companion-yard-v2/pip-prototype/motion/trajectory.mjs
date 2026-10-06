@@ -62,9 +62,13 @@ export function buildTrajectory({location,actor,start,goal}){
   numericLimit:'Arc length uses 160 subdivisions per quintic segment. Curvature and kinematic checks are finite diagnostics, not mesh/IK/dynamics proof.'};
 }
 export function sampleTrajectory(route,timeMs){
+ if(route.motionKind==='supported-turn'){
+  const u=Math.min(1,Math.max(0,(timeMs-route.anticipationMs)/route.moveMs));
+  return {root:{...route.start.position,z:0},heading:route.start.heading+angleDelta(route.goal.heading,route.start.heading)*smooth(u),distance:0,moving:u>0&&u<1};
+ }
  const u=Math.min(1,Math.max(0,(timeMs-route.anticipationMs)/route.moveMs)),s=smooth(u)*route.length;
  const seg=route.segments.find(x=>s<x.offset+x.length-1e-9)??route.segments.at(-1),local=Math.max(0,Math.min(seg.length,s-seg.offset));
  const b=seg.arc.find(x=>x.length>=local)??seg.arc.at(-1),i=seg.arc.indexOf(b),a=seg.arc[Math.max(0,i-1)];
  const t=b.length>a.length?a.t+(b.t-a.t)*(local-a.length)/(b.length-a.length):a.t,p=sampleSegment(seg,t);
- return {root:{...p.point,z:0},heading:Math.atan2(p.tangent.y,p.tangent.x),distance:s,moving:u>0&&u<1};
+ return {root:{...p.point,z:0},heading:Number.isFinite(route.fixedHeading)?route.fixedHeading:Math.atan2(p.tangent.y,p.tangent.x),distance:s,moving:u>0&&u<1};
 }

@@ -65,5 +65,5 @@ test('every nine-slice CSS rule uses its surface declared source and painting in
     assert.deepEqual(expand(numbers(match[3])),surface.css_border_width,match[1]);
     count++;
   }
-  assert.equal(count,6,'header, portrait dock, dialog, card, button and landscape dock are all checked');
+  assert.equal(count,4,'header, dialog, card and button are checked; the quiet navigation dock has no nine-slice skin');
 });

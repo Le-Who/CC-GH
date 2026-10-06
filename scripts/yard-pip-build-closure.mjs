@@ -18,11 +18,11 @@ const closure = (seeds, dynamic = false, alreadyLoaded = new Set()) => {
     if (seen.has(file) || alreadyLoaded.has(file)) return;
     assert.ok(byFile.has(file), `Missing emitted import ${file}`); seen.add(file);
     const chunk = byFile.get(file);
-    for (const dependency of [...chunk.imports, ...(dynamic && !chunk.isEntry ? chunk.dynamicImports : [])]) visit(dependency);
+    for (const dependency of [...chunk.imports, ...(dynamic && !chunk.isEntry ? [...chunk.dynamicImports,...(chunk.workerImports||[])] : [])]) visit(dependency);
   }
   seeds.forEach(visit); return seen;
 };
-for (const chunk of graph.chunks) for (const file of [...chunk.imports, ...chunk.dynamicImports]) assert.ok(byFile.has(file), `Broken import from ${chunk.file}: ${file}`);
+for (const chunk of graph.chunks) for (const file of [...chunk.imports, ...chunk.dynamicImports,...(chunk.workerImports||[])]) assert.ok(byFile.has(file), `Broken import from ${chunk.file}: ${file}`);
 const shell = closure(graph.chunks.filter(chunk => chunk.isEntry).map(chunk => chunk.file));
 const yard = closure([graph.entries['companion-yard-v2']]);
 const prefix = 'src/games/companion-yard-v2/pip-prototype/';
@@ -43,7 +43,7 @@ async function walk(dir, relative = '') {
 await walk(dist); files.sort((a, b) => a.path.localeCompare(b.path));
 const emitted = new Map(files.map(row => [row.path, row]));
 const assets = [];
-for (const name of ['data/fixture.json', 'data/location.json', 'data/calibration.json', 'source/pip-rest-coat.glsl', 'assets/clean-garden.png', 'assets/pip.glb', 'assets/planter-t2.glb']) {
+for (const name of ['data/fixture.json', 'data/location.json', 'data/calibration.json', 'source/pip-rest-coat.glsl', 'assets/clean-garden.png', 'assets/pip.glb', 'assets/planter-t2.glb', 'assets/leaf-pot-t2-preview.webp']) {
   const bytes = await readFile(path.join(root, prefix, name)), sha256 = hash(bytes);
   const matches = files.filter(row => row.sha256 === sha256);
   assert.equal(matches.length, mode === 'preview' ? 1 : 0, `Optional asset gate/identity: ${name}`);

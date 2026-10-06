@@ -1,0 +1,13 @@
+import {defineConfig} from '@playwright/test';
+import {assertCanonicalPgEnvironment} from '../../tests/helpers/yard-canonical-pg-guard.mjs';
+assertCanonicalPgEnvironment();
+if(process.env.GITHUB_ACTIONS!=='true'||process.env.GITHUB_RUN_ATTEMPT!=='1')throw Error('Only the first authorized finite GitHub run may launch this browser');
+export default defineConfig({
+  testDir:'.',testMatch:'acceptance.spec.mjs',fullyParallel:false,workers:1,retries:0,forbidOnly:true,
+  timeout:190000,globalTimeout:220000,expect:{timeout:12000},
+  outputDir:'qa/yard-canonical-acceptance/work/browser',reporter:[['line']],
+  use:{baseURL:'http://127.0.0.1:3216',serviceWorkers:'block',trace:'off',screenshot:'off',video:'off'},
+  projects:[{name:'chromium',use:{browserName:'chromium'}}],
+  webServer:{command:'node tests/helpers/yard-canonical-api-server.mjs',url:'http://127.0.0.1:3216/api/health',reuseExistingServer:false,timeout:20000,
+    env:{YARD_CANONICAL_API_TEST:'1',YARD_PLAYER_API_TEST:'1',DEV_AUTH_ENABLED:'true'}},
+});

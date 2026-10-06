@@ -6,8 +6,11 @@ import path from 'node:path';
 import policy from './yard-ui-media-budget.json' with { type: 'json' };
 import family from './yard-public-media.json' with { type: 'json' };
 
-export const REQUIRED_YARD_UI_BYTES = 5_345_589;
-export const OPTIONAL_PIP_MEDIA_BYTES = 5_555_295;
+export const REQUIRED_YARD_UI_BYTES = 5_249_629;
+const REQUIRED_YARD_UI_ALLOWANCE = 5_345_589; // Existing aggregate cap, not increased by the sharper re-export.
+export const OPTIONAL_PIP_MEDIA_BYTES = 5_565_935;
+// Exactly 10,640 additional optional bytes are the pinned T2 thumbnail.
+// Default-off, unrelated ownership and all decoded/CPU/GPU caps are unchanged.
 export const OTHER_NON_FAMILY_ASSET_CEILING = 73_470_314;
 const FAMILY_BYTES = 192_653_433;
 const optionalPrefix = 'src/games/companion-yard-v2/pip-prototype/';
@@ -18,7 +21,7 @@ const issue = (id, actual, expected, message) => ({ id, actual, budget: expected
 // A reviewed row never becomes a wildcard or a data-controlled allowance.
 assert.equal(policy.format, 'yard-ui-and-pip-media/v1');
 assert.equal(policy.requiredUi.length, 78);
-assert.equal(policy.optionalMedia.length, 7);
+assert.equal(policy.optionalMedia.length, 8);
 assert.equal(sum(policy.requiredUi), REQUIRED_YARD_UI_BYTES);
 assert.equal(sum(policy.optionalMedia), OPTIONAL_PIP_MEDIA_BYTES);
 const allPaths = new Set();
@@ -34,7 +37,7 @@ assert.equal(uiHashes.size, 78);
 assert.ok(policy.requiredUi.every(row => !familyHashes.has(row.sha256)));
 assert.ok(policy.optionalMedia.every(row => !familyHashes.has(row.sha256) && !uiHashes.has(row.sha256)));
 const optionalByHash = new Map(policy.optionalMedia.map(row => [row.sha256, row]));
-assert.equal(optionalByHash.size, 7);
+assert.equal(optionalByHash.size, 8);
 const familyByPath = new Map(family.files.map(row => [row.path, row]));
 const matches = (actual, expected) => actual?.bytes === expected.bytes && actual?.sha256 === expected.sha256;
 
@@ -96,7 +99,7 @@ export async function inspectYardAssetBudget({ distDir, graph }) {
     optionalMedia: { count: optional.length, rawBytes: sum(optional), files: optional },
     otherNonFamilyAssets: { count: other.length, rawBytes: sum(other), files: other, ceilingBytes: OTHER_NON_FAMILY_ASSET_CEILING,
       qualification: 'Aggregate byte ceiling, not a hash freeze of every remaining file' },
-    aggregate: { actualBytes: sum(rows), ceilingBytes: FAMILY_BYTES + REQUIRED_YARD_UI_BYTES + OTHER_NON_FAMILY_ASSET_CEILING + (preview ? OPTIONAL_PIP_MEDIA_BYTES : 0) },
+    aggregate: { actualBytes: sum(rows), ceilingBytes: FAMILY_BYTES + REQUIRED_YARD_UI_ALLOWANCE + OTHER_NON_FAMILY_ASSET_CEILING + (preview ? OPTIONAL_PIP_MEDIA_BYTES : 0) },
     historicalCeilings: { publicAssets: 267_653_433, nonFamilyAssets: 75_000_000, preIntegrationNonFamilyBytes: 75_113_382,
       preIntegrationOverageBytes: 113_382 },
     failures,

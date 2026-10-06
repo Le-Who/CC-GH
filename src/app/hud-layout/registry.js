@@ -198,6 +198,7 @@ const GAME_REGIONS = {
   room: {
     yardStage: region("yardStage", "Yard play stage", "Cozy Yard", { measured: true, affectsPixiSafeArea: false, mode: "custom" }),
     yardHudLayer: region("yardHudLayer", "Yard HUD layer", "Cozy Yard", { draggable: false, resizable: false, mode: "custom" }),
+    yardPlacementControls: region("yardPlacementControls", "Yard placement controls", "Cozy Yard", { measured: true, draggable: false, resizable: false, mode: "custom" }, "Reserved CSS-grid controls outside the stage. Canonical ground anchors use the fixed versioned camera and server geometry; no player layout override."),
     yardVisitStatus: region("yardVisitStatus", "Yard reserved visit status", "Cozy Yard", { measured: true, draggable: false, resizable: false, mode: "custom" }, "Reserved flow strip outside placement canvas; portrait row and landscape rail preserve readable controls."),
     yardBowls: region("yardBowls", "Yard food bowls", "Cozy Yard", { draggable: true, mode: "custom" }),
     yardCornerActions: region("yardCornerActions", "Yard corner controls", "Cozy Yard", { draggable: true, mode: "custom" }),

@@ -1,4 +1,5 @@
 import path from 'node:path';
+import {addPlannerWorkerGraph} from './yard-planner-worker-graph.mjs';
 import { YARD_CONTRACT_DATA_MODULES } from './yard-contract-data.mjs';
 import { isYardPipVendorModule } from './yard-pip-vendor.mjs';
 
@@ -51,6 +52,7 @@ export function gameLoadingGraph() {
           hasPixi: Object.keys(chunk.modules).some(id => /(?:node_modules[/\\](?:@pixi|pixi\.js))/.test(id)),
         };
       });
+      addPlannerWorkerGraph(bundle,chunks);
       this.emitFile({type:'asset', fileName:'game-loading-graph.json', source:JSON.stringify({schemaVersion:1, entries, chunks}, null, 2)+'\n'});
     },
   };

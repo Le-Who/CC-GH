@@ -44,14 +44,23 @@ export function createAdaptivePoseDriver(THREE, gltf, calibration, {unitsPerSour
     const inv=oldRoot.invert();return Object.fromEntries(Object.entries(m).map(([n,v])=>[n,v.premultiply(inv)]));
   }
   const neutral=style(1,false),settled=style(96,false);
+  let lastSourcePose=null,recoveryId=null,recoveryPose=null;
   function blend(a,b,u){const p=new Vector3(),q=new Quaternion(),s=new Vector3(),bp=new Vector3(),bq=new Quaternion(),bs=new Vector3();a.decompose(p,q,s);b.decompose(bp,bq,bs);return new Matrix4().compose(p.lerp(bp,u),q.slerp(bq,u),s.lerp(bs,u));}
   function apply(sample) {
     if (!Number.isFinite(sample?.styleFrame) || sample.styleFrame<1 || sample.styleFrame>96 || !sample.world?.feet) throw Error('Expected an existing calibrated motion sample');
     const {world}=sample,local=style(sample.styleFrame),root=new Vector3(world.root.x,world.root.y,world.root.z??0).divideScalar(unitsPerSource);
     const newRoot=T(root).multiply(Rz(world.heading+Math.PI/2)),a=c2(sample.anticipationU??1),u=c2(sample.settleU??0);
     const initial=sample.startsFromSettled===true?settled:neutral;
-    const sourcePose=Object.fromEntries(Object.keys(rest).map(n=>[n,blend(blend(initial[n],local[n],a),settled[n],u)]));
+    let sourcePose=Object.fromEntries(Object.keys(rest).map(n=>[n,blend(blend(initial[n],local[n],a),settled[n],u)]));
     applyPlanterInspectionPose(THREE,sourcePose,sample.inspection);
+    // A layout change preserves the displayed upper-body pose, then returns it
+    // smoothly to settle. World sole targets below retain exact support.
+    if(sample.poseRecovery){
+      if(!Number.isFinite(sample.poseRecovery.u)||sample.poseRecovery.u<0||sample.poseRecovery.u>1)throw Error('Invalid pose recovery progress');
+      if(recoveryId!==sample.poseRecovery.id){recoveryId=sample.poseRecovery.id;recoveryPose=lastSourcePose??sourcePose;}
+      sourcePose=Object.fromEntries(Object.keys(rest).map(n=>[n,blend(recoveryPose[n],settled[n],c2(sample.poseRecovery.u))]));
+    }else {recoveryId=null;recoveryPose=null;}
+    lastSourcePose=sourcePose;
     const desired=Object.fromEntries(Object.entries(sourcePose).map(([n,m])=>[n,newRoot.clone().multiply(m)]));
     for(const[contract,native]of Object.entries(calibration.boneSideMap.contractToNative)){
       const foot=world.feet[contract],n='foot.'+native,target=new Vector3(foot.position.x,foot.position.y,foot.position.z).divideScalar(unitsPerSource);

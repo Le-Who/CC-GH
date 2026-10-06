@@ -22,7 +22,7 @@ test('album metadata selects the saved visitor pose, goodie and remodel without 
   const before=JSON.stringify(photo),art=photoPreview(photo);
   assert.equal(catalogPreviewSource('visitor',photo.visitorId,{pose:photo.pose}),'/games/companion-yard/visitors/mika_cat_nap.png');
   assert.match(art.visitor,/^\/assets\/yard-ui\/previews\/[a-f0-9]+\.webp$/);
-  assert.equal(art.background,'/games/companion-yard/backgrounds/moon_garden.png');
+  assert.equal(art.background,'/assets/yard-ui/delivery/background-moon_garden.webp');
   assert.equal(catalogPreviewSource('goodie',photo.goodieId),'/assets/yard-mika/sun-cushion-clean.webp');
   assert.match(art.goodie,/^\/assets\/yard-ui\/previews\/[a-f0-9]+\.webp$/);
   assert.equal(JSON.stringify(photo),before);
@@ -31,7 +31,8 @@ test('unknown saved IDs never become arbitrary paths; unsupported poses use the 
   for(const id of ['__proto__','constructor','../../private','https://example.test/asset']) {
     for(const kind of ['food','goodie','visitor','remodel','companion']) assert.equal(catalogPreview(kind,id),null);
   }
-  assert.equal(catalogPreview('visitor','mika_cat',{pose:'../../file'}),catalogPreview('visitor','mika_cat'));
+  for(const pose of ['../../file','unknown','peek','',null])assert.equal(catalogPreview('visitor','mika_cat',{pose}),catalogPreview('visitor','mika_cat'));
+  assert.equal(catalogPreview('visitor','mika_cat'),'/assets/yard-ui/current-portraits/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.png');
   assert.deepEqual(photoPreview({visitorId:'missing',remodel:'missing',goodieId:'missing'}),{visitor:null,background:null,goodie:null});
 });
 test('affordability follows both canonical currencies including free, shiny-only and mixed prices',()=>{
@@ -62,4 +63,9 @@ test('placement failures retain their specific explanation and unknown errors fa
   for(const [code,suffix] of Object.entries({FOOTPRINT_OUTSIDE_PLAYZONE:'outside',FOOTPRINT_COLLISION:'overlap',EXCLUSION_COLLISION:'exclusion',VISITOR_PATH_RESERVED:'reservedPath',PROP_RESERVED:'occupied',PROP_UNREACHABLE:'unreachable',ENTRY_BLOCKED:'entry'})) assert.equal(placementMessageKey(code),`yard.persistent.placement.${suffix}`);
   assert.equal(placementMessageKey('__proto__'),'yard.persistent.placement.blocked');
   assert.equal(placementMessageKey(undefined),'yard.persistent.placement.blocked');
+});
+
+test('valid historical visitor poses keep their exact aliases after invalid-pose fallback correction',()=>{
+ const aliases={nap:'/assets/yard-ui/previews/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.webp',pounce:'/assets/yard-ui/previews/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.webp',sit:'/assets/yard-ui/previews/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.webp'};
+ for(const [pose,url]of Object.entries(aliases)){assert.equal(catalogPreview('visitor','mika_cat',{pose}),url);assert.equal(photoPreview({visitorId:'mika_cat',pose}).visitor,url);}
 });

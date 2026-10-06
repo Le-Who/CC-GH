@@ -1,0 +1,225 @@
+{
+  "source": "11-wood-strip-source.png",
+  "source_sha256": "a815909b5cca92e8d78aca15b5fe2b2403af5f1700a002bafc7f0f7345ccf2e8",
+  "source_size": [
+    2172,
+    724
+  ],
+  "crop": [
+    26,
+    156,
+    2145,
+    530
+  ],
+  "source_insets": [
+    144,
+    180,
+    144,
+    180
+  ],
+  "size": [
+    1808,
+    214
+  ],
+  "insets": [
+    64,
+    80,
+    64,
+    80
+  ],
+  "safe": [
+    100,
+    68,
+    1708,
+    146
+  ],
+  "css_border_width": [
+    16,
+    20,
+    16,
+    20
+  ],
+  "codec": {
+    "format": "webp",
+    "quality": 90,
+    "alphaQuality": 100,
+    "effort": 6
+  },
+  "file": "yard-ui-wood-strip-79a2e1bbcc0a.webp",
+  "output_sha256": "79a2e1bbcc0a400ef8695ac971ab41dc19ca7c4c91ef244108df170923fe2455",
+  "bytes": 59018,
+  "decoded_rgba_bytes": 1547648,
+  "patch_receipts": [
+    {
+      "row": 0,
+      "col": 0,
+      "source_rect_in_cropped_pixels": [
+        0,
+        0,
+        180,
+        144
+      ],
+      "output_rect": [
+        0,
+        0,
+        80,
+        64
+      ],
+      "scale_x": 0.4444444444444444,
+      "scale_y": 0.4444444444444444,
+      "uniform_corner": true
+    },
+    {
+      "row": 0,
+      "col": 1,
+      "source_rect_in_cropped_pixels": [
+        180,
+        0,
+        1939,
+        144
+      ],
+      "output_rect": [
+        80,
+        0,
+        1728,
+        64
+      ],
+      "scale_x": 0.9368959636156907,
+      "scale_y": 0.4444444444444444,
+      "uniform_corner": false
+    },
+    {
+      "row": 0,
+      "col": 2,
+      "source_rect_in_cropped_pixels": [
+        1939,
+        0,
+        2119,
+        144
+      ],
+      "output_rect": [
+        1728,
+        0,
+        1808,
+        64
+      ],
+      "scale_x": 0.4444444444444444,
+      "scale_y": 0.4444444444444444,
+      "uniform_corner": true
+    },
+    {
+      "row": 1,
+      "col": 0,
+      "source_rect_in_cropped_pixels": [
+        0,
+        144,
+        180,
+        230
+      ],
+      "output_rect": [
+        0,
+        64,
+        80,
+        150
+      ],
+      "scale_x": 0.4444444444444444,
+      "scale_y": 1,
+      "uniform_corner": false
+    },
+    {
+      "row": 1,
+      "col": 1,
+      "source_rect_in_cropped_pixels": [
+        180,
+        144,
+        1939,
+        230
+      ],
+      "output_rect": [
+        80,
+        64,
+        1728,
+        150
+      ],
+      "scale_x": 0.9368959636156907,
+      "scale_y": 1,
+      "uniform_corner": false
+    },
+    {
+      "row": 1,
+      "col": 2,
+      "source_rect_in_cropped_pixels": [
+        1939,
+        144,
+        2119,
+        230
+      ],
+      "output_rect": [
+        1728,
+        64,
+        1808,
+        150
+      ],
+      "scale_x": 0.4444444444444444,
+      "scale_y": 1,
+      "uniform_corner": false
+    },
+    {
+      "row": 2,
+      "col": 0,
+      "source_rect_in_cropped_pixels": [
+        0,
+        230,
+        180,
+        374
+      ],
+      "output_rect": [
+        0,
+        150,
+        80,
+        214
+      ],
+      "scale_x": 0.4444444444444444,
+      "scale_y": 0.4444444444444444,
+      "uniform_corner": true
+    },
+    {
+      "row": 2,
+      "col": 1,
+      "source_rect_in_cropped_pixels": [
+        180,
+        230,
+        1939,
+        374
+      ],
+      "output_rect": [
+        80,
+        150,
+        1728,
+        214
+      ],
+      "scale_x": 0.9368959636156907,
+      "scale_y": 0.4444444444444444,
+      "uniform_corner": false
+    },
+    {
+      "row": 2,
+      "col": 2,
+      "source_rect_in_cropped_pixels": [
+        1939,
+        230,
+        2119,
+        374
+      ],
+      "output_rect": [
+        1728,
+        150,
+        1808,
+        214
+      ],
+      "scale_x": 0.4444444444444444,
+      "scale_y": 0.4444444444444444,
+      "uniform_corner": true
+    }
+  ]
+}

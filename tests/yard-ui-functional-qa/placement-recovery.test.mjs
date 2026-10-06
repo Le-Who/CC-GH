@@ -43,3 +43,23 @@ test('pure helper reconstructs only the owned pending placement, without writing
   state.snapshot.player.id='foreign';assert.equal(recoverPlacement(state),null);
   state.snapshot.player.id='owned';item.payload.x=NaN;assert.equal(recoverPlacement(state),null);
 });
+
+const location={locationId:'pip-garden',locationVersion:1,geometryRevision:'pip-garden-t2-r1'};
+function canonicalFixture(placing=true){
+ const value=fixture();Object.assign(value.ghost,location,{slotId:'canonical:owned',goodieId:'leaf_pot',x:98,y:118,placing,recoveryNonce:'yard-v2:canonical-v1/owned'});
+ Object.assign(value.item,placementCommand(value.ghost),{clientActionId:value.ghost.recoveryNonce});return value;
+}
+test('canonical recovery keeps all three versioned identity fields and exact action shape',()=>{
+ for(const placing of[true,false]){
+  const {state,ghost,item}=canonicalFixture(placing);assert.equal(pendingPlacement(state,ghost),item);assert.deepEqual(recoverPlacement(state),ghost);
+  assert.deepEqual(placementCommand(ghost),{action:placing?'yard.placeGoodie':'yard.moveGoodie',payload:{slotId:'canonical:owned',...(placing?{goodieId:'leaf_pot'}:{}),x:98,y:118,...location}});
+  for(const changed of[{locationId:'elsewhere'},{locationVersion:2},{geometryRevision:'future'},{x:99},{slotId:'canonical:other'}])assert.equal(pendingPlacement(state,{...ghost,...changed}),null);
+  item.payload.extra=1;assert.equal(recoverPlacement(state),null);
+ }
+});
+test('canonical blocked and paused intents are immutable and never expose a new submission',()=>{
+ for(const status of['canonical-blocked','rollout-paused']){
+  const {state,ghost,item}=canonicalFixture();item.status=status;item.requiresYardResume=true;
+  const original=structuredClone(item);assert.equal(pendingPlacement(state,ghost),item);assert.equal(retryablePlacement(state,ghost),null);assert.equal(recoverPlacement(state),null);assert.deepEqual(item,original);
+ }
+});

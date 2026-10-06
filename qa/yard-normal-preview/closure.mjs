@@ -47,7 +47,7 @@ export async function closeBuild(root,dist,mode,{prune=false}={}) {
   const text=await fs.readFile(path.join(dist,r.path),'utf8');
   for(const match of text.matchAll(/(?:url\(\s*["']?|(?:src|href)=["'])(\/[^"'\s)>]+)["']?/g))urls.add(match[1]);
  }
- for(const c of graph.chunks){assert(by.has(c.file),'Missing emitted chunk');for(const dep of [...c.imports,...c.dynamicImports])assert(by.has(dep),'Missing import: '+dep);}
+ for(const c of graph.chunks){assert(by.has(c.file),'Missing emitted chunk');for(const dep of [...c.imports,...c.dynamicImports,...(c.workerImports||[])])assert(by.has(dep),'Missing import: '+dep);}
  for(const url of urls){assert(url?.startsWith('/')&&!url.startsWith('//'),'Unclosed nonlocal UI URL: '+url);assert(by.has(new URL(url,'http://closure.invalid').pathname.slice(1)),'Missing UI URL: '+url);}
  for(const r of canonical.files){const a=by.get(r.path);assert(a&&a.bytes===r.bytes&&a.sha256===r.sha256,'Frozen media changed: '+r.path);}
  const sources=['data/fixture.json','data/location.json','data/calibration.json','source/pip-rest-coat.glsl','assets/clean-garden.png','assets/pip.glb','assets/planter-t2.glb'];

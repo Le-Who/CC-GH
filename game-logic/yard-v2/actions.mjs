@@ -7,6 +7,7 @@ import {FOUNDATION_FORMAT} from './migration.mjs';
 import {YARD_FOODS,YARD_GOODIES,YARD_VISITORS,YARD_REMODELS,YARD_EXPANSIONS,YARD_SPECIES,YARD_SLOT_LAYOUTS} from './catalog.mjs';
 import {clone,digest,hash32,integer,assertInteger,addCount,lookup,put,deepFreeze,workingCopy} from './util.mjs';
 import {hexToBase64url} from './sha256.mjs';
+import {isCanonicalItemIntent,isCanonicalItemNonce,canonicalItemGate,applyCanonicalItemAction,CANONICAL_LOCATION} from './canonical-locations.mjs';
 
 const receiptPolicy='Required stable actionId; digest(action,payload); exact old player receipt replay before simulation; new intent must use yard-v2: nonce; mismatch409; state+receipt must commit atomically';
 const contract=(payload,effects,extras,guards=[],deviations=[])=>({payload,effects,extras,guards,deviations,receiptPolicy});
@@ -75,8 +76,28 @@ export function applyYardAction(input,action,payload={},options={}) {
   return{status:200,state:input,replayed:true,legacyReplay:true,receipt:clone(legacy.at(-1)),extras:clone(legacy.at(-1).extras||{})};
  }
  if(lookup(input.runtime.actionReceipts,actionId)!==undefined)return rawFailure(409,'LEGACY_CLAIM_RECEIPT_REQUIRES_RECONCILIATION');
- if(!/^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(actionId))return rawFailure(409,'LEGACY_NONCE_REQUIRES_NEW_PROTOCOL_INTENT');
+ const canonicalIntent=isCanonicalItemIntent(payload,actionId);
+ if(canonicalIntent&&!isCanonicalItemNonce(actionId))return rawFailure(409,'CANONICAL_NONCE_REQUIRED');
+ if(!canonicalIntent&&!/^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(actionId))return rawFailure(409,'LEGACY_NONCE_REQUIRES_NEW_PROTOCOL_INTENT');
  if(!integer(now)||now<input.runtime.cursorMs||now>8640000000000000)return rawFailure(400,'INVALID_ACTION_TIME');
+ if(canonicalIntent){
+  const gate=canonicalItemGate(action,payload,options);
+  if(gate)return rawFailure(409,gate);
+  // Canonical item operations do not advance or rewrite the historical scene.
+  // The existing old-yard clock catches up through its ordinary entry points.
+  const state=workingCopy(input),result=applyCanonicalItemAction(state,action,payload,{now});
+  const next=result.status===200?state:workingCopy(input);next.runtime.commandReceipts??={};
+  const receipt={format:RECEIPT_FORMAT,actionId,action,requestHash,at:now,status:result.status,
+   ...CANONICAL_LOCATION,...(result.error?{error:result.error}:{}),...(result.extras?{extras:clone(result.extras)}:{})};
+  put(next.runtime.commandReceipts,actionId,receipt);
+  return {...result,state:next,receipt:clone(receipt)};
+ }
+ // Old clients could choose arbitrary slot IDs, including "canonical:". Keep
+ // existing and queued legacy intents intact, but never let their slot lookup
+ // or goodie-ID fallback collide with a real canonical placement.
+ if(['yard.placeGoodie','yard.moveGoodie','yard.pickupGoodie','yard.fixGoodie'].includes(action)
+  && input.runtime.canonicalPlacements?.some(row=>row.slotId===sourceString(payload.slotId)))
+  return rawFailure(409,'CANONICAL_LOCATION_REQUIRED');
  if(options.actionPolicy){
   const availability=options.actionPolicy({action,payload:clone(payload),player:input.player});
   if(availability?.ok!==true){

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
 import { readYardOutbox, writeYardOutbox } from "./yardOutboxStorage.js";
 import { VISIBLE_GAME_IDS } from "../app/gameRegistry.js";
 import { api } from "../services/apiClient.js";
@@ -25,6 +26,8 @@ let latestSnapshotRequest = null;
 // after the pause may authorize replay, including after journal hydration.
 let yardOutboxPauseEpoch = {};
 let yardOutboxResumeSession = null;
+let canonicalOutboxResumeSession = null;
+let canonicalOutboxPauseEpoch = {};
 
 function writableYardSnapshot(snapshot) {
   const runtime = snapshot?.yardRuntime;
@@ -33,7 +36,9 @@ function writableYardSnapshot(snapshot) {
 }
 
 function canDrainOutboxItem(item, snapshot) {
-  return item.status !== "failed" && (!(item.requiresYardResume || item.status === "rollout-paused")
+  return item.status !== "failed" && !item.requiresCanonicalReview && (!isCanonicalItemIntent(item.payload,item.clientActionId) || (isCanonicalItemNonce(item.clientActionId) && canonicalCapability(snapshot,item.action)
+      && (!(item.requiresYardResume || item.status === "canonical-blocked" || item.status === "rollout-paused") || canonicalOutboxResumeSession === snapshotAccountSession)))
+    && (!(item.requiresYardResume || item.status === "rollout-paused" || item.status === "canonical-blocked")
     || (yardOutboxResumeSession === snapshotAccountSession && writableYardSnapshot(snapshot)));
 }
 
@@ -119,7 +124,7 @@ function normalizeOutboxItems(items) {
   return items.filter((item) => item?.clientActionId && shouldUseDurableOutbox(item.action)).map((item) => ({
     ...item,
     // The resume fence survives sending/pending normalization and failed writes.
-    ...(item.status === "rollout-paused" ? { requiresYardResume: true } : {}),
+    ...(["rollout-paused","canonical-blocked"].includes(item.status) ? { requiresYardResume: true } : {}),
     accountId: item.accountId,
     clientActionId: String(item.clientActionId),
     action: String(item.action),
@@ -193,6 +198,7 @@ export const useGameHub = create((set, get) => ({
     const requestSession = snapshotAccountSession;
     const requestToken = latestSnapshotRequest = {};
     const requestYardPauseEpoch = yardOutboxPauseEpoch;
+    const requestCanonicalPauseEpoch = canonicalOutboxPauseEpoch;
     set({ status: "syncing", snapshotRequestPending: true });
     try {
       const result = await api("/api/player/snapshot", undefined, { isCurrent: () => snapshotAccountSession === requestSession
@@ -210,6 +216,12 @@ export const useGameHub = create((set, get) => ({
         // Older failures cannot override a newer refresh's pending/ready/error UI.
         // Successful responses still use the existing server-observation merge.
         if (latestSnapshotRequest !== requestToken) return { error: "SNAPSHOT_SUPERSEDED" };
+        if (CANONICAL_PENDING_ERRORS.has(result.error)) {
+          // An unsupported authoritative read invalidates the displayed capability,
+          // not the retained game records or their unresolved durable intents.
+          canonicalOutboxResumeSession = null; canonicalOutboxPauseEpoch = {};
+          set(state => ({snapshot:state.snapshot ? {...state.snapshot,yardRuntime:{...state.snapshot.yardRuntime,mutable:false,status:"review-required",error:result.error}} : state.snapshot}));
+        }
         set({ status: "offline", message: result.error });
         return result;
       }
@@ -221,6 +233,7 @@ export const useGameHub = create((set, get) => ({
           && Number.isSafeInteger(result.player?.syncSeq) && result.player.syncSeq >= 0
           && compareSnapshotFreshness(result, get().snapshot) >= 0 && writableYardSnapshot(result)
           ? requestSession : null;
+        canonicalOutboxResumeSession = yardOutboxResumeSession === requestSession && requestCanonicalPauseEpoch === canonicalOutboxPauseEpoch && canonicalCapability(result) ? requestSession : null;
       }
       const snapshot = normalizeSnapshot(protectHubSnapshot(get().snapshot, result));
       set({ snapshot, status: "ready", message: "" });
@@ -294,7 +307,9 @@ export const useGameHub = create((set, get) => ({
 
   performReliableAction: async (action, payload = {}, options = {}) => {
     const durability = options.durability || (shouldUseDurableOutbox(action) ? "outbox" : "receipt");
-    const clientActionId = options.clientActionId || createClientActionId(action, options.scope || "game", options.idParts || []);
+    const clientActionId = options.clientActionId || (isYardAction(action) && isCanonicalItemIntent(payload)
+      ? `${CANONICAL_ACTION_NONCE_PREFIX}${globalThis.crypto.randomUUID()}`
+      : createClientActionId(action, options.scope || "game", options.idParts || []));
     if (durability === "outbox") {
       return get().enqueueYardAction(action, payload, { ...options, clientActionId });
     }
@@ -330,6 +345,10 @@ export const useGameHub = create((set, get) => ({
 
   enqueueYardAction: async (action, payload = {}, options = {}) => {
     if (!shouldUseDurableOutbox(action)) return { error: "UNSUPPORTED_OUTBOX_ACTION" };
+    if (isCanonicalItemIntent(payload,options.clientActionId)) {
+      if (options.clientActionId && !isCanonicalItemNonce(options.clientActionId)) return {error:"CANONICAL_NONCE_REQUIRED"};
+      if (!canonicalCapability(get().snapshot,action)) return {error:"CANONICAL_ITEM_PLACEMENT_DISABLED"};
+    }
     const accountId = get().snapshot?.player?.id, session = snapshotAccountSession;
     if (!accountId) return { error: "ACCOUNT_REQUIRED" };
     if (!get().outboxLoaded || get().outboxAccountId !== accountId) {
@@ -372,7 +391,7 @@ export const useGameHub = create((set, get) => ({
       } else {
         queuedItem = {
           accountId,
-          clientActionId: options.clientActionId || createYardActionId(),
+          clientActionId: options.clientActionId || (isCanonicalItemIntent(payload) ? `${CANONICAL_ACTION_NONCE_PREFIX}${globalThis.crypto.randomUUID()}` : createYardActionId()),
           action,
           payload,
           entityKey,
@@ -480,15 +499,18 @@ export const useGameHub = create((set, get) => ({
         return result;
       }
 
-      if (isYardAction(sending.action) && result.error === "YARD_ROLLOUT_PAUSED") {
+      if (isYardAction(sending.action) && (result.error === "YARD_ROLLOUT_PAUSED" || result.error === "CANONICAL_LOCATION_REQUIRED"
+        || isCanonicalItemIntent(sending.payload,sending.clientActionId) && (Number(result._httpStatus) === 409 || CANONICAL_PENDING_ERRORS.has(result.error)))) {
         // Closed rollback returns before receipt lookup. Keep the signed intent
         // and its busy lock: a lost reply on B may already have spent/granted.
         yardOutboxPauseEpoch = {};
         yardOutboxResumeSession = null;
+        canonicalOutboxResumeSession = null;
+        canonicalOutboxPauseEpoch = {};
         set((state) => ({
           pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
             candidate.clientActionId === sending.clientActionId
-              ? { ...candidate, status: "rollout-paused", requiresYardResume: true, nextAttemptAt: 0 }
+              ? { ...candidate, status: result.error === "YARD_ROLLOUT_PAUSED" ? "rollout-paused" : "canonical-blocked", blockedReason:result.error, requiresCanonicalReview:result.error === "CANONICAL_LOCATION_REQUIRED" && !isCanonicalItemIntent(sending.payload,sending.clientActionId), requiresYardResume: true, nextAttemptAt: 0 }
               : candidate
           )),
           lastResult: result,
@@ -662,11 +684,13 @@ useGameHub.subscribe((state, previous) => {
     yardOutboxResumeSession = null;
     yardOutboxPauseEpoch = {};
   }
+  if (state.snapshot !== previous.snapshot && !canonicalCapability(state.snapshot)) { canonicalOutboxResumeSession = null; canonicalOutboxPauseEpoch = {}; }
   const previousAccountId = previous.snapshot?.player?.id;
   const accountId = state.snapshot?.player?.id;
   if (accountId === previousAccountId) return;
   if (previousAccountId != null) {
     snapshotAccountSession = {};
+    canonicalOutboxResumeSession = null;
     useGameHub.setState({ snapshotRequestPending: false });
   }
   useGameHub.setState({ accountSession: snapshotAccountSession, pendingActions: [], busy: {}, outboxLoaded: false, outboxAccountId: null, outboxStorageError: null, lastResult: null, message: "" });

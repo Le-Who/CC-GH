@@ -134,7 +134,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = {}, re
     const actual = assetFiles.filter(file => file.endsWith('.js'));
     if (listed.size !== graph.chunks.length || actual.some(file => !listed.has(file)) || [...listed].some(file => !byPath.has(file))) throw new Error('Loading graph does not cover every generated JS file');
     for (const chunk of graph.chunks) {
-      if (![...chunk.imports, ...chunk.dynamicImports].every(file => listed.has(file))) throw new Error(`Unlisted dependency of ${chunk.file}`);
+      if (![...chunk.imports, ...chunk.dynamicImports, ...(chunk.workerImports||[])].every(file => listed.has(file))) throw new Error(`Unlisted dependency of ${chunk.file}`);
       if (chunk.dataOnly && ((chunk.renderedModuleCount !== undefined && chunk.renderedModuleCount !== chunk.dataModules.length) || !chunk.dataModules.length || !chunk.dataModules.every(source => GAME_DATA_MODULES.has(source)) || chunk.gameModules.some(source => !GAME_DATA_MODULES.has(source)))) throw new Error(`Invalid data-only exemption: ${chunk.file}`);
     }
   } catch (error) {
@@ -146,7 +146,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = {}, re
     const seen = new Set();
     // A game's static dependencies can reference shared exports in the app
     // entry. Its catalogue of other games is a separate user choice.
-    function visit(file) { if (seen.has(file) || !graphByFile.has(file)) return; seen.add(file); const chunk = graphByFile.get(file); for (const dependency of [...chunk.imports, ...(includeDynamic && !chunk.isEntry ? chunk.dynamicImports : [])]) visit(dependency); }
+    function visit(file) { if (seen.has(file) || !graphByFile.has(file)) return; seen.add(file); const chunk = graphByFile.get(file); for (const dependency of [...chunk.imports, ...(includeDynamic && !chunk.isEntry ? [...chunk.dynamicImports,...(chunk.workerImports||[])] : [])]) visit(dependency); }
     seeds.forEach(visit); return [...seen];
   }
   const runtimeAssetFiles = await Promise.all(runtimeAssetPaths.map((file) => fileMetric(distDir, file)));

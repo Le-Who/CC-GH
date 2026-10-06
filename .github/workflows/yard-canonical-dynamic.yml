@@ -1,0 +1,102 @@
+name: Canonical Yard finite acceptance
+on:
+  push:
+    branches: ['qa/yard-canonical-dynamic-20261006']
+permissions:
+  contents: read
+concurrency:
+  group: yard-canonical-dynamic-20261006
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    if: github.run_attempt == 1 && github.event.created == true && github.event.forced == false
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: ccgh_merge_ci
+          POSTGRES_USER: ccgh_merge_ci
+          POSTGRES_PASSWORD: ccgh_merge_ci
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U ccgh_merge_ci -d ccgh_merge_ci"
+          --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      YARD_CANONICAL_PG_TEST: '1'
+      YARD_V2_PG_TEST: '1'
+      YARD_V2_PG_TARGET: integrated
+      DATABASE_URL: postgres://ccgh_merge_ci:ccgh_merge_ci@127.0.0.1:5432/ccgh_merge_ci
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_CANONICAL_API_TEST: ''
+      YARD_PLAYER_API_TEST: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 3
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Exact reviewed source and closed database guards
+        id: preflight
+        run: node qa/yard-canonical-acceptance/preflight.mjs
+      - name: Exact locked dependencies and one Chromium
+        id: dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile --ignore-scripts
+          pnpm exec playwright install --with-deps chromium
+          if ! command -v ffprobe >/dev/null; then
+            timeout 90s sudo apt-get -o Acquire::Retries=0 update
+            timeout 90s sudo apt-get -o Acquire::Retries=0 install -y --no-install-recommends ffmpeg
+          fi
+          command -v ffprobe
+      - name: Canonical, lifecycle, startup and geometry sources
+        id: source
+        run: |
+          set -o pipefail
+          pnpm run hud-layout:validate
+          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-canonical-items.test.mjs tests/yard-canonical-item-api.test.mjs tests/yard-canonical-pg-guard.test.mjs tests/yard-canonical-item-ui.test.mjs tests/yard-canonical-client-transport.test.mjs tests/yard-pip-world-raster.test.mjs tests/yard-pip-integration.test.mjs tests/yard-pip-renderer.test.mjs tests/hub-account-boundaries.test.mjs tests/yard-dynamic-prop-inspection.test.mjs tests/yard-pip-build-boundary.test.mjs tests/yard-pip-preview-gate.test.mjs tests/yard-ui-media-budget.test.mjs tests/yard-ui-thumbnails.test.mjs tests/yard-public-media.test.mjs tests/sw-shell-precache.test.mjs tests/perf-build-guard.test.js tests/yard-rollback-guard.test.mjs | tee qa/yard-canonical-acceptance/results/source.tap
+      - name: One real PostgreSQL CAS and exactly-once pass
+        id: database
+        timeout-minutes: 3
+        run: |
+          set -o pipefail
+          node --test --test-concurrency=1 tests/yard-canonical-postgres.test.mjs | tee qa/yard-canonical-acceptance/results/postgres.tap
+      - name: Actual off/on production builds and all asset/startup budgets
+        id: build
+        run: node qa/yard-canonical-acceptance/build.mjs
+      - name: One browser pass through actual auth, UI, outbox and database
+        id: browser
+        timeout-minutes: 4
+        run: pnpm exec playwright test --config qa/yard-canonical-acceptance/config.mjs
+      - name: Preserve every outcome and enforce the eight MiB evidence cap
+        id: cap
+        if: always()
+        env:
+          PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
+          DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
+          SOURCE_OUTCOME: ${{ steps.source.outcome }}
+          DATABASE_OUTCOME: ${{ steps.database.outcome }}
+          BUILD_OUTCOME: ${{ steps.build.outcome }}
+          BROWSER_OUTCOME: ${{ steps.browser.outcome }}
+        run: node qa/yard-canonical-acceptance/evidence.mjs
+      - uses: actions/upload-artifact@v7
+        if: always() && steps.cap.outcome == 'success'
+        with:
+          name: yard-canonical-${{ github.sha }}-${{ github.run_attempt }}
+          path: qa/yard-canonical-acceptance/results/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0

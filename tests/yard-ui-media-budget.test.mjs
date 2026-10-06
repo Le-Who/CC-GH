@@ -21,7 +21,7 @@ async function fixture(t) {
 test('all required UI pins are exact; missing or equal-length changed bytes earn no allowance', async t => {
   const dir = await fixture(t), row = policy.requiredUi[0], original = await fs.readFile(path.join(dir, row.path));
   let result = await inspectYardAssetBudget({ distDir: dir, graph: graph(false) });
-  assert.deepEqual(result.failures, []); assert.equal(result.requiredUi.count, 78); assert.equal(result.requiredUi.rawBytes, 5_345_589);
+  assert.deepEqual(result.failures, []); assert.equal(result.requiredUi.count, 78); assert.equal(result.requiredUi.rawBytes, 5_249_629);
   const changed = Buffer.from(original); changed[0] ^= 1; await write(dir, row.path, changed);
   result = await inspectYardAssetBudget({ distDir: dir, graph: graph(false) });
   assert.ok(result.failures.some(row => row.id === 'public-assets.yard-ui-exact'));
@@ -30,7 +30,7 @@ test('all required UI pins are exact; missing or equal-length changed bytes earn
   assert.ok((await inspectYardAssetBudget({ distDir: dir, graph: graph(false) })).failures.some(row => row.id === 'public-assets.yard-ui-exact'));
 });
 
-test('optional presence cannot enable its allowance; explicit mode, graph, paths and all seven hashes agree', async t => {
+test('optional presence cannot enable its allowance; explicit mode, graph, paths and all eight hashes agree', async t => {
   const dir = await fixture(t);
   for (const row of policy.optionalMedia) await write(dir, row.path, await fs.readFile(path.join(root, row.source)));
   let result = await inspectYardAssetBudget({ distDir: dir, graph: graph(false) });
@@ -39,7 +39,7 @@ test('optional presence cannot enable its allowance; explicit mode, graph, paths
   await mode(dir, true);
   assert.ok((await inspectYardAssetBudget({ distDir: dir, graph: graph(false) })).failures.some(row => row.id === 'public-assets.yard-mode-graph'));
   result = await inspectYardAssetBudget({ distDir: dir, graph: graph(true) });
-  assert.deepEqual(result.failures, []); assert.equal(result.optionalMedia.count, 7); assert.equal(result.optionalMedia.rawBytes, 5_555_295);
+  assert.deepEqual(result.failures, []); assert.equal(result.optionalMedia.count, 8); assert.equal(result.optionalMedia.rawBytes, 5_565_935);
   const row = policy.optionalMedia[0], bytes = await fs.readFile(path.join(dir, row.path)); bytes[0] ^= 1; await write(dir, row.path, bytes);
   assert.ok((await inspectYardAssetBudget({ distDir: dir, graph: graph(true) })).failures.some(row => row.id === 'public-assets.pip-media-exact'));
   await fs.unlink(path.join(dir, row.path));
