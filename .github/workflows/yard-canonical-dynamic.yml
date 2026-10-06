@@ -1,11 +1,11 @@
 name: Canonical Yard finite acceptance
 on:
   push:
-    branches: ['qa/yard-canonical-browser-cwdfix-20261006']
+    branches: ['qa/yard-canonical-ready-check-20261006']
 permissions:
   contents: read
 concurrency:
-  group: yard-canonical-browser-cwdfix-20261006
+  group: yard-canonical-ready-check-20261006
   cancel-in-progress: false
 jobs:
   acceptance:
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-          fetch-depth: 4
+          fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
@@ -65,20 +65,13 @@ jobs:
             timeout 90s sudo apt-get -o Acquire::Retries=0 install -y --no-install-recommends ffmpeg
           fi
           command -v ffprobe
-      - name: Canonical, lifecycle, startup and geometry sources
-        id: source
+      - name: Focused harness checks; prior immutable source and CAS proofs verified in preflight
+        id: harness
         run: |
           set -o pipefail
           node qa/yard-canonical-acceptance/path-audit.mjs | tee qa/yard-canonical-acceptance/results/path-audit.json
-          pnpm run hud-layout:validate
-          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-canonical-items.test.mjs tests/yard-canonical-item-api.test.mjs tests/yard-canonical-pg-guard.test.mjs tests/yard-canonical-item-ui.test.mjs tests/yard-canonical-client-transport.test.mjs tests/yard-pip-world-raster.test.mjs tests/yard-pip-integration.test.mjs tests/yard-pip-renderer.test.mjs tests/hub-account-boundaries.test.mjs tests/yard-dynamic-prop-inspection.test.mjs tests/yard-pip-build-boundary.test.mjs tests/yard-pip-preview-gate.test.mjs tests/yard-ui-media-budget.test.mjs tests/yard-ui-thumbnails.test.mjs tests/yard-public-media.test.mjs tests/sw-shell-precache.test.mjs tests/perf-build-guard.test.js tests/yard-rollback-guard.test.mjs | tee qa/yard-canonical-acceptance/results/source.tap
-      - name: One real PostgreSQL CAS and exactly-once pass
-        id: database
-        timeout-minutes: 3
-        run: |
-          set -o pipefail
-          node --test --test-concurrency=1 tests/yard-canonical-postgres.test.mjs | tee qa/yard-canonical-acceptance/results/postgres.tap
-      - name: Actual off/on production builds and all asset/startup budgets
+          node --test --test-concurrency=1 qa/yard-canonical-acceptance/readiness.test.mjs tests/yard-canonical-pg-guard.test.mjs | tee qa/yard-canonical-acceptance/results/harness.tap
+      - name: Fresh preview production build and all asset/startup budgets
         id: build
         run: node qa/yard-canonical-acceptance/build.mjs
       - name: One browser pass through actual auth, UI, outbox and database
@@ -91,8 +84,7 @@ jobs:
         env:
           PREFLIGHT_OUTCOME: ${{ steps.preflight.outcome }}
           DEPENDENCIES_OUTCOME: ${{ steps.dependencies.outcome }}
-          SOURCE_OUTCOME: ${{ steps.source.outcome }}
-          DATABASE_OUTCOME: ${{ steps.database.outcome }}
+          HARNESS_OUTCOME: ${{ steps.harness.outcome }}
           BUILD_OUTCOME: ${{ steps.build.outcome }}
           BROWSER_OUTCOME: ${{ steps.browser.outcome }}
         run: node qa/yard-canonical-acceptance/evidence.mjs

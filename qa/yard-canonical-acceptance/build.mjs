@@ -1,4 +1,4 @@
-/** The real entry point, production environment, two serial builds. No browser/listener. */
+/** The real entry point, production environment, fresh preview production build; verified prior default proof. No browser/listener. */
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -8,8 +8,9 @@ import {runBuildPerfGuard} from '../../scripts/perf-build-guard.mjs';
 const root=path.resolve(import.meta.dirname,'../..'),out=path.join(import.meta.dirname,'results'),work=path.join(import.meta.dirname,'work');
 assert.equal(process.env.GITHUB_ACTIONS,'true');assert.equal(process.env.GITHUB_RUN_ATTEMPT,'1');
 await fs.mkdir(out,{recursive:true});await fs.mkdir(work,{recursive:true});
-const report={builds:[],browser:'NOT_RUN',releaseAcceptance:false};
-for(const[mode,flag]of[['default','false'],['preview','true']]){
+const reused=JSON.parse(await fs.readFile(path.join(out,'reused.json'),'utf8'));assert.equal(reused.verified,true);
+const report={builds:[],reusedSourceProof:reused.runs.map(r=>({runId:r.runId,head:r.receipt.head,source:r.source,postgres:r.postgres,defaultBuild:r.defaultBuild.fileInventory})),browser:'NOT_RUN',releaseAcceptance:false};
+for(const[mode,flag]of[['preview','true']]){
  const env={...process.env,NODE_ENV:'production',VITE_YARD_PIP_PREVIEW:flag,VITE_BUILD_ID:process.env.GITHUB_SHA};
  execFileSync('pnpm',['run','build'],{cwd:root,env,stdio:'inherit',timeout:150000});
  const dist=path.join(root,'dist'),closure=await closeBuild(root,dist,mode);

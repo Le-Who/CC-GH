@@ -1,125 +1,47 @@
-# Finite canonical Yard acceptance
+# Readiness correction with bounded evidence reuse
 
-Prepared workflow and tests only. This packet does not establish PostgreSQL,
-browser, visual, mobile performance, or production acceptance. Local preparation
-runs no browser, HTTP listener, database, or GitHub action.
+This follow-up changes acceptance code only, on exact parent
+`4591a151a22503374999dfd5b207b38c4bf631e5`, tree
+`6e8fcefa68a12f364f2d4ab0c39377547887e225`.
 
-## Before the one authorized publication
+Run37487170407 passed190 source tests,9 PostgreSQL tests and both production builds,
+then failed before browser startup on the server cwd. Run37489937106 repeated those
+passes, opened the actual authenticated browser and captured the current HUD, then
+stopped because the harness expected a deliberately hidden status indicator to be
+visible. Neither run established canonical dynamic browser acceptance.
 
-Integrate the reviewed final backend, dynamic planner, UI and this test packet on
-published parent `c0c3574f1d1b4567466ded04bf0f86bf4b3cae7c`. Review the exact final diff and
-only then run:
+Boot and reload now require the real authenticated snapshot for the fixture,
+known mutable canonical state, the ready class's presence, a visible Yard and its
+live legacy scene. The status indicator can remain hidden as the UI intends.
+The selector audit also uses the existing explicit Place action and waits for
+modal open/close, ghost presentation and committed rendered rows. No product,
+asset, store mutation hook or success-response substitution is introduced.
 
-```
-node qa/yard-canonical-acceptance/seal.mjs --reviewed-final-source
-```
+Preflight verifies exact parent identity, exact changed-file seal and a SHA256
+of every protected Git tree entry. Only this harness/workflow may change. That
+fingerprint matches both previous runs. The committed reused-proof.json retains
+their original receipts, raw evidence-file hashes, test totals and default-build
+closure/budget summary; original browser failures remain labelled failures.
 
-The seal covers every final changed source byte and removed runtime URL, excluding
-itself. Commit that manifest with exactly the listed changes. A changed source,
-missing file, extra committed file, or second workflow mutation fails preflight.
-The manifest is provenance, not a substitute for source review. Exclude local
-provenance, unpublished asset work, credentials and unrequested historical QA
-changes before sealing. Do not reuse historical preview source-pin checks.
+The next single10-minute job runs fresh dependency setup, no-launch path/readiness/
+DB-guard checks, a fresh preview production `pnpm run build` and every existing
+asset/startup/worker closure and budget gate, then the unchanged full real
+Express/auth/PostgreSQL/UI/outbox/dynamic-browser/viewport evidence flow. It reuses
+only the190 unchanged source tests,9 unchanged multi-process PostgreSQL tests and
+default-off build proof. PostgreSQL15 still starts fresh for actual browser API
+persistence. Preview build and browser are never reused.
 
-Publishing the new branch `qa/yard-canonical-browser-cwdfix-20261006` would trigger the
-single workflow `.github/workflows/yard-canonical-dynamic.yml`. It accepts only a
-non-forced first branch-creation push and run attempt 1. Reruns and later pushes do
-not execute the job. There is no PR, dispatch, schedule, deployment, image push,
-secret, cache, persistent environment, or production connection in this lane.
-Publication must be separately authorized by the coordinating agent/user.
+Checkout depth2 is sufficient because this job's selected checks need only the
+current commit and exact4591 parent. Historical4660 compatibility tests are covered
+by the pinned prior receipts, so no extra ancestry is fetched.
 
-## Corrective path verification
+After applying and reviewing, run from the repository root:
 
-Original run `37487170407` passed 190 source tests, real PostgreSQL and both
-production builds/budgets, then stopped before browser launch because Playwright
-resolved the relative server command from this config directory. The original
-failure evidence remains unchanged. This correction pins the server cwd to the
-repository root and makes Playwright outputDir absolute.
+    node qa/yard-canonical-acceptance/seal.mjs --reviewed-final-source
 
-`path-audit.mjs` exercises the installed Playwright 1.58.2 config resolver and
-WebServerPlugin cwd resolution with process start and readiness methods replaced
-by observation-only stubs. It opens no listener, browser or database. It checks
-positive paths and the original failing defaults, both from repository root and
-config directory; evidence/video/build/fixture paths are also audited.
-
-The corrective ancestry is new → c0c3574 → 592356 → 4660, checked with checkout
-depth 4. The corrective seal covers harness/workflow changes only; product source
-and runtime assets must be byte-identical to the published parent.
-
-## Exact build and run
-
-The standard `ubuntu-24.04` job has a hard 10-minute timeout, Node 24, locked
-pnpm 10.28.2, one Chromium, zero test retries, and one disposable `postgres:15`
-service. Database/user/password are all fixed `ccgh_merge_ci`, on loopback:5432.
-Environment guards reject other databases, credentials, ports, Redis, dotenv,
-Node preload flags and inherited policy-loader switches. Test identities are
-random UUIDs with exact fixture prefixes; deletion rechecks their ownership.
-
-The build script runs the actual application entry twice, serially:
-
-```
-NODE_ENV=production VITE_YARD_PIP_PREVIEW=false VITE_BUILD_ID=<exact commit> pnpm run build
-NODE_ENV=production VITE_YARD_PIP_PREVIEW=true VITE_BUILD_ID=<exact commit> pnpm run build
-```
-
-Each build must pass current exhaustive emitted import/URL closure and
-`runBuildPerfGuard`; off-mode must exclude optional code and assets, while
-on-mode must keep them out of the startup shell. The API bridge serves the exact
-on-mode `dist`, with ordinary App, auth, Express routes, Socket.IO, outbox and
-PostgreSQL. No phone fixture entry or replaced snapshot/store is used.
-
-The sole test-only source loader changes one reviewed literal capability
-`false` to `true` in memory. It requires canonical-locations.mjs SHA256
-`95920c2c086631a3afe87492e204fbe5a56d7d34565ddf9774334fd90e818429`, plus
-unchanged protocol and geometry hashes. Product source retains the false flag.
-This tests enabled canonical behavior; it is not production rollout approval.
-
-The workflow runs guard/source tests, then the existing real multi-process
-PostgreSQL CAS/exactly-once test once, then both builds, then:
-
-```
-pnpm exec playwright test --config qa/yard-canonical-acceptance/config.mjs
-```
-
-Browser global timeout is 220 seconds; the API bridge watchdog is 240 seconds.
-One test has a 190-second timeout. The DB test retains its 180-second bound.
-These upper bounds do not sum to a promised runtime: the whole job is killed at
-10 minutes. Expected runtime must be measured by the first authorized run.
-
-## Evidence and meaning
-
-- Actual two-owned-leaf inventory: place two via UI, reload, move one, pick up both.
-- The first place response is held after real commit, then dropped. The actual
-  durable outbox retries the same nonce, receives a duplicate response, empties,
-  and leaves one debit and one receipt. No fake successful response is supplied.
-- Actor is hidden/frozen while the exact response is pending. Source tests also
-  cover unknown authoritative state, which browser tests do not fabricate.
-- Real two-prop normal inspection; preferred front blocked selects another
-  reachable anchor; valid target `(35,115)` reports no reachable anchor.
-- Actual authenticated remote move and deletion during approach, followed by
-  the app's own snapshot refresh; supported root/feet remain fixed during recovery.
-  The refresh notification and pointercancel are explicitly synthetic events.
-- Fixed secondary prop native crop samples record pixel RMS and bounded best
-  displacement, together with prop/camera matrices and actual surface CSS origin.
-  World-coordinate equality alone is not considered raster proof.
-- Pointercancel, resize during drag, portrait recovery, mode off/on, lazy worker
-  creation and retirement; known CPU/RGBA/raster/capacity limits remain enforced.
-- All nine AGENTS HUD viewports, extended `375x812`, and a separate DPR3 phone:
-  no horizontal scroll, reachable unclipped 44px controls and focusable dialogs.
-  DPR2 English and DPR3 Cyrillic crops retain native pixel dimensions, and actual
-  Nunito Latin/Cyrillic font transfers plus computed family are required.
-- One continuous native WebM retains actual timing; no retiming/interpolation or
-  screenshot-generated animation. This is desktop software-rendered Chromium,
-  not evidence of hardware phone FPS or native Telegram lifecycle delivery.
-
-The artifact contains summaries, bounded TAP, WebP matrix views, four native PNG
-HUD/dialog crops, two stationary prop crops and one native clip. It must total
-at most 8 MiB before upload, with retention exactly 3 days. Over-budget evidence
-is preserved in the job and upload refused; failures are never relabelled success.
-No full source bundle, DB dump, trace or broad video collection is uploaded.
-
-Mechanical browser pass still requires visual review of clipping, readability,
-layering, artwork and motion. Real iOS/Android GPU, Telegram safe-area changes,
-trusted app background/foreground events and subjective animation quality remain
-outside this finite lane. The current raster is intentionally 390×648 at DPR1;
-DPR2/3 HUD typography does not make the scene a high-DPI render.
+Commit the exact reviewed changes plus regenerated reviewed-source.json as one
+child of4591. Only first creation of `qa/yard-canonical-ready-check-20261006` can
+trigger the one job. There is no dispatch, retry, deploy, cache or production
+connection. Artifact cap remains8MiB, retained3days. Early HUD and startup-failure
+captures remain. Real dynamic motion, subjective visual review and device FPS
+are still pending; the fixed world raster remains390×648 at DPR1.

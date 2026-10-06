@@ -7,13 +7,13 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import sharp from 'sharp';
 import {fixtureOwner,canonicalRows,economy,realMutation,ORIGIN} from './fixtures.mjs';
-import {OUT,WORK,report,init,observe,boot,enter,scene,shot,placedPanel,closePanel,project,dragTo,place,move,pickup,inspect,refresh,capture,fonts,layout,checkLayout,outbox} from './browser-helpers.mjs';
+import {OUT,WORK,report,init,observe,boot,waitForYardReady,enter,scene,shot,placedPanel,closePanel,project,dragTo,place,move,pickup,inspect,refresh,capture,fonts,layout,checkLayout,outbox} from './browser-helpers.mjs';
 let owner,fixture;
 test.beforeAll(async()=>{await fs.mkdir(OUT,{recursive:true});await fs.mkdir(WORK,{recursive:true});owner=await fixtureOwner();fixture=await owner.seed();});
 test.afterAll(async()=>{try{await owner?.close();}catch(error){report.errors.push({type:'fixture-cleanup',message:String(error)});report.status='FAILED_OR_INCOMPLETE';throw error;}finally{await fs.writeFile(path.join(OUT,'browser.json'),JSON.stringify(report,null,2)+'\n');}});
 async function rows(n){await expect.poll(async()=>canonicalRows(await owner.saved(fixture)).length).toBe(n);return canonicalRows(await owner.saved(fixture));}
-async function context(browser,options={}){const {language='en',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p);return{c,p};}catch(error){await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
-async function visibleCount(page,n){await expect.poll(async()=>(await scene(page))?.canonicalRecords?.length).toBe(n);}
+async function context(browser,options={}){const {language='en',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p,fixture);return{c,p};}catch(error){await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
+async function visibleCount(page,n){await expect.poll(async()=>{const s=await scene(page);return s?.canonicalRecords?.length===n&&s.lastFrame?.records?.length===n&&JSON.stringify(s.lastFrame.records)===JSON.stringify(s.canonicalRecords);}).toBe(true);}
 async function switchFresh(page){await page.locator('[data-pip-control="toggle"]').click();await expect.poll(async()=>(await shot(page))?.mode).toBe('legacy');await enter(page);}
 async function settled(page){await expect.poll(async()=>(await scene(page))?.interaction?.phase,{timeout:24000}).toBe('settled');}
 async function externalMove(page,index,x,y){const r=canonicalRows(await owner.saved(fixture))[index];await realMutation(page.request,fixture,'yard.moveGoodie',{slotId:r.slotId,goodieId:'leaf_pot',x,y});await refresh(page);return r.slotId;}
@@ -46,7 +46,17 @@ async function jitter(page,slotId){
 test('finite real persistence, dynamic inspection and full HUD matrix',async({browser})=>{
  let active;
  try{
-  active=await context(browser);let{p,c}=active;await enter(p);await visibleCount(p,0);await capture(p,'new-hud-initial');
+  report.browserVersion=browser.version();
+  active=await context(browser);let{p,c}=active;await enter(p);await visibleCount(p,0);
+  report.renderingBackend=await p.locator('.cy-pip-direct-layer canvas').evaluate(canvas=>{
+   // Three has already initialized this visible direct canvas as WebGL2. This
+   // retrieves that existing context; no new canvas or context is allocated.
+   const gl=canvas.getContext('webgl2');if(!gl)return{classification:'unavailable',reason:'Existing WebGL2 context unavailable'};
+   const debug=gl.getExtension('WEBGL_debug_renderer_info');const vendor=gl.getParameter(debug?debug.UNMASKED_VENDOR_WEBGL:gl.VENDOR),renderer=gl.getParameter(debug?debug.UNMASKED_RENDERER_WEBGL:gl.RENDERER);
+   return{vendor,renderer,version:gl.getParameter(gl.VERSION),shadingLanguageVersion:gl.getParameter(gl.SHADING_LANGUAGE_VERSION),debugRendererInfoAvailable:!!debug,
+    classification:/swiftshader|llvmpipe|softpipe|software/i.test(`${vendor} ${renderer}`)?'software-renderer-reported':'backend-not-classified'};
+  });
+  await capture(p,'new-hud-initial');
   const baseline=economy(await owner.saved(fixture));
   const commands=[];let firstReply,release,committed;const didCommit=new Promise(r=>committed=r),gate=new Promise(r=>release=r);
   await p.route('**/api/player/mutate',async route=>{
@@ -67,7 +77,7 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
   assert.equal((await owner.saved(fixture)).yard.goodieInventory.leaf_pot,1);const first=canonicalRows(await owner.saved(fixture))[0];
   const receipts=(await owner.saved(fixture))._yardV2.runtime.commandReceipts;assert.equal(Object.keys(receipts).filter(k=>k===commands[0].clientActionId).length,1);
   await place(p,72,145);await rows(2);await visibleCount(p,2);assert.equal((await owner.saved(fixture)).yard.goodieInventory.leaf_pot??0,0);
-  await p.reload();await expect(p.locator('.status-dot.ready')).toBeVisible();await expect(p.locator('[data-pip-control="canonical-items"]')).toBeEnabled();await enter(p);await visibleCount(p,2);
+  await waitForYardReady(p,fixture,()=>p.reload());await expect(p.locator('[data-pip-control="canonical-items"]')).toBeEnabled();await enter(p);await visibleCount(p,2);
   await move(p,1,88,172);await expect.poll(async()=>Math.abs(canonicalRows(await owner.saved(fixture))[1]?.x-88)<0.25).toBe(true);assert.deepEqual(canonicalRows(await owner.saved(fixture))[0],first);
   await pickup(p,1);await rows(1);await closePanel(p);await pickup(p,0);await rows(0);await closePanel(p);assert.equal((await owner.saved(fixture)).yard.goodieInventory.leaf_pot,2);
   assert.deepEqual(economy(await owner.saved(fixture)),baseline);report.cases.push({name:'actual-ui-outbox-place-reload-move-pickup',sameNonce:commands[0].clientActionId,firstStatus:firstReply.status,replayDuplicate:replay.duplicate,inventoryRefunded:2});
@@ -81,7 +91,7 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
   report.cases.push({name:'normal-two-committed-props',initial,end,stationaryProp:stable});const video=p.video();await c.close();active=null;
   const raw=await video.path(),target=path.join(OUT,'actual-time-inspection.webm');await fs.copyFile(raw,target);
   const media=JSON.parse(execFileSync('ffprobe',['-v','error','-select_streams','v:0','-show_entries','format=duration:stream=width,height,r_frame_rate','-of','json',target],{encoding:'utf8',timeout:10000}));
-  report.clip={file:'actual-time-inspection.webm',recordingWallMs:Date.now()-recordingStart,inspectionStartWallOffsetMs:inspectionStart-recordingStart,media,processing:'Untrimmed, unretimed native browser recording. No screenshot concatenation or interpolated frames.',qualification:'Software-rendered desktop Chromium; native video cadence is not device FPS.'};
+  report.clip={file:'actual-time-inspection.webm',recordingWallMs:Date.now()-recordingStart,inspectionStartWallOffsetMs:inspectionStart-recordingStart,media,processing:'Untrimmed, unretimed native browser recording. No screenshot concatenation or interpolated frames.',qualification:'Actual Chromium/WebGL backend is recorded in renderingBackend; native video cadence is not device FPS.'};
 
   active=await context(browser);({p,c}=active);await enter(p);await visibleCount(p,2);
   await externalMove(p,1,94,135);await switchFresh(p);await inspect(p);await expect.poll(async()=>(await scene(p))?.interaction?.phase).toBe('approaching');const alternative=await scene(p);assert.notEqual(alternative.interaction.selectedAnchor,'leaf-7');assert.equal(alternative.interaction.savedVisitor,false);report.cases.push({name:'front-blocked-reachable-alternative',scene:alternative});
@@ -106,7 +116,7 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
   for(const[width,height,dpr,language]of matrix){
    active=await context(browser,{viewport:{width,height},deviceScaleFactor:dpr,isMobile:width<1024||height>width,hasTouch:width<1280,language});({p,c}=active);await enter(p);
    const name=`hud-${width}x${height}-dpr${dpr}-${language}`,font=await fonts(p,language),screen=await layout(p);checkLayout(screen);await capture(p,name);if(dpr>=2)await p.locator('.cy-header').screenshot({path:path.join(OUT,`${name}-header-native.png`)});
-   await p.locator('[data-pip-control="inventory"]').click();const dialog=await layout(p);checkLayout(dialog);await expect.poll(()=>p.locator('.cy-dialog').evaluate(e=>e.contains(document.activeElement))).toBe(true);
+   await p.locator('[data-pip-control="inventory"]').click();await expect(p.locator('.cy-dialog[open]')).toBeVisible();const dialog=await layout(p);checkLayout(dialog);await expect.poll(()=>p.locator('.cy-dialog').evaluate(e=>e.contains(document.activeElement))).toBe(true);
    if(dpr>=2)await p.locator('.cy-dialog').screenshot({path:path.join(OUT,`${name}-dialog-native.png`)});
    await closePanel(p);const s=await scene(p);report.matrix.push({viewport:screen,font,dialog,scene:{ready:s.ready,viewportBlocked:s.viewportBlocked,projection:s.projection,rgba:s.rgba},file:name+'.webp'});await c.close();active=null;
   }

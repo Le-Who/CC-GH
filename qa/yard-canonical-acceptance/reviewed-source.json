@@ -1,41 +1,56 @@
 {
   "format": "yard-canonical-reviewed-source/v1",
-  "base": "c0c3574f1d1b4567466ded04bf0f86bf4b3cae7c",
+  "base": "4591a151a22503374999dfd5b207b38c4bf631e5",
   "files": [
     {
       "path": ".github/workflows/yard-canonical-dynamic.yml",
-      "bytes": 4850,
-      "sha256": "5a0557b71f3b135c0948573c9b13942b573b2fe64415dbad3bbcc02e8848de81"
+      "bytes": 3872,
+      "sha256": "5840c4d5bdbe47b9d1a703be2866f7cc6a626fad122746b28d50b1196caff911"
     },
     {
       "path": "qa/yard-canonical-acceptance/README.md",
-      "bytes": 7229,
-      "sha256": "d321e63256bded5ec0589ef6a72c8f9f1b20ee091e75fa4e4a7c82399a0bc865"
+      "bytes": 2847,
+      "sha256": "c46ce1e9296773ea462368c95528cd9fb5a3255e3e8aae1d8442ea282cbafc7a"
     },
     {
       "path": "qa/yard-canonical-acceptance/acceptance.spec.mjs",
-      "bytes": 19545,
-      "sha256": "75ca3e378d6242d289a497310f9787bb9b6f2596fef6122f05fc41f4964718c6"
+      "bytes": 20714,
+      "sha256": "6b11c6aae261d7f82a194e963474a8011c637e1b6f22e494926ab8d8cbccaf7d"
     },
     {
-      "path": "qa/yard-canonical-acceptance/config.mjs",
-      "bytes": 1095,
-      "sha256": "e2c1a87d3675ede81cc1dd7559ced754ee74ceaf681a36e55e60c794a6924a0f"
+      "path": "qa/yard-canonical-acceptance/browser-helpers.mjs",
+      "bytes": 10503,
+      "sha256": "ddc315121b0a1f824ba4b9b870187e361c5b129f6b7e51cf59b418a0bed23135"
     },
     {
-      "path": "qa/yard-canonical-acceptance/path-audit.mjs",
-      "bytes": 6259,
-      "sha256": "8e51f31063c634f810288d63252c0925e23a7f5798d702ed6ab5915da8f8cc95"
+      "path": "qa/yard-canonical-acceptance/build.mjs",
+      "bytes": 3020,
+      "sha256": "3c21054d15a26ad08847d3ed73aee53dbd22b854ce576ad0d013a3e04ac8a83b"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/evidence.mjs",
+      "bytes": 1839,
+      "sha256": "6fa0c9f9a19b6cefe00f52bdfe5f0cc5df1040e9650bd6c04a657b9b2502a86b"
     },
     {
       "path": "qa/yard-canonical-acceptance/preflight.mjs",
-      "bytes": 3462,
-      "sha256": "5abb59336fcaee44c94a853da81e09cdde301ca84b6a6f5fced2c6ff111f0d6a"
+      "bytes": 4803,
+      "sha256": "42c4cf0623b22e6d6f8ee2853696832c127fd3dae475602300c28545a0ac9d42"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/readiness.test.mjs",
+      "bytes": 1564,
+      "sha256": "b25a06746a96b1f19c33ed416b94bb98ecf9d65b3952cb3f091d951345745af7"
+    },
+    {
+      "path": "qa/yard-canonical-acceptance/reused-proof.json",
+      "bytes": 20030,
+      "sha256": "025d6a67b4b31448a98c6fab2caaf3769e734a5d741f6d3ca92fa494292968bb"
     },
     {
       "path": "qa/yard-canonical-acceptance/seal.mjs",
       "bytes": 1579,
-      "sha256": "66fbda40de4bb17d5ba304e548a9f9c928a8ea25bfb8dd04df0b229aea55d34f"
+      "sha256": "274d17afd7d36ae1a50d03f951f60305eb63d3d00ef4e07e1c91a7eaa5232bd2"
     }
   ]
 }

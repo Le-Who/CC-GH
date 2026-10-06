@@ -21,25 +21,44 @@ export function observe(page){
  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/player/mutate'){const c=r.postDataJSON();if(!['yard.placeGoodie','yard.moveGoodie','yard.pickupGoodie'].includes(c?.action))report.errors.push({type:'unexpected-economy-action',action:c?.action});}});
  page.on('response',r=>{const u=new URL(r.url());if(u.origin===ORIGIN&&(u.pathname.startsWith('/assets/')||/woff2?$/.test(u.pathname)))report.requests.push({url:u.pathname,status:r.status()});});
 }
-export async function boot(page){
- await page.goto(ORIGIN+'/?tab=room&yardPipPreview=1');await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:20000});
- await expect(page.locator('.cy-app')).toBeVisible();await expect.poll(async()=>(await scene(page))?.ready===true).toBe(true);
+export function assertReadySnapshot(snapshot,accountId){
+ assert.equal(snapshot?.player?.id,accountId,'The actual authenticated snapshot must belong to this fixture');
+ assert.equal(snapshot.yardRuntime?.version,1);assert.equal(snapshot.yardRuntime?.status,'ready');assert.equal(snapshot.yardRuntime?.mutable,true);
+ assert.equal(snapshot.yardRuntime?.itemPlacementCapabilities?.enabled,true);assert.equal(snapshot.yardRuntime?.itemPlacementCapabilities?.locationId,'pip-garden');
+ assert(Array.isArray(snapshot.yardRuntime?.canonicalPlacements),'Canonical state must be known, not inferred empty');
+ return snapshot;
+}
+export async function waitForYardReady(page,f,navigate){
+ const response=page.waitForResponse(r=>new URL(r.url()).origin===ORIGIN&&new URL(r.url()).pathname==='/api/player/snapshot'&&r.status()===200);
+ await navigate();assertReadySnapshot(await(await response).json(),f.id);
+ // This shared status element intentionally remains hidden while Yard owns its HUD.
+ await expect(page.locator('.status-dot.ready')).toHaveCount(1,{timeout:20000});
+ await expect(page.locator('.cy-app')).toBeVisible();
+ await expect.poll(async()=>{const owner=await shot(page);return owner?.mode==='legacy'&&owner.scene?.ready===true;}).toBe(true);
+}
+export async function boot(page,f){
+ await waitForYardReady(page,f,()=>page.goto(ORIGIN+'/?tab=room&yardPipPreview=1'));
  const workers=await page.evaluate(()=>window.__canonicalWorkerObserver);assert.equal(workers.created.filter(s=>s.includes('dynamic-prop-worker')).length,0,'Planner must be lazy');
 }
-export async function enter(page){await page.locator('[data-pip-control="canonical-items"]').click();await expect(page.locator('[data-canonical-items="true"]')).toBeVisible();await expect.poll(async()=>{const s=await scene(page);return s?.ready||s?.viewportBlocked;}).toBeTruthy();}
+export async function enter(page){
+ await page.locator('[data-pip-control="canonical-items"]').click();await expect(page.locator('[data-canonical-items="true"]')).toBeVisible();
+ await expect.poll(async()=>{const owner=await shot(page),s=owner?.scene;return owner?.mode==='canonical-items'&&s?.canonicalItems===true
+  &&(s.viewportBlocked===true||s.ready===true&&s.lastFrame?.canonicalState==='ready');}).toBe(true);
+}
 export async function placedPanel(page,index=0){
  await page.locator('.cy-actions button').nth(1).click();await page.locator('[data-decor-tab="placed"]').click();
- await page.locator('.cy-catalog-choice').nth(index).click();
+ await expect(page.locator('.cy-dialog[open]')).toBeVisible();await expect(page.locator('[data-decor-tab="placed"]')).toHaveAttribute('aria-pressed','true');await page.locator('.cy-catalog-choice').nth(index).click();
 }
 export async function closePanel(page){await page.locator('.cy-dialog > header button').click();await expect(page.locator('.cy-dialog')).not.toBeVisible();}
 export function project(s,x,y,z=0){const c=geometry.composition.camera,a=s.projection.art,q=[x-c.projectionOriginCanonical[0],y-c.projectionOriginCanonical[1],z].map(v=>v/geometry.composition.canonicalPerSceneUnit);return{x:a.x+s.projection.scale*(c.projectionOriginCss[0]+q.reduce((n,v,i)=>n+v*c.right[i],0)*c.pixelsPerSceneUnitCss),y:a.y+s.projection.scale*(c.projectionOriginCss[1]+q.reduce((n,v,i)=>n+v*c.down[i],0)*c.pixelsPerSceneUnitCss)};}
 export async function dragTo(page,x,y){
+ await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect.poll(async()=>{const s=await scene(page);return s?.itemEditing===true&&!!s.lastFrame?.ghost&&s.lastFrame.visibility==='planter';}).toBe(true);
  const canvas=page.locator('.cy-scene > canvas'),box=await canvas.boundingBox(),s=await scene(page),p=project(s,x,y);
  assert(p.x>=0&&p.y>=0&&p.x<=box.width&&p.y<=box.height,'Target must be in actual crop');
  await page.mouse.move(box.x+p.x,box.y+p.y);await page.mouse.down();await page.mouse.up();
  await expect.poll(async()=>{const g=(await scene(page))?.lastFrame?.ghost;return g&&Math.abs(g.x-x)<0.25&&Math.abs(g.y-y)<0.25;}).toBe(true);
 }
-export async function place(page,x,y){await page.locator('[data-pip-control="inventory"]').click();await page.locator('.cy-catalog-choice').first().click();await page.locator('.cy-selected-actions button').last().click();await dragTo(page,x,y);await page.locator('[data-yard-action="commit-placement"]').click();}
+export async function place(page,x,y){await page.locator('[data-pip-control="inventory"]').click();await expect(page.locator('.cy-dialog[open]')).toBeVisible();await expect(page.locator('[data-decor-tab="inventory"]')).toHaveAttribute('aria-pressed','true');await page.locator('.cy-catalog-choice[data-goodie-id="leaf_pot"]').click();await page.locator('[data-yard-action="place"]').click();await dragTo(page,x,y);await page.locator('[data-yard-action="commit-placement"]').click();}
 export async function move(page,index,x,y){await placedPanel(page,index);await page.locator('[data-yard-action="move"]').click();await dragTo(page,x,y);await page.locator('[data-yard-action="commit-placement"]').click();}
 export async function pickup(page,index){await placedPanel(page,index);await page.locator('[data-yard-action="pickup"]').click();}
 export async function inspect(page,index=0){
@@ -47,7 +66,7 @@ export async function inspect(page,index=0){
  const targetSlotId=await page.locator('.cy-catalog-choice[aria-pressed="true"]').getAttribute('data-slot-id');
  assert(targetSlotId,'Inspect must address one real selected committed slot');
  const before=(await scene(page)).interaction;assert(before&&Number.isInteger(before.planCount));
- await page.locator('[data-pip-control="inspect-selected"]').click();
+ await page.locator('[data-pip-control="inspect-selected"]').click();await expect(page.locator('.cy-dialog')).not.toBeVisible();
  await expect.poll(async()=>{
   const current=(await scene(page))?.interaction;
   return current?.targetSlotId===targetSlotId&&current.planCount>before.planCount

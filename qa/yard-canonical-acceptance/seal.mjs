@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 import {execFileSync} from 'node:child_process';
 assert.equal(process.argv[2],'--reviewed-final-source','Explicit final source review acknowledgment required');
-const base='c0c3574f1d1b4567466ded04bf0f86bf4b3cae7c',target='qa/yard-canonical-acceptance/reviewed-source.json';
+const base='4591a151a22503374999dfd5b207b38c4bf631e5',target='qa/yard-canonical-acceptance/reviewed-source.json';
 const tracked=execFileSync('git',['diff','--name-only',base],{encoding:'utf8'}).trim().split('\n');
 const added=execFileSync('git',['ls-files','--others','--exclude-standard'],{encoding:'utf8'}).trim().split('\n');
 const paths=[...new Set([...tracked,...added])].filter(p=>p&&p!==target&&!p.startsWith('qa/yard-canonical-acceptance/work/')&&!p.startsWith('qa/yard-canonical-acceptance/results/')&&p!=='node_modules').sort();
