@@ -1,0 +1,179 @@
+{
+  "format": "pip-quality-ci-reviewed-source/v1",
+  "base": "2e28925ee2b235abeee01a48f03ede9cae211a3a",
+  "baseTree": "2085edce91144f22d1695a93630c52d3006647e3",
+  "protectedEntryCount": 4925,
+  "protectedGitEntriesSha256": "0b4e564e50f6348d0b1a8370616d333511e92ad821bd6c6b22ac16babfb598c3",
+  "files": [
+    {
+      "path": ".github/workflows/yard-pip-quality-ab.yml",
+      "bytes": 3266,
+      "sha256": "daae2af1ad2d7ff1d6851179a1bf2fc5e9c83f7216d7f757e049c727266821c1"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/.gitignore",
+      "bytes": 17,
+      "sha256": "f5012c7ee58f801bbc5bb740e73ea9122db05226636863a3a4ab0cae13ff9155"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/README.md",
+      "bytes": 7870,
+      "sha256": "4be0ae3964095094655ba340846cbda7dea961d7c61a2ccdc17bc91a5e14b0c3"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/base-files.json",
+      "bytes": 771,
+      "sha256": "b8bb7774b1e64ced6a4e7b2245ec0f52099ea5f72203362ec2adc20d244a5ffb"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/correctness-proof.json",
+      "bytes": 1216,
+      "sha256": "aa01bffbd1b049fbf2f46d873eb8e1b251bb2acec993f99428891c3f815f1167"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/file-allowlist.json",
+      "bytes": 2457,
+      "sha256": "77279ad811840e72e331a9265a6c9151c0136ca7e75e52e301974675483e24f7"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/proof/MANIFEST.sha256.json",
+      "bytes": 9870,
+      "sha256": "6f48333ac7cceba1abb993efdf07a60c95fbe6d79fbbcbc1b5c6d58fb03a2087"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/proof/receipt.json",
+      "bytes": 10888,
+      "sha256": "cbe6ae4ec4519c6754447731eecef0cb9e8677bf9947d677eef694ac6fa5953e"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/browser-entry.mjs",
+      "bytes": 3834,
+      "sha256": "8770a304bd66de145c897b3f60c2a3ead042d1dec512102ccee08ae5f3c121b8"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/build.mjs",
+      "bytes": 2759,
+      "sha256": "9f34dad6dd5d197e68646c65f422e8d9ccac5d0b60932b6d29e80fafcb3ea91a"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/ci-build.mjs",
+      "bytes": 866,
+      "sha256": "c5d572f9a1d52496b42058219f29ff572ff379d7563bdc4d21f2b9ac40ff6337"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/ci-contract.mjs",
+      "bytes": 6347,
+      "sha256": "687eea2efbbc3448563c15c485b2424faeb18ca9575000791a293cd027ede7d4"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/ci-native.mjs",
+      "bytes": 621,
+      "sha256": "7187adc0015c65f42283436c05520c1b4c64a600eb65543690a2d0d126b83511"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/ci.test.mjs",
+      "bytes": 5691,
+      "sha256": "24d8108b5506962721ebef4e1c2dd55c27f73babaabec2fe0645deac3cb85e9f"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/diagnostics.mjs",
+      "bytes": 3483,
+      "sha256": "b207fe5044897caeb5e7490cc3b539fc49fe54504014b9fde775b114345a2464"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/evidence.mjs",
+      "bytes": 4261,
+      "sha256": "e1ea58d77995e58c5cf9e9a0485aea3aa02c4db26bb6336058f3168e3c876268"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/fixture.mjs",
+      "bytes": 1177,
+      "sha256": "e954a6f9047df77f93f5207d7a03753ba67431d3b65b51b7153c7d1082ca3d52"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/harness.test.mjs",
+      "bytes": 7068,
+      "sha256": "b45b0f1011bdd61e990e897d1ae0db686b4d75449c50ab3a580796f46c0d7f5b"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/overlay.mjs",
+      "bytes": 2252,
+      "sha256": "571d070722394b2f5fb70c264dd78139b30b98c18cfd9a9913eb80fa4928ff83"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/path-audit.mjs",
+      "bytes": 2287,
+      "sha256": "e4aede4cbd6681ac08fc45ce0ef74e5dd80bb0bd4b9913de2ebc379abe02b265"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/pixels.mjs",
+      "bytes": 5082,
+      "sha256": "d2d4f3452861012b5d2e9602c8052d013c6d92db61276511a4721033fee84ad8"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/preflight.mjs",
+      "bytes": 2808,
+      "sha256": "a559a705bbcc4d503652267e281fe9a06cfcb4212cb5631cf203a77a35c53890"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/run.mjs",
+      "bytes": 20141,
+      "sha256": "c3b901f87db6fff00fb2a18e1b5b01d85e7580d449920b609fb08ebedb68a90d"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/seal.mjs",
+      "bytes": 2071,
+      "sha256": "ce1c2b9d5f6edb70e266517ab28eebecb676a1d4ec9e982011ffa5b1247a04ba"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/qa/validate-source.mjs",
+      "bytes": 1688,
+      "sha256": "a70ad99b35a7760da5ca37b65f967797f83e8d68d0a71abaa6423b42796f0bf3"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "bytes": 17780,
+      "sha256": "d0f9d7027c99761544749a344b1d97d37b2237636029614fa32d2662ce515410"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/prototype/pip-contact-shadow.mjs",
+      "bytes": 5732,
+      "sha256": "3ed20b220ee882a93698f68a464949c56d1fd81702b6d47e58b03dbdc40a0748"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/prototype/pip-quality-copy.mjs",
+      "bytes": 5113,
+      "sha256": "bca49c239a8864aefbd48bcea9f150399acd46f1153a6cbe4c773682a04621e8"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/prototype/pip-quality-resources.mjs",
+      "bytes": 1580,
+      "sha256": "62969d5d7b553af2a967db6138a7d13771cd1a16771dcca466bd944d127a0cc1"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/resources.mjs",
+      "bytes": 4632,
+      "sha256": "bd6543320e952f5af1415399a931c24a1b2103c9dcc4cf57c9e285f342894759"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "bytes": 24407,
+      "sha256": "ca9cee980320724bfbd325934c3f87f22d9fe168217016e7f0d5fbd501cb8d98"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/tests/yard-pip-quality-browser-probe.mjs",
+      "bytes": 11700,
+      "sha256": "ae5a74b50d7c926c35189c2cfc3ab5a13990f5fe2eb715574df1cc09dce28b3e"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/source-overlay/tests/yard-pip-quality-probe.test.mjs",
+      "bytes": 26073,
+      "sha256": "5cb38c2ac34ad79c4a25138d8c2e4458088a627a4e70c40f50f37278a11c12ea"
+    },
+    {
+      "path": "qa/yard-pip-quality-native-packet/workflow/yard-pip-quality-ab.yml",
+      "bytes": 3266,
+      "sha256": "daae2af1ad2d7ff1d6851179a1bf2fc5e9c83f7216d7f757e049c727266821c1"
+    }
+  ]
+}

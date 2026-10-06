@@ -1,0 +1,22 @@
+[
+  {
+    "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+    "bytes": 16231,
+    "sha256": "c1d1cea7546cccf26e99c257697c789044d3c77a99280d2641ab8eb3b07fb1f8"
+  },
+  {
+    "path": "src/games/companion-yard-v2/pip-prototype/prototype/pip-contact-shadow.mjs",
+    "bytes": 5367,
+    "sha256": "80436534029e07682bc9505020b28535d3d4ad02ff6f8f5580403111397a372d"
+  },
+  {
+    "path": "src/games/companion-yard-v2/pip-prototype/resources.mjs",
+    "bytes": 4372,
+    "sha256": "787b6a12a6efd6b6db4475b26b8bba19f8d3b67ee836a04167bdf7bf14b173a6"
+  },
+  {
+    "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+    "bytes": 24221,
+    "sha256": "ab37dc888b6873061187c833e5bbe1d590ca90641233f48291b2b739b8702761"
+  }
+]

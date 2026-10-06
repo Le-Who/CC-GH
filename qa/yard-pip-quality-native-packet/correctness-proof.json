@@ -1,0 +1,38 @@
+{
+  "format": "pip-quality-correctness-proof/v1",
+  "head": "2e28925ee2b235abeee01a48f03ede9cae211a3a",
+  "runId": "37520075881",
+  "status": "SUCCESS",
+  "hudPassed": 11,
+  "sourcePassed": 31,
+  "originalsVerified": 59,
+  "builds": [
+    "default",
+    "preview"
+  ],
+  "files": [
+    {
+      "path": "proof/receipt.json",
+      "bytes": 10888,
+      "sha256": "cbe6ae4ec4519c6754447731eecef0cb9e8677bf9947d677eef694ac6fa5953e"
+    },
+    {
+      "path": "proof/MANIFEST.sha256.json",
+      "bytes": 9870,
+      "sha256": "6f48333ac7cceba1abb993efdf07a60c95fbe6d79fbbcbc1b5c6d58fb03a2087"
+    }
+  ],
+  "browser": {
+    "path": "browser.json",
+    "bytes": 7962382,
+    "sha256": "11e31215851f64e35e02ed36c00156da54e0f132051464aae5ba913fc3b72d76"
+  },
+  "browserSections": {
+    "actions": "reused",
+    "hud": "passed"
+  },
+  "browserErrors": [],
+  "outerArchiveSha256": "3ef5c56d96b2aa2eadfd39a51454a5fa692484e3d7bbabbea16c0e02b006e4f1",
+  "innerArchiveSha256": "2d0fac5d849b156087deaf9596a324c38931e91d13836b97bab3a70b5e4f0f9b",
+  "qualification": "Every one of 59 original files rehashed locally; exact receipt/build/source proof copied unchanged. Native visual acceptance and production activation excluded."
+}

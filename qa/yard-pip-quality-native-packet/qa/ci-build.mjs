@@ -1,0 +1,10 @@
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+import {installedPaths,git,verifyPins} from './ci-contract.mjs';
+const p=installedPaths();assert.equal(JSON.parse(await fs.readFile(path.join(p.results,'preflight.json'))).status,'PREFLIGHT_PASSED');await verifyPins(p.root);
+assert.equal(git(p.root,['diff','--name-only','HEAD']),'','Production source must remain clean');
+execFileSync(process.execPath,[path.join(p.packet,'qa/build.mjs'),p.root,p.build],{cwd:p.root,env:process.env,stdio:'inherit',timeout:180000});
+assert.equal(git(p.root,['diff','--name-only','HEAD']),'','Build changed tracked input');
+for(const name of['source.json','closure.json'])await fs.copyFile(path.join(p.build,name),path.join(p.results,'build-'+name),fs.constants.COPYFILE_EXCL);

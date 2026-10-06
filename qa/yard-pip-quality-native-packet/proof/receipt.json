@@ -1,0 +1,338 @@
+{
+  "reused": {
+    "runId": "37513128014",
+    "scope": "Reuse only exact passed native acquisition and unchanged source/domain results. Prior HUD remains failed. Fresh UI-only qualification and both production builds required.",
+    "browserReused": true,
+    "defaultBuildReused": false,
+    "priorBrowser": {
+      "head": "770a560a78d8e011d582411a8ae8569783b83116",
+      "runId": "37513128014",
+      "sections": {
+        "actions": "passed",
+        "hud": "failed"
+      }
+    },
+    "domain": {
+      "runId": "37498940977",
+      "postgres": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      }
+    }
+  },
+  "head": "2e28925ee2b235abeee01a48f03ede9cae211a3a",
+  "stages": {
+    "PREFLIGHT": "success",
+    "DEPENDENCIES": "success",
+    "SOURCE": "success",
+    "BUILD": "success",
+    "BROWSER": "success"
+  },
+  "acceptance": "MECHANICAL_GATES_PASSED_VISUAL_REVIEW_REQUIRED",
+  "limits": {
+    "jobMinutes": 10,
+    "artifactBytes": 8388608,
+    "retentionDays": 3,
+    "retries": 0
+  },
+  "excluded": [
+    "production activation or deployment",
+    "real-device GPU/FPS",
+    "trusted native Telegram WebView events",
+    "subjective visual acceptance"
+  ],
+  "files": [
+    {
+      "path": "browser.json",
+      "bytes": 7962382,
+      "sha256": "11e31215851f64e35e02ed36c00156da54e0f132051464aae5ba913fc3b72d76"
+    },
+    {
+      "path": "builds.json",
+      "bytes": 19570,
+      "sha256": "2230ddd32f950a3056a983adc437495976b318b78d6680c82ac999e183e98219"
+    },
+    {
+      "path": "hud-1024x768-dpr1-ru-inventory.webp",
+      "bytes": 50364,
+      "sha256": "0ac4fb014cde389508a589b5a2be8a80c2b68482d3e8eef610881d8a2fa49e40"
+    },
+    {
+      "path": "hud-1024x768-dpr1-ru-placed.webp",
+      "bytes": 52464,
+      "sha256": "22f7d00d186cce6bc07416ceed7e7dab7931439a627f35205b9e02cf84ed79ea"
+    },
+    {
+      "path": "hud-1024x768-dpr1-ru-shop-scroll-end.webp",
+      "bytes": 56158,
+      "sha256": "8a17163adee9f9570e7c3fa3f1dcfa297474a596386525bce7ff502069837570"
+    },
+    {
+      "path": "hud-1024x768-dpr1-ru.webp",
+      "bytes": 38912,
+      "sha256": "93086d3cf8568079dd30af5980dd485568277e976d309dc1b7e7e0a307174d94"
+    },
+    {
+      "path": "hud-1280x720-dpr1-en-inventory.webp",
+      "bytes": 45356,
+      "sha256": "7d9a86c39e513fbd91e4b66452af4ea4f34cf42c2552df22a8c80c0454a5f65e"
+    },
+    {
+      "path": "hud-1280x720-dpr1-en-placed.webp",
+      "bytes": 46972,
+      "sha256": "2af71863fc25357ba820fe1570fb90aefa64e35b08c9d5b77bb5cb735635ada3"
+    },
+    {
+      "path": "hud-1280x720-dpr1-en-shop-scroll-end.webp",
+      "bytes": 49242,
+      "sha256": "cca7627765330f6b574d49d273d75f98446ae1e634cf7cba462633ca730f4c39"
+    },
+    {
+      "path": "hud-1280x720-dpr1-en.webp",
+      "bytes": 35164,
+      "sha256": "ff966756041f506ccacac04f5055bb6e856b7cae0b1de23cab163ef26ccd38e0"
+    },
+    {
+      "path": "hud-320x568-dpr1-en-inventory.webp",
+      "bytes": 22028,
+      "sha256": "53aa194e26d46cc5a6b98ba9a06352c0d65ba6805321d91b23a68653b97d769d"
+    },
+    {
+      "path": "hud-320x568-dpr1-en-placed.webp",
+      "bytes": 23612,
+      "sha256": "031b1221219184f4061bf53b4ba043ae280e2bf5ed6850107a7b82d10e227236"
+    },
+    {
+      "path": "hud-320x568-dpr1-en-shop-scroll-end.webp",
+      "bytes": 21810,
+      "sha256": "b18ddde9cbb0b24005186837e0703c72b874d05de5f88db37675fce82830796f"
+    },
+    {
+      "path": "hud-320x568-dpr1-en.webp",
+      "bytes": 13412,
+      "sha256": "09f50a9b14f51a4eed016fcb6f1034a55b74d34f92359eb24d5c6deb0fb06b56"
+    },
+    {
+      "path": "hud-360x800-dpr1-ru-inventory.webp",
+      "bytes": 28138,
+      "sha256": "2abbd8f674307a093d2f4bdaa36fb9cea7ca6073571667910076a3566efbdcbb"
+    },
+    {
+      "path": "hud-360x800-dpr1-ru-placed.webp",
+      "bytes": 31028,
+      "sha256": "0acdebf1a0c0797f40600fcec424f04f4e9866bffb1198fff6c5802c76bcc9d8"
+    },
+    {
+      "path": "hud-360x800-dpr1-ru-shop-scroll-end.webp",
+      "bytes": 34534,
+      "sha256": "cecd4030913ce46f879a716f053c9b02358cd5d12d20100637efd7de0c170c6d"
+    },
+    {
+      "path": "hud-360x800-dpr1-ru.webp",
+      "bytes": 34124,
+      "sha256": "5c2357d413151c6ca29b0e5a505c98e86e7f04953b9612367d81104985cf8701"
+    },
+    {
+      "path": "hud-375x812-dpr1-en-inventory.webp",
+      "bytes": 27212,
+      "sha256": "4c5cdf6f04234afef50463934997859fe4338dbafe7d8c0400ca6b6294820cde"
+    },
+    {
+      "path": "hud-375x812-dpr1-en-placed.webp",
+      "bytes": 28948,
+      "sha256": "4d2409c110da67b6e29604d7065e1ab0db414a3417bcf994846a29154db94f93"
+    },
+    {
+      "path": "hud-375x812-dpr1-en-shop-scroll-end.webp",
+      "bytes": 33492,
+      "sha256": "a6d3fae484119ca104327d085b5be41e067afc040719f5181479bf1bf7825976"
+    },
+    {
+      "path": "hud-375x812-dpr1-en.webp",
+      "bytes": 33854,
+      "sha256": "a57588503fc2578bf87719dc9d4a200b428ec98dbac1211f584eb54c7df2694a"
+    },
+    {
+      "path": "hud-390x844-dpr2-ru-dialog-native.png",
+      "bytes": 1009252,
+      "sha256": "4a6e9615470e45c8a9eaa83f9fb55c579151ce48f6b01e646cb446e46fa04908"
+    },
+    {
+      "path": "hud-390x844-dpr2-ru-header-native.png",
+      "bytes": 94365,
+      "sha256": "b600e29c8db5eb34e191f7d2e4b40c5e43ac01c9377042080c82620db85a335a"
+    },
+    {
+      "path": "hud-390x844-dpr2-ru-inventory.webp",
+      "bytes": 89836,
+      "sha256": "490c766d3486722c53d12752609d1b5273c3412a1918243cc727a9bf1cbab199"
+    },
+    {
+      "path": "hud-390x844-dpr2-ru-placed.webp",
+      "bytes": 95144,
+      "sha256": "708ab7c721fe98534b357966ca1ba9b4d8fe6d61342465bc8bbdbac7b79fb39c"
+    },
+    {
+      "path": "hud-390x844-dpr2-ru-shop-scroll-end.webp",
+      "bytes": 107120,
+      "sha256": "641b688318b237912fa02b0630628ad5ea6fa226c0abedb23fc0783b5e9501e8"
+    },
+    {
+      "path": "hud-390x844-dpr2-ru.webp",
+      "bytes": 88876,
+      "sha256": "ccd6ddb21632d12a9e96f0cb5c3b7c52734b0c3f47ef40349b2c3a94dd10d773"
+    },
+    {
+      "path": "hud-414x896-dpr1-ru-inventory.webp",
+      "bytes": 32220,
+      "sha256": "2fbcfeaed6e28f9cf8617528a562b09b46d262d2b46a4616d27321f30e30360a"
+    },
+    {
+      "path": "hud-414x896-dpr1-ru-placed.webp",
+      "bytes": 34014,
+      "sha256": "96429c28b65df82f8a163acdbf5e71642ee943ef227dd166d0e4cd4c650475e6"
+    },
+    {
+      "path": "hud-414x896-dpr1-ru-shop-scroll-end.webp",
+      "bytes": 39080,
+      "sha256": "199f3a3c50f9ac5f5c6e2557ed8ef8e786aef4a9cff176273939f461f71f1bff"
+    },
+    {
+      "path": "hud-414x896-dpr1-ru.webp",
+      "bytes": 38120,
+      "sha256": "1a90d219025d99d266951288ca6667e76d65e748d23b3b9038e2ff7c29fcce20"
+    },
+    {
+      "path": "hud-568x320-dpr1-en-food.webp",
+      "bytes": 13464,
+      "sha256": "7f9acf23eeb7acd1b992f335dc7197f226e3665e207a4205aa1dc20d6c94c78e"
+    },
+    {
+      "path": "hud-568x320-dpr1-en-guests-visits.webp",
+      "bytes": 17138,
+      "sha256": "16d50e1587d8f6c7926de8e8148ac351ad7dc492e46bb753def9e4d93456002b"
+    },
+    {
+      "path": "hud-568x320-dpr1-en-guests.webp",
+      "bytes": 16484,
+      "sha256": "01776cddbffcc0361cf261a49fd47f3814d67337e806d50039114af476ba6930"
+    },
+    {
+      "path": "hud-568x320-dpr1-en-inventory.webp",
+      "bytes": 22184,
+      "sha256": "f9bcba9c4efb8ef54d98a65be8d3f423f2f03ca5a5c868ea03b76308b18b919f"
+    },
+    {
+      "path": "hud-568x320-dpr1-en-placed.webp",
+      "bytes": 23504,
+      "sha256": "e589bfb5b4ac2be4341996c5f27d042eb714d485fc74c0f79fb6e3a1df2cccb1"
+    },
+    {
+      "path": "hud-568x320-dpr1-en-shop-scroll-end.webp",
+      "bytes": 19444,
+      "sha256": "c5d712a74e165e81337d7d3b1ae414bca1b5699cde60ee9e140017b046d920d7"
+    },
+    {
+      "path": "hud-568x320-dpr1-en.webp",
+      "bytes": 11880,
+      "sha256": "0ac38cac64db4c2c98d94e3e09d0bef54f49f2e98985bd0760595ea101b659ff"
+    },
+    {
+      "path": "hud-568x320-dpr1-ru-food.webp",
+      "bytes": 13646,
+      "sha256": "fbcb13607e6dd1c17da569fc1d237622722a64b801341175c32f16b753d486a4"
+    },
+    {
+      "path": "hud-568x320-dpr1-ru-guests-visits.webp",
+      "bytes": 17844,
+      "sha256": "cf704dff0ec13e70ef0456c0a16569ce9c47ca3fd6cf5f461e859d29a08002d5"
+    },
+    {
+      "path": "hud-568x320-dpr1-ru-guests.webp",
+      "bytes": 16718,
+      "sha256": "7ee935ec0e2492de1c20b82af51eb74e9016b5104f168909de43be2db4e7c27f"
+    },
+    {
+      "path": "hud-568x320-dpr1-ru-inventory.webp",
+      "bytes": 24214,
+      "sha256": "287376ba248ee1b681acf2b6d71fe4b76f9bf2290e108d73e12be5fc638af4e9"
+    },
+    {
+      "path": "hud-568x320-dpr1-ru-placed.webp",
+      "bytes": 26022,
+      "sha256": "f8df617657959e2a5a639b2630cb89f4c438850dfb60b9aa5fe8a4018265c6c5"
+    },
+    {
+      "path": "hud-568x320-dpr1-ru-shop-scroll-end.webp",
+      "bytes": 21278,
+      "sha256": "afe2e244341768d3a68b400b770c79817fbb379fd86c617c57c37b54ae28fa39"
+    },
+    {
+      "path": "hud-568x320-dpr1-ru.webp",
+      "bytes": 11758,
+      "sha256": "0731042870a5cc75b71ad66bb73b5919c26f46d8e503d67192c091c2a0dbf70c"
+    },
+    {
+      "path": "hud-768x1024-dpr1-en-inventory.webp",
+      "bytes": 39492,
+      "sha256": "c4afc8dc8c381409e7753ce67d79496ddb002800ce331f218422e421d6695039"
+    },
+    {
+      "path": "hud-768x1024-dpr1-en-placed.webp",
+      "bytes": 41118,
+      "sha256": "6e644fac7cc6fe3c4d2f36528ceaba1c2e9ed63babfe54a47c44137a59c13b30"
+    },
+    {
+      "path": "hud-768x1024-dpr1-en-shop-scroll-end.webp",
+      "bytes": 46714,
+      "sha256": "e2fdde37e9810a8b79fa5753cd1645d4957ee9da92cb052eae247ca61b50de36"
+    },
+    {
+      "path": "hud-768x1024-dpr1-en.webp",
+      "bytes": 41426,
+      "sha256": "86001c01f59a1326e2ad52c403b951dcc4d447952a74a31a0a4c6e9cc5894fee"
+    },
+    {
+      "path": "hud-844x390-dpr1-ru-inventory.webp",
+      "bytes": 28730,
+      "sha256": "48502d9e09af6fe56a0d6fe4507f9521c7ea3318266e7417bac13bc47ea0ddbc"
+    },
+    {
+      "path": "hud-844x390-dpr1-ru-placed.webp",
+      "bytes": 30890,
+      "sha256": "bc94911b084470c8196e5823fbe149ab969fbd63929d48228eae2d2558acb7e2"
+    },
+    {
+      "path": "hud-844x390-dpr1-ru-shop-scroll-end.webp",
+      "bytes": 29208,
+      "sha256": "649422e83e9ef6234806bbcfef25f1456c96108d43b2fb0717f28f777eebb8ca"
+    },
+    {
+      "path": "hud-844x390-dpr1-ru.webp",
+      "bytes": 14724,
+      "sha256": "a6e5d52827c2478016afc7289567749ac1b9fb6fab091b395de9cd634e87c0ec"
+    },
+    {
+      "path": "path-audit.json",
+      "bytes": 1360,
+      "sha256": "542941244da409f5ac6226b2243b89e8bede290f2bd576dc9dfb784edf105b72"
+    },
+    {
+      "path": "reused.json",
+      "bytes": 19675,
+      "sha256": "42224c1e25e37efebab00d9f3329534186a637802c74890962f4ffde7f78bdf4"
+    },
+    {
+      "path": "source.json",
+      "bytes": 2400,
+      "sha256": "127dc4ffb777c49227fb79156c138ac4e8703435c71ecc71f3544b457c1ccc50"
+    },
+    {
+      "path": "source.tap",
+      "bytes": 3403,
+      "sha256": "bb1725f6b1f363d47aa054f7b6b800677e15d6d234680e5db031e192567bd3d9"
+    }
+  ]
+}
