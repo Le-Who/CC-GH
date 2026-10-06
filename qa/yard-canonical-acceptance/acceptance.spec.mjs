@@ -7,12 +7,12 @@ import path from 'node:path';
 import {execFileSync} from 'node:child_process';
 import sharp from 'sharp';
 import {fixtureOwner,canonicalRows,economy,realMutation,ORIGIN} from './fixtures.mjs';
-import {OUT,WORK,report,init,observe,boot,waitForYardReady,enter,scene,shot,placedPanel,closePanel,project,dragTo,place,move,pickup,inspect,refresh,capture,fonts,layout,checkLayout,outbox} from './browser-helpers.mjs';
+import {OUT,WORK,report,init,observe,boot,waitForYardReady,enter,scene,shot,placedPanel,closePanel,project,dragTo,place,move,pickup,inspect,refresh,capture,captureFailureDiagnostics,fonts,layout,checkLayout,outbox} from './browser-helpers.mjs';
 let owner,fixture;
 test.beforeAll(async()=>{await fs.mkdir(OUT,{recursive:true});await fs.mkdir(WORK,{recursive:true});owner=await fixtureOwner();fixture=await owner.seed();});
 test.afterAll(async()=>{try{await owner?.close();}catch(error){report.errors.push({type:'fixture-cleanup',message:String(error)});report.status='FAILED_OR_INCOMPLETE';throw error;}finally{await fs.writeFile(path.join(OUT,'browser.json'),JSON.stringify(report,null,2)+'\n');}});
 async function rows(n){await expect.poll(async()=>canonicalRows(await owner.saved(fixture)).length).toBe(n);return canonicalRows(await owner.saved(fixture));}
-async function context(browser,options={}){const {language='en',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p,fixture);return{c,p};}catch(error){await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
+async function context(browser,options={}){const {language='ru',...browserOptions}=options;const c=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:1,isMobile:true,hasTouch:true,serviceWorkers:'block',...browserOptions});await init(c,fixture,language);await c.route(/^https?:\/\//,route=>{if(new URL(route.request().url()).origin===ORIGIN)return route.continue();report.errors.push({type:'external-request',url:route.request().url()});return route.abort('blockedbyclient');});const p=await c.newPage();observe(p);try{await boot(p,fixture);return{c,p};}catch(error){await captureFailureDiagnostics(p,'startup-failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));await capture(p,'startup-failure').catch(()=>{});await c.close();throw error;}}
 async function visibleCount(page,n){await expect.poll(async()=>{const s=await scene(page);return s?.canonicalRecords?.length===n&&s.lastFrame?.records?.length===n&&JSON.stringify(s.lastFrame.records)===JSON.stringify(s.canonicalRecords);}).toBe(true);}
 async function switchFresh(page){await page.locator('[data-pip-control="toggle"]').click();await expect.poll(async()=>(await shot(page))?.mode).toBe('legacy');await enter(page);}
 async function settled(page){await expect.poll(async()=>(await scene(page))?.interaction?.phase,{timeout:24000}).toBe('settled');}
@@ -56,7 +56,7 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
    return{vendor,renderer,version:gl.getParameter(gl.VERSION),shadingLanguageVersion:gl.getParameter(gl.SHADING_LANGUAGE_VERSION),debugRendererInfoAvailable:!!debug,
     classification:/swiftshader|llvmpipe|softpipe|software/i.test(`${vendor} ${renderer}`)?'software-renderer-reported':'backend-not-classified'};
   });
-  await capture(p,'new-hud-initial');
+  await capture(p,'new-hud-initial');report.initialOwner=await shot(p);
   const baseline=economy(await owner.saved(fixture));
   const commands=[];let firstReply,release,committed;const didCommit=new Promise(r=>committed=r),gate=new Promise(r=>release=r);
   await p.route('**/api/player/mutate',async route=>{
@@ -64,6 +64,9 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
    if(commands.length===1){const reply=await route.fetch();firstReply={status:reply.status(),body:await reply.json()};committed();await gate;return route.abort('failed');}return route.continue();
   });
   const duplicate=p.waitForResponse(async r=>r.url()===ORIGIN+'/api/player/mutate'&&r.request().postDataJSON()?.action==='yard.placeGoodie'&&r.status()===200&&(await r.json()).duplicate===true);
+  // Observe early rejection without replacing this promise: the main await below
+  // still rejects. A placement failure remains the primary reported assertion.
+  duplicate.catch(()=>{});
   try{await place(p,98,118);await didCommit;assert.equal(firstReply.status,200);const durable=await outbox(p,fixture.id);assert.equal(durable.version,2);assert.equal(durable.accountId,fixture.id);assert.equal(durable.items.length,1);assert.equal(durable.items[0].clientActionId,commands[0].clientActionId);assert.equal(durable.items[0].status,'sending');
    // The HTTP commit can precede the next rAF. Observe the actual pending draw,
    // including retired ghost and paused renderer, before measuring its clock.
@@ -121,8 +124,9 @@ test('finite real persistence, dynamic inspection and full HUD matrix',async({br
    await closePanel(p);const s=await scene(p);report.matrix.push({viewport:screen,font,dialog,scene:{ready:s.ready,viewportBlocked:s.viewportBlocked,projection:s.projection,rgba:s.rgba},file:name+'.webp'});await c.close();active=null;
   }
   const ordinary=await browser.newContext({viewport:{width:390,height:844},serviceWorkers:'block'});await init(ordinary,fixture);const ordinaryPage=await ordinary.newPage();await ordinaryPage.goto(ORIGIN+'/?tab=room');await expect(ordinaryPage.locator('.cy-app')).toBeVisible();await expect(ordinaryPage.locator('[data-pip-control]')).toHaveCount(0);assert.equal(await ordinaryPage.evaluate(()=>window.__canonicalWorkerObserver.created.filter(s=>s.includes('dynamic-prop-worker')).length),0);await ordinary.close();report.cases.push({name:'on-build-without-page-opt-in-remains-ordinary'});
+  assert(!report.console.entries.some(e=>e.type==='error'&&/THREE\.WebGLProgram|VALIDATE_STATUS|shader.*error|shader.*compile|WebGL.*INVALID_OPERATION/i.test(e.text)),'WebGL/shader error captured in bounded console evidence');
   assert.equal(report.errors.length,0,JSON.stringify(report.errors));assert(!report.requests.some(r=>r.status>=400),'Runtime resource request failed');
   assert.deepEqual(economy(await owner.saved(fixture)),baseline);report.status='MECHANICAL_ACCEPTANCE_PASSED_VISUAL_REVIEW_PENDING';
- }catch(error){report.status='FAILED_OR_INCOMPLETE';report.errors.push({type:'assertion',message:String(error),stack:error.stack});if(active)await capture(active.p,'failure').catch(()=>{});throw error;}
+ }catch(error){report.status='FAILED_OR_INCOMPLETE';report.errors.push({type:'assertion',message:String(error),stack:error.stack});if(active){await captureFailureDiagnostics(active.p,'failure').catch(e=>report.errors.push({type:'failure-diagnostics',message:String(e)}));await capture(active.p,'failure').catch(()=>{});}throw error;}
  finally{await active?.c.close();}
 });

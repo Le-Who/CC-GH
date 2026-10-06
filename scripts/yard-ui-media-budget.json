@@ -2,12 +2,12 @@
   "format": "yard-ui-and-pip-media/v1",
   "requiredUi": [
     {
-      "path": "assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
-      "bytes": 59018,
-      "sha256": "79a2e1bbcc0a400ef8695ac971ab41dc19ca7c4c91ef244108df170923fe2455",
-      "source": "public/assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
-      "width": 1808,
-      "height": 214
+      "path": "assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+      "bytes": 151862,
+      "sha256": "119392d270f62bc08b8ff84a094bc07c8f9009ce463d670b7ea8e3a76f7b0268",
+      "source": "public/assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+      "width": 1170,
+      "height": 172
     },
     {
       "path": "assets/yard-ui/surfaces/yard-ui-panel-frame.webp",
@@ -26,12 +26,12 @@
       "height": 512
     },
     {
-      "path": "assets/yard-ui/surfaces/yard-ui-button-primary.webp",
-      "bytes": 69298,
-      "sha256": "c52716e9417f15e0300cf06cf2589d1c41b13f24acf76de36d41e9d9f383c37e",
-      "source": "public/assets/yard-ui/surfaces/yard-ui-button-primary.webp",
-      "width": 512,
-      "height": 128
+      "path": "assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+      "bytes": 62660,
+      "sha256": "be06b62e0b3ec78309592e2928b2224fad178e8d5e58831c2409bb7443d81df7",
+      "source": "public/assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+      "width": 600,
+      "height": 138
     },
     {
       "path": "assets/yard-ui/previews/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.webp",

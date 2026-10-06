@@ -56,7 +56,7 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
   const directHost=useRef(null);
   const [pipPreview,setPipPreview]=useState({enabled:false,phase:"off",settled:false});
   const canvas=useRef(null),scene=useRef(null),latest=useRef(snapshot),dialog=useRef(null),drag=useRef(null),ghostRef=useRef(null);
-  const [view,setView]=useState(null),[panel,setPanel]=useState(null),[ghost,setGhost]=useState(null),[error,setError]=useState('');
+  const [view,setView]=useState(null),[panel,setPanel]=useState(null),[ghost,setGhost]=useState(null),[error,setError]=useState(''),[menuSelection,setMenuSelection]=useState(null);
   const [uiImages]=useState(()=>createUiImageReserve());
   const admitImage=useCallback(src=>{try{if(uiImages.admit([src]))return true;}catch{}setError('YARD_CAMERA_MEDIA_UNAVAILABLE');return false;},[uiImages]);
   const [companionName,setCompanionName]=useState('');
@@ -79,7 +79,7 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
     return ()=>{const s=useGameHub.getState();if(s.activeGameShell?.id==='room')s.setActiveGameShell(null);};
   },[panel,closePanel]);
   useEffect(()=>{
-    const renderer=createCourtyardScene(canvas.current,{uiImageOwner:uiImages,directHost:directHost.current,prototypeAllowed:allowPipPrototype,onPrototypeState:setPipPreview,onPointerInterrupt:cancel,onView:setView,onError:error=>setError(error?.code||'YARD_SCENE_FAILED')});scene.current=renderer;renderer.update(latest.current);
+    const renderer=createCourtyardScene(canvas.current,{uiImageOwner:uiImages,directHost:directHost.current,prototypeAllowed:allowPipPrototype,onPrototypeState:setPipPreview,onPointerInterrupt:cancel,onSceneFailure:()=>cancel(true),onView:setView,onError:error=>setError(error?.code||'YARD_SCENE_FAILED')});scene.current=renderer;renderer.update(latest.current);
     const blur=()=>cancel();window.addEventListener('blur',blur);
     const visibility=()=>{if(document.hidden)cancel();else useGameHub.getState().loadSnapshot();};document.addEventListener('visibilitychange',visibility);
     const interval=setInterval(()=>{if(!document.hidden)useGameHub.getState().loadSnapshot();},10000);
@@ -152,7 +152,7 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
   const blocked=busy || !current.mutable,itemBlocked=busy||!itemMutable,placementBlocked=isCanonicalItemIntent(ghost)?itemBlocked:blocked;
   const bindings=current.runtime?.supportedBindings || {};
   const feedbackCode=error||message||pending.find(item=>item.requiresCanonicalReview)?.blockedReason;
-  const feedback=feedbackCode==='YARD_CAMERA_MEDIA_UNAVAILABLE'?t('yard.persistent.error.visualMedia'):feedbackCode==='OUTBOX_STORAGE_UNAVAILABLE'?t('yard.persistent.error.storage'):yardFeedbackText(playerFeedbackText(language,feedbackCode),t);
+  const feedback=feedbackCode==='YARD_PIP_SCENE_FAILED'?t('yard.canonical.displayFailed'):feedbackCode==='YARD_CAMERA_MEDIA_UNAVAILABLE'?t('yard.persistent.error.visualMedia'):feedbackCode==='OUTBOX_STORAGE_UNAVAILABLE'?t('yard.persistent.error.storage'):yardFeedbackText(playerFeedbackText(language,feedbackCode),t);
   const placementState=useGameHub.getState(),placementPending=pendingPlacement(placementState,ghost),placementRetry=storageError&&retryablePlacement(placementState,ghost);
   const previewStatus=t(pipPreview.settled?'yard.pipPreview.inspectionDone':'yard.pipPreview.inspectionActive');
   const status=!snapshot?.yard?t('yard.persistent.loading'):feedback || (busy?t('yard.persistent.saving'):ghost?(ghost.valid?t('yard.persistent.spaceFree'):t(placementMessageKey(ghost.placementError))):visibleStatus(current,t));
@@ -191,13 +191,13 @@ export default function CourtyardGame({allowPipPrototype=false}={}) {
     {allowPipPrototype && !ghost && <HudRegion id="yardPlacementControls" applyLayout={false} className="cy-placement cy-pip-controls" data-active={pipPreview.enabled?"true":"false"} role="group" aria-label={t('yard.pipPreview.name')}>
       <button data-pip-control="toggle" aria-label={t(pipPreview.enabled?'yard.pipPreview.return':'yard.pipPreview.enable')} type="button" disabled={!pipPreview.enabled&&(busy||submittingPlacement)} onClick={()=>{setPanel(null);scene.current?.setPrototypeEnabled(!pipPreview.enabled);}}>{pipPreview.enabled?t('yard.pipPreview.returnShort'):t('yard.pipPreview.enable')}</button>
       {pipPreview.enabled && !itemMode && <button data-pip-control="inspect-again" aria-label={t('yard.pipPreview.inspectAgainFull')} type="button" disabled={pipPreview.viewportBlocked||!pipPreview.settled} onClick={()=>{try{scene.current?.inspectAgain();}catch(e){setPipPreview(v=>({...v,error:e.message}));}}}>{t('yard.pipPreview.inspectAgain')}</button>}
-      {!pipPreview.enabled && <button data-pip-control="canonical-items" type="button" disabled={submittingPlacement||!canonicalEntryAvailable} onClick={()=>{setPanel(null);setDecorTab('inventory');setSelectedDecor(null);scene.current?.setCanonicalItemsEnabled(true);}}>{t('yard.canonical.open')}</button>}
-      {itemMode && <button data-pip-control="inventory" type="button" onClick={()=>{setDecorTab('inventory');setSelectedDecor(null);setPanel('decor');}}>{t('yard.persistent.stocks')}</button>}
-      {pipPreview.error && <small role="status">{t(pipPreview.error.includes('stage requires')?'yard.pipPreview.small':'yard.pipPreview.unavailable')}</small>}
+      {!pipPreview.enabled && <button data-pip-control="canonical-items" type="button" disabled={submittingPlacement||!canonicalEntryAvailable} onClick={()=>{setError(value=>value==='YARD_PIP_SCENE_FAILED'?'':value);setPanel(null);setDecorTab('inventory');setSelectedDecor(null);scene.current?.setCanonicalItemsEnabled(true);}}>{t('yard.canonical.open')}</button>}
+      {itemMode && <button data-pip-control="inventory" type="button" onClick={()=>{setMenuSelection('decor');setDecorTab('inventory');setSelectedDecor(null);setPanel('decor');}}>{t('yard.persistent.stocks')}</button>}
+      {pipPreview.error && !feedback && <small role="status">{t(pipPreview.error.includes('stage requires')?'yard.pipPreview.small':'yard.pipPreview.unavailable')}</small>}
     </HudRegion>}
     {ghost && <HudRegion id="yardPlacementControls" applyLayout={false} className="cy-placement"><strong>{name(ghost.goodieId)}</strong><div><button data-yard-action="cancel-placement" onClick={cancel} disabled={!!placementPending||submittingPlacement}>{t('yard.persistent.cancel')}</button>{placementRetry?<button data-yard-action="retry-placement" onClick={retryPlacement} disabled={!ghost.valid||(isCanonicalItemIntent(ghost)?!itemMutable:!current.mutable)||submittingPlacement}>{t('yard.persistent.retrySaving')}</button>:<button data-yard-action="commit-placement" onClick={confirm} disabled={!ghost.valid||placementBlocked||submittingPlacement||!ownsPlacement(placementState,ghost)}>{t('yard.place')}</button>}</div></HudRegion>}
     <HudRegion id="yardBottomDock" as="nav" className="cy-actions" applyLayout={false} aria-label={t('yard.persistent.actions')}>
-      {[['food',t('yard.nav.food'),current.bowls.some(b=>b.servings>0)?t('yard.persistent.bowlFull'):t('yard.persistent.addFood')],['decor',t('yard.persistent.decor'),t('yard.persistent.placedCount',{count:placedItems.length})],['guests',t('yard.persistent.guests'),current.pendingGifts.length?t('yard.persistent.giftCount',{count:current.pendingGifts.length}):t('yard.persistent.memories')]].map(([id,title,detail])=><button key={id} aria-pressed={panel===id} onClick={()=>setPanel(id)} aria-label={`${title}. ${detail}`}><UiImage src={navigationArt(id)} data-nav-art={id} alt=""/><strong className="cy-visually-hidden">{id==='decor'?t('yard.persistent.decorShort'):title}</strong></button>)}
+      {[['food',t('yard.nav.food'),current.bowls.some(b=>b.servings>0)?t('yard.persistent.bowlFull'):t('yard.persistent.addFood')],['decor',t('yard.persistent.decor'),t('yard.persistent.placedCount',{count:placedItems.length})],['guests',t('yard.persistent.guests'),current.pendingGifts.length?t('yard.persistent.giftCount',{count:current.pendingGifts.length}):t('yard.persistent.memories')]].map(([id,title,detail])=><button key={id} data-nav-item={id} aria-pressed={menuSelection===id} aria-expanded={panel===id} onClick={()=>{setMenuSelection(id);setPanel(id);}} aria-label={`${title}. ${detail}`}><UiImage src={navigationArt(id)} data-nav-art={id} alt=""/><strong>{id==='decor'?t('yard.persistent.decorShort'):title}</strong></button>)}
     </HudRegion>
     <dialog ref={dialog} className="cy-dialog" aria-labelledby="cy-dialog-title" onCancel={closePanel} onClose={closePanel}>
       <header><UiImage src={navigationArt(panel) || undefined} alt=""/><h2 id="cy-dialog-title">{{food:t('yard.nav.food'),decor:t('yard.persistent.decor'),guests:t('yard.persistent.guests')}[panel]}</h2><button aria-label={t('yard.persistent.closePanel')} onClick={closePanel}><Icon name="close"/></button></header>

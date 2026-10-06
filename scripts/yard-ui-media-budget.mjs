@@ -6,7 +6,7 @@ import path from 'node:path';
 import policy from './yard-ui-media-budget.json' with { type: 'json' };
 import family from './yard-public-media.json' with { type: 'json' };
 
-export const REQUIRED_YARD_UI_BYTES = 5_249_629;
+export const REQUIRED_YARD_UI_BYTES = 5_335_835;
 const REQUIRED_YARD_UI_ALLOWANCE = 5_345_589; // Existing aggregate cap, not increased by the sharper re-export.
 export const OPTIONAL_PIP_MEDIA_BYTES = 5_565_935;
 // Exactly 10,640 additional optional bytes are the pinned T2 thumbnail.

@@ -21,7 +21,7 @@ async function fixture(t) {
 test('all required UI pins are exact; missing or equal-length changed bytes earn no allowance', async t => {
   const dir = await fixture(t), row = policy.requiredUi[0], original = await fs.readFile(path.join(dir, row.path));
   let result = await inspectYardAssetBudget({ distDir: dir, graph: graph(false) });
-  assert.deepEqual(result.failures, []); assert.equal(result.requiredUi.count, 78); assert.equal(result.requiredUi.rawBytes, 5_249_629);
+  assert.deepEqual(result.failures, []); assert.equal(result.requiredUi.count, 78); assert.equal(result.requiredUi.rawBytes, 5_335_835);
   const changed = Buffer.from(original); changed[0] ^= 1; await write(dir, row.path, changed);
   result = await inspectYardAssetBudget({ distDir: dir, graph: graph(false) });
   assert.ok(result.failures.some(row => row.id === 'public-assets.yard-ui-exact'));

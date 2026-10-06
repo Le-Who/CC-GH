@@ -32,6 +32,8 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  clock.setReason('ready',true);clock.setReason('hidden',document.hidden);clock.setReason('blur',!document.hasFocus());
  const state=()=>({enabled:!disposed,canonicalItems,itemEditing:!!ghost,itemActionPending:canonicalActionPending,plannerWorkerActive:!!plannerWorker,selectedCanonicalSlotId:selectedCommitted()?.slotId??null,interaction:interaction?.state??(interactionError?{phase:"unavailable",error:interactionError,savedVisitor:false}:null),phase:lastPhase,viewportBlocked,rejectedViewport,viewportRefusals,viewportRecoveries,minimumStage:CLEAN_STAGE_MIN,intention:canonicalItems?'canonical-item-inspection':run?.kind??null,attention:lastFrame?.intention??null,inspectionCount,placementIndex,settled:canonicalItems?interaction?.state.phase==='settled':!!lastFrame&&lastFrame.elapsedMs>=run?.route.totalMs,pauseReasons:clock.reasons,ready:!!api,domain:'pip-clean-garden-prototype-v1',actorUnitsPerSource:setup?.actor.unitsPerSource??null,scaleApproval:descriptor?.scaleApproval??null,savedVisitor:false});
  const notify=phase=>{if(disposed)return;if(phase)lastPhase=phase;onPrototypeState(state());};
+ const reportFailure=(error,operation)=>{let renderer=null;try{renderer=api?.diagnostics??null;}catch(secondary){renderer={diagnosticsError:String(secondary?.message||secondary)};}
+  onFailure(error,{operation,phase:phase(),canonicalItems,ghost:ghost?{slotId:ghost.slotId,x:ghost.x,y:ghost.y,placing:ghost.placing,valid:ghost.valid}:null,viewport:projection?{width:projection.width,height:projection.height,art:{...projection.art}}:null,backing:{width:canvas.width,height:canvas.height},lastVisibility:lastFrame?.visibility??null,renderer});};
  function publish(){if(snapshot&&!disposed)onView({...courtyardPresentation(snapshot,snapshot.yardRuntime?.serverNow||snapshot.serverTime||0,MIKA_CLIPS),mutable:false,
   ...(canonicalItems?{props:canonicalPlacements(snapshot),renderCatalog:canonicalItemCatalog,canonicalItems:true,canonicalState:canonicalItemState(snapshot),itemMutable:!!canonicalCapability(snapshot)&&Boolean(api)&&!viewportBlocked}:{}),
   mediaReady:Boolean(api)&&!viewportBlocked,visualPrototype:state()});}
@@ -77,7 +79,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
    if(!api.renderDirect({sample,point:projection.project(sample.world.root),presentation:presentation(),forcePausedRedraw:paused||frozenResizePending||reason==='startup'}))return false;
    lastFrame={elapsedMs,root:sample.world.root,intention:sample.intention,composition};frozenResizePending=false;hideSurface(false);frameCount++;const moving=elapsedMs<run.route.totalMs;
    if(!moving&&lastPhase!==phase()){notify(phase());publish();}return moving&&!clock.paused;
-  }catch(error){onFailure(error);return false;}
+  }catch(error){reportFailure(error,'finite-render');return false;}
  }
  // The item editor never samples a new route or changes the finite Pip's root.
  // An uncommitted ghost is separate from the authoritative record and is never saved locally.
@@ -104,21 +106,23 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   syncInteractionClock();
  }
  function drawItems(){
+  let operation='canonical-sample';
   try{
    const rows=canonicalPlacements(snapshot),item=displayedItem(),available=canonicalItemState(snapshot).available;
    const dynamicSample=available?interaction?.tick(clock.read()):interaction?.sample;
    const sample=dynamicSample||samplePlanterInspection(setup,run,0),actorVisible=available&&!!dynamicSample&&!ghost&&!canonicalActionPending;
    const visible=rows.length>0||!!ghost,visibility=actorVisible?(visible?'both':'pet'):(visible?'planter':'empty');
    const anchor=actorVisible?sample.world.root:item?{x:item.x,y:item.y}:sample.world.root;
-   api.setCanonicalPlacements(rows,{ghost,selectedSlotId:selectedCommitted()?.slotId??null});
+   operation='canonical-placements';api.setCanonicalPlacements(rows,{ghost,selectedSlotId:selectedCommitted()?.slotId??null});
+   operation='canonical-render';
    if(!api.renderDirect({sample,point:projection.project(anchor),presentation:presentation(),forcePausedRedraw:true,visibility}))return false;
    lastFrame={elapsedMs:clock.read(),root:sample.world.root,intention:dynamicSample?.intention||'item-placement',item:item?{...item}:null,records:rows.map(row=>({...row})),ghost:ghost?{...ghost}:null,committed:rows.length>0&&!ghost,canonicalState:canonicalItemState(snapshot).status,visibility};
-   frozenResizePending=false;hideSurface(false);frameCount++;syncInteractionClock();const nextPhase=phase();if(nextPhase!==lastPhase){notify(nextPhase);publish();}return !!interaction?.state.active&&!clock.paused;
-  }catch(error){onFailure(error);return false;}
+   operation='canonical-publish';frozenResizePending=false;hideSurface(false);frameCount++;syncInteractionClock();const nextPhase=phase();if(nextPhase!==lastPhase){notify(nextPhase);publish();}return !!interaction?.state.active&&!clock.paused;
+  }catch(error){reportFailure(error,operation);return false;}
  }
  function point(event){if(!canonicalItems||!projection||viewportBlocked)return null;const r=canvas.getBoundingClientRect();return projection.unprojectGround({x:event.clientX-r.left,y:event.clientY-r.top});}
  const scheduler=createFixtureScheduler({draw,requestFrame,cancelFrame});scheduler.setPaused(true);
- const observer=new ResizeObserver(()=>{try{resize();}catch(error){onFailure(error);}});observer.observe(canvas);
+ const observer=new ResizeObserver(()=>{try{resize();}catch(error){reportFailure(error,'resize');}});observer.observe(canvas);
  listen(document,'visibilitychange',()=>pause('hidden',document.hidden));listen(window,'blur',()=>pause('blur',true));listen(window,'focus',()=>pause('blur',false));
  function cleanup(){retireInteraction();hideSurface(false);api?.dispose();api=null;image?.close();image=null;backgroundBytes=0;directSurfaceBytes=0;release();}
  async function checked(path,kind='json',expectedHash=null){
@@ -154,7 +158,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
     for(const [position,intensity]of[[[-2.4,4,3],1.8],[[2.5,2.4,1.7],.76],[[0,2.8,-2],1.2]]){const l=new THREE.DirectionalLight(0xffffff,intensity);l.position.copy(target).add(new THREE.Vector3(...position));l.target.position.copy(target);scene.add(l,l.target);lights.push(l,l.target);}return()=>lights.forEach(l=>scene.remove(l));}});
   if(disposed){made.dispose();return;}api=made;api.setPaused(true);syncCanonicalInteraction();draw({reason:'startup',paused:true});
   if(disposed)return;clock.reset();clock.setReason('ready',false);syncInteractionClock();api.setPaused(clock.paused);scheduler.setPaused(clock.paused);scheduler.invalidate('route');notify(phase());publish();
- })().catch(error=>{if(!disposed)onFailure(error);}).finally(()=>{if(disposed)cleanup();});
+ })().catch(error=>{if(!disposed)reportFailure(error,'startup');}).finally(()=>{if(disposed)cleanup();});
  return{ready,update(value){const old=selectedCommitted();if(snapshot?.player?.id&&snapshot.player.id!==value?.player?.id){retireInteraction();ghost=null;selectedSlotId=null;}snapshot=value;syncCanonicalInteraction();const next=selectedCommitted();if(canonicalItems&&!itemPointerActive&&descriptor&&(old?.slotId!==next?.slotId||old?.x!==next?.x||old?.y!==next?.y))resize();publish();if(canonicalItems)scheduler.invalidate('snapshot',{whilePaused:true});},
   setCanonicalActionPending(value){canonicalActionPending=!!value;syncInteractionClock();scheduler.invalidate("item-intent",{whilePaused:true});},
   inspectCanonicalSlot(slotId){if(!canonicalItems||ghost||canonicalActionPending||!canonicalCapability(snapshot)||!interaction||!canonicalPlacements(snapshot).some(row=>row.slotId===slotId))return false;selectedSlotId=slotId;const accepted=interaction.request(slotId,clock.read());syncInteractionClock();scheduler.invalidate("inspect-selected",{whilePaused:true});notify(phase());publish();return accepted;},

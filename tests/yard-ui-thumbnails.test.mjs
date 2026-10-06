@@ -42,7 +42,7 @@ test('released props use exact runtime still identities, without invented condit
   const mouse=manifest.files.find(row=>row.sourceURL.endsWith('/yarn-mouse-clean.webp'));
   assert.deepEqual(mouse.sourceSize,[420,336]);assert.ok(mouse.crop.width<mouse.sourceSize[0]/3);assert.ok(mouse.crop.width/mouse.outputSize[0]>.9);
 });
-test('wooden skin bytes match their independent image-generation provenance',async()=>{
+test('surface bytes match their independent source-art provenance',async()=>{
   const folder=resolve(root,'public/assets/yard-ui/surfaces');
   const surfaces=JSON.parse(await readFile(resolve(folder,'ui-surfaces-manifest.json')));
   assert.equal(surfaces.files.length,4);

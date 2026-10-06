@@ -3,6 +3,7 @@ import "../companion-yard/i18n.js";
 
 export const PERSISTENT_YARD_TRANSLATIONS = {
   en: {
+    "yard.canonical.displayFailed": "New Yard display is unavailable. Open New Yard to try again.",
     "yard.canonical.inspect": "Pip: inspect",
     "yard.canonical.noPathShort": "Path blocked",
     "yard.canonical.planningShort": "Finding a path",
@@ -167,6 +168,7 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.persistent.error.letter": "Today’s letter has already been opened.",
   },
   ru: {
+    "yard.canonical.displayFailed": "Новый двор не загрузился. Откройте его ещё раз.",
     "yard.canonical.inspect": "Позвать Пипа",
     "yard.canonical.noPathShort": "Путь закрыт",
     "yard.canonical.planningShort": "Ищет путь",

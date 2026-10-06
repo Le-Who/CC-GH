@@ -4,12 +4,12 @@
   "sourceUiTree": "7a5ea1ff031f6b46d8727d89b5201e37dc54bcb4",
   "rows": [
     {
-      "owner": "css-url:/assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
-      "url": "/assets/yard-ui/surfaces/yard-ui-wood-strip-79a2e1bbcc0a.webp",
-      "width": 1808,
-      "height": 214,
-      "sha256": "79a2e1bbcc0a400ef8695ac971ab41dc19ca7c4c91ef244108df170923fe2455",
-      "evidence": "Exact original source re-export; uniform corners; native high-density rails/fill without source upscaling. See header export receipt.",
+      "owner": "css-url:/assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+      "url": "/assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+      "width": 1170,
+      "height": 172,
+      "sha256": "119392d270f62bc08b8ff84a094bc07c8f9009ce463d670b7ea8e3a76f7b0268",
+      "evidence": "Exact separately generated cream/sage source crop and lossless runtime export; identity and prior delivery in ui-surfaces-manifest.json",
       "alwaysReserved": true
     },
     {
@@ -31,12 +31,12 @@
       "alwaysReserved": true
     },
     {
-      "owner": "css-url:/assets/yard-ui/surfaces/yard-ui-button-primary.webp",
-      "url": "/assets/yard-ui/surfaces/yard-ui-button-primary.webp",
-      "width": 512,
-      "height": 128,
-      "sha256": "c52716e9417f15e0300cf06cf2589d1c41b13f24acf76de36d41e9d9f383c37e",
-      "evidence": "exact accepted surface manifest",
+      "owner": "css-url:/assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+      "url": "/assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+      "width": 600,
+      "height": 138,
+      "sha256": "be06b62e0b3ec78309592e2928b2224fad178e8d5e58831c2409bb7443d81df7",
+      "evidence": "Exact separately generated cream/sage source crop and lossless runtime export; identity and prior delivery in ui-surfaces-manifest.json",
       "alwaysReserved": true
     },
     {

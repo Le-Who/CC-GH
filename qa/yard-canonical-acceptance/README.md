@@ -1,47 +1,43 @@
-# Readiness correction with bounded evidence reuse
+# Fresh render-failure and UI acceptance
 
-This follow-up changes acceptance code only, on exact parent
-`4591a151a22503374999dfd5b207b38c4bf631e5`, tree
-`6e8fcefa68a12f364f2d4ab0c39377547887e225`.
+Base:720dd25ec1e326a5cd50ce986c4bb48373a796c8, tree
+9f41d167920bcfc57af9a17b4d144bed8ccb3a0d. This packet changes only the
+acceptance harness/workflow. Integrate the separately reviewed final UI, renderer,
+menu/surface/shadow and diagnostic source packet before sealing the full delta.
 
-Run37487170407 passed190 source tests,9 PostgreSQL tests and both production builds,
-then failed before browser startup on the server cwd. Run37489937106 repeated those
-passes, opened the actual authenticated browser and captured the current HUD, then
-stopped because the harness expected a deliberately hidden status indicator to be
-visible. Neither run established canonical dynamic browser acceptance.
+Run37493090357 reached the actual authenticated New Yard and rendered R1 using
+Chromium145/WebGL2/ANGLE SwiftShader. It then returned to the legacy scene while
+preparing the first ghost. The original product cause remains unknown; passing
+Node/Three/no-op-GL tests does not establish shader or browser correctness.
 
-Boot and reload now require the real authenticated snapshot for the fixture,
-known mutable canonical state, the ready class's presence, a visible Yard and its
-live legacy scene. The status indicator can remain hidden as the UI intends.
-The selector audit also uses the existing explicit Place action and waits for
-modal open/close, ghost presentation and committed rendered rows. No product,
-asset, store mutation hook or success-response substitution is introduced.
+The browser retains its exact owner snapshot, including lastFailure operation,
+stack, ghost, viewport and pre-retirement renderer details, before closing the
+context. It captures at most48 recent console warnings/errors,2048 text characters
+each. Initial New Yard pixels/owner state and both startup/main failure evidence
+remain. Observing duplicate-response rejection suppresses a secondary unhandled
+rejection without changing the promise awaited by the main flow. Strict ghost,
+placement/outbox, dynamic motion and viewport assertions remain intact.
 
-Preflight verifies exact parent identity, exact changed-file seal and a SHA256
-of every protected Git tree entry. Only this harness/workflow may change. That
-fingerprint matches both previous runs. The committed reused-proof.json retains
-their original receipts, raw evidence-file hashes, test totals and default-build
-closure/budget summary; original browser failures remain labelled failures.
+Product/HUD/shadow changes invalidate the former blanket source/default-build
+reuse. This job freshly runs affected source/UI/renderer checks (including the
+actual-Three scene regression), the existing9-case PostgreSQL CAS/receipt pass,
+both real NODE_ENV=production default-off/preview-on builds with all current
+asset/startup/worker closure and budget gates, then the full real auth/API/DB/UI
+browser acceptance. It does not run an old full-family native-render suite.
+Historical reused-proof.json remains historical and is not read or credited.
 
-The next single10-minute job runs fresh dependency setup, no-launch path/readiness/
-DB-guard checks, a fresh preview production `pnpm run build` and every existing
-asset/startup/worker closure and budget gate, then the unchanged full real
-Express/auth/PostgreSQL/UI/outbox/dynamic-browser/viewport evidence flow. It reuses
-only the190 unchanged source tests,9 unchanged multi-process PostgreSQL tests and
-default-off build proof. PostgreSQL15 still starts fresh for actual browser API
-persistence. Preview build and browser are never reused.
+One standard runner, PostgreSQL15,10-minute hard job limit, zero retries,
+8MiB maximum artifact retained3days. Checkout depth6 is required now because the
+fresh compatibility source tests again use4660: new→720→4591→c0→592→4660.
+No limits are raised, no browser flags change, no deploy/cache/production target
+is added. Actual browser/WebGL backend is recorded; device FPS remains unmeasured.
 
-Checkout depth2 is sufficient because this job's selected checks need only the
-current commit and exact4591 parent. Historical4660 compatibility tests are covered
-by the pinned prior receipts, so no extra ancestry is fetched.
-
-After applying and reviewing, run from the repository root:
+After exact final source review, from the integration repository root:
 
     node qa/yard-canonical-acceptance/seal.mjs --reviewed-final-source
 
-Commit the exact reviewed changes plus regenerated reviewed-source.json as one
-child of4591. Only first creation of `qa/yard-canonical-ready-check-20261006` can
-trigger the one job. There is no dispatch, retry, deploy, cache or production
-connection. Artifact cap remains8MiB, retained3days. Early HUD and startup-failure
-captures remain. Real dynamic motion, subjective visual review and device FPS
-are still pending; the fixed world raster remains390×648 at DPR1.
+Commit that manifest with exactly the reviewed delta, as one child of720.
+Only first creation of qa/yard-canonical-render-diagnostics-20261006 triggers
+the single job. No publication or dispatch was performed while preparing this
+packet. Existing failed-run artifacts are preserved unchanged. No placement fix,
+dynamic clip or subjective visual acceptance is claimed before real browser proof.

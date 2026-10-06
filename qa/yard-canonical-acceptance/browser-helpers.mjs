@@ -6,7 +6,7 @@ import sharp from 'sharp';
 import {ORIGIN} from './fixtures.mjs';
 import geometry from '../../game-logic/yard-v2/canonical-location-geometry.json' with {type:'json'};
 export const OUT=path.join(import.meta.dirname,'results'),WORK=path.join(import.meta.dirname,'work');
-export const report={status:'RUNNING',cases:[],matrix:[],captures:[],errors:[],requests:[],limits:{artifactBytes:8388608,jobMinutes:10,browserSeconds:220,retries:0},visualAcceptance:'REVIEW_PENDING',devicePerformance:'NOT_MEASURED'};
+export const report={console:{limit:48,maxTextCharacters:2048,entries:[],dropped:0},failureDiagnostics:[],status:'RUNNING',cases:[],matrix:[],captures:[],errors:[],requests:[],limits:{artifactBytes:8388608,jobMinutes:10,browserSeconds:220,retries:0},visualAcceptance:'REVIEW_PENDING',devicePerformance:'NOT_MEASURED'};
 export const shot=page=>page.evaluate(()=>window.__yardPipIntegration?.snapshot());
 export const scene=async page=>(await shot(page))?.scene;
 export async function init(context,f,language='en'){
@@ -17,6 +17,11 @@ export async function init(context,f,language='en'){
  },{id:f.externalId,language});
 }
 export function observe(page){
+ page.on('console',message=>{
+  if(!['error','warning','warn'].includes(message.type()))return;
+  const entry={type:message.type(),text:message.text().slice(0,report.console.maxTextCharacters),location:message.location()};
+  if(report.console.entries.length>=report.console.limit){report.console.entries.shift();report.console.dropped++;}report.console.entries.push(entry);
+ });
  page.on('pageerror',e=>report.errors.push({type:'pageerror',message:e.message}));
  page.on('request',r=>{if(new URL(r.url()).pathname==='/api/player/mutate'){const c=r.postDataJSON();if(!['yard.placeGoodie','yard.moveGoodie','yard.pickupGoodie'].includes(c?.action))report.errors.push({type:'unexpected-economy-action',action:c?.action});}});
  page.on('response',r=>{const u=new URL(r.url());if(u.origin===ORIGIN&&(u.pathname.startsWith('/assets/')||/woff2?$/.test(u.pathname)))report.requests.push({url:u.pathname,status:r.status()});});
@@ -76,6 +81,20 @@ export async function inspect(page,index=0){
  return scene(page);
 }
 export async function refresh(page){const response=page.waitForResponse(r=>new URL(r.url()).origin===ORIGIN&&new URL(r.url()).pathname==='/api/player/snapshot'&&r.status()===200);await page.evaluate(()=>document.dispatchEvent(new Event('visibilitychange')));await response;}
+export async function captureFailureDiagnostics(page,label){
+ const observed=await page.evaluate(()=>({
+  owner:window.__yardPipIntegration?.snapshot()??null,
+  canonicalMode:document.querySelector('.cy-app')?.getAttribute('data-canonical-items')??null,
+  prototypeMode:document.querySelector('.cy-app')?.getAttribute('data-pip-preview')??null,
+  dialogOpen:document.querySelector('.cy-dialog')?.open??false,
+  placementControls:[...document.querySelectorAll('[data-yard-action]')].map(e=>({action:e.dataset.yardAction,disabled:e.disabled,visible:!!e.getClientRects().length})),
+  viewport:{width:innerWidth,height:innerHeight,dpr:devicePixelRatio},
+ }));
+ const file=label+'-diagnostics.json';await fs.mkdir(OUT,{recursive:true});
+ await fs.writeFile(path.join(OUT,file),JSON.stringify({label,capturedAt:new Date().toISOString(),...observed,console:report.console},null,2)+'\n');
+ report.failureDiagnostics.push({file,mode:observed.owner?.mode,lastFailure:observed.owner?.lastFailure??null});
+ return observed;
+}
 export async function capture(page,name){await fs.mkdir(OUT,{recursive:true});const file=name+'.webp';await sharp(await page.screenshot()).webp({quality:90}).toFile(path.join(OUT,file));report.captures.push(file);return file;}
 export async function fonts(page,locale){
  await page.evaluate(()=>document.fonts.ready);const actual=await page.locator('.cy-app').evaluate(e=>getComputedStyle(e).fontFamily);assert.match(actual,/Nunito/i);

@@ -19,15 +19,55 @@ const canonical=v=>({x:v.x*12,y:-v.z*12,z:v.y*12});
 async function harness(){
  const [pip,pot,fragmentHelper]=await Promise.all([fs.readFile(new URL('assets/pip.glb',base)),fs.readFile(new URL('assets/planter-t2.glb',base)),fs.readFile(new URL('source/pip-rest-coat.glsl',base),'utf8')]);
  const ab=b=>b.buffer.slice(b.byteOffset,b.byteOffset+b.byteLength),canvas=new EventTarget();canvas.style={};canvas.dataset={};canvas.remove=()=>{canvas.parentNode=null;};
- const host={appendChild:c=>{c.parentNode=host;}},resources=[],events=[];let THREE,scene,camera,allocations=0;
+ const host={appendChild:c=>{c.parentNode=host;}},resources=[],events=[];let THREE,scene,camera,allocations=0,contactShown;
  const api=await createOptionalPipRenderer({enabled:true,actorUnitsPerSource:16,calibration,fragmentHelper,planter:{descriptor:setup.planter,placement:setup.placements[0]},presentationMode:'direct',directHost:host,canvasFactory:()=>canvas,
   viewport:createCleanProjection(descriptor,390,592).renderViewport,loadAssetBytes:async()=>ab(pip),loadPlanterAssetBytes:async()=>ab(pot),
   admitResources:r=>{resources.push(r);return admitPipResources({...r,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES});},onResources:r=>events.push(r),setupLighting:()=>()=>{},
-  rendererFactory:o=>{THREE=o.THREE;return{shadowMap:{},setClearColor(){},setPixelRatio(){},setSize(w,h){allocations++;canvas.width=w;canvas.height=h;},dispose(){},forceContextLoss(){},render(s,c){scene=s;camera=c;scene.updateMatrixWorld(true);}};}});
+  rendererFactory:o=>{THREE=o.THREE;return{shadowMap:{},setClearColor(){},setPixelRatio(){},setSize(w,h){allocations++;canvas.width=w;canvas.height=h;},dispose(){},forceContextLoss(){},render(s,c){scene=s;camera=c;scene.updateMatrixWorld(true);contactShown=scene.getObjectByName('Pip bounded flat-ground contact')?.visible;}};}});
  const project=v=>{const ndc=v.clone().project(camera);return{x:(ndc.x+1)*canvas.width/2,y:(1-ndc.y)*canvas.height/2,z:ndc.z};};
  function vertices(object){const result=[],v=new THREE.Vector3();object.traverseVisible(o=>{if(!o.isMesh)return;for(let i=0;i<o.geometry.attributes.position.count;i++){o.getVertexPosition(i,v);v.applyMatrix4(o.matrixWorld);result.push({world:v.clone(),...project(v)});}});return result;}
- return{api,canvas,resources,events,project,vertices,get THREE(){return THREE;},get scene(){return scene;},get camera(){return camera;},get allocations(){return allocations;}};
+ return{api,canvas,resources,events,project,vertices,get THREE(){return THREE;},get scene(){return scene;},get camera(){return camera;},get allocations(){return allocations;},get contactShown(){return contactShown;}};
 }
+
+test('Pip contact follows actual R1 soles on the ground through rest, single support and turns',async()=>{
+ const e=await harness(),run=makeRoute(setup,0,0),p=createCleanProjection(descriptor,390,592),report=[];
+ const atSingle=(run.gait.events[0].startMs+run.gait.events[0].endMs)/2;
+ const resting=sampleRoute(setup,run,0),single=sampleRoute(setup,run,atSingle),samples=[resting,single];
+ for(const heading of[0,Math.PI/2,Math.PI,-Math.PI/2]){
+  const sample=structuredClone(single),angle=heading-sample.world.heading,root=sample.world.root;
+  for(const foot of Object.values(sample.world.feet)){const dx=foot.position.x-root.x,dy=foot.position.y-root.y;foot.position.x=root.x+dx*Math.cos(angle)-dy*Math.sin(angle);foot.position.y=root.y+dx*Math.sin(angle)+dy*Math.cos(angle);foot.heading+=angle;}
+  sample.world.heading=heading;samples.push(sample);
+ }
+ let geometry,material;
+ try{
+  for(const sample of samples){
+   e.api.renderDirect({sample});const shadow=e.scene.getObjectByName('Pip bounded flat-ground contact'),d=e.api.diagnostics.contactShadow;
+   geometry??=shadow.geometry;material??=shadow.material;assert.equal(shadow.geometry,geometry);assert.equal(shadow.material,material);assert.equal(e.contactShown,true);assert.equal(d.pixelAppearanceQualified,false);
+   assert.equal(material.transparent,true);assert.equal(material.depthTest,true);assert.equal(material.depthWrite,false);assert.equal(material.map,undefined);
+   const typedBytes=Object.values(geometry.attributes).reduce((n,a)=>n+a.array.byteLength,geometry.index.array.byteLength);assert.equal(typedBytes,60);
+   for(const v of e.vertices(shadow))close(v.world.y,.015/12,'contact plane Y');
+   for(const [index,contract]of ['L','R'].entries()){
+    const native=calibration.boneSideMap.contractToNative[contract],foot=sample.world.feet[contract],lobe=d[index===0?'left':'right'];let bone;
+    e.scene.traverse(o=>{if(o.isBone&&o.name.replace(/[._]/g,'')==='foot'+native)bone=o;});assert.ok(bone);
+    const inverseRest=new e.THREE.Matrix4().set(...calibration.restMatrices['foot.'+native].flat()).invert();
+    const actual=new e.THREE.Vector3(...calibration.feet[native].soleCenterSource).applyMatrix4(inverseRest).applyMatrix4(bone.matrixWorld);
+    close(lobe[0],actual.x,'lobe under actual sole X');close(lobe[1],actual.z,'lobe under actual sole Z');close(actual.y,foot.position.z/12,'actual sole height');
+    const projected=e.project(new e.THREE.Vector3(lobe[0],0,lobe[1])),expected=p.project({...foot.position,z:0}),rect=e.api.diagnostics.lastFrame.rect;
+    close(projected.x+rect.x,expected.x,'sole ground projection X');close(projected.y+rect.y,expected.y,'sole ground projection Y');
+    close(d[index===0?'leftAxis':'rightAxis'][0],Math.cos(foot.heading),'sole direction X');close(d[index===0?'leftAxis':'rightAxis'][1],-Math.sin(foot.heading),'sole direction Z');
+    if(foot.planted)close(d.strength[index+1],.29,'planted lobe strength');else assert.ok(d.strength[index+1]<.1,'lifted paw loses contact darkness');
+   }
+   report.push({phase:sample.world.phase,support:sample.world.support,heading:sample.world.heading,contact:d});
+  }
+  for(const visibility of['both','pet','planter','empty']){e.api.renderDirect({sample:resting,visibility});assert.equal(e.contactShown,visibility==='both'||visibility==='pet');}
+  const raised=structuredClone(resting);raised.world.root.z=5;for(const foot of Object.values(raised.world.feet))foot.position.z=5;
+  e.api.renderDirect({sample:raised});assert.equal(e.contactShown,false,'future raised support cannot leave a ground-floor lobe');
+  e.api.renderDirect({sample:resting});assert.equal(e.contactShown,true);assert.equal(e.allocations,1);
+  const row=e.api.resources;assert.equal(row.contactShadowGeometryCPUBytes,60);assert.equal(row.contactShadowPendingCPUBytes,0);assert.equal(row.contactShadowGeometryGPUBytes,60);assert.equal(row.contactShadowImageTextureBytes,0);assert.equal(row.contactShadowDrawPrimitives,1);
+  for(const bad of[{contactShadowGeometryCPUBytes:0},{contactShadowPendingCPUBytes:60},{contactShadowGeometryGPUBytes:0},{contactShadowImageTextureBytes:4},{contactShadowDrawPrimitives:0}])assert.equal(admitPipResources({...row,...bad}),false);
+  if(process.env.PIP_CONTACT_REPORT)await fs.writeFile(process.env.PIP_CONTACT_REPORT,JSON.stringify({status:'Actual pinned GLB and Three CPU transforms; shader pixels and appearance still unqualified',samples:report,resources:row},null,2)+'\n');
+ }finally{e.api.dispose();}
+});
 
 test('garden raster preserves every static T2 vertex phase through approach, sniff, settle, routes and headings',async()=>{
  const e=await harness(),p=createCleanProjection(descriptor,390,592),inspection=makePlanterInspection(setup);let staticVertices,matrices,rect,phaseSamples=0,maxAnchorError=0;
@@ -95,9 +135,9 @@ test('legal moved props, CSS transforms and viewport extremes preserve the refer
 
 test('garden backing replaces only the local tile cap and fails closed on total ownership overruns',async()=>{
  const e=await harness();try{
-  const row=e.api.resources,pixels=390*648;assert.deepEqual(GARDEN_RASTER,{width:390,height:648,pixels});assert.equal(row.geometryGPUBufferBytes,4028272);assert.equal(row.boneDataTextureGPUBytesEstimate,1024);
+  const row=e.api.resources,pixels=390*648;assert.deepEqual(GARDEN_RASTER,{width:390,height:648,pixels});assert.equal(row.geometryGPUBufferBytes,4028332);assert.equal(row.boneDataTextureGPUBytesEstimate,1024);
   assert.equal(row.drawingBufferColorBytes,1010880);assert.equal(row.resizeDrawingBufferPeakEstimatedBytes,4043520);assert.equal(row.compositorResizePeakBytesEstimate,2021760);assert.equal(row.ownedRGBASurfacePeakBytes,4043520);
-  const gpu=row.geometryGPUBufferBytes+row.boneDataTextureGPUBytesEstimate+row.resizeDrawingBufferPeakEstimatedBytes+row.compositorResizePeakBytesEstimate;assert.equal(gpu,10094576);assert.ok(gpu<LIMITS.estimatedGPU);assert.equal(LIMITS.estimatedGPU,12*1024*1024);assert.equal(LIMITS.knownCPU,16*1024*1024);assert.equal(LIMITS.rgba,64*1024*1024);assert.equal(COMBINED_KNOWN_CPU_PEAK+row.boneDataTextureCPUBytesEstimate,15112736);
+  const gpu=row.geometryGPUBufferBytes+row.boneDataTextureGPUBytesEstimate+row.resizeDrawingBufferPeakEstimatedBytes+row.compositorResizePeakBytesEstimate;assert.equal(gpu,10094636);assert.ok(gpu<LIMITS.estimatedGPU);assert.equal(LIMITS.estimatedGPU,12*1024*1024);assert.equal(LIMITS.knownCPU,16*1024*1024);assert.equal(LIMITS.rgba,64*1024*1024);assert.equal(COMBINED_KNOWN_CPU_PEAK+row.boneDataTextureCPUBytesEstimate,15112796);
   const uiBytes=uiImageLifetimeLedger(canonicalItemCatalog).bytes;
   for(const [w,h]of[[320,568],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720]]){
    const backing=w*h*16,r=rgbaAdmission({uiBytes,backgroundBytes:973*1616*4,currentCanvasBytes:backing,pendingCanvasBytes:backing,directSurfaceBytes:row.ownedRGBASurfacePeakBytes});assert.equal(r.fits,true);assert.ok(r.totalBytes<=LIMITS.rgba);
@@ -131,7 +171,7 @@ test('two committed T2 roots and one ghost share buffers, retain other-item rast
   e.api.setCanonicalPlacements(moved,{ghost:{slotId:'new',x:80,y:160,placing:true}});assert.equal(roots.filter(r=>r.visible).length,3);
   const before=e.api.diagnostics.propInstances;for(const bad of[[...records,{slotId:'c',x:80,y:160}],[records[0],records[0]],[{slotId:'a',x:NaN,y:0}]]){assert.throws(()=>e.api.setCanonicalPlacements(bad),/Bounded/);assert.deepEqual(e.api.diagnostics.propInstances,before);}
   assert.throws(()=>e.api.setCanonicalPlacements(records,{ghost:{slotId:'bad',x:0,y:Infinity}}),/Bounded/);assert.deepEqual(e.api.diagnostics.propInstances,before);
-  assert.equal(e.api.resources.geometryGPUBufferBytes,4028272);assert.equal(e.api.resources.propInstanceCapacity,3);assert.equal(e.api.resources.propBuffersShared,true);assert.equal(e.allocations,1);
+  assert.equal(e.api.resources.geometryGPUBufferBytes,4028332);assert.equal(e.api.resources.propInstanceCapacity,3);assert.equal(e.api.resources.propBuffersShared,true);assert.equal(e.allocations,1);
  }finally{e.api.dispose();e.api.dispose();}
  assert.equal(retiredGeometry.size,ownedGeometry.size);assert.equal(retiredMaterials.size,ownedMaterials.size);for(const n of [...retiredGeometry.values(),...retiredMaterials.values()])assert.equal(n,1);
  assert.equal(e.api.setCanonicalPlacements(records),false);

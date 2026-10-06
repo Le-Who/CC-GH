@@ -6,6 +6,7 @@ import{MODEL_CPU_GLB_BYTES,MODEL_CPU_BINARY_BYTES,KNOWN_CPU_BUFFER_PEAK,GARDEN_R
  */
 import {installPipAnalyticalCoat,PIP_PRIVATE_GLB_SHA256,PIP_COAT_MATERIAL_NAME} from '../source/pip-analytical-coat.mjs';
 import {createAdaptivePoseDriver} from './adaptive-pose-driver.mjs';
+import {createPipContactShadow,PIP_CONTACT_SHADOW} from './pip-contact-shadow.mjs';
 import {createCalibratedPlanter} from './calibrated-planter.mjs';
 import {validateGardenViewport,configureGardenCamera,gardenSurfaceRect,canvasRectToCSS,presentDirectSurface} from './surface-placement.mjs';
 
@@ -20,7 +21,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
   if(typeof loadAssetBytes!=='function'||typeof setupLighting!=='function'||typeof admitResources!=='function')throw Error('Explicit asset, lighting and separate resource owners required');
   if(!planter||typeof loadPlanterAssetBytes!=='function')throw Error('Admitted authored planter required');
   const owner='private-one-pet-WebGL-prototype',geometries=new Set(),materials=new Set(),skeletons=new Set(),attributes=new Set();
-  let THREE,bytes,gltf,proxy,propGroup,propRoots=[],presentationProp,scene,camera,direction,pose,restoreMaterial,canvas,renderer,cleanupLighting;
+  let THREE,bytes,gltf,proxy,contactShadow,propGroup,propRoots=[],presentationProp,scene,camera,direction,pose,restoreMaterial,canvas,renderer,cleanupLighting;
   let disposed=false,paused=false,contextLost=false,size=null,lastFrame=null,gardenViewport=null;
   const counts={renders:0,copies:0,directPresentations:0,resizes:0,viewportUpdates:0,contextLosses:0,contextRestorations:0,disposals:0};
   function inventory(o){if(o.geometry){geometries.add(o.geometry);for(const a of Object.values(o.geometry.attributes))attributes.add(a);if(o.geometry.index)attributes.add(o.geometry.index);}
@@ -32,7 +33,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     canvas?.removeEventListener('webglcontextlost',lose);canvas?.removeEventListener('webglcontextrestored',restore);
     renderer?.dispose();renderer?.forceContextLoss();canvas?.remove();if(canvas)canvas.width=canvas.height=0;
     scene?.clear();geometries.clear();materials.clear();skeletons.clear();attributes.clear();
-    bytes=null;gltf=null;proxy=null;propGroup=null;propRoots=[];presentationProp=null;pose=null;renderer=null;restoreMaterial=null;cleanupLighting=null;onResources({event:'disposed',owner});
+    bytes=null;gltf=null;proxy=null;contactShadow=null;propGroup=null;propRoots=[];presentationProp=null;pose=null;renderer=null;restoreMaterial=null;cleanupLighting=null;onResources({event:'disposed',owner});
   }
   function lose(event){event.preventDefault();contextLost=true;counts.contextLosses++;onResources({event:'context-lost',owner});}
   function restore(){contextLost=false;counts.contextRestorations++;onResources({event:'context-restored',owner,requiresBrowserAcceptance:true,requiresFreshRender:true});}
@@ -44,6 +45,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     const estimate={stage:'before-drawing-buffer-allocation',owner,separateFromYard64MiBRGBALedger:true,
       rasterPolicy:'garden-reference-grid-v1',backingWidth:bw,backingHeight:bh,
       cpuGLBBytes:MODEL_CPU_GLB_BYTES,cpuParsedBinaryBufferBytes:MODEL_CPU_BINARY_BYTES,cpuBufferViewCopiesBytes:MODEL_CPU_BINARY_BYTES,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK,geometryGPUBufferBytes:geometryBytes,
+      contactShadowGeometryCPUBytes:PIP_CONTACT_SHADOW.geometryCPUBytes,contactShadowPendingCPUBytes:PIP_CONTACT_SHADOW.pendingCPUBytes,contactShadowGeometryGPUBytes:PIP_CONTACT_SHADOW.geometryGPUBytes,contactShadowImageTextureBytes:PIP_CONTACT_SHADOW.imageTextureBytes,contactShadowDrawPrimitives:PIP_CONTACT_SHADOW.drawPrimitives,
       assetImageTextureBytes:0,uniqueSkeletons:skeletons.size,boneDataTextureGPUBytesEstimate:boneTextureBytes,boneDataTextureCPUBytesEstimate:boneTextureBytes,
       // Reserve old+new buffers even at initial admission, including a possible
       // context restoration. Ordinary layout changes never resize this raster.
@@ -70,7 +72,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
   try{
     signal?.throwIfAborted();
     if(admitResources({stage:'before-import-and-load',owner,separateFromYard64MiBRGBALedger:true,cpuGLBBytes:MODEL_CPU_GLB_BYTES,
-      cpuParsedBinaryBufferBytes:MODEL_CPU_BINARY_BYTES,cpuBufferViewCopiesBytes:MODEL_CPU_BINARY_BYTES,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK,engineAndLoaderObjectOverheadKnown:false})!==true)throw Error('Prototype preload admission rejected');
+      cpuParsedBinaryBufferBytes:MODEL_CPU_BINARY_BYTES,cpuBufferViewCopiesBytes:MODEL_CPU_BINARY_BYTES,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK,contactShadowGeometryCPUBytes:PIP_CONTACT_SHADOW.geometryCPUBytes,contactShadowPendingCPUBytes:PIP_CONTACT_SHADOW.pendingCPUBytes,engineAndLoaderObjectOverheadKnown:false})!==true)throw Error('Prototype preload admission rejected');
     let module;[THREE,module]=await Promise.all([import('../vendor/three/build/three.module.js'),import('../vendor/three/addons/loaders/GLTFLoader.js')]);
     signal?.throwIfAborted();
     if(THREE.REVISION!=='186')throw Error('Unqualified Three revision');
@@ -87,6 +89,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     // lobe. No second GLB parse, typed array, texture or shadow buffer exists.
     propRoots=[proxy.root,proxy.root.clone(true),proxy.root.clone(true)];propGroup=new THREE.Group();propGroup.name='Bounded shared T2 instances';
     propRoots.forEach((root,i)=>{root.visible=i===0;root.userData.canonicalSlotId=null;root.userData.ghost=i===2;propGroup.add(root);});presentationProp=proxy.root;scene.add(propGroup);scene.updateMatrixWorld(true);
+    contactShadow=createPipContactShadow(THREE,{actorUnitsPerSource});scene.add(contactShadow.mesh);contactShadow.mesh.traverse(inventory);
     pose=createAdaptivePoseDriver(THREE,gltf,calibration,{unitsPerSource:actorUnitsPerSource,sourceFrame:actorFrame});camera=new THREE.OrthographicCamera();direction=new THREE.Vector3(5.66,9.799775507632814,8);
     validateGardenViewport(viewport);requestSize();canvas=canvasFactory();
     const rendererOptions={canvas,alpha:true,antialias:false,premultipliedAlpha:true,preserveDrawingBuffer:false};
@@ -104,13 +107,15 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     const t0=performance.now(),{rootGLTF}=pose.apply(sample),itemOnly=visibility==='planter'||visibility==='empty';
     // Visibility selects the diagnostic anchor only. Camera and raster remain
     // garden-aligned even while either object travels or changes heading.
+    contactShadow.update(sample);
     const presentationRoot=itemOnly?presentationProp.position:rootGLTF;
     const rect=gardenSurfaceRect(gardenViewport,presentationRoot,camera),cssRect=presentation?canvasRectToCSS(rect,presentation):rect;
     // A direct surface must be mounted before submitting its first frame.
     if(mode==='direct')presentDirectSurface(canvas,directHost,cssRect,alpha);
     const t1=performance.now(),petVisible=gltf.scene.visible,planterVisible=propGroup.visible;
     gltf.scene.visible=visibility==='both'||visibility==='pet';propGroup.visible=visibility==='both'||visibility==='planter';
-    try{renderer.render(scene,camera);}finally{gltf.scene.visible=petVisible;propGroup.visible=planterVisible;}
+    const shadowVisible=contactShadow.mesh.visible;contactShadow.mesh.visible=shadowVisible&&gltf.scene.visible;
+    try{renderer.render(scene,camera);}finally{gltf.scene.visible=petVisible;propGroup.visible=planterVisible;contactShadow.mesh.visible=shadowVisible;}
     const t2=performance.now();
     counts.renders++;
     if(mode==='copy'){
@@ -136,6 +141,6 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
   }
   return{renderAndCopy:(ctx,options)=>renderFrame('copy',ctx,options),renderDirect:options=>renderFrame('direct',null,options),resize,dispose,setCanonicalPlacements,
     setPaused(v){paused=Boolean(v);},setPlanterPlacement(p){if(disposed)return;if(!proxy)throw Error('No calibrated planter admitted');proxy.move(p);propRoots.forEach((root,i)=>{root.visible=i===0;root.userData.canonicalSlotId=null;});presentationProp=proxy.root;},get resources(){return size?.estimate;},
-    get diagnostics(){return{mode:presentationMode,actorUnitsPerSource,actorModelScale:actorUnitsPerSource/RENDER_UNITS_TO_CANONICAL,disposed,paused,contextLost,mounted:Boolean(canvas?.parentNode),...counts,propInstances:propRoots.map(root=>({slotId:root.userData.canonicalSlotId,ghost:root.userData.ghost,visible:root.visible,position:root.position.toArray()})),lastFrame:structuredClone(lastFrame)};},
+    get diagnostics(){return{mode:presentationMode,actorUnitsPerSource,actorModelScale:actorUnitsPerSource/RENDER_UNITS_TO_CANONICAL,disposed,paused,contextLost,mounted:Boolean(canvas?.parentNode),...counts,contactShadow:contactShadow?.diagnostics??null,propInstances:propRoots.map(root=>({slotId:root.userData.canonicalSlotId,ghost:root.userData.ghost,visible:root.visible,position:root.position.toArray()})),lastFrame:structuredClone(lastFrame)};},
     qualification:'Optional integrated clean-location candidate; integrated browser appearance and performance remain unqualified.'};
 }
