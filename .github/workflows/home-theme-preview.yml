@@ -30,6 +30,14 @@ jobs:
           set -o pipefail
           mkdir -p test-results/home-theme
           DEBUG=pw:webserver pnpm exec playwright test --config playwright.home-theme.config.mjs 2>&1 | tee test-results/home-theme/browser-build.log
+      - name: Compress one real gameplay loop for comparison
+        if: ${{ !cancelled() }}
+        run: |
+          if [ -f test-results/home-theme/bubbo-native-shot.webm ]; then
+            ffmpeg -version | head -1 > test-results/home-theme/ffmpeg-version.txt
+            ffmpeg -y -sseof -3 -i test-results/home-theme/bubbo-native-shot.webm -an -vf "scale=400:300,fps=12" -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -crf 30 -movflags +faststart test-results/home-theme/bubbo-shot-preview.mp4
+            ffprobe -v quiet -show_format -show_streams -of json test-results/home-theme/bubbo-shot-preview.mp4 > test-results/home-theme/loop-media.json
+          fi
       - name: Preserve failures and source identity
         if: always()
         run: mkdir -p test-results/home-theme && git rev-parse HEAD > test-results/home-theme/source-commit.txt

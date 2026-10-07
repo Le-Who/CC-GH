@@ -87,3 +87,25 @@ for(const reducedMotion of ['no-preference','reduce'])test(`static poster loadin
  await fs.writeFile(`${OUT}/poster-loading-${reducedMotion}.json`,JSON.stringify({scope:'Cold Home opening, static lazy WebP images. decodeReadyMs is readiness wait after scrolling, not an isolated codec benchmark.',reducedMotion,beforeHome,initial,decode,resources,gameCode,estimatedRgbaSurfaceBytes:decode.reduce((n,x)=>n+x.width*x.height*4,0)},null,2));
  await page.locator('[data-home-game="bubbo"]').scrollIntoViewIfNeeded();await page.screenshot({path:`${OUT}/home-real-posters-${reducedMotion}.png`});
 });
+for(const [width,height] of [[320,568],[844,390]])test(`Russian labels and theme ${width}x${height}`,async({page})=>{
+ await page.setViewportSize({width,height});await page.addInitScript(()=>localStorage.setItem('garden_shelf_language','ru'));
+ await page.goto('/');await expect(page.locator('.gs2-stage')).toBeVisible();await openHome(page);
+ await expect(page.locator('[data-home-game="blox"] strong')).toHaveText('Blox · Блоки');
+ await expect(page.locator('[data-home-game="blox"]')).toContainText('Размещайте фигуры');
+ await page.screenshot({path:`${OUT}/${width}x${height}-home-ru.png`});
+ await page.locator('.home-profile summary').click();await page.getByRole('button',{name:'Переключить на темную тему',exact:true}).click();
+ await page.getByRole('button',{name:'Закрыть главную',exact:true}).click();await page.locator('.gs2-settings').click();
+ await expect(page.getByRole('button',{name:'Тёмная тема',exact:true})).toHaveAttribute('aria-pressed','true');
+ await page.getByRole('button',{name:'Светлая тема',exact:true}).click();await expect(page.locator('html')).toHaveAttribute('data-ui-theme','light');
+ await page.screenshot({path:`${OUT}/${width}x${height}-garden-settings-ru.png`});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);
+});
+test('record one genuine Bubbo shot for optional preview',async({browser},info)=>{
+ const context=await browser.newContext({viewport:{width:800,height:600},serviceWorkers:'block',recordVideo:{dir:`${OUT}/raw-loop`,size:{width:800,height:600}}});
+ const page=await context.newPage();await page.addInitScript(()=>{localStorage.setItem('gh_dev_user_id','home_bubbo_loop');localStorage.setItem('garden_shelf_language','en');});await mountHomePlayerFixture(page);
+ try{
+  await page.goto(info.project.use.baseURL+'/?tab=bubbo');await page.getByTestId('bb-start').click();await expect(page.getByTestId('bb-fire')).toBeVisible();
+  await page.waitForTimeout(600);await page.getByTestId('bb-fire').click();await page.waitForTimeout(2400);
+  await page.screenshot({path:`${OUT}/bubbo-loop-end.png`});
+ }finally{const video=page.video();await context.close();await video.saveAs(`${OUT}/bubbo-native-shot.webm`);}
+});
