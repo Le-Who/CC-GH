@@ -36,13 +36,14 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 3
+          fetch-depth: 1
           persist-credentials: false
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Check reserve and immutable closed runtime boundary
         run: |
+          git fetch --no-tags --depth=1 origin 9b6b96b4cd1b019d016a741f7300e3172192c3ee
           df -h . /tmp
           mkdir -p test-results/saved-visit
           node scripts/yard-saved-pip-preflight.mjs

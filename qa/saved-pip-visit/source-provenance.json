@@ -350,12 +350,6 @@
       "source": "/workspace/shared/yard-r1-stay-behavior-20261006/overlay/src/games/companion-yard-v2/pip-prototype/canonical-stay-routes.mjs",
       "sha256": "1b02c601e45d5eb7de24d3da056d14f74ade89cbb693f0d8a9cc87f8332ab247",
       "bytes": 8817
-    },
-    {
-      "path": "src/games/companion-yard-v2/pip-prototype/canonical-stay-runtime-adapter.mjs",
-      "source": "/workspace/shared/yard-r1-stay-behavior-20261006/overlay/src/games/companion-yard-v2/pip-prototype/canonical-stay-runtime-adapter.mjs",
-      "sha256": "867caba151292c6cf38c7d712fce40f2911cd2f7b4da2ebc427b506ab0f746c3",
-      "bytes": 2430
     }
   ]
 }
