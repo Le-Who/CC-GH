@@ -1,0 +1,49 @@
+name: CC-GH private unhealthy-container identification
+on:
+  push:
+    branches: ['qa/identify-unhealthy-container-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: cc-gh-production
+  cancel-in-progress: false
+jobs:
+  identify:
+    if: github.event.created == true && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Read minimal health metadata and return encrypted result
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          command_timeout: 1m
+          script: |
+            timeout --kill-after=3s 45s bash -s -- <<'CCGH_PROBE'
+            set +x
+            set -euo pipefail
+            exec 2>/dev/null
+            [ "$(docker inspect --format '{{.Image}}' ccgh-app)" = sha256:3feb1aa00e39358bf7befbece67215483390ee089e913f8088c3aae8f7ebc9ad ]
+            [ "$(docker inspect --format '{{len .Mounts}}' ccgh-app)" = 0 ]
+            ids="$(timeout 10s docker ps -aq --no-trunc --filter health=unhealthy)"
+            count=0
+            format='{"id":{{json .Id}},"name":{{json .Name}},"project":{{json (index .Config.Labels "com.docker.compose.project")}},"service":{{json (index .Config.Labels "com.docker.compose.service")}},"health":{{json (index .State "Health")}}'
+            program="$(cat <<'PROBE_JS'
+            import {readFileSync} from 'node:fs';import {randomBytes,createCipheriv,publicEncrypt,constants} from 'node:crypto';
+            const bytes=readFileSync(0,'utf8');if(Buffer.byteLength(bytes)>262144)throw Error('Inspection exceeds bound');
+            const rows=bytes.trim()?bytes.trim().split('\n').map(JSON.parse):[];if(rows.length>8)throw Error('Too many unhealthy containers');
+            const classify=s=>{const http=s.match(/(?:HTTP(?:\/\d(?:\.\d)?)?[ :]+|status(?: code)?[=: ]+)([45]\d\d)/i);return {category:/connection refused|ECONNREFUSED/i.test(s)?'connection-refused':/timed? ?out|timeout|deadline exceeded/i.test(s)?'timeout':http?'http-error':/no such file|not found|command not found/i.test(s)?'missing-file-or-command':/permission denied|EACCES/i.test(s)?'permission-denied':/certificate|TLS|SSL/i.test(s)?'tls-or-certificate':/unhealthy|not ready|not healthy/i.test(s)?'service-not-ready':'unclassified',httpStatus:http?Number(http[1]):null};};
+            const result={format:'ccgh-unhealthy-container-identification/v1',readOnly:true,observedAt:new Date().toISOString(),containers:rows.map(r=>{if(!/^[a-f0-9]{64}$/.test(r.id)||typeof r.name!=='string'||!r.health||r.health.Status!=='unhealthy')throw Error('Unhealthy set changed');const logs=r.health.Log||[],last=logs.at(-1)||{};return {name:r.name.replace(/^\//,''),project:typeof r.project==='string'?r.project:null,service:typeof r.service==='string'?r.service:null,gameProject:r.project==='ccgh',status:r.health.Status,failingStreak:r.health.FailingStreak,lastExitCode:Number.isInteger(last.ExitCode)?last.ExitCode:null,lastCheckEnd:last.End??null,reason:classify(String(last.Output||'').slice(0,16384))};})};
+            const key=randomBytes(32),iv=randomBytes(12),cipher=createCipheriv('aes-256-gcm',key,iv),ct=Buffer.concat([cipher.update(JSON.stringify(result)),cipher.final()]);console.log(JSON.stringify({format:'ccgh-private-probe-envelope/v1',key:publicEncrypt({key:"-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1C8IhrSN5Dz/afaYiZSK\n4YqKIcNIf6o9JuZm6WIA5Ip1ge69HPtXN6j5tqM0cI+3ofxPbRbs14iqdCDtwGBN\neJArpSlQRlapSWfMk5SaH5L7/X9+QCzXF8v0AuPbf35Ms7poBtkxU1ASJakX60+i\neV7ncz+UQVuPhJI47H7XT4MiWV/bSB6+jZuJYXUbcxn2jgeXhf4jGJs7pMfcDDJi\nJU9Y7uda4PJJ3NaQeNY7cxO0MNWIrX8AbdMx9f2daYRKoDRldNCfXs8GiqL3eYmM\n9mdscHl6uVQv0hwXJcVoXT+A0b2NrMlerwoAMf/PAuZtQ3f8Qckif4gLllz2ZobP\n4wIDAQAB\n-----END PUBLIC KEY-----\n",oaepHash:'sha256',padding:constants.RSA_PKCS1_OAEP_PADDING},key).toString('base64').split('').join('.'),iv:iv.toString('base64').split('').join('.'),tag:cipher.getAuthTag().toString('base64').split('').join('.'),ciphertext:ct.toString('base64').split('').join('.')}));
+            PROBE_JS
+            )"
+            { while IFS= read -r id; do
+              [ -n "$id" ] || continue
+              [[ "$id" =~ ^[a-f0-9]{64}$ ]]
+              count=$((count+1)); [ "$count" -le 8 ]
+              timeout 10s docker inspect --format "$format" "$id"
+            done <<< "$ids"; } | timeout --kill-after=3s 20s docker exec -i -e NODE_OPTIONS= -e NODE_PATH= -e LD_PRELOAD= -e LD_LIBRARY_PATH= ccgh-app /usr/bin/env -i PATH=/usr/local/bin:/usr/bin:/bin /usr/local/bin/node --input-type=module -e "$program"
+            CCGH_PROBE
