@@ -26,7 +26,10 @@ jobs:
       - run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium
       - name: Native Home theme regression and actual gameplay captures
-        run: pnpm exec playwright test --config playwright.home-theme.config.mjs
+        run: |
+          set -o pipefail
+          mkdir -p test-results/home-theme
+          DEBUG=pw:webserver pnpm exec playwright test --config playwright.home-theme.config.mjs 2>&1 | tee test-results/home-theme/browser-build.log
       - name: Preserve failures and source identity
         if: always()
         run: mkdir -p test-results/home-theme && git rev-parse HEAD > test-results/home-theme/source-commit.txt
