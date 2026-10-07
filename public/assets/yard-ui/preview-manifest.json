@@ -1,0 +1,1887 @@
+{
+  "format": "yard-ui-thumbnails/v1",
+  "method": "Tight bbox of every alpha>0 pixel, 4% uniform transparent margin (minimum2px), no resizing, lossless WebP. Runtime object-fit:contain preserves aspect ratio.",
+  "files": [
+    {
+      "sourceURL": "/assets/yard-fox/shared-props/moon/stills/moon-broken.webp",
+      "sourcePath": "recovery-tools/yard-family-frozen/assets/yard-fox/shared-props/moon/stills/moon-broken.webp",
+      "sourceSha256": "3275260bb6ffdcc62b9c883e0cc63ed37731d82c572b8064c424104242bba4d2",
+      "sourceSize": [
+        384,
+        288
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 246,
+        "top": 107,
+        "width": 94,
+        "height": 129
+      },
+      "padding": 6,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/37b61347c4fa.webp",
+      "outputSize": [
+        106,
+        141
+      ],
+      "outputSha256": "0886f1a4935d076249f1b2921f2c7bc48fd224d1391d4a7de13dab761018dd9f",
+      "bytes": 12104
+    },
+    {
+      "sourceURL": "/assets/yard-fox/shared-props/moon/stills/moon-new.webp",
+      "sourcePath": "recovery-tools/yard-family-frozen/assets/yard-fox/shared-props/moon/stills/moon-new.webp",
+      "sourceSha256": "15af1d29cf19906fe898d9f0139ba480e8e929b47e37a16215534893b31280d4",
+      "sourceSize": [
+        384,
+        288
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 246,
+        "top": 107,
+        "width": 94,
+        "height": 129
+      },
+      "padding": 6,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/11291d0cffee.webp",
+      "outputSize": [
+        106,
+        141
+      ],
+      "outputSha256": "85110ae29458363f7dbf0b7383e295193b2c4094708ad7c1b488b2a2ea2b88d6",
+      "bytes": 12266
+    },
+    {
+      "sourceURL": "/assets/yard-fox/shared-props/moon/stills/moon-worn.webp",
+      "sourcePath": "recovery-tools/yard-family-frozen/assets/yard-fox/shared-props/moon/stills/moon-worn.webp",
+      "sourceSha256": "de68b8d010ccfa8a006dba69f4e35255891dd42940efc19e95a245bcca9b9f80",
+      "sourceSize": [
+        384,
+        288
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 246,
+        "top": 107,
+        "width": 94,
+        "height": 129
+      },
+      "padding": 6,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/64ee2dacbc26.webp",
+      "outputSize": [
+        106,
+        141
+      ],
+      "outputSha256": "a6de84ab8e4d03bc05b8bd5f41bc751603d29f0481403a490efce5883b0ea387",
+      "bytes": 13076
+    },
+    {
+      "sourceURL": "/assets/yard-mika/berry-plate-clean.webp",
+      "sourcePath": "public/assets/yard-mika/berry-plate-clean.webp",
+      "sourceSha256": "0783710f0a9a7bf95ec942b9fbd5682bf747d39304f29da6a0793bfdc70d7fb0",
+      "sourceSize": [
+        420,
+        336
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 161,
+        "top": 210,
+        "width": 98,
+        "height": 46
+      },
+      "padding": 4,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/74913f211f00.webp",
+      "outputSize": [
+        106,
+        54
+      ],
+      "outputSha256": "c62507015d4bd41a143906a0f87968a81cf58d87e0ab6c0a965da17b1f1b0bad",
+      "bytes": 6314
+    },
+    {
+      "sourceURL": "/assets/yard-mika/bonito-bowl-clean.webp",
+      "sourcePath": "public/assets/yard-mika/bonito-bowl-clean.webp",
+      "sourceSha256": "5b14ecc4fe0ef76f46911bd3615ae19832bcd591bea46aebe4a061bf2a542702",
+      "sourceSize": [
+        420,
+        336
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 165,
+        "top": 204,
+        "width": 90,
+        "height": 52
+      },
+      "padding": 4,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/65f3bb1a2364.webp",
+      "outputSize": [
+        98,
+        60
+      ],
+      "outputSha256": "6afb63f7009750f3c9fe8e04786acf34d57105ea5107864ec75bc186cda910b0",
+      "bytes": 5926
+    },
+    {
+      "sourceURL": "/assets/yard-mika/kibble-bowl-clean.webp",
+      "sourcePath": "public/assets/yard-mika/kibble-bowl-clean.webp",
+      "sourceSha256": "43ce40a8572d1fa51f0d3f1b40c815dac3f9b44b4ebaffe3360df5ba790a20a4",
+      "sourceSize": [
+        420,
+        336
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 164,
+        "top": 204,
+        "width": 92,
+        "height": 52
+      },
+      "padding": 4,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/ba0eb9cb82af.webp",
+      "outputSize": [
+        100,
+        60
+      ],
+      "outputSha256": "f9764f741fa82e79bb9f66e8ee154e4d0f99ff3969b499b10899a325ed734354",
+      "bytes": 5878
+    },
+    {
+      "sourceURL": "/assets/yard-mika/kibble-bowl-empty.webp",
+      "sourcePath": "public/assets/yard-mika/kibble-bowl-empty.webp",
+      "sourceSha256": "85892dbbebacf6bceff3c3eff69a2555dc5dfa2277fd46856a17e581f605cca8",
+      "sourceSize": [
+        420,
+        336
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 164,
+        "top": 204,
+        "width": 92,
+        "height": 52
+      },
+      "padding": 4,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/5f88954e4a00.webp",
+      "outputSize": [
+        100,
+        60
+      ],
+      "outputSha256": "1d5aa993fa3f19ba037a9001863486d4b21bdc3a4b74f25259f54730854f0fce",
+      "bytes": 5184
+    },
+    {
+      "sourceURL": "/assets/yard-mika/sun-cushion-clean.webp",
+      "sourcePath": "public/assets/yard-mika/sun-cushion-clean.webp",
+      "sourceSha256": "d32f216a02fd7d18447e16d165e2d1384da3b06c923617bea627971818bf98eb",
+      "sourceSize": [
+        420,
+        336
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 45,
+        "top": 165,
+        "width": 314,
+        "height": 128
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/4bca2040b26b.webp",
+      "outputSize": [
+        340,
+        154
+      ],
+      "outputSha256": "ef4f1c5cc052c5705ef7058cb40b2249a40fd1b9f80f6f01dd81e1ade45dda06",
+      "bytes": 24658
+    },
+    {
+      "sourceURL": "/assets/yard-mika/yarn-mouse-clean.webp",
+      "sourcePath": "public/assets/yard-mika/yarn-mouse-clean.webp",
+      "sourceSha256": "d0f6ab00cd093d8baca0fce51b37639abcc3207e663aba80d6b577fd11ef36ac",
+      "sourceSize": [
+        420,
+        336
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 184,
+        "top": 214,
+        "width": 68,
+        "height": 35
+      },
+      "padding": 3,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/2d451fcf0d70.webp",
+      "outputSize": [
+        74,
+        41
+      ],
+      "outputSha256": "b915e1b2e87f9dadeaa1e8eff49366bde9f065bb99696d58fd4ed46ecef8d201",
+      "bytes": 2608
+    },
+    {
+      "sourceURL": "/assets/yard-pebble/leaf-pot-still.webp",
+      "sourcePath": "public/assets/yard-pebble/leaf-pot-still.webp",
+      "sourceSha256": "cda0fe4b5f106e8768911f2b3fa639db5cc0de90604799f2a9645294075fec15",
+      "sourceSize": [
+        352,
+        256
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 216,
+        "top": 136,
+        "width": 91,
+        "height": 80
+      },
+      "padding": 4,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/2da963c7e75d.webp",
+      "outputSize": [
+        99,
+        88
+      ],
+      "outputSha256": "de317d6e666004ca04746f8ded1f6f04817d3d55080e07ec00f6e6033c2c34fb",
+      "bytes": 11254
+    },
+    {
+      "sourceURL": "/assets/yard-pip/snack-table-new.webp",
+      "sourcePath": "public/assets/yard-pip/snack-table-new.webp",
+      "sourceSha256": "aee823d840f3d710901f005d0c4e2ef92f03946fa4f6ccdd6b9fc3c95beea4e0",
+      "sourceSize": [
+        384,
+        288
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 179,
+        "top": 142,
+        "width": 141,
+        "height": 84
+      },
+      "padding": 6,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/d86153cd37d5.webp",
+      "outputSize": [
+        153,
+        96
+      ],
+      "outputSha256": "78b0623b47c20b30de23ac3993915f822868d38cce1038e2073cb529765db442",
+      "bytes": 15094
+    },
+    {
+      "sourceURL": "/assets/yard-turtles/shared-fountain/fountain-broken.webp",
+      "sourcePath": "recovery-tools/yard-family-frozen/assets/yard-turtles/shared-fountain/fountain-broken.webp",
+      "sourceSha256": "ebe646d5c90b38647273232a150ccbcab9078767f13f6f9c5967d977582f429b",
+      "sourceSize": [
+        352,
+        224
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 12,
+        "top": 104,
+        "width": 176,
+        "height": 108
+      },
+      "padding": 8,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/0d93d934aeff.webp",
+      "outputSize": [
+        192,
+        124
+      ],
+      "outputSha256": "1b48b90f6edc3df0badf07f765cb1d14f51a33730a43db065ce7d6f7adfc01cb",
+      "bytes": 20032
+    },
+    {
+      "sourceURL": "/assets/yard-turtles/shared-fountain/fountain-new.webp",
+      "sourcePath": "recovery-tools/yard-family-frozen/assets/yard-turtles/shared-fountain/fountain-new.webp",
+      "sourceSha256": "283439936c245694b48e722c958df8b69e7165df98ad1f8f5b5ef5663f900c0f",
+      "sourceSize": [
+        352,
+        224
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 12,
+        "top": 86,
+        "width": 176,
+        "height": 126
+      },
+      "padding": 8,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/ec87edeccc49.webp",
+      "outputSize": [
+        192,
+        142
+      ],
+      "outputSha256": "1e255bec24ab65ba7605c97993071da92d776186b69fd8e7049f484dcdf2553d",
+      "bytes": 23254
+    },
+    {
+      "sourceURL": "/assets/yard-turtles/shared-fountain/fountain-worn.webp",
+      "sourcePath": "recovery-tools/yard-family-frozen/assets/yard-turtles/shared-fountain/fountain-worn.webp",
+      "sourceSha256": "6a732068dccbc5f4a45c73319f183d6bf15718cc581451ea210298644df9bfdc",
+      "sourceSize": [
+        352,
+        224
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 12,
+        "top": 86,
+        "width": 176,
+        "height": 126
+      },
+      "padding": 8,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/8494e21658e6.webp",
+      "outputSize": [
+        192,
+        142
+      ],
+      "outputSha256": "5590db37e002e70ca37c14c24d4a33a8488dfea92c73bed0d3f0c49a5aae5d5c",
+      "bytes": 22636
+    },
+    {
+      "sourceURL": "/games/companion-yard/companions/bunny.png",
+      "sourcePath": "public/games/companion-yard/companions/bunny.png",
+      "sourceSha256": "ce8485d468bc974077f8beed75cf0e5e681ea8d4007c050f98977a41aedbd333",
+      "sourceSize": [
+        313,
+        510
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 265,
+        "height": 462
+      },
+      "padding": 19,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/b50c21984757.webp",
+      "outputSize": [
+        303,
+        500
+      ],
+      "outputSha256": "bfef58baee3b1d358de37458a0c3c45e9ea1f632620f722b8ac5da335ea3bbcc",
+      "bytes": 104978
+    },
+    {
+      "sourceURL": "/games/companion-yard/companions/cat.png",
+      "sourcePath": "public/games/companion-yard/companions/cat.png",
+      "sourceSha256": "2b5a036aa7c2b1944c036d63f25d2bfdf8b0debfeb4a209101b812680a312c53",
+      "sourceSize": [
+        395,
+        459
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 347,
+        "height": 411
+      },
+      "padding": 17,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/7f9e39bbbf8c.webp",
+      "outputSize": [
+        381,
+        445
+      ],
+      "outputSha256": "36752b243cc3f401402694feea617145bc78beab9ca7198fd9c1d0a7fed4e78b",
+      "bytes": 127748
+    },
+    {
+      "sourceURL": "/games/companion-yard/companions/dog.png",
+      "sourcePath": "public/games/companion-yard/companions/dog.png",
+      "sourceSha256": "11a400e48f77972bd71e4cdcde1c5d016e0f024855a893d6283257f69e7dfd82",
+      "sourceSize": [
+        397,
+        443
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 349,
+        "height": 395
+      },
+      "padding": 16,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/e475723cea39.webp",
+      "outputSize": [
+        381,
+        427
+      ],
+      "outputSha256": "e49d6a46ed305394fefaab981a880852b708c26f4fda16d6039c1b1c706cd60e",
+      "bytes": 124182
+    },
+    {
+      "sourceURL": "/games/companion-yard/companions/fox.png",
+      "sourcePath": "public/games/companion-yard/companions/fox.png",
+      "sourceSha256": "847565766fa332d9c5a1128dcc2082df53f77368eedb6cc956448857064cd12d",
+      "sourceSize": [
+        403,
+        457
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 355,
+        "height": 409
+      },
+      "padding": 17,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/9c4f871d2ed9.webp",
+      "outputSize": [
+        389,
+        443
+      ],
+      "outputSha256": "f89b0f1d9de99e37c01d45f1177b22643f8310312b2ef7e870078589617ab1aa",
+      "bytes": 131152
+    },
+    {
+      "sourceURL": "/games/companion-yard/companions/hamster.png",
+      "sourcePath": "public/games/companion-yard/companions/hamster.png",
+      "sourceSha256": "476de79848afd261235da8c109193375cf9fcc615af56d2e397737e4875ea143",
+      "sourceSize": [
+        313,
+        357
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 265,
+        "height": 309
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/09b357bcd2f3.webp",
+      "outputSize": [
+        291,
+        335
+      ],
+      "outputSha256": "e305f4d5a4e6843580aa13356ef2bc8cbc5c7a59a7def6eb8ab5cc3753fde1ca",
+      "bytes": 81600
+    },
+    {
+      "sourceURL": "/games/companion-yard/companions/turtle.png",
+      "sourcePath": "public/games/companion-yard/companions/turtle.png",
+      "sourceSha256": "b9c8e9ef7d211d46f3fc13fb6e0a121a283812fea0685360ee4c9361543ca7a1",
+      "sourceSize": [
+        436,
+        343
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 388,
+        "height": 295
+      },
+      "padding": 16,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/6af71fe6510d.webp",
+      "outputSize": [
+        420,
+        327
+      ],
+      "outputSha256": "8a1050b5444d48dd1a3fc264082873e9e0449811c1b1a30f473d74ef0b7ebb15",
+      "bytes": 111090
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/book_nook.png",
+      "sourcePath": "public/games/companion-yard/goodies/book_nook.png",
+      "sourceSha256": "3acf735fc6f9193c02f7f301e10bbac36749bc2941649ac82da766fab95ca6ac",
+      "sourceSize": [
+        650,
+        363
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 602,
+        "height": 315
+      },
+      "padding": 25,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/981840fa87d9.webp",
+      "outputSize": [
+        652,
+        365
+      ],
+      "outputSha256": "cc882479d1cf023f819659d13d3bbd2cad410c74cfad120804259a8ce1d50f01",
+      "bytes": 200844
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/book_nook_broken.png",
+      "sourcePath": "public/games/companion-yard/goodies/book_nook_broken.png",
+      "sourceSha256": "681f0fc0161203420046900db6ff09868c807a9aa892139d802a94c640deb20e",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 61,
+        "top": 71,
+        "width": 238,
+        "height": 223
+      },
+      "padding": 10,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/380c38a173a4.webp",
+      "outputSize": [
+        258,
+        243
+      ],
+      "outputSha256": "bc7820f5959933ff952f91708245ddca4650c2711630abe8fcee9cd58e21989c",
+      "bytes": 3410
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/book_nook_worn.png",
+      "sourcePath": "public/games/companion-yard/goodies/book_nook_worn.png",
+      "sourceSha256": "7bf534b4901e2dc93f87da2fdd8aad4a974cf2fab5772101029a3acad21f0601",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 61,
+        "top": 97,
+        "width": 238,
+        "height": 191
+      },
+      "padding": 10,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/ec89d1a4d1ef.webp",
+      "outputSize": [
+        258,
+        211
+      ],
+      "outputSha256": "67d357ff38a85bbe5405edb23eda94ad8c3758b55cd82392283cf5634b853c07",
+      "bytes": 3000
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cardboard_cottage.png",
+      "sourcePath": "public/games/companion-yard/goodies/cardboard_cottage.png",
+      "sourceSha256": "532a83407f58cc53ca0dd5265a0c783747b30726fe58f636419de82290b08590",
+      "sourceSize": [
+        457,
+        370
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 409,
+        "height": 322
+      },
+      "padding": 17,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/407269e06e00.webp",
+      "outputSize": [
+        443,
+        356
+      ],
+      "outputSha256": "a5404c1a0f072e4c20173d4aa9fc092b781ec860c46cd4752f42a675e170e3ab",
+      "bytes": 139140
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cardboard_cottage_broken.png",
+      "sourcePath": "public/games/companion-yard/goodies/cardboard_cottage_broken.png",
+      "sourceSha256": "2cba6bee7d486994ae30bc66bb7e4b0d43ddc2fff646752abaccb8baebaa3879",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 46,
+        "top": 71,
+        "width": 268,
+        "height": 223
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/7ce91fc6ed4f.webp",
+      "outputSize": [
+        290,
+        245
+      ],
+      "outputSha256": "97910245df3c00096c253bfa8cdb26d0dd159dcb234e9b5bd46b327a62264f85",
+      "bytes": 3192
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cardboard_cottage_worn.png",
+      "sourcePath": "public/games/companion-yard/goodies/cardboard_cottage_worn.png",
+      "sourceSha256": "8898713cb8dffc49a6d4defd49df0e4d0ee8f8d6a5b9e650df3d964fbd58eaf3",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 46,
+        "top": 77,
+        "width": 268,
+        "height": 217
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/814799a2289d.webp",
+      "outputSize": [
+        290,
+        239
+      ],
+      "outputSha256": "98a12f54a1a434cca8a0beab42203293b5e240b90397c553bbe19148becb0721",
+      "bytes": 2896
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cloud_bed.png",
+      "sourcePath": "public/games/companion-yard/goodies/cloud_bed.png",
+      "sourceSha256": "380bc4d70f1355f5feba575aceac4526c5fd3491070ae2614a4258d5898818b4",
+      "sourceSize": [
+        434,
+        283
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 386,
+        "height": 235
+      },
+      "padding": 16,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/401a5cc2fd9b.webp",
+      "outputSize": [
+        418,
+        267
+      ],
+      "outputSha256": "f4fe2b83aa7e278ded20e93a8adb3847f11472ead194e2fc246d125a806899d1",
+      "bytes": 89704
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cloud_bed_broken.png",
+      "sourcePath": "public/games/companion-yard/goodies/cloud_bed_broken.png",
+      "sourceSha256": "bc1928bc3f132d5b1c1bea8b7e267999cfb618104e26172900c2410b65180014",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 51,
+        "top": 71,
+        "width": 258,
+        "height": 223
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/840bd9cd72ac.webp",
+      "outputSize": [
+        280,
+        245
+      ],
+      "outputSha256": "4e25409693c205da9751e95a8814aed02c1c919e528ebde27510c2c4cc4e921f",
+      "bytes": 4856
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cloud_bed_worn.png",
+      "sourcePath": "public/games/companion-yard/goodies/cloud_bed_worn.png",
+      "sourceSha256": "eca8790309e4bc816e659f5524c05b0509d0d703497f152819f00d09b5e57622",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 51,
+        "top": 87,
+        "width": 258,
+        "height": 201
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/b3de0da10486.webp",
+      "outputSize": [
+        280,
+        223
+      ],
+      "outputSha256": "c2ea51021c59647c16eef9e2639f460dbdf1516dd7e0720a94abc44805aae395",
+      "bytes": 4578
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cozy_chair.png",
+      "sourcePath": "public/games/companion-yard/goodies/cozy_chair.png",
+      "sourceSha256": "f6fc4576946c6b48b70a8f1ef3476110709482ce83283be2fac8849b9f00226d",
+      "sourceSize": [
+        365,
+        319
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 317,
+        "height": 271
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/88a2532f1256.webp",
+      "outputSize": [
+        343,
+        297
+      ],
+      "outputSha256": "f3ccba13318a19b26b8d367432cd6c02c1d66dd6d3636cd4368b2ad9f3c1b4ff",
+      "bytes": 90998
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cozy_chair_broken.png",
+      "sourcePath": "public/games/companion-yard/goodies/cozy_chair_broken.png",
+      "sourceSha256": "7d43d4bc934ecf2f23109befb23359cc0a32b07b42123ebf8eb2c61c51797093",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 66,
+        "top": 71,
+        "width": 228,
+        "height": 253
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/3e21a892f6b2.webp",
+      "outputSize": [
+        250,
+        275
+      ],
+      "outputSha256": "0a5e20211a794adfd1a11d9476b047239bb9f75174a66d277f86766b12e16058",
+      "bytes": 3846
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/cozy_chair_worn.png",
+      "sourcePath": "public/games/companion-yard/goodies/cozy_chair_worn.png",
+      "sourceSha256": "732b6e82c2149a6a28d66f5ce5e1d6a7b813923cc300b3c0e23ba554466aaa23",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 66,
+        "top": 102,
+        "width": 228,
+        "height": 222
+      },
+      "padding": 10,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/e9c062c1bf3a.webp",
+      "outputSize": [
+        248,
+        242
+      ],
+      "outputSha256": "4d3a7771bfa694594e958d7095d062ec8a46ebea524e91ce43f14cc4a6696372",
+      "bytes": 3336
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/moss_rug.png",
+      "sourcePath": "public/games/companion-yard/goodies/moss_rug.png",
+      "sourceSha256": "0e757ff63d4af1bc5647ac54362004dd59bc9a649449b61fcfaa1bcf23481925",
+      "sourceSize": [
+        471,
+        253
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 423,
+        "height": 205
+      },
+      "padding": 17,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/51dbab630726.webp",
+      "outputSize": [
+        457,
+        239
+      ],
+      "outputSha256": "724a1a4ba4d4ed2e9dd68f3ca6b85ff59f50975d94704d4baf2f7002885a5334",
+      "bytes": 95766
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/moss_rug_broken.png",
+      "sourcePath": "public/games/companion-yard/goodies/moss_rug_broken.png",
+      "sourceSha256": "c3f46e237b820856ca1c6fae924c5da5e0a92e21a4d2a6cd196571b16f218036",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 46,
+        "top": 71,
+        "width": 268,
+        "height": 223
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/89a2c5e1de06.webp",
+      "outputSize": [
+        290,
+        245
+      ],
+      "outputSha256": "9fea6f145aca994e7325218637b839c1d32051fdd6a1f27dde7e5399df22e109",
+      "bytes": 4746
+    },
+    {
+      "sourceURL": "/games/companion-yard/goodies/moss_rug_worn.png",
+      "sourcePath": "public/games/companion-yard/goodies/moss_rug_worn.png",
+      "sourceSha256": "a0946c46c23d96e41c3adaf71699870c31619fdbba0baa8847dcc42cdeaf2f01",
+      "sourceSize": [
+        360,
+        360
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 46,
+        "top": 133,
+        "width": 268,
+        "height": 140
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/b75a37a2c58e.webp",
+      "outputSize": [
+        290,
+        162
+      ],
+      "outputSha256": "7822a4df64eaff252b20445b8698e72a47405c706881e3739c78d1d4cacef0af",
+      "bytes": 4262
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/basil_turtle.png",
+      "sourcePath": "public/games/companion-yard/visitors/basil_turtle.png",
+      "sourceSha256": "b50f2f3d37a555f1e3982f8f80c91c7fab144383377e7bc63a9d168526f580bc",
+      "sourceSize": [
+        356,
+        239
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 308,
+        "height": 191
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/c636855c38e8.webp",
+      "outputSize": [
+        334,
+        217
+      ],
+      "outputSha256": "bffc9d93528db2e7572fd8b6c8a30b89056c9156fbf684c05ab3b96265e25937",
+      "bytes": 63748
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/basil_turtle_rest.png",
+      "sourcePath": "public/games/companion-yard/visitors/basil_turtle_rest.png",
+      "sourceSha256": "db569cc52127a6f91e0f8d7dd1b7fc7d7fb30db6dc879e54c9765ea7ce2be47d",
+      "sourceSize": [
+        305,
+        203
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 257,
+        "height": 155
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/d64a6e9749e6.webp",
+      "outputSize": [
+        279,
+        177
+      ],
+      "outputSha256": "4dff15ee5785acd0de9d3b85fdbee70925e1be4b86a1db87db6f4cadb05ff503",
+      "bytes": 44456
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/basil_turtle_soak.png",
+      "sourcePath": "public/games/companion-yard/visitors/basil_turtle_soak.png",
+      "sourceSha256": "b50f2f3d37a555f1e3982f8f80c91c7fab144383377e7bc63a9d168526f580bc",
+      "sourceSize": [
+        356,
+        239
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 308,
+        "height": 191
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/6bc5e0bb495d.webp",
+      "outputSize": [
+        334,
+        217
+      ],
+      "outputSha256": "bffc9d93528db2e7572fd8b6c8a30b89056c9156fbf684c05ab3b96265e25937",
+      "bytes": 63748
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/basil_turtle_watch.png",
+      "sourcePath": "public/games/companion-yard/visitors/basil_turtle_watch.png",
+      "sourceSha256": "16eee3b5d1269ea700cc02f5e0f3c6bd6db9bcaeff4cefe97e909acfe51f6f39",
+      "sourceSize": [
+        324,
+        234
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 276,
+        "height": 186
+      },
+      "padding": 12,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/08d50289aeef.webp",
+      "outputSize": [
+        300,
+        210
+      ],
+      "outputSha256": "c6de8c2e7c009826d9153216473460a0ddc6fe6d3db2881f6d0f69bc915ab31a",
+      "bytes": 55544
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mika_cat.png",
+      "sourcePath": "public/games/companion-yard/visitors/mika_cat.png",
+      "sourceSha256": "3c182a593fbaa491e425d436c0e883c10c72d96b3aaf87364542f32e223603b2",
+      "sourceSize": [
+        378,
+        332
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 330,
+        "height": 284
+      },
+      "padding": 14,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/b349aca2c573.webp",
+      "outputSize": [
+        358,
+        312
+      ],
+      "outputSha256": "182fda6dcbb7deb0a71a4d85a2196e8affa02d416c6e4411635025dd204e8bdd",
+      "bytes": 78102
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mika_cat_nap.png",
+      "sourcePath": "public/games/companion-yard/visitors/mika_cat_nap.png",
+      "sourceSha256": "fe74800884ac4dc15edd265b1a5ff626268ec4e3395aa1c4ab3739c01000eb88",
+      "sourceSize": [
+        337,
+        224
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 289,
+        "height": 176
+      },
+      "padding": 12,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/2410f19befee.webp",
+      "outputSize": [
+        313,
+        200
+      ],
+      "outputSha256": "2b11f5a27683fe04a9a0e6f9102f000f07948508eb904855595c0824b3c940ff",
+      "bytes": 59998
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mika_cat_pounce.png",
+      "sourcePath": "public/games/companion-yard/visitors/mika_cat_pounce.png",
+      "sourceSha256": "3c182a593fbaa491e425d436c0e883c10c72d96b3aaf87364542f32e223603b2",
+      "sourceSize": [
+        378,
+        332
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 330,
+        "height": 284
+      },
+      "padding": 14,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/f836afa33e5a.webp",
+      "outputSize": [
+        358,
+        312
+      ],
+      "outputSha256": "182fda6dcbb7deb0a71a4d85a2196e8affa02d416c6e4411635025dd204e8bdd",
+      "bytes": 78102
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mika_cat_sit.png",
+      "sourcePath": "public/games/companion-yard/visitors/mika_cat_sit.png",
+      "sourceSha256": "642613cb34976e302a67be6d40a27b3799a060f9d59952f7f7465ec04e489a99",
+      "sourceSize": [
+        274,
+        316
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 226,
+        "height": 268
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/1d2aa605fd1d.webp",
+      "outputSize": [
+        248,
+        290
+      ],
+      "outputSha256": "66dd9664278ce9ee1ec38652c784f173cb6ab4ae7a2d7a3ef13c8d78278c534c",
+      "bytes": 64074
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mochi_bunny.png",
+      "sourcePath": "public/games/companion-yard/visitors/mochi_bunny.png",
+      "sourceSha256": "e924e7cf65e79d32ef395d331e1ca22e75058ab60cb67a6cd4d709dde82657cb",
+      "sourceSize": [
+        327,
+        242
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 279,
+        "height": 194
+      },
+      "padding": 12,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/57d49653d094.webp",
+      "outputSize": [
+        303,
+        218
+      ],
+      "outputSha256": "25b9a7741db5c9fa52498829fa8229b73071da0339cc67c251fd02d0d5426b6a",
+      "bytes": 52846
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mochi_bunny_nap.png",
+      "sourcePath": "public/games/companion-yard/visitors/mochi_bunny_nap.png",
+      "sourceSha256": "e924e7cf65e79d32ef395d331e1ca22e75058ab60cb67a6cd4d709dde82657cb",
+      "sourceSize": [
+        327,
+        242
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 279,
+        "height": 194
+      },
+      "padding": 12,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/f0351df4cd3f.webp",
+      "outputSize": [
+        303,
+        218
+      ],
+      "outputSha256": "25b9a7741db5c9fa52498829fa8229b73071da0339cc67c251fd02d0d5426b6a",
+      "bytes": 52846
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mochi_bunny_nibble.png",
+      "sourcePath": "public/games/companion-yard/visitors/mochi_bunny_nibble.png",
+      "sourceSha256": "d3200ed4383327713a3971d976b1a7fb64eb09aa5400ac4937dda77460751a17",
+      "sourceSize": [
+        240,
+        321
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 192,
+        "height": 273
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/16fb6a6d13a5.webp",
+      "outputSize": [
+        214,
+        295
+      ],
+      "outputSha256": "19f612b6e22eca49845e17c842a161b369e86e1d3b1bea5e1068e667eedff0a9",
+      "bytes": 56458
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/mochi_bunny_stretch.png",
+      "sourcePath": "public/games/companion-yard/visitors/mochi_bunny_stretch.png",
+      "sourceSha256": "3bcde1a2f3b06be565608817939086587cd8f123cfad9b00a0318ecad574bb27",
+      "sourceSize": [
+        333,
+        288
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 285,
+        "height": 240
+      },
+      "padding": 12,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/00d9b79bad29.webp",
+      "outputSize": [
+        309,
+        264
+      ],
+      "outputSha256": "adab92c5c4cd871cad62728eae0bb5ef63bbfe12e2a4bed72b557439d6be0af5",
+      "bytes": 68580
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pebble_pup.png",
+      "sourcePath": "public/games/companion-yard/visitors/pebble_pup.png",
+      "sourceSha256": "70b4fdf7083277fb5aaad8f19da7b5e02a0abc826267fa1efcd48e8db830e828",
+      "sourceSize": [
+        324,
+        294
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 276,
+        "height": 246
+      },
+      "padding": 12,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/65b820cc4fc2.webp",
+      "outputSize": [
+        300,
+        270
+      ],
+      "outputSha256": "01b8bd7e6aada402ca3f1cb7b924e4b1d89a595375c6bc965c9a2b8adb604bb4",
+      "bytes": 62848
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pebble_pup_roll.png",
+      "sourcePath": "public/games/companion-yard/visitors/pebble_pup_roll.png",
+      "sourceSha256": "5980fc56636ba26b89f8e400ba56f8566ecd6a6a032ed9c696824d033da4a93a",
+      "sourceSize": [
+        369,
+        247
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 321,
+        "height": 199
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/a54d95871643.webp",
+      "outputSize": [
+        347,
+        225
+      ],
+      "outputSha256": "bc7ffca24137a9f0150a6ac0988f50dfaf2d4e5ba720a133eb60c94bbcd6a3d2",
+      "bytes": 70736
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pebble_pup_sit.png",
+      "sourcePath": "public/games/companion-yard/visitors/pebble_pup_sit.png",
+      "sourceSha256": "583e8ac682a4e440701eae05cd4597646028ae7490564d2f000d37a7f6c198a6",
+      "sourceSize": [
+        282,
+        288
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 234,
+        "height": 240
+      },
+      "padding": 10,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/5fe998ba3bc5.webp",
+      "outputSize": [
+        254,
+        260
+      ],
+      "outputSha256": "60c45dc2e6a42e958a4d6138654372fefdef778e49e5715d1913a61cc97f61c6",
+      "bytes": 64564
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pebble_pup_sniff.png",
+      "sourcePath": "public/games/companion-yard/visitors/pebble_pup_sniff.png",
+      "sourceSha256": "70b4fdf7083277fb5aaad8f19da7b5e02a0abc826267fa1efcd48e8db830e828",
+      "sourceSize": [
+        324,
+        294
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 276,
+        "height": 246
+      },
+      "padding": 12,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/87a747ccfbdb.webp",
+      "outputSize": [
+        300,
+        270
+      ],
+      "outputSha256": "01b8bd7e6aada402ca3f1cb7b924e4b1d89a595375c6bc965c9a2b8adb604bb4",
+      "bytes": 62848
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pip_hamster.png",
+      "sourcePath": "public/games/companion-yard/visitors/pip_hamster.png",
+      "sourceSha256": "1c0d1c450c6a24338daef4cf20f02435d344035b1e6d98801fd96f0d80c486ff",
+      "sourceSize": [
+        234,
+        262
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 186,
+        "height": 214
+      },
+      "padding": 9,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/b3c42384bce2.webp",
+      "outputSize": [
+        204,
+        232
+      ],
+      "outputSha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
+      "bytes": 49514
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pip_hamster_nibble.png",
+      "sourcePath": "public/games/companion-yard/visitors/pip_hamster_nibble.png",
+      "sourceSha256": "1c0d1c450c6a24338daef4cf20f02435d344035b1e6d98801fd96f0d80c486ff",
+      "sourceSize": [
+        234,
+        262
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 186,
+        "height": 214
+      },
+      "padding": 9,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/78d5a3dfdddf.webp",
+      "outputSize": [
+        204,
+        232
+      ],
+      "outputSha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
+      "bytes": 49514
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pip_hamster_peek.png",
+      "sourcePath": "public/games/companion-yard/visitors/pip_hamster_peek.png",
+      "sourceSha256": "b97ecd90019d6cfba7fb279ff4394d4b3ef986cad2ff850e1d4c068ae65b11df",
+      "sourceSize": [
+        237,
+        197
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 189,
+        "height": 149
+      },
+      "padding": 8,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/d089193e43ac.webp",
+      "outputSize": [
+        205,
+        165
+      ],
+      "outputSha256": "106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee",
+      "bytes": 35088
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/pip_hamster_sit.png",
+      "sourcePath": "public/games/companion-yard/visitors/pip_hamster_sit.png",
+      "sourceSha256": "3b3d6dd5353fa895bed8eade40e1d8172662a9e58355e00fd9bd1f152f4a368d",
+      "sourceSize": [
+        225,
+        272
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 177,
+        "height": 224
+      },
+      "padding": 9,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/6b92945de969.webp",
+      "outputSize": [
+        195,
+        242
+      ],
+      "outputSha256": "87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b",
+      "bytes": 47204
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/sage_turtle.png",
+      "sourcePath": "public/games/companion-yard/visitors/sage_turtle.png",
+      "sourceSha256": "b04d062d9e025c9dd9cae681489815b309171c0ad9f43d0d1485192a19fe14c3",
+      "sourceSize": [
+        351,
+        253
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 303,
+        "height": 205
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/c03d84b94e32.webp",
+      "outputSize": [
+        329,
+        231
+      ],
+      "outputSha256": "94150b12d56e874890e74b1880ea20e2a8a4a3e3f985f151a402e0ed8f8f176e",
+      "bytes": 68780
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/sage_turtle_rest.png",
+      "sourcePath": "public/games/companion-yard/visitors/sage_turtle_rest.png",
+      "sourceSha256": "5097141349d606dc791ed4eb3dc1cfb18a4e4b26b2db0e0c48fa49ee1db329c7",
+      "sourceSize": [
+        310,
+        247
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 262,
+        "height": 199
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/97f829cc5f89.webp",
+      "outputSize": [
+        284,
+        221
+      ],
+      "outputSha256": "2495845e05cd3da383f43eae5976690e5b8decab9a3eabfdef587d654cc6306d",
+      "bytes": 62584
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/sage_turtle_soak.png",
+      "sourcePath": "public/games/companion-yard/visitors/sage_turtle_soak.png",
+      "sourceSha256": "b04d062d9e025c9dd9cae681489815b309171c0ad9f43d0d1485192a19fe14c3",
+      "sourceSize": [
+        351,
+        253
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 303,
+        "height": 205
+      },
+      "padding": 13,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/8dc34655730f.webp",
+      "outputSize": [
+        329,
+        231
+      ],
+      "outputSha256": "94150b12d56e874890e74b1880ea20e2a8a4a3e3f985f151a402e0ed8f8f176e",
+      "bytes": 68780
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/sage_turtle_watch.png",
+      "sourcePath": "public/games/companion-yard/visitors/sage_turtle_watch.png",
+      "sourceSha256": "20d641a31ecafc4d841944acc30c403b671b144352da45f9bbe28973482a5684",
+      "sourceSize": [
+        295,
+        243
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 247,
+        "height": 195
+      },
+      "padding": 10,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/7cf49c872bb9.webp",
+      "outputSize": [
+        267,
+        215
+      ],
+      "outputSha256": "384e3c293c3cfe1cdea5029de42babf2b3b063d283c5d52b35eaaed6d7793afe",
+      "bytes": 55782
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/starlit_fox.png",
+      "sourcePath": "public/games/companion-yard/visitors/starlit_fox.png",
+      "sourceSha256": "0846638986ee15a71f56a50626f7b23c8ebce6b12b3c0d0eddd855d726f72f5a",
+      "sourceSize": [
+        271,
+        311
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 223,
+        "height": 263
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/3da23e9298bc.webp",
+      "outputSize": [
+        245,
+        285
+      ],
+      "outputSha256": "2c8d820224db7ec707269ec9c3dec334d3af626bd42a61f226489651ef300637",
+      "bytes": 61872
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/starlit_fox_curl.png",
+      "sourcePath": "public/games/companion-yard/visitors/starlit_fox_curl.png",
+      "sourceSha256": "3dc8821aa45e3a5f1a99c3a90c0f6234daeed9ffe1feeccb6a975c4d1b7f373a",
+      "sourceSize": [
+        311,
+        247
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 263,
+        "height": 199
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/aa24bbb47779.webp",
+      "outputSize": [
+        285,
+        221
+      ],
+      "outputSha256": "323c3a1ad8af23eb3eb5e905e92ab3fc756305799355dfbf23dad8c5bf22d092",
+      "bytes": 58620
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/starlit_fox_glow.png",
+      "sourcePath": "public/games/companion-yard/visitors/starlit_fox_glow.png",
+      "sourceSha256": "0846638986ee15a71f56a50626f7b23c8ebce6b12b3c0d0eddd855d726f72f5a",
+      "sourceSize": [
+        271,
+        311
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 223,
+        "height": 263
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/11cc55a412e6.webp",
+      "outputSize": [
+        245,
+        285
+      ],
+      "outputSha256": "2c8d820224db7ec707269ec9c3dec334d3af626bd42a61f226489651ef300637",
+      "bytes": 61872
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/starlit_fox_watch.png",
+      "sourcePath": "public/games/companion-yard/visitors/starlit_fox_watch.png",
+      "sourceSha256": "ab61a040c42bdd464b7d518f0f10dbf177f335a07b11adec510f47b0367cbedb",
+      "sourceSize": [
+        274,
+        257
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 226,
+        "height": 209
+      },
+      "padding": 10,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/4ce5d5d9878c.webp",
+      "outputSize": [
+        246,
+        229
+      ],
+      "outputSha256": "463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284",
+      "bytes": 55254
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/willow_fox.png",
+      "sourcePath": "public/games/companion-yard/visitors/willow_fox.png",
+      "sourceSha256": "893c952fcbd376a0523c74023eb7d5ff5cbee003f0c1acda91d7404a06920013",
+      "sourceSize": [
+        279,
+        319
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 231,
+        "height": 271
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/8a9078cc414a.webp",
+      "outputSize": [
+        253,
+        293
+      ],
+      "outputSha256": "65cec7c05d485e72a3a39260eae7229ed89976107d23af233521c9f4398e54f9",
+      "bytes": 61700
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/willow_fox_curl.png",
+      "sourcePath": "public/games/companion-yard/visitors/willow_fox_curl.png",
+      "sourceSha256": "ae7a44337c715b73f9dbface2612defaf98d93b58db1b487d247311bb97b9742",
+      "sourceSize": [
+        315,
+        263
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 267,
+        "height": 215
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/4ba73b11369e.webp",
+      "outputSize": [
+        289,
+        237
+      ],
+      "outputSha256": "8c971cae89291e5d563c2b7ac9a1ff50565d9cb74d15ab622588706f88bf46d4",
+      "bytes": 58904
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/willow_fox_listen.png",
+      "sourcePath": "public/games/companion-yard/visitors/willow_fox_listen.png",
+      "sourceSha256": "893c952fcbd376a0523c74023eb7d5ff5cbee003f0c1acda91d7404a06920013",
+      "sourceSize": [
+        279,
+        319
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 231,
+        "height": 271
+      },
+      "padding": 11,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/a77e11bcf056.webp",
+      "outputSize": [
+        253,
+        293
+      ],
+      "outputSha256": "65cec7c05d485e72a3a39260eae7229ed89976107d23af233521c9f4398e54f9",
+      "bytes": 61700
+    },
+    {
+      "sourceURL": "/games/companion-yard/visitors/willow_fox_peek.png",
+      "sourcePath": "public/games/companion-yard/visitors/willow_fox_peek.png",
+      "sourceSha256": "3e13de42341f23b16f69edcef2b6c69f8191e6176bc21aa1c9f3373fb78c29bc",
+      "sourceSize": [
+        287,
+        257
+      ],
+      "alphaThreshold": 1,
+      "crop": {
+        "left": 24,
+        "top": 24,
+        "width": 239,
+        "height": 209
+      },
+      "padding": 10,
+      "scale": {
+        "x": 1,
+        "y": 1
+      },
+      "outputURL": "/assets/yard-ui/previews/a0b270ce1fd0.webp",
+      "outputSize": [
+        259,
+        229
+      ],
+      "outputSha256": "7941bba30a1e81a16fa0b1ed65e4cb3b69b1a5a8a2f641f7db4efa155a0f4d3f",
+      "bytes": 54128
+    }
+  ],
+  "encoder": {
+    "sharp": "0.35.4",
+    "vips": "8.18.6",
+    "webp": "1.6.0"
+  }
+}

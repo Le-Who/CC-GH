@@ -10,7 +10,7 @@ import { summarizeEmittedChunks } from '../scripts/summarize-emitted-chunks.mjs'
 import { DEFAULT_BUILD_BUDGETS, analyzeDist } from '../scripts/perf-build-guard.mjs';
 const root = path.resolve(import.meta.dirname, '..');
 
-test('the renderer boundary contains exactly the ten existing static browser modules', async () => {
+test('the static browser closure keeps twelve renderer modules and three resource modules in their exact owners', async () => {
   const visited = new Set();
   async function visit(source) {
     if (visited.has(source)) return; visited.add(source);
@@ -22,9 +22,10 @@ test('the renderer boundary contains exactly the ten existing static browser mod
     }
   }
   await visit('src/games/companion-yard-v2/scene.mjs');
-  assert.deepEqual([...YARD_RENDERER_MODULES].sort(), [...visited].sort());
-  assert.equal(visited.size, 10);
-  for (const source of visited) { assert.equal(yardRendererChunk(path.join(root, source), root), 'yard-renderer'); assert.equal(YARD_CONTRACT_DATA_MODULES.has(source), false); }
+  const resources = ['decoded-capacity.mjs', 'runtime-cells.mjs', 'ui-image-reserve.mjs'].map(name => `src/games/companion-yard-v2/${name}`);
+  assert.deepEqual([...YARD_RENDERER_MODULES, ...resources].sort(), [...visited].sort());
+  assert.equal(YARD_RENDERER_MODULES.size, 12); assert.equal(visited.size, 15);
+  for (const source of visited) { assert.equal(yardRendererChunk(path.join(root, source), root), resources.includes(source) ? 'yard-scene-resources' : 'yard-renderer'); assert.equal(YARD_CONTRACT_DATA_MODULES.has(source), false); }
   for (const source of ['CourtyardGame.jsx', 'family-actor-media.mjs', 'mochi-actor-media.mjs']) assert.equal(yardRendererChunk(path.join(root, 'src/games/companion-yard-v2', source), root), undefined);
   assert.equal(DEFAULT_BUILD_BUDGETS.maxGameChunkRawBytes, 75_000);
 });
@@ -65,12 +66,12 @@ test('the observed real cycle has every shared runtime module assigned to a sepa
   assert.ok(renderer.imports.includes(entry.file)); assert.ok(entry.imports.includes(renderer.file));
   const runtime = entry.modules.filter(source => source.startsWith('game-logic/yard-v2/') && source.endsWith('.mjs'));
   assert.equal(runtime.length, 25);
-  for (const source of runtime) assert.equal(yardRendererChunk(path.join(root, source), root), 'yard-runtime-core', source);
+  for (const source of runtime) assert.equal(yardRendererChunk(path.join(root, source), root), source.endsWith('/sha256.mjs') ? 'yard-wire-hash' : 'yard-runtime-core', source);
   assert.equal(yardRendererChunk(path.join(root, 'src/games/companion-yard-v2/CourtyardGame.jsx'), root), undefined);
   assert.equal(yardRendererChunk(path.join(root, 'game-logic/yard-v2/family-media-source.mjs'), root), undefined, 'conditional family source must not become an eager core dependency');
 });
 
-test('the runtime core is exactly the existing static renderer dependency closure, never JSON or dormant family code', async () => {
+test('the static renderer closure stays executable with only the pure receipt hash shared at boot', async () => {
   const seen = new Set();
   async function visit(source) {
     if (seen.has(source)) return; seen.add(source);
@@ -83,11 +84,18 @@ test('the runtime core is exactly the existing static renderer dependency closur
   }
   await visit('src/games/companion-yard-v2/scene.mjs');
   const runtime = [...seen].filter(source => source.startsWith('game-logic/yard-v2/') && source.endsWith('.mjs'));
-  assert.deepEqual([...YARD_RUNTIME_CORE_MODULES].sort(), runtime.sort()); assert.equal(runtime.length, 27);
+  const hash = 'game-logic/yard-v2/sha256.mjs';
+  const core = runtime.filter(source => source !== hash);
+  assert.deepEqual([...YARD_RUNTIME_CORE_MODULES].sort(), core.sort()); assert.equal(core.length, 26); assert.equal(runtime.length, 27);
+  assert.equal(yardRendererChunk(path.join(root, hash), root), 'yard-wire-hash');
+  assert.doesNotMatch(await readFile(path.join(root, hash), 'utf8'), /^\s*import\b/m, 'Boot hash must not pull the lazy runtime back in');
   for (const source of runtime) assert.equal(YARD_CONTRACT_DATA_MODULES.has(source), false);
   const plugin = gameLoadingGraph(); plugin.configResolved({ root });
   let graph; plugin.generateBundle.call({ emitFile(asset) { graph = JSON.parse(asset.source); } }, {}, {
-    core: { type: 'chunk', fileName: 'assets/yard-runtime-core.js', isEntry: false, imports: [], dynamicImports: [], modules: Object.fromEntries(runtime.map(source => [path.join(root, source), { renderedLength: 1 }])) },
+    core: { type: 'chunk', fileName: 'assets/yard-runtime-core.js', isEntry: false, imports: ['assets/yard-wire-hash.js'], dynamicImports: [], modules: Object.fromEntries(core.map(source => [path.join(root, source), { renderedLength: 1 }])) },
+    hash: { type: 'chunk', fileName: 'assets/yard-wire-hash.js', isEntry: false, imports: [], dynamicImports: [], modules: { [path.join(root, hash)]: { renderedLength: 1 } } },
   });
-  assert.equal(graph.chunks[0].dataOnly, false); assert.equal(graph.chunks[0].gameModules.length, 27);
+  assert.equal(graph.chunks[0].dataOnly, false); assert.equal(graph.chunks[0].gameModules.length, 26);
+  assert.equal(graph.chunks[1].dataOnly, false); assert.deepEqual(graph.chunks[1].gameModules, [hash]);
+  assert.equal(DEFAULT_BUILD_BUDGETS.maxGameChunkRawBytes, 75_000);
 });

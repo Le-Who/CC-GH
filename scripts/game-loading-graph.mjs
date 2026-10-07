@@ -1,5 +1,7 @@
 import path from 'node:path';
+import {addPlannerWorkerGraph} from './yard-planner-worker-graph.mjs';
 import { YARD_CONTRACT_DATA_MODULES } from './yard-contract-data.mjs';
+import { isYardPipVendorModule } from './yard-pip-vendor.mjs';
 
 export const GAME_DATA_MODULES = new Set([
   ...YARD_CONTRACT_DATA_MODULES,
@@ -40,16 +42,17 @@ export function gameLoadingGraph() {
         for (const [game, source] of Object.entries(GAME_ENTRIES)) if (sources.includes(source)) entries[game] = chunk.fileName;
         // Yard calibration/planning helpers remain executable gameplay code even
         // if Rollup places a shared helper outside a src/games chunk.
-        const gameModules = sources.filter(source => source.startsWith('src/games/')
+        const gameModules = sources.filter(source => (source.startsWith('src/games/') && !isYardPipVendorModule(source))
           || (source.startsWith('game-logic/yard-v2/') && source.endsWith('.mjs')));
         const dataOnly = sources.length > 0 && rendered.length === sources.length && sources.every(source => GAME_DATA_MODULES.has(source));
         return {
           file: chunk.fileName, imports: chunk.imports, dynamicImports: chunk.dynamicImports,
           css: [...(chunk.viteMetadata?.importedCss || [])], isEntry: chunk.isEntry,
-          renderedModuleCount: rendered.length, modules: sources, gameModules, dataModules: sources.filter(source => GAME_DATA_MODULES.has(source)), dataOnly,
+          renderedModuleCount: rendered.length, modules: sources, gameModules, thirdPartyModules: sources.filter(isYardPipVendorModule), dataModules: sources.filter(source => GAME_DATA_MODULES.has(source)), dataOnly,
           hasPixi: Object.keys(chunk.modules).some(id => /(?:node_modules[/\\](?:@pixi|pixi\.js))/.test(id)),
         };
       });
+      addPlannerWorkerGraph(bundle,chunks);
       this.emitFile({type:'asset', fileName:'game-loading-graph.json', source:JSON.stringify({schemaVersion:1, entries, chunks}, null, 2)+'\n'});
     },
   };

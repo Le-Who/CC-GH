@@ -1,0 +1,2 @@
+import {planCanonicalInspection} from './dynamic-prop-planner.mjs';
+self.onmessage=event=>{const {id,args}=event.data;try{if(JSON.stringify(args).length>32768)throw Error('PLANNER_INPUT_LIMIT');let result=planCanonicalInspection(args);if(JSON.stringify(result).length>262144)result={ok:false,code:'PLANNER_RESULT_LIMIT'};self.postMessage({id,result});}catch(error){self.postMessage({id,result:{ok:false,code:error.message}});}};

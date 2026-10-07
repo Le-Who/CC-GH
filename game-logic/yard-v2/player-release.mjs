@@ -2,16 +2,17 @@
  * normalizer/simulator after a rollback. Closed rollout leaves it read-only. */
 import {YARD_PLAYER_RELEASE_POLICY,hasPersistentYardStorage,usesPersistentYard} from './release-policy.mjs';
 import {ensurePersistentPlayerYard,executePersistentYardAction,publicPersistentYard,inspectPlayerYard,inspectYardGrantTarget} from './service.mjs';
+import {yardDevelopmentOptions,yardDevelopmentSnapshot} from './development-release-policy.mjs';
 export {usesPersistentYard} from './release-policy.mjs';
 const held=()=>({status:409,error:'YARD_ROLLOUT_PAUSED',mutable:false});
 export function initializeReleasedPlayerYard(player,options={}) {
   if(!usesPersistentYard(player))return {status:200,yard:player?.yard,mutable:true};
   if(!YARD_PLAYER_RELEASE_POLICY.enabled)return {...held(),yard:player?.yard};
-  return ensurePersistentPlayerYard(player,options);
+  return ensurePersistentPlayerYard(player,yardDevelopmentOptions(options));
 }
 export function executeReleasedYardAction(player,action,payload,options) {
   if(!YARD_PLAYER_RELEASE_POLICY.enabled)return held();
-  return executePersistentYardAction(player,action,payload,options);
+  return executePersistentYardAction(player,action,payload,yardDevelopmentOptions(options));
 }
 export function inspectReleasedYardTarget(player,options={}) {
   if(!usesPersistentYard(player))return {status:200,mutable:true};
@@ -29,6 +30,6 @@ export function requireReleasedPlayerYard(player,options={}) {
 }
 export function releasedYardSnapshot(player,options={}) {
   if(!usesPersistentYard(player))return {};
-  const runtime=publicPersistentYard(player,options);
+  const runtime=yardDevelopmentSnapshot(publicPersistentYard(player,yardDevelopmentOptions(options)));
   return {yardRuntime:YARD_PLAYER_RELEASE_POLICY.enabled?runtime:{...runtime,status:'rollout-paused',mutable:false,error:'YARD_ROLLOUT_PAUSED'}};
 }

@@ -1,0 +1,23 @@
+{
+  "location": {
+    "locationId": "pip-garden",
+    "locationVersion": 1,
+    "geometryRevision": "pip-garden-t2-r1"
+  },
+  "item": {
+    "goodieId": "leaf_pot",
+    "itemGeometryRevision": "yard-succulent-T2",
+    "assetSha256": "c2f7c317511cfd84605bde3f6e32ffd24d35ee66a3d8bc365ae8d0742557f3fd",
+    "footprintRadius": 4.65,
+    "conditions": ["new"],
+    "cost": {"treats": 140, "shinyTreats": 0},
+    "durability": 8,
+    "capacity": 1
+  },
+  "noncePrefix": "yard-v2:canonical-v1/",
+  "slotPrefix": "canonical:",
+  "coordinateSpace": "canonical-ground",
+  "domain": {"min": [0, 0], "max": [200, 220]},
+  "actions": ["yard.placeGoodie", "yard.moveGoodie", "yard.pickupGoodie"],
+  "maxPlacements": 2
+}

@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,canonicalCommandScope,canonicalNoncePrefix,canonicalReplayCapability,canonicalSupersededReceipt,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
 import { readYardOutbox, writeYardOutbox } from "./yardOutboxStorage.js";
 import { VISIBLE_GAME_IDS } from "../app/gameRegistry.js";
 import { api } from "../services/apiClient.js";
@@ -25,6 +26,8 @@ let latestSnapshotRequest = null;
 // after the pause may authorize replay, including after journal hydration.
 let yardOutboxPauseEpoch = {};
 let yardOutboxResumeSession = null;
+let canonicalOutboxResumeSession = null;
+let canonicalOutboxPauseEpoch = {};
 
 function writableYardSnapshot(snapshot) {
   const runtime = snapshot?.yardRuntime;
@@ -33,7 +36,9 @@ function writableYardSnapshot(snapshot) {
 }
 
 function canDrainOutboxItem(item, snapshot) {
-  return item.status !== "failed" && (!(item.requiresYardResume || item.status === "rollout-paused")
+  return item.status !== "failed" && !item.requiresCanonicalReview && (!isCanonicalItemIntent(item.payload,item.clientActionId) || (canonicalReplayCapability(snapshot,item.action,item.clientActionId)
+      && (!(item.requiresYardResume || item.status === "canonical-blocked" || item.status === "rollout-paused") || canonicalOutboxResumeSession === snapshotAccountSession)))
+    && (!(item.requiresYardResume || item.status === "rollout-paused" || item.status === "canonical-blocked")
     || (yardOutboxResumeSession === snapshotAccountSession && writableYardSnapshot(snapshot)));
 }
 
@@ -119,7 +124,7 @@ function normalizeOutboxItems(items) {
   return items.filter((item) => item?.clientActionId && shouldUseDurableOutbox(item.action)).map((item) => ({
     ...item,
     // The resume fence survives sending/pending normalization and failed writes.
-    ...(item.status === "rollout-paused" ? { requiresYardResume: true } : {}),
+    ...(["rollout-paused","canonical-blocked"].includes(item.status) ? { requiresYardResume: true } : {}),
     accountId: item.accountId,
     clientActionId: String(item.clientActionId),
     action: String(item.action),
@@ -193,6 +198,7 @@ export const useGameHub = create((set, get) => ({
     const requestSession = snapshotAccountSession;
     const requestToken = latestSnapshotRequest = {};
     const requestYardPauseEpoch = yardOutboxPauseEpoch;
+    const requestCanonicalPauseEpoch = canonicalOutboxPauseEpoch;
     set({ status: "syncing", snapshotRequestPending: true });
     try {
       const result = await api("/api/player/snapshot", undefined, { isCurrent: () => snapshotAccountSession === requestSession
@@ -210,6 +216,12 @@ export const useGameHub = create((set, get) => ({
         // Older failures cannot override a newer refresh's pending/ready/error UI.
         // Successful responses still use the existing server-observation merge.
         if (latestSnapshotRequest !== requestToken) return { error: "SNAPSHOT_SUPERSEDED" };
+        if (CANONICAL_PENDING_ERRORS.has(result.error)) {
+          // An unsupported authoritative read invalidates the displayed capability,
+          // not the retained game records or their unresolved durable intents.
+          canonicalOutboxResumeSession = null; canonicalOutboxPauseEpoch = {};
+          set(state => ({snapshot:state.snapshot ? {...state.snapshot,yardRuntime:{...state.snapshot.yardRuntime,mutable:false,status:"review-required",error:result.error}} : state.snapshot}));
+        }
         set({ status: "offline", message: result.error });
         return result;
       }
@@ -221,6 +233,7 @@ export const useGameHub = create((set, get) => ({
           && Number.isSafeInteger(result.player?.syncSeq) && result.player.syncSeq >= 0
           && compareSnapshotFreshness(result, get().snapshot) >= 0 && writableYardSnapshot(result)
           ? requestSession : null;
+        canonicalOutboxResumeSession = yardOutboxResumeSession === requestSession && requestCanonicalPauseEpoch === canonicalOutboxPauseEpoch && canonicalCapability(result) ? requestSession : null;
       }
       const snapshot = normalizeSnapshot(protectHubSnapshot(get().snapshot, result));
       set({ snapshot, status: "ready", message: "" });
@@ -294,7 +307,9 @@ export const useGameHub = create((set, get) => ({
 
   performReliableAction: async (action, payload = {}, options = {}) => {
     const durability = options.durability || (shouldUseDurableOutbox(action) ? "outbox" : "receipt");
-    const clientActionId = options.clientActionId || createClientActionId(action, options.scope || "game", options.idParts || []);
+    const clientActionId = options.clientActionId || (isYardAction(action) && isCanonicalItemIntent(payload)
+      ? `${canonicalNoncePrefix(get().snapshot)}${globalThis.crypto.randomUUID()}`
+      : createClientActionId(action, options.scope || "game", options.idParts || []));
     if (durability === "outbox") {
       return get().enqueueYardAction(action, payload, { ...options, clientActionId });
     }
@@ -320,7 +335,7 @@ export const useGameHub = create((set, get) => ({
         ...(stored.items || []).filter(saved => !recoverable.some(item => saved.clientActionId === item.clientActionId)), ...recoverable,
       ]);
       set({ pendingActions, outboxLoaded: !stored.error, outboxAccountId: accountId, outboxStorageError: stored.error || null,
-        retainedLegacyOutbox: stored.retainedLegacyOutbox || [], busy: { ...get().busy, ...Object.fromEntries(pendingActions.map(item => [item.entityKey, true])) } });
+        retainedLegacyOutbox: stored.retainedLegacyOutbox || [], busy: { ...get().busy, ...Object.fromEntries(pendingActions.map(item => [item.entityKey, false])), ...Object.fromEntries(pendingActions.filter(item=>item.status!=="failed").map(item=>[item.entityKey,true])) } });
       if (!stored.error) scheduleOutboxDrain(get, 0);
       return stored.error ? { error: stored.error } : pendingActions;
     })().finally(() => { if (outboxHydration === hydration) outboxHydration = null; });
@@ -330,6 +345,12 @@ export const useGameHub = create((set, get) => ({
 
   enqueueYardAction: async (action, payload = {}, options = {}) => {
     if (!shouldUseDurableOutbox(action)) return { error: "UNSUPPORTED_OUTBOX_ACTION" };
+    if (isCanonicalItemIntent(payload,options.clientActionId)) {
+      if (options.clientActionId && !isCanonicalItemNonce(options.clientActionId)) return {error:"CANONICAL_NONCE_REQUIRED"};
+      if (!canonicalCapability(get().snapshot,action)) return {error:"CANONICAL_ITEM_PLACEMENT_DISABLED"};
+      if (!Object.entries(canonicalCommandScope(get().snapshot)).every(([k,v])=>payload[k]===v)
+        || options.clientActionId && !options.clientActionId.startsWith(canonicalNoncePrefix(get().snapshot))) return {error:"CANONICAL_NEW_INTENT_SCOPE_REQUIRED"};
+    }
     const accountId = get().snapshot?.player?.id, session = snapshotAccountSession;
     if (!accountId) return { error: "ACCOUNT_REQUIRED" };
     if (!get().outboxLoaded || get().outboxAccountId !== accountId) {
@@ -372,7 +393,7 @@ export const useGameHub = create((set, get) => ({
       } else {
         queuedItem = {
           accountId,
-          clientActionId: options.clientActionId || createYardActionId(),
+          clientActionId: options.clientActionId || (isCanonicalItemIntent(payload) ? `${canonicalNoncePrefix(get().snapshot)}${globalThis.crypto.randomUUID()}` : createYardActionId()),
           action,
           payload,
           entityKey,
@@ -480,15 +501,32 @@ export const useGameHub = create((set, get) => ({
         return result;
       }
 
-      if (isYardAction(sending.action) && result.error === "YARD_ROLLOUT_PAUSED") {
-        // Closed rollback returns before receipt lookup. Keep the signed intent
-        // and its busy lock: a lost reply on B may already have spent/granted.
+      if (canonicalSupersededReceipt(sending,result)) {
+        // Keep the exact signed attempt visible across reloads. A definitive
+        // receipt releases its entity for a separate user-chosen replacement.
+        set((state)=>({pendingActions:normalizeOutboxItems(state.pendingActions).map(candidate=>candidate.clientActionId===sending.clientActionId
+          ? {...candidate,status:"failed",requiresUserDecision:true,blockedReason:result.error,rejection:structuredClone(result.details),nextAttemptAt:0}:candidate),
+          busy:{...state.busy,[sending.entityKey]:false},lastResult:result,status:"ready",message:result.error}));
+        const retained=await persistOutbox(accountId,get().pendingActions);
+        if(!isCurrent())return {error:"ACCOUNT_CHANGED"};
+        set({outboxStorageError:retained.error||null});
+        await get().loadSnapshot();
+        return result;
+      }
+
+      if (isYardAction(sending.action) && (result.error === "CANONICAL_COMMAND_SUPERSEDED" || result.error === "YARD_ROLLOUT_PAUSED" || result.error === "CANONICAL_LOCATION_REQUIRED"
+        || result.error === "UNSUPPORTED_YARD_STORAGE_VERSION" && /^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(sending.clientActionId)
+        || isCanonicalItemIntent(sending.payload,sending.clientActionId) && (Number(result._httpStatus) === 409 || CANONICAL_PENDING_ERRORS.has(result.error)))) {
+        // Closed rollback and unsupported storage return before receipt lookup.
+        // Keep ordinary v2 purchases too: a lost reply may have spent/granted.
         yardOutboxPauseEpoch = {};
         yardOutboxResumeSession = null;
+        canonicalOutboxResumeSession = null;
+        canonicalOutboxPauseEpoch = {};
         set((state) => ({
           pendingActions: normalizeOutboxItems(state.pendingActions).map((candidate) => (
             candidate.clientActionId === sending.clientActionId
-              ? { ...candidate, status: "rollout-paused", requiresYardResume: true, nextAttemptAt: 0 }
+              ? { ...candidate, status: result.error === "YARD_ROLLOUT_PAUSED" || result.error === "UNSUPPORTED_YARD_STORAGE_VERSION" && !isCanonicalItemIntent(sending.payload,sending.clientActionId) ? "rollout-paused" : "canonical-blocked", blockedReason:result.error, requiresCanonicalReview:result.error === "CANONICAL_LOCATION_REQUIRED" && !isCanonicalItemIntent(sending.payload,sending.clientActionId), requiresYardResume: true, nextAttemptAt: 0 }
               : candidate
           )),
           lastResult: result,
@@ -662,11 +700,13 @@ useGameHub.subscribe((state, previous) => {
     yardOutboxResumeSession = null;
     yardOutboxPauseEpoch = {};
   }
+  if (state.snapshot !== previous.snapshot && !canonicalCapability(state.snapshot)) { canonicalOutboxResumeSession = null; canonicalOutboxPauseEpoch = {}; }
   const previousAccountId = previous.snapshot?.player?.id;
   const accountId = state.snapshot?.player?.id;
   if (accountId === previousAccountId) return;
   if (previousAccountId != null) {
     snapshotAccountSession = {};
+    canonicalOutboxResumeSession = null;
     useGameHub.setState({ snapshotRequestPending: false });
   }
   useGameHub.setState({ accountSession: snapshotAccountSession, pendingActions: [], busy: {}, outboxLoaded: false, outboxAccountId: null, outboxStorageError: null, lastResult: null, message: "" });

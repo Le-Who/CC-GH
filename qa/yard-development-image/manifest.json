@@ -1,0 +1,1813 @@
+{
+  "format": "cc-gh-yard-development-image-source/v1",
+  "finalized": true,
+  "repositoryId": 1162268629,
+  "base": "6b80c9a2cca146e20afcaced6a34a035c30c13aa",
+  "caps": {
+    "jobMinutes": 10,
+    "browserMs": 220000,
+    "artifactBytes": 8388608,
+    "retentionDays": 3,
+    "retries": 0,
+    "actionMs": 5000,
+    "replyMs": 10000,
+    "checkpointBytes": 131072
+  },
+  "checks": [
+    "reviewed-source-inventory",
+    "normal-production-image",
+    "authenticated-capability-policy",
+    "canonical-placement-storage-v2",
+    "economy-inventory",
+    "lost-response-exactly-once",
+    "pending-intent-account-fences",
+    "receipt-security",
+    "occupied-food-socket",
+    "warm-client-update",
+    "mobile-functional",
+    "mobile-visual",
+    "app-only-failure-rollback",
+    "prior-image-v2-quarantine-preserves-bytes"
+  ],
+  "dockerfileSha256": "e4e0cc3f78eeabd57be5225daea0a200223ca552eba0e4f54e6ccdc13b2ab631",
+  "predecessor": {
+    "commit": "6b80c9a2cca146e20afcaced6a34a035c30c13aa",
+    "tree": "11d0b3664a6657383d4011720e598ff901006f84",
+    "imageDigest": "sha256:c57d6b224edaab29a94f83d6457787d4398582f573690c4a99331750203d8a29",
+    "imageId": "sha256:3feb1aa00e39358bf7befbece67215483390ee089e913f8088c3aae8f7ebc9ad"
+  },
+  "changedPaths": [
+    ".github/workflows/yard-development-image.yml",
+    "Dockerfile",
+    "docs/yard-development-app-release.md",
+    "game-logic/yard-v2/actions.mjs",
+    "game-logic/yard-v2/canonical-food-contract.json",
+    "game-logic/yard-v2/canonical-food-contract.mjs",
+    "game-logic/yard-v2/canonical-food-protocol.mjs",
+    "game-logic/yard-v2/canonical-item-protocol.json",
+    "game-logic/yard-v2/canonical-location-geometry.json",
+    "game-logic/yard-v2/canonical-locations.mjs",
+    "game-logic/yard-v2/development-release-policy.mjs",
+    "game-logic/yard-v2/player-release.mjs",
+    "game-logic/yard-v2/service.mjs",
+    "package.json",
+    "playwright.yard-development.config.mjs",
+    "public/assets/yard-ui/current-portraits/083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6.png",
+    "public/assets/yard-ui/current-portraits/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.png",
+    "public/assets/yard-ui/current-portraits/56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e.png",
+    "public/assets/yard-ui/current-portraits/7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730.png",
+    "public/assets/yard-ui/current-portraits/83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2.png",
+    "public/assets/yard-ui/current-portraits/93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481.png",
+    "public/assets/yard-ui/current-portraits/c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179.png",
+    "public/assets/yard-ui/delivery/background-meadow.webp",
+    "public/assets/yard-ui/delivery/background-moon_garden.webp",
+    "public/assets/yard-ui/delivery/background-tea_house.webp",
+    "public/assets/yard-ui/delivery/hud-back.webp",
+    "public/assets/yard-ui/delivery/hud-close.webp",
+    "public/assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+    "public/assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+    "public/assets/yard-ui/preview-manifest.json",
+    "public/assets/yard-ui/previews/00d9b79bad29.webp",
+    "public/assets/yard-ui/previews/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.webp",
+    "public/assets/yard-ui/previews/08d50289aeef.webp",
+    "public/assets/yard-ui/previews/09b357bcd2f3.webp",
+    "public/assets/yard-ui/previews/0d93d934aeff.webp",
+    "public/assets/yard-ui/previews/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.webp",
+    "public/assets/yard-ui/previews/106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee.webp",
+    "public/assets/yard-ui/previews/10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7.webp",
+    "public/assets/yard-ui/previews/11291d0cffee.webp",
+    "public/assets/yard-ui/previews/11cc55a412e6.webp",
+    "public/assets/yard-ui/previews/16fb6a6d13a5.webp",
+    "public/assets/yard-ui/previews/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.webp",
+    "public/assets/yard-ui/previews/1d2aa605fd1d.webp",
+    "public/assets/yard-ui/previews/2410f19befee.webp",
+    "public/assets/yard-ui/previews/2d451fcf0d70.webp",
+    "public/assets/yard-ui/previews/2da963c7e75d.webp",
+    "public/assets/yard-ui/previews/301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41.webp",
+    "public/assets/yard-ui/previews/30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1.webp",
+    "public/assets/yard-ui/previews/36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9.webp",
+    "public/assets/yard-ui/previews/37b61347c4fa.webp",
+    "public/assets/yard-ui/previews/380c38a173a4.webp",
+    "public/assets/yard-ui/previews/38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a.webp",
+    "public/assets/yard-ui/previews/39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b.webp",
+    "public/assets/yard-ui/previews/3da23e9298bc.webp",
+    "public/assets/yard-ui/previews/3e21a892f6b2.webp",
+    "public/assets/yard-ui/previews/401a5cc2fd9b.webp",
+    "public/assets/yard-ui/previews/407269e06e00.webp",
+    "public/assets/yard-ui/previews/41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486.webp",
+    "public/assets/yard-ui/previews/463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284.webp",
+    "public/assets/yard-ui/previews/489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5.webp",
+    "public/assets/yard-ui/previews/49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535.webp",
+    "public/assets/yard-ui/previews/49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562.webp",
+    "public/assets/yard-ui/previews/4ba73b11369e.webp",
+    "public/assets/yard-ui/previews/4bca2040b26b.webp",
+    "public/assets/yard-ui/previews/4ce5d5d9878c.webp",
+    "public/assets/yard-ui/previews/4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473.webp",
+    "public/assets/yard-ui/previews/51dbab630726.webp",
+    "public/assets/yard-ui/previews/57d49653d094.webp",
+    "public/assets/yard-ui/previews/5f88954e4a00.webp",
+    "public/assets/yard-ui/previews/5fe998ba3bc5.webp",
+    "public/assets/yard-ui/previews/64ee2dacbc26.webp",
+    "public/assets/yard-ui/previews/65b820cc4fc2.webp",
+    "public/assets/yard-ui/previews/65f3bb1a2364.webp",
+    "public/assets/yard-ui/previews/6af71fe6510d.webp",
+    "public/assets/yard-ui/previews/6b92945de969.webp",
+    "public/assets/yard-ui/previews/6bc5e0bb495d.webp",
+    "public/assets/yard-ui/previews/74913f211f00.webp",
+    "public/assets/yard-ui/previews/7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f.webp",
+    "public/assets/yard-ui/previews/761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3.webp",
+    "public/assets/yard-ui/previews/78d5a3dfdddf.webp",
+    "public/assets/yard-ui/previews/7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc.webp",
+    "public/assets/yard-ui/previews/7ce91fc6ed4f.webp",
+    "public/assets/yard-ui/previews/7cf49c872bb9.webp",
+    "public/assets/yard-ui/previews/7f9e39bbbf8c.webp",
+    "public/assets/yard-ui/previews/814799a2289d.webp",
+    "public/assets/yard-ui/previews/81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934.webp",
+    "public/assets/yard-ui/previews/840bd9cd72ac.webp",
+    "public/assets/yard-ui/previews/8494e21658e6.webp",
+    "public/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
+    "public/assets/yard-ui/previews/87a747ccfbdb.webp",
+    "public/assets/yard-ui/previews/87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b.webp",
+    "public/assets/yard-ui/previews/88a2532f1256.webp",
+    "public/assets/yard-ui/previews/89a2c5e1de06.webp",
+    "public/assets/yard-ui/previews/8a9078cc414a.webp",
+    "public/assets/yard-ui/previews/8dc34655730f.webp",
+    "public/assets/yard-ui/previews/965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3.webp",
+    "public/assets/yard-ui/previews/97f829cc5f89.webp",
+    "public/assets/yard-ui/previews/981840fa87d9.webp",
+    "public/assets/yard-ui/previews/9c4f871d2ed9.webp",
+    "public/assets/yard-ui/previews/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.webp",
+    "public/assets/yard-ui/previews/a0b270ce1fd0.webp",
+    "public/assets/yard-ui/previews/a54d95871643.webp",
+    "public/assets/yard-ui/previews/a77e11bcf056.webp",
+    "public/assets/yard-ui/previews/aa24bbb47779.webp",
+    "public/assets/yard-ui/previews/b349aca2c573.webp",
+    "public/assets/yard-ui/previews/b3c42384bce2.webp",
+    "public/assets/yard-ui/previews/b3de0da10486.webp",
+    "public/assets/yard-ui/previews/b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579.webp",
+    "public/assets/yard-ui/previews/b50c21984757.webp",
+    "public/assets/yard-ui/previews/b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36.webp",
+    "public/assets/yard-ui/previews/b75a37a2c58e.webp",
+    "public/assets/yard-ui/previews/ba0eb9cb82af.webp",
+    "public/assets/yard-ui/previews/c03d84b94e32.webp",
+    "public/assets/yard-ui/previews/c636855c38e8.webp",
+    "public/assets/yard-ui/previews/c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f.webp",
+    "public/assets/yard-ui/previews/cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8.webp",
+    "public/assets/yard-ui/previews/d089193e43ac.webp",
+    "public/assets/yard-ui/previews/d64a6e9749e6.webp",
+    "public/assets/yard-ui/previews/d86153cd37d5.webp",
+    "public/assets/yard-ui/previews/e475723cea39.webp",
+    "public/assets/yard-ui/previews/e9c062c1bf3a.webp",
+    "public/assets/yard-ui/previews/ec87edeccc49.webp",
+    "public/assets/yard-ui/previews/ec89d1a4d1ef.webp",
+    "public/assets/yard-ui/previews/f0351df4cd3f.webp",
+    "public/assets/yard-ui/previews/f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42.webp",
+    "public/assets/yard-ui/previews/f836afa33e5a.webp",
+    "public/assets/yard-ui/previews/fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e.webp",
+    "public/assets/yard-ui/r1-pip/e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b.png",
+    "public/assets/yard-ui/surfaces/ui-surfaces-manifest.json",
+    "public/assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+    "public/assets/yard-ui/surfaces/yard-ui-card-frame.webp",
+    "public/assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+    "public/assets/yard-ui/surfaces/yard-ui-panel-frame.webp",
+    "qa/yard-development-image/evidence-zip.py",
+    "qa/yard-development-image/manifest.json",
+    "qa/yard-development-image/package-evidence.mjs",
+    "routes/player.js",
+    "scripts/ccgh-app-development-release.sh",
+    "scripts/game-loading-graph.mjs",
+    "scripts/perf-build-guard.mjs",
+    "scripts/yard-development-acceptance.mjs",
+    "scripts/yard-development-contract.mjs",
+    "scripts/yard-development-receipt.mjs",
+    "scripts/yard-pip-build-closure.mjs",
+    "scripts/yard-pip-vendor.json",
+    "scripts/yard-pip-vendor.mjs",
+    "scripts/yard-planner-worker-graph.mjs",
+    "scripts/yard-renderer-chunk.mjs",
+    "scripts/yard-ui-media-budget.json",
+    "scripts/yard-ui-media-budget.mjs",
+    "scripts/yard-ui-thumbnails.mjs",
+    "src/app/hud-layout/defaultLayouts/room.json",
+    "src/app/hud-layout/registry.js",
+    "src/game-state/canonicalYardItems.mjs",
+    "src/game-state/canonicalYardProtocol.mjs",
+    "src/game-state/useGameHub.js",
+    "src/games/companion-yard-v2/CourtyardGame.jsx",
+    "src/games/companion-yard-v2/YardReleaseGame.jsx",
+    "src/games/companion-yard-v2/atlas.mjs",
+    "src/games/companion-yard-v2/catalog-preview-paths.mjs",
+    "src/games/companion-yard-v2/catalog-ui.mjs",
+    "src/games/companion-yard-v2/courtyard.css",
+    "src/games/companion-yard-v2/current-cartoon-portrait-paths.mjs",
+    "src/games/companion-yard-v2/decoded-capacity.mjs",
+    "src/games/companion-yard-v2/feedback.mjs",
+    "src/games/companion-yard-v2/i18n.js",
+    "src/games/companion-yard-v2/legacy-m2-background.mjs",
+    "src/games/companion-yard-v2/pip-preview-gate.mjs",
+    "src/games/companion-yard-v2/pip-prototype/assets/clean-garden.png",
+    "src/games/companion-yard-v2/pip-prototype/assets/food-r2/source-provenance.json",
+    "src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb",
+    "src/games/companion-yard-v2/pip-prototype/assets/leaf-pot-t2-preview.webp",
+    "src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
+    "src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb",
+    "src/games/companion-yard-v2/pip-prototype/canonical-food-scene.mjs",
+    "src/games/companion-yard-v2/pip-prototype/data/calibration.json",
+    "src/games/companion-yard-v2/pip-prototype/data/fixture.json",
+    "src/games/companion-yard-v2/pip-prototype/data/interaction-leaf-anchors.json",
+    "src/games/companion-yard-v2/pip-prototype/data/location.json",
+    "src/games/companion-yard-v2/pip-prototype/dynamic-navigation.mjs",
+    "src/games/companion-yard-v2/pip-prototype/dynamic-prop-controller.mjs",
+    "src/games/companion-yard-v2/pip-prototype/dynamic-prop-planner.mjs",
+    "src/games/companion-yard-v2/pip-prototype/dynamic-prop-worker-client.mjs",
+    "src/games/companion-yard-v2/pip-prototype/dynamic-prop-worker.mjs",
+    "src/games/companion-yard-v2/pip-prototype/dynamic-trajectory.mjs",
+    "src/games/companion-yard-v2/pip-prototype/fixture-clock.mjs",
+    "src/games/companion-yard-v2/pip-prototype/fixture-scheduler.mjs",
+    "src/games/companion-yard-v2/pip-prototype/grounding-recipe.mjs",
+    "src/games/companion-yard-v2/pip-prototype/item-catalog.mjs",
+    "src/games/companion-yard-v2/pip-prototype/motion/kinematics.mjs",
+    "src/games/companion-yard-v2/pip-prototype/motion/math.mjs",
+    "src/games/companion-yard-v2/pip-prototype/motion/polygon-domain.mjs",
+    "src/games/companion-yard-v2/pip-prototype/motion/trajectory.mjs",
+    "src/games/companion-yard-v2/pip-prototype/planter-interaction.mjs",
+    "src/games/companion-yard-v2/pip-prototype/projection.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/adaptive-pose-driver.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-food.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-planter.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/pip-contact-shadow.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/planter-inspection-pose.mjs",
+    "src/games/companion-yard-v2/pip-prototype/prototype/surface-placement.mjs",
+    "src/games/companion-yard-v2/pip-prototype/resources.mjs",
+    "src/games/companion-yard-v2/pip-prototype/routes.mjs",
+    "src/games/companion-yard-v2/pip-prototype/source/pip-analytical-coat.mjs",
+    "src/games/companion-yard-v2/pip-prototype/source/pip-rest-coat.glsl",
+    "src/games/companion-yard-v2/pip-prototype/vendor/three/LICENSE.txt",
+    "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/loaders/GLTFLoader.js",
+    "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/BufferGeometryUtils.js",
+    "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/SkeletonUtils.js",
+    "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.core.js",
+    "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.module.js",
+    "src/games/companion-yard-v2/pip-prototype/world-scale.mjs",
+    "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+    "src/games/companion-yard-v2/placement-recovery.mjs",
+    "src/games/companion-yard-v2/preview-thumbnail-overrides.mjs",
+    "src/games/companion-yard-v2/render-pack-policy.mjs",
+    "src/games/companion-yard-v2/render-pack.mjs",
+    "src/games/companion-yard-v2/runtime-cells.mjs",
+    "src/games/companion-yard-v2/scene-entry.mjs",
+    "src/games/companion-yard-v2/scene-layout.mjs",
+    "src/games/companion-yard-v2/scene-owner.mjs",
+    "src/games/companion-yard-v2/scene.mjs",
+    "src/games/companion-yard-v2/scene45-layout.json",
+    "src/games/companion-yard-v2/scene45-transform.mjs",
+    "src/games/companion-yard-v2/ui-image-inventory.json",
+    "src/games/companion-yard-v2/ui-image-reserve.mjs",
+    "tests/helpers/yard-development-acceptance.mjs",
+    "tests/helpers/yard-development-control-audit.mjs",
+    "tests/helpers/yard-development-proxy.mjs",
+    "tests/yard-canonical-food-host-scene.test.mjs",
+    "tests/yard-development-acceptance.test.mjs",
+    "tests/yard-development-capabilities.test.mjs",
+    "tests/yard-development-e2e/development.spec.mjs",
+    "tests/yard-development-receipt.test.mjs",
+    "tests/yard-development-release.test.mjs",
+    "tests/yard-pip-register-vendor.mjs",
+    "tests/yard-pip-vendor-resolver.mjs",
+    "tests/yard-renderer-chunk.test.mjs",
+    "vite.config.js"
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/yard-development-image.yml",
+      "bytes": 4873,
+      "sha256": "8546231a3b5a1e6ed693ee59486ab8f0cc7c015a583877ae888a76ca5b26fe96"
+    },
+    {
+      "path": "Dockerfile",
+      "bytes": 1536,
+      "sha256": "e4e0cc3f78eeabd57be5225daea0a200223ca552eba0e4f54e6ccdc13b2ab631"
+    },
+    {
+      "path": "docs/yard-development-app-release.md",
+      "bytes": 15392,
+      "sha256": "fb554aba2c59581b8f1ad908a2297a6fa3498ef8cacdf9a55d4a0b59f91442b5"
+    },
+    {
+      "path": "game-logic/yard-v2/actions.mjs",
+      "bytes": 22727,
+      "sha256": "4d8cb5fbe4cc6394c130ef2d759295e560a4e65e1474e8274a1132cc432831d8"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-contract.json",
+      "bytes": 674,
+      "sha256": "d1abe6d5922fa855e4f4856bc633e628b767bdd0a22402e873d02882d5cb9461"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-contract.mjs",
+      "bytes": 2435,
+      "sha256": "667dd1877c20d1fa81ff0f688a862dac6bfb994667e5264ee1a0052646f05df0"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-protocol.mjs",
+      "bytes": 2125,
+      "sha256": "3297e848f038a5bd59ca25bbd8f5836a2079e54f0c6e563e7533590d01eeeaba"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-item-protocol.json",
+      "bytes": 706,
+      "sha256": "8f098f5d32d70f2b06157967c094c24b04e955ba29a509181a1eb3e101be2dc4"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-location-geometry.json",
+      "bytes": 5716,
+      "sha256": "13da6998467168a065adbc2431ead832d736cdea2c5067b25adfddb11cd040ba"
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-locations.mjs",
+      "bytes": 9553,
+      "sha256": "f7077c1e06005aa50a3873b2c16b020f4a2aa437ce2651ca25069c1df9e201e0"
+    },
+    {
+      "path": "game-logic/yard-v2/development-release-policy.mjs",
+      "bytes": 2283,
+      "sha256": "250368567e600d37235f632ff8c98fe16659d9211070b3ea1aa12883f1fd9d89"
+    },
+    {
+      "path": "game-logic/yard-v2/player-release.mjs",
+      "bytes": 2316,
+      "sha256": "afb61450716c6986fe785de006d6ba348897253cfacc060494f7f65e6f8f5277"
+    },
+    {
+      "path": "game-logic/yard-v2/service.mjs",
+      "bytes": 11471,
+      "sha256": "75238caa094242d0ac83dcd7d72364c10e27f73ec21be19fe1421505f0d528ad"
+    },
+    {
+      "path": "package.json",
+      "bytes": 9442,
+      "sha256": "84f477ac85105db1330caf0b2c420ee4132d654e0330026460994dfefee0921b"
+    },
+    {
+      "path": "playwright.yard-development.config.mjs",
+      "bytes": 747,
+      "sha256": "24fda615cacbf1a47aea1f39e155c72c005195cb7dbd8121a6373a8175548a1e"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6.png",
+      "bytes": 36725,
+      "sha256": "083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.png",
+      "bytes": 62042,
+      "sha256": "4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e.png",
+      "bytes": 54748,
+      "sha256": "56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730.png",
+      "bytes": 27298,
+      "sha256": "7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2.png",
+      "bytes": 40616,
+      "sha256": "83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481.png",
+      "bytes": 62513,
+      "sha256": "93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481"
+    },
+    {
+      "path": "public/assets/yard-ui/current-portraits/c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179.png",
+      "bytes": 41416,
+      "sha256": "c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/background-meadow.webp",
+      "bytes": 534902,
+      "sha256": "b62f2ef9714a054362fb3c3b9ddb4bc29f7b36ae3544cfcb52559b62118cf38a"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/background-moon_garden.webp",
+      "bytes": 571554,
+      "sha256": "8302a1578c443971285086a73c9155e0ddc47d10a1c3e0e8451895822c127458"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/background-tea_house.webp",
+      "bytes": 544702,
+      "sha256": "ffde7c568302ac9b994a64471f22098d0f351fa48d19bad1915f13235356f169"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-back.webp",
+      "bytes": 49118,
+      "sha256": "3587cf8832d96725558a3b6387df36a0a01344dd7d81a4055e0832b1da8b7525"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-close.webp",
+      "bytes": 50686,
+      "sha256": "161202b25aa3a8fbc64c2f9069a4d284be234a0927a442600233e10b0ac096e1"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+      "bytes": 13192,
+      "sha256": "2b54e02b34f56818ac4f4537f1ca64ae2c0665e6672266228449f4c5a1c9edc7"
+    },
+    {
+      "path": "public/assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+      "bytes": 19178,
+      "sha256": "60bf94f0d8bcf60f75c9479d9c47093c1c9978874d03c12b6daad714bf37f26a"
+    },
+    {
+      "path": "public/assets/yard-ui/preview-manifest.json",
+      "bytes": 50897,
+      "sha256": "a9d4ca0f83fd3a829778f42d1feed3b5dcf6c3d10237be9a006b7f657ed4d08f"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/00d9b79bad29.webp",
+      "bytes": 68580,
+      "sha256": "adab92c5c4cd871cad62728eae0bb5ef63bbfe12e2a4bed72b557439d6be0af5"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.webp",
+      "bytes": 37786,
+      "sha256": "078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/08d50289aeef.webp",
+      "bytes": 55544,
+      "sha256": "c6de8c2e7c009826d9153216473460a0ddc6fe6d3db2881f6d0f69bc915ab31a"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/09b357bcd2f3.webp",
+      "bytes": 81600,
+      "sha256": "e305f4d5a4e6843580aa13356ef2bc8cbc5c7a59a7def6eb8ab5cc3753fde1ca"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/0d93d934aeff.webp",
+      "bytes": 20032,
+      "sha256": "1b48b90f6edc3df0badf07f765cb1d14f51a33730a43db065ce7d6f7adfc01cb"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.webp",
+      "bytes": 53828,
+      "sha256": "10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee.webp",
+      "bytes": 35088,
+      "sha256": "106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7.webp",
+      "bytes": 48214,
+      "sha256": "10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/11291d0cffee.webp",
+      "bytes": 12266,
+      "sha256": "85110ae29458363f7dbf0b7383e295193b2c4094708ad7c1b488b2a2ea2b88d6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/11cc55a412e6.webp",
+      "bytes": 61872,
+      "sha256": "2c8d820224db7ec707269ec9c3dec334d3af626bd42a61f226489651ef300637"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/16fb6a6d13a5.webp",
+      "bytes": 56458,
+      "sha256": "19f612b6e22eca49845e17c842a161b369e86e1d3b1bea5e1068e667eedff0a9"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.webp",
+      "bytes": 46588,
+      "sha256": "19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/1d2aa605fd1d.webp",
+      "bytes": 64074,
+      "sha256": "66dd9664278ce9ee1ec38652c784f173cb6ab4ae7a2d7a3ef13c8d78278c534c"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/2410f19befee.webp",
+      "bytes": 59998,
+      "sha256": "2b11f5a27683fe04a9a0e6f9102f000f07948508eb904855595c0824b3c940ff"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/2d451fcf0d70.webp",
+      "bytes": 2608,
+      "sha256": "b915e1b2e87f9dadeaa1e8eff49366bde9f065bb99696d58fd4ed46ecef8d201"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/2da963c7e75d.webp",
+      "bytes": 11254,
+      "sha256": "de317d6e666004ca04746f8ded1f6f04817d3d55080e07ec00f6e6033c2c34fb"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41.webp",
+      "bytes": 50846,
+      "sha256": "301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1.webp",
+      "bytes": 41144,
+      "sha256": "30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9.webp",
+      "bytes": 46712,
+      "sha256": "36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/37b61347c4fa.webp",
+      "bytes": 12104,
+      "sha256": "0886f1a4935d076249f1b2921f2c7bc48fd224d1391d4a7de13dab761018dd9f"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/380c38a173a4.webp",
+      "bytes": 3410,
+      "sha256": "bc7820f5959933ff952f91708245ddca4650c2711630abe8fcee9cd58e21989c"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a.webp",
+      "bytes": 51420,
+      "sha256": "38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b.webp",
+      "bytes": 64220,
+      "sha256": "39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/3da23e9298bc.webp",
+      "bytes": 61872,
+      "sha256": "2c8d820224db7ec707269ec9c3dec334d3af626bd42a61f226489651ef300637"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/3e21a892f6b2.webp",
+      "bytes": 3846,
+      "sha256": "0a5e20211a794adfd1a11d9476b047239bb9f75174a66d277f86766b12e16058"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/401a5cc2fd9b.webp",
+      "bytes": 89704,
+      "sha256": "f4fe2b83aa7e278ded20e93a8adb3847f11472ead194e2fc246d125a806899d1"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/407269e06e00.webp",
+      "bytes": 139140,
+      "sha256": "a5404c1a0f072e4c20173d4aa9fc092b781ec860c46cd4752f42a675e170e3ab"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486.webp",
+      "bytes": 54678,
+      "sha256": "41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284.webp",
+      "bytes": 55254,
+      "sha256": "463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5.webp",
+      "bytes": 51372,
+      "sha256": "489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535.webp",
+      "bytes": 53330,
+      "sha256": "49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562.webp",
+      "bytes": 54896,
+      "sha256": "49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/4ba73b11369e.webp",
+      "bytes": 58904,
+      "sha256": "8c971cae89291e5d563c2b7ac9a1ff50565d9cb74d15ab622588706f88bf46d4"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/4bca2040b26b.webp",
+      "bytes": 24658,
+      "sha256": "ef4f1c5cc052c5705ef7058cb40b2249a40fd1b9f80f6f01dd81e1ade45dda06"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/4ce5d5d9878c.webp",
+      "bytes": 55254,
+      "sha256": "463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473.webp",
+      "bytes": 54534,
+      "sha256": "4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/51dbab630726.webp",
+      "bytes": 95766,
+      "sha256": "724a1a4ba4d4ed2e9dd68f3ca6b85ff59f50975d94704d4baf2f7002885a5334"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/57d49653d094.webp",
+      "bytes": 52846,
+      "sha256": "25b9a7741db5c9fa52498829fa8229b73071da0339cc67c251fd02d0d5426b6a"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/5f88954e4a00.webp",
+      "bytes": 5184,
+      "sha256": "1d5aa993fa3f19ba037a9001863486d4b21bdc3a4b74f25259f54730854f0fce"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/5fe998ba3bc5.webp",
+      "bytes": 64564,
+      "sha256": "60c45dc2e6a42e958a4d6138654372fefdef778e49e5715d1913a61cc97f61c6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/64ee2dacbc26.webp",
+      "bytes": 13076,
+      "sha256": "a6de84ab8e4d03bc05b8bd5f41bc751603d29f0481403a490efce5883b0ea387"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/65b820cc4fc2.webp",
+      "bytes": 62848,
+      "sha256": "01b8bd7e6aada402ca3f1cb7b924e4b1d89a595375c6bc965c9a2b8adb604bb4"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/65f3bb1a2364.webp",
+      "bytes": 5926,
+      "sha256": "6afb63f7009750f3c9fe8e04786acf34d57105ea5107864ec75bc186cda910b0"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/6af71fe6510d.webp",
+      "bytes": 111090,
+      "sha256": "8a1050b5444d48dd1a3fc264082873e9e0449811c1b1a30f473d74ef0b7ebb15"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/6b92945de969.webp",
+      "bytes": 47204,
+      "sha256": "87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/6bc5e0bb495d.webp",
+      "bytes": 63748,
+      "sha256": "bffc9d93528db2e7572fd8b6c8a30b89056c9156fbf684c05ab3b96265e25937"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/74913f211f00.webp",
+      "bytes": 6314,
+      "sha256": "c62507015d4bd41a143906a0f87968a81cf58d87e0ab6c0a965da17b1f1b0bad"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f.webp",
+      "bytes": 52282,
+      "sha256": "7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3.webp",
+      "bytes": 54032,
+      "sha256": "761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/78d5a3dfdddf.webp",
+      "bytes": 49514,
+      "sha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc.webp",
+      "bytes": 40930,
+      "sha256": "7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/7ce91fc6ed4f.webp",
+      "bytes": 3192,
+      "sha256": "97910245df3c00096c253bfa8cdb26d0dd159dcb234e9b5bd46b327a62264f85"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/7cf49c872bb9.webp",
+      "bytes": 55782,
+      "sha256": "384e3c293c3cfe1cdea5029de42babf2b3b063d283c5d52b35eaaed6d7793afe"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/7f9e39bbbf8c.webp",
+      "bytes": 127748,
+      "sha256": "36752b243cc3f401402694feea617145bc78beab9ca7198fd9c1d0a7fed4e78b"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/814799a2289d.webp",
+      "bytes": 2896,
+      "sha256": "98a12f54a1a434cca8a0beab42203293b5e240b90397c553bbe19148becb0721"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934.webp",
+      "bytes": 54860,
+      "sha256": "81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/840bd9cd72ac.webp",
+      "bytes": 4856,
+      "sha256": "4e25409693c205da9751e95a8814aed02c1c919e528ebde27510c2c4cc4e921f"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/8494e21658e6.webp",
+      "bytes": 22636,
+      "sha256": "5590db37e002e70ca37c14c24d4a33a8488dfea92c73bed0d3f0c49a5aae5d5c"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
+      "bytes": 49514,
+      "sha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/87a747ccfbdb.webp",
+      "bytes": 62848,
+      "sha256": "01b8bd7e6aada402ca3f1cb7b924e4b1d89a595375c6bc965c9a2b8adb604bb4"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b.webp",
+      "bytes": 47204,
+      "sha256": "87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/88a2532f1256.webp",
+      "bytes": 90998,
+      "sha256": "f3ccba13318a19b26b8d367432cd6c02c1d66dd6d3636cd4368b2ad9f3c1b4ff"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/89a2c5e1de06.webp",
+      "bytes": 4746,
+      "sha256": "9fea6f145aca994e7325218637b839c1d32051fdd6a1f27dde7e5399df22e109"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/8a9078cc414a.webp",
+      "bytes": 61700,
+      "sha256": "65cec7c05d485e72a3a39260eae7229ed89976107d23af233521c9f4398e54f9"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/8dc34655730f.webp",
+      "bytes": 68780,
+      "sha256": "94150b12d56e874890e74b1880ea20e2a8a4a3e3f985f151a402e0ed8f8f176e"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3.webp",
+      "bytes": 50928,
+      "sha256": "965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/97f829cc5f89.webp",
+      "bytes": 62584,
+      "sha256": "2495845e05cd3da383f43eae5976690e5b8decab9a3eabfdef587d654cc6306d"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/981840fa87d9.webp",
+      "bytes": 200844,
+      "sha256": "cc882479d1cf023f819659d13d3bbd2cad410c74cfad120804259a8ce1d50f01"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/9c4f871d2ed9.webp",
+      "bytes": 131152,
+      "sha256": "f89b0f1d9de99e37c01d45f1177b22643f8310312b2ef7e870078589617ab1aa"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.webp",
+      "bytes": 46916,
+      "sha256": "9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/a0b270ce1fd0.webp",
+      "bytes": 54128,
+      "sha256": "7941bba30a1e81a16fa0b1ed65e4cb3b69b1a5a8a2f641f7db4efa155a0f4d3f"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/a54d95871643.webp",
+      "bytes": 70736,
+      "sha256": "bc7ffca24137a9f0150a6ac0988f50dfaf2d4e5ba720a133eb60c94bbcd6a3d2"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/a77e11bcf056.webp",
+      "bytes": 61700,
+      "sha256": "65cec7c05d485e72a3a39260eae7229ed89976107d23af233521c9f4398e54f9"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/aa24bbb47779.webp",
+      "bytes": 58620,
+      "sha256": "323c3a1ad8af23eb3eb5e905e92ab3fc756305799355dfbf23dad8c5bf22d092"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b349aca2c573.webp",
+      "bytes": 78102,
+      "sha256": "182fda6dcbb7deb0a71a4d85a2196e8affa02d416c6e4411635025dd204e8bdd"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b3c42384bce2.webp",
+      "bytes": 49514,
+      "sha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b3de0da10486.webp",
+      "bytes": 4578,
+      "sha256": "c2ea51021c59647c16eef9e2639f460dbdf1516dd7e0720a94abc44805aae395"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579.webp",
+      "bytes": 53352,
+      "sha256": "b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b50c21984757.webp",
+      "bytes": 104978,
+      "sha256": "bfef58baee3b1d358de37458a0c3c45e9ea1f632620f722b8ac5da335ea3bbcc"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36.webp",
+      "bytes": 43186,
+      "sha256": "b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/b75a37a2c58e.webp",
+      "bytes": 4262,
+      "sha256": "7822a4df64eaff252b20445b8698e72a47405c706881e3739c78d1d4cacef0af"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/ba0eb9cb82af.webp",
+      "bytes": 5878,
+      "sha256": "f9764f741fa82e79bb9f66e8ee154e4d0f99ff3969b499b10899a325ed734354"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/c03d84b94e32.webp",
+      "bytes": 68780,
+      "sha256": "94150b12d56e874890e74b1880ea20e2a8a4a3e3f985f151a402e0ed8f8f176e"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/c636855c38e8.webp",
+      "bytes": 63748,
+      "sha256": "bffc9d93528db2e7572fd8b6c8a30b89056c9156fbf684c05ab3b96265e25937"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f.webp",
+      "bytes": 48208,
+      "sha256": "c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8.webp",
+      "bytes": 45698,
+      "sha256": "cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/d089193e43ac.webp",
+      "bytes": 35088,
+      "sha256": "106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/d64a6e9749e6.webp",
+      "bytes": 44456,
+      "sha256": "4dff15ee5785acd0de9d3b85fdbee70925e1be4b86a1db87db6f4cadb05ff503"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/d86153cd37d5.webp",
+      "bytes": 15094,
+      "sha256": "78b0623b47c20b30de23ac3993915f822868d38cce1038e2073cb529765db442"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/e475723cea39.webp",
+      "bytes": 124182,
+      "sha256": "e49d6a46ed305394fefaab981a880852b708c26f4fda16d6039c1b1c706cd60e"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/e9c062c1bf3a.webp",
+      "bytes": 3336,
+      "sha256": "4d3a7771bfa694594e958d7095d062ec8a46ebea524e91ce43f14cc4a6696372"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/ec87edeccc49.webp",
+      "bytes": 23254,
+      "sha256": "1e255bec24ab65ba7605c97993071da92d776186b69fd8e7049f484dcdf2553d"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/ec89d1a4d1ef.webp",
+      "bytes": 3000,
+      "sha256": "67d357ff38a85bbe5405edb23eda94ad8c3758b55cd82392283cf5634b853c07"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/f0351df4cd3f.webp",
+      "bytes": 52846,
+      "sha256": "25b9a7741db5c9fa52498829fa8229b73071da0339cc67c251fd02d0d5426b6a"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42.webp",
+      "bytes": 56698,
+      "sha256": "f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/f836afa33e5a.webp",
+      "bytes": 78102,
+      "sha256": "182fda6dcbb7deb0a71a4d85a2196e8affa02d416c6e4411635025dd204e8bdd"
+    },
+    {
+      "path": "public/assets/yard-ui/previews/fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e.webp",
+      "bytes": 58086,
+      "sha256": "fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e"
+    },
+    {
+      "path": "public/assets/yard-ui/r1-pip/e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b.png",
+      "bytes": 15589,
+      "sha256": "e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b"
+    },
+    {
+      "path": "public/assets/yard-ui/surfaces/ui-surfaces-manifest.json",
+      "bytes": 7853,
+      "sha256": "a6972185aca22c306823b291e9ae31c03c002e3a4d69d656b2e8d75093a92653"
+    },
+    {
+      "path": "public/assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+      "bytes": 62660,
+      "sha256": "be06b62e0b3ec78309592e2928b2224fad178e8d5e58831c2409bb7443d81df7"
+    },
+    {
+      "path": "public/assets/yard-ui/surfaces/yard-ui-card-frame.webp",
+      "bytes": 257468,
+      "sha256": "0c070c1074e4dfbb87f8694930e4227de38feb8a4e073529715a3954c1c4410d"
+    },
+    {
+      "path": "public/assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+      "bytes": 151862,
+      "sha256": "119392d270f62bc08b8ff84a094bc07c8f9009ce463d670b7ea8e3a76f7b0268"
+    },
+    {
+      "path": "public/assets/yard-ui/surfaces/yard-ui-panel-frame.webp",
+      "bytes": 402904,
+      "sha256": "6b2c5a838836b7c75dfa30f724123efca582d82ffec9ec98e2ac3b007e87b3ac"
+    },
+    {
+      "path": "qa/yard-development-image/evidence-zip.py",
+      "bytes": 1754,
+      "sha256": "b9ccebdf74ff54d4c66a78aaa9d996b47120ba982c1c6d5fe11860a506ea9cfc"
+    },
+    {
+      "path": "qa/yard-development-image/package-evidence.mjs",
+      "bytes": 4311,
+      "sha256": "c48185e563144b27660bfba42f40086b379933f337c4879c3893e823566b8fed"
+    },
+    {
+      "path": "routes/player.js",
+      "bytes": 62683,
+      "sha256": "888f1ee9d25c51ed54eefef6b06678fe64f33cb9ec11c9977b826e4bb7199bd1"
+    },
+    {
+      "path": "scripts/ccgh-app-development-release.sh",
+      "bytes": 17999,
+      "sha256": "185bc6e90a6ae77fdc35a414b7cc348fb35fd5173a85179b1059d8247124a79c"
+    },
+    {
+      "path": "scripts/game-loading-graph.mjs",
+      "bytes": 3188,
+      "sha256": "771a3a5c81ba4e99d38635afe31a1fd892206255181bf68bebf25561edaff03d"
+    },
+    {
+      "path": "scripts/perf-build-guard.mjs",
+      "bytes": 20212,
+      "sha256": "d88c0352b0227b41db0192f24df5668784d4e032b03742acc441511e4aa7ab35"
+    },
+    {
+      "path": "scripts/yard-development-acceptance.mjs",
+      "bytes": 16051,
+      "sha256": "dfd31431040b499ad647827dee1ec3c36599c36c91150acf87b1427c313c5902"
+    },
+    {
+      "path": "scripts/yard-development-contract.mjs",
+      "bytes": 13513,
+      "sha256": "a89ed48aaf777e227adf6485b6d3607c7239ebf9d077a9acafef5bbab617072a"
+    },
+    {
+      "path": "scripts/yard-development-receipt.mjs",
+      "bytes": 21296,
+      "sha256": "ad57b83e0eecb82e639bfe573f7e819dd3c21a2192e74e28eb72274d094c9e50"
+    },
+    {
+      "path": "scripts/yard-pip-build-closure.mjs",
+      "bytes": 6079,
+      "sha256": "da766b91c5556b4ccaf8581aa8f3c954a9ce4b29e5040cc282e9510ac866e520"
+    },
+    {
+      "path": "scripts/yard-pip-vendor.json",
+      "bytes": 1415,
+      "sha256": "b1700ead118d59a86458fab0e29784b51316010f9165c9f16a6d50da9df52195"
+    },
+    {
+      "path": "scripts/yard-pip-vendor.mjs",
+      "bytes": 3610,
+      "sha256": "7268bfb3cf221560f8d0f3910e63bce2e4f28d7b6df1a527b7b71c3e45a91d20"
+    },
+    {
+      "path": "scripts/yard-planner-worker-graph.mjs",
+      "bytes": 2821,
+      "sha256": "0af8d6ad657e7c0579c12b7eee59edafe8ddf8e40da8394b4d6dbb341ec65bb4"
+    },
+    {
+      "path": "scripts/yard-renderer-chunk.mjs",
+      "bytes": 3413,
+      "sha256": "1ffdcbc95c1ca4df3c447efe19e694483bd56a8d7aea21f66cbeb67a6d1d9880"
+    },
+    {
+      "path": "scripts/yard-ui-media-budget.json",
+      "bytes": 28948,
+      "sha256": "65d5d2ce1d4506d195e1f47d46e1c86fea7bb7c45550677a42ca8d3278b5a523"
+    },
+    {
+      "path": "scripts/yard-ui-media-budget.mjs",
+      "bytes": 7681,
+      "sha256": "c7541b01be5ee80da5552e289a0488a2fed4c430b4200b563dd267abe9d3fa65"
+    },
+    {
+      "path": "scripts/yard-ui-thumbnails.mjs",
+      "bytes": 3871,
+      "sha256": "db9ccfca9a8ded87715ac4c2ded70814202b3339302b4617da359aa0aa0a37da"
+    },
+    {
+      "path": "src/app/hud-layout/defaultLayouts/room.json",
+      "bytes": 4662,
+      "sha256": "8b9b7b1e68c07d400fd97bacc2c65279a13ab7b3c8c8bbfe207c9ad4a6262c72"
+    },
+    {
+      "path": "src/app/hud-layout/registry.js",
+      "bytes": 20170,
+      "sha256": "3110cf714198966dab52b9a0c5633ab4041482f2d2ae3d508ad45ecdd80b0bb0"
+    },
+    {
+      "path": "src/game-state/canonicalYardItems.mjs",
+      "bytes": 2765,
+      "sha256": "a3be49668103eb979cf388be77e053214d12b4b3bf1c703cc83dba085259be59"
+    },
+    {
+      "path": "src/game-state/canonicalYardProtocol.mjs",
+      "bytes": 5035,
+      "sha256": "4694e1068ed05ca86b8ebed136c02de59262d221e7d5f8525337770bd76deafd"
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "bytes": 36264,
+      "sha256": "af1e78320d86b84647baaaed0237049d9a6d5c5a59dd6723013877bcdf38fff7"
+    },
+    {
+      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "bytes": 41163,
+      "sha256": "3bfb8a6e5388e8889e9d24929662925bee2bdd9af3375acc486e134d1d5af467"
+    },
+    {
+      "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
+      "bytes": 2038,
+      "sha256": "de0f3e83fb6dbb726cf1931a6e703d63b494b0ffed862c5766a36cec82fb52cd"
+    },
+    {
+      "path": "src/games/companion-yard-v2/atlas.mjs",
+      "bytes": 11538,
+      "sha256": "2e907692f4d6cae8fbd33f075e2bc9c6bbafa1edee54a92829e22446b1c4910c"
+    },
+    {
+      "path": "src/games/companion-yard-v2/catalog-preview-paths.mjs",
+      "bytes": 6869,
+      "sha256": "549ae40998369473c386dc9189042ebc8d06ce288d4cf0a9f27d309f3021a69a"
+    },
+    {
+      "path": "src/games/companion-yard-v2/catalog-ui.mjs",
+      "bytes": 5801,
+      "sha256": "a9e38eb5b38b4477158efdbd2fc3fa8bbd8477f8c7df8f2a6c32f2b0462443bc"
+    },
+    {
+      "path": "src/games/companion-yard-v2/courtyard.css",
+      "bytes": 20611,
+      "sha256": "c03fb738aaea3576ce0cb0096e2717644c0948be33e90b526db1c0b0feeb6cda"
+    },
+    {
+      "path": "src/games/companion-yard-v2/current-cartoon-portrait-paths.mjs",
+      "bytes": 1396,
+      "sha256": "ac065cb3b7c184712e47129bde953db11caea2809b4e3a70bd5c5ea15aa69022"
+    },
+    {
+      "path": "src/games/companion-yard-v2/decoded-capacity.mjs",
+      "bytes": 3183,
+      "sha256": "1711ef591364f70e47fb8af1be1f5d919588eb050db796e2eef5093168cf9be6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/feedback.mjs",
+      "bytes": 2030,
+      "sha256": "dbe46ad68b352c3de87ae12558a7d637b2204a4c962a214caa34cc72f8d5ec7d"
+    },
+    {
+      "path": "src/games/companion-yard-v2/i18n.js",
+      "bytes": 30101,
+      "sha256": "e358abfafa01f05a63b68f325df5f530b82e8dec39254a67d8735ce6d2189bd6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/legacy-m2-background.mjs",
+      "bytes": 980,
+      "sha256": "5650949ab9974a07f7e1e6b5089f8e63c9f278756d24059b58df46f7702a7161"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-preview-gate.mjs",
+      "bytes": 1141,
+      "sha256": "efb7ebb4223be0b9ccc6d54ea40ff351a195808143b699fdc2160685148c89b2"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/clean-garden.png",
+      "bytes": 1444018,
+      "sha256": "c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/source-provenance.json",
+      "bytes": 955,
+      "sha256": "9b3341616be1c01f4eea2220d0d3e6ecfe3cebc590040ffc1a2ce51b38bc84bc"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb",
+      "bytes": 251996,
+      "sha256": "ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/leaf-pot-t2-preview.webp",
+      "bytes": 10640,
+      "sha256": "526eb18659598971fd7f8b32a78ce860727e2f3197a86cfe688a6bad025b21c0"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
+      "bytes": 3972384,
+      "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb",
+      "bytes": 120776,
+      "sha256": "c2f7c317511cfd84605bde3f6e32ffd24d35ee66a3d8bc365ae8d0742557f3fd"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-food-scene.mjs",
+      "bytes": 1534,
+      "sha256": "5e5a9c6191f0de300c935eb96f251d980288e076fd3274cd51a68b1dc9c917e6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/calibration.json",
+      "bytes": 1834,
+      "sha256": "a06c5ebb322e3fe6690868552ec9223dd55672c710f365667cfea7a882b53306"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/fixture.json",
+      "bytes": 10773,
+      "sha256": "8e39abd867f6833212d534e7cce0824d9a95cf76d5ca2aa073650528bdba1021"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/interaction-leaf-anchors.json",
+      "bytes": 1566,
+      "sha256": "a43a37be2580ca98d38c49eec3e5160d0ab8647bc8288090595d2f638e6e2c3c"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/location.json",
+      "bytes": 2729,
+      "sha256": "a3c8ee0cf38f2c99e60184e4f0c904fb857fa6165d892a4be366c87a12438f9e"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-navigation.mjs",
+      "bytes": 7152,
+      "sha256": "9f2da049d20e09f9fadd743149fd49cbc0572b6aeff014065946d4f0408a18df"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-controller.mjs",
+      "bytes": 8772,
+      "sha256": "a661bfd90adc55ac8ba3042d2a2ab40891742c065c76e00a5adf25892be37923"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-planner.mjs",
+      "bytes": 10630,
+      "sha256": "2d227cb987549ab4a5e26194292a2857e83ea3cd6cd5922749147a8d9680e0e5"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-worker-client.mjs",
+      "bytes": 1336,
+      "sha256": "b7d9e62020f6854b5d590e1e1f8490d62fdda8e49d7ac1897540f4db40f8adec"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-worker.mjs",
+      "bytes": 429,
+      "sha256": "9e76c6caf8a7c4320fb8bb1fa1f78349510348213622b0e8a8d2f33eb1f32979"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-trajectory.mjs",
+      "bytes": 5501,
+      "sha256": "8dc977a8af9cd8c141b3599a7cb0beff35c4ded5c2a4781cf06b0e2356fa35b7"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/fixture-clock.mjs",
+      "bytes": 1242,
+      "sha256": "40c45055c6e9248fa6af16e98213a98a8c5ab38128a7377abbdf8c35dd8d9a5b"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/fixture-scheduler.mjs",
+      "bytes": 1687,
+      "sha256": "3c64824cdba15b8ea9dd963ddcae61369b4bdd327607cd0d221c867e3b7c3935"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/grounding-recipe.mjs",
+      "bytes": 2770,
+      "sha256": "69952f142064efadff304375dcdd717bae262f8d65476133d9b94ac9a8c34a03"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/item-catalog.mjs",
+      "bytes": 514,
+      "sha256": "9417b49caf060f2c251405a2fb151f3b20f9c3866245a33a0920cfb3f0aad30a"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/kinematics.mjs",
+      "bytes": 5000,
+      "sha256": "c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/math.mjs",
+      "bytes": 900,
+      "sha256": "9a52990677f0445f09d18f4cf8c98b16c231215c1b5c5bc080d178f0dfc1d0b9"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/polygon-domain.mjs",
+      "bytes": 5195,
+      "sha256": "778d2f02dcbdadf6787b223c27229d2c09e55e9beab8fd22e58320aa71de0f0c"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/trajectory.mjs",
+      "bytes": 5901,
+      "sha256": "c004ccd88f71ff35e69fef3433e0c77b461b787d207eef45b1d8e3dd1878669e"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/planter-interaction.mjs",
+      "bytes": 9900,
+      "sha256": "236687a7d4fdf89645110e9fac75ccabd84a85644f5f7d280b2c2a98fcd1e785"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/projection.mjs",
+      "bytes": 5034,
+      "sha256": "a958b595484badfbd6b3eb0b85f800e77075da81a10b367b9cb5c069367e36d0"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/adaptive-pose-driver.mjs",
+      "bytes": 7859,
+      "sha256": "31a6a1c165ec41b9951f41684a4188bb2d261e269c082250940314614125be8f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-food.mjs",
+      "bytes": 13206,
+      "sha256": "f13687a9daf377f3a6ec1240ff8ff5d41d8b87fdc53e38f50464ab7641b5882f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-planter.mjs",
+      "bytes": 4432,
+      "sha256": "a5cba814b61f358abca97b5c9c7bbf87f05c29a994ed646e7ce3e76e81db8c56"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "bytes": 23641,
+      "sha256": "1b6767b1a641108521d8ada64c0da871f2afe7717cef4df20a037ca7662ac5b4"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/pip-contact-shadow.mjs",
+      "bytes": 5693,
+      "sha256": "2f23791f966768ac1ed98465fce9f4ffa492efdd54dc5b626262512d598d649b"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/planter-inspection-pose.mjs",
+      "bytes": 3123,
+      "sha256": "4f46288dbecca537671439b217380502e93655b830dfce55e2d09cfd87aa22e7"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/surface-placement.mjs",
+      "bytes": 3788,
+      "sha256": "22f0f3685854831d6c80b3144765ee63020ea93c89cfb61ed553e8fe525ffc09"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/resources.mjs",
+      "bytes": 4372,
+      "sha256": "787b6a12a6efd6b6db4475b26b8bba19f8d3b67ee836a04167bdf7bf14b173a6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/routes.mjs",
+      "bytes": 2480,
+      "sha256": "68f043aba485a22cfe162c5eb63afd56e120e0d8e7899727acfe2f2aab74aa09"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/source/pip-analytical-coat.mjs",
+      "bytes": 3766,
+      "sha256": "9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/source/pip-rest-coat.glsl",
+      "bytes": 2781,
+      "sha256": "58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/LICENSE.txt",
+      "bytes": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/loaders/GLTFLoader.js",
+      "bytes": 117570,
+      "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/BufferGeometryUtils.js",
+      "bytes": 37712,
+      "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/SkeletonUtils.js",
+      "bytes": 11535,
+      "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.core.js",
+      "bytes": 1458113,
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.module.js",
+      "bytes": 662772,
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/world-scale.mjs",
+      "bytes": 735,
+      "sha256": "c4d3f2de5056f1021c9b4408c8032bea1cffc29e164e8cb8a30c377801b808a2"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "bytes": 28695,
+      "sha256": "7f5b83e525d3dacc7b4cf8a4eac05d73db11a4fa5c5258f2fe6fdf6096e7eba8"
+    },
+    {
+      "path": "src/games/companion-yard-v2/placement-recovery.mjs",
+      "bytes": 3285,
+      "sha256": "6f27ca0285eed56ad1e08a3df4dfc8b7fae502ae27374a98b905a05bd0a9221f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/preview-thumbnail-overrides.mjs",
+      "bytes": 5705,
+      "sha256": "c29597706ae1f0dcaaf8e712c2335477be204c0a7b549a69991c7620097cacd3"
+    },
+    {
+      "path": "src/games/companion-yard-v2/render-pack-policy.mjs",
+      "bytes": 308,
+      "sha256": "94cdafd79ba620e362509cf90f06730bda1994f91173eaec305b215adea6b84f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/render-pack.mjs",
+      "bytes": 11263,
+      "sha256": "950ea9b749e5b3cca29b34f94b51d64f49ee6d9c96516aa2c5b76692544aebeb"
+    },
+    {
+      "path": "src/games/companion-yard-v2/runtime-cells.mjs",
+      "bytes": 4437,
+      "sha256": "bf3ade8f8998ca3e33dac5988b4dbf2e793defbf25967286ff11afc5dd5cfc2c"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-entry.mjs",
+      "bytes": 411,
+      "sha256": "f7689c053fc12af8729f8f4b4b9fc15997f5ec23f05ca75f602f806b6bbd26ad"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-layout.mjs",
+      "bytes": 7077,
+      "sha256": "da3dc2bcdd5429cd5225a8eb3aef4640630357a4532c8189e99d82688e7b81bb"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-owner.mjs",
+      "bytes": 6587,
+      "sha256": "ad294ed7e4e80ccbb9e494eaaa2450940a52f487607db1d40c3748ca6922ff2d"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene.mjs",
+      "bytes": 21693,
+      "sha256": "e258b54a9fcb98355e4fab2bf27b113f49203cad401ba21d259ac3380c0a4a86"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene45-layout.json",
+      "bytes": 1339,
+      "sha256": "965239f9f28dbb83f445f39411abf74b67ac04b4291d471af4e1e5c90d692c82"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene45-transform.mjs",
+      "bytes": 2412,
+      "sha256": "b29a83f108104b044a1bf05388358e48da0e8e477f38635ef13325ecabfb1453"
+    },
+    {
+      "path": "src/games/companion-yard-v2/ui-image-inventory.json",
+      "bytes": 53346,
+      "sha256": "5557c3180f6af5b8dfcc822dc575c9d4c5502fc0104d5319b79913e3848e0364"
+    },
+    {
+      "path": "src/games/companion-yard-v2/ui-image-reserve.mjs",
+      "bytes": 4330,
+      "sha256": "f44b68c44421fe716403835b7e18d71e240bd8d6d2786b1c6f62fbe5c4ab3d57"
+    },
+    {
+      "path": "tests/helpers/yard-development-acceptance.mjs",
+      "bytes": 16732,
+      "sha256": "b47d0f40dd2d2d474005db34392123e8f5f849bed158a46d955545b106978de5"
+    },
+    {
+      "path": "tests/helpers/yard-development-control-audit.mjs",
+      "bytes": 6086,
+      "sha256": "e72c6de9ca530c842505d03be9bb46cf002138f2de727b51bd0c1b1d79983ee1"
+    },
+    {
+      "path": "tests/helpers/yard-development-proxy.mjs",
+      "bytes": 5963,
+      "sha256": "508ed325b96e712b0af2ed1b97055668b71212ffc6386ac571664bea90504405"
+    },
+    {
+      "path": "tests/yard-canonical-food-host-scene.test.mjs",
+      "bytes": 25803,
+      "sha256": "658188f39d4fb44a4a58ba6f3ce3d6a1fc9930387c826e099cbc5eb601657bda"
+    },
+    {
+      "path": "tests/yard-development-acceptance.test.mjs",
+      "bytes": 14057,
+      "sha256": "32cc4d4523b3f0bf07aac5753e40bafd9c0a3b61264836b2b6e041073f237f4d"
+    },
+    {
+      "path": "tests/yard-development-capabilities.test.mjs",
+      "bytes": 17899,
+      "sha256": "e689e1761ef1b8596fe3f529e7242470c7e2afade443a1753bc4e3691a4c434e"
+    },
+    {
+      "path": "tests/yard-development-e2e/development.spec.mjs",
+      "bytes": 27037,
+      "sha256": "fba4c083d92a7d8f163cff9f2e0e96f376895f931d11d568a36850d584380700"
+    },
+    {
+      "path": "tests/yard-development-receipt.test.mjs",
+      "bytes": 11972,
+      "sha256": "06ffd9c4f0feaf0edea9918224962070afa40d72e1c35d89c9618a15a101a158"
+    },
+    {
+      "path": "tests/yard-development-release.test.mjs",
+      "bytes": 25568,
+      "sha256": "19be103a08e136bdb6a3b40b14e86c7c909ec69f3032803f7ac9a6cbd9fe758c"
+    },
+    {
+      "path": "tests/yard-pip-register-vendor.mjs",
+      "bytes": 95,
+      "sha256": "587511954af49a43a6b75c39eca35b1a74f0bda3c341a4150847df369ae0d3dc"
+    },
+    {
+      "path": "tests/yard-pip-vendor-resolver.mjs",
+      "bytes": 345,
+      "sha256": "46bafb875d838674982c293f184b11fa76944fac7a59245323f1d90edbd59c51"
+    },
+    {
+      "path": "tests/yard-renderer-chunk.test.mjs",
+      "bytes": 8260,
+      "sha256": "83ba17edd08c3ee48148597b77c38844bbcd84b2c2fd302812cfef91143d0687"
+    },
+    {
+      "path": "vite.config.js",
+      "bytes": 8440,
+      "sha256": "9022b8213921ce834d9ad49f97f9bd1f09acfc505f463dfd70558079507ea515"
+    }
+  ],
+  "preservedLivePaths": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "7018f7c054b74195be758c225e2fc9b8ff7bb6e75da84c9e00fb6019cdef0c0f"
+    },
+    {
+      "path": ".github/workflows/yard-maintenance-acceptance.yml",
+      "sha256": "ae364b1e64c7266ecdfbb07f65e9d741fe97b2a3b4309fb93c1c027f56162144"
+    },
+    {
+      "path": ".github/workflows/yard-maintenance-image.yml",
+      "sha256": "23c1af3ccf828d58650e400554a0ae3370ee70b5fa26b5b7717cefa623fba243"
+    },
+    {
+      "path": ".github/workflows/yard-maintenance-release.yml",
+      "sha256": "162ac726aaf0d80052ad2eb4a640340c7b8b86ccedeaad7c008cdb0c23cafabf"
+    },
+    {
+      "path": "docs/yard-active-maintenance-design.md",
+      "sha256": "91c60f462345b8c6866d49f8ce843f38aea397baf88e3fb2f5ebcf88ff93c93e"
+    },
+    {
+      "path": "game-logic/yard-v2/maintenance-release-contract.json",
+      "sha256": "5e0405338fdfccb866374f447c024b8d715c4dc479857a4048c56697ee970ffd"
+    },
+    {
+      "path": "playwright.yard-maintenance.config.js",
+      "sha256": "7cd29028eb73b6073d087da5222baeabdb08beaeca97e0c83808071f1dca2cc6"
+    },
+    {
+      "path": "scripts/verify-yard-rollback-target.mjs",
+      "sha256": "d9a2201705ff3865f4e69f9db64c5505f1b453d3b6c1cb95be2b15c00b98f59f"
+    },
+    {
+      "path": "scripts/yard-active-maintenance.mjs",
+      "sha256": "3bdb28837bc649485d99adab491254f8177c431570e5adf6bbb11ae76898c852"
+    },
+    {
+      "path": "scripts/yard-maintenance-bootstrap.mjs",
+      "sha256": "6bba00324547c48d122721d35acafc22d8ca3adc5076f0aa5ba99596ed03172e"
+    },
+    {
+      "path": "scripts/yard-maintenance-capability.mjs",
+      "sha256": "90b2f6ea98987e8c382d503228362da0e768b923ec8ebbfeeddda3777be4766c"
+    },
+    {
+      "path": "scripts/yard-maintenance-ci-router.mjs",
+      "sha256": "7b6cda46fc07855feda75cabfda0d8037781480a23a2f041dbd4c55ecdde8e27"
+    },
+    {
+      "path": "scripts/yard-maintenance-cli.mjs",
+      "sha256": "61955bc9a0523a31246cf81a8ef3b3c9fd75e5420c1a18f15ad13a47cd7e3e34"
+    },
+    {
+      "path": "scripts/yard-maintenance-pre-switch-guard.sh",
+      "sha256": "8c33595b085d192b531a4086dbf5a8f59c556f17a3f9f81fa5d830d6e82fcdad"
+    },
+    {
+      "path": "scripts/yard-maintenance-production.mjs",
+      "sha256": "45bed0647cfe35ef10488afd7192244b4a7d05f58808d2d4e6fa02d94066f1f6"
+    },
+    {
+      "path": "scripts/yard-maintenance-receipt.mjs",
+      "sha256": "032b21466575413757b67ae7030a5e041c8a71093c85ebe100dfddb115ba84c3"
+    },
+    {
+      "path": "scripts/yard-release-compatibility.mjs",
+      "sha256": "d4d2088ec4c81a905cad1db755d798621fe1b66a79901312d438ea434d637875"
+    },
+    {
+      "path": "src/app/gameRegistry.js",
+      "sha256": "adf3d7ffb63fa4fd541c2ff18fbe798a91c507985e6c155f8e5c260a4564613f"
+    },
+    {
+      "path": "tests/game-ux-foundations.test.js",
+      "sha256": "8a39eec3e8693d924e4db15ad24f888ac541e5fc1def496540eb3d1332303d52"
+    },
+    {
+      "path": "tests/helpers/yard-maintenance-guard.mjs",
+      "sha256": "02e17c9ff1466cd09efbc7799360683eb18aa5d5030388c55e3adfb77c10bbc0"
+    },
+    {
+      "path": "tests/yard-active-maintenance.test.mjs",
+      "sha256": "8ed8b36aca7a976d3de062a35220bbed29a2d5ee2ffa48891d5e5d4e64583ebc"
+    },
+    {
+      "path": "tests/yard-closed-ci-receipt.test.mjs",
+      "sha256": "3876b6b632e303172d542226325d7befd875b62a31405a91c376a5391044434c"
+    },
+    {
+      "path": "tests/yard-maintenance-e2e/maintenance.spec.js",
+      "sha256": "7ce85a3140d3dbe42140fc2b6f8abe09b7abf21ecfd3d4ca765024ed714dfccf"
+    },
+    {
+      "path": "tests/yard-maintenance-integration.test.mjs",
+      "sha256": "24ebccf487eb80a9cb7a27b3a5dba96c28be9494155fe374e6084db2a3ee2f5d"
+    }
+  ],
+  "priorGreen": {
+    "format": "yard-food-scoped-reuse/v1",
+    "runId": "37546258560",
+    "head": "8c027ca0e5a4cc9930f83f91eeccc0d54f3ae6d6",
+    "overallRun": "FAILED_OR_INCOMPLETE",
+    "failure": "220-second global timeout while the first occupied move attempted to commit an invalid v2 navigation candidate",
+    "allOriginalsVerified": 73,
+    "originalManifestSha256": "7c3f1b0601d7f89802ba5d4445116076dcd2428136ea79ced61ea91eb33f1991",
+    "greenScopes": {
+      "hud": {
+        "tuples": 11,
+        "elapsedMs": 90930,
+        "status": "passed"
+      },
+      "foodStates": {
+        "status": "passed",
+        "images": 4
+      },
+      "foodTransactions": 12,
+      "recording": {
+        "status": "passed",
+        "rawVideoPreserved": true,
+        "observedRouteSamples": 319
+      },
+      "encoded": {
+        "passed": true,
+        "stageVisibleFrames": 506,
+        "dialogOccludedFrames": 63,
+        "flatFrames": []
+      }
+    },
+    "keyOriginals": [
+      {
+        "path": "browser.json",
+        "bytes": 8308090,
+        "sha256": "93873439e2568bc8aa2cbe134a3e409713ccc5abf1d0e86757c01285f03792af"
+      },
+      {
+        "path": "builds.json",
+        "bytes": 19991,
+        "sha256": "5201dc39bbeb615bf925e2d949383cb3cdcd3cf7bdb1b3194e93278e641600db"
+      },
+      {
+        "path": "food-builds.json",
+        "bytes": 1003,
+        "sha256": "07e1f2c5cbc037997b27ab83dcf8237bfbb172d11fdd6b0aa113c1057f634615"
+      },
+      {
+        "path": "food-encoded-video.json",
+        "bytes": 3900,
+        "sha256": "eabb553dd2b9297fa9791e8e1ce9ec51a6c1ade3adb9b46ea2b13be066f1bc96"
+      },
+      {
+        "path": "food-interactions-native.webm",
+        "bytes": 1915044,
+        "sha256": "ef9d388d3181d83cefb131f56836e4743cbc6de31caedc4c8faad562d7e52090"
+      },
+      {
+        "path": "food-observed-motion.json",
+        "bytes": 275318,
+        "sha256": "fc43881d7dd909ce9d36c5dbc5ce12b62b5a5a16f72b83b7e52ff252943b8e83"
+      },
+      {
+        "path": "food-state-berry_plate-390x844-dpr2-native.png",
+        "bytes": 55362,
+        "sha256": "49cf678be3d8de83934643ae7cf73687a89de6bf97efc3817057e32b0bebd255"
+      },
+      {
+        "path": "food-state-bonito_bowl-390x844-dpr2-native.png",
+        "bytes": 56101,
+        "sha256": "7d1d7b931f2aa89bb3b8c35ddc60c59444bdb52a253cd2ef6d7298a2b0a27fb8"
+      },
+      {
+        "path": "food-state-empty-390x844-dpr2-native.png",
+        "bytes": 54641,
+        "sha256": "11796d6229d385a8ee9c09cd239787813c5886bcf6bb00231d6eededd093701b"
+      },
+      {
+        "path": "food-state-kibble-390x844-dpr2-native.png",
+        "bytes": 56284,
+        "sha256": "e6735063057f636dc6ef9acced2f9097cb1e773ef0247dcd173f7f901f5b230b"
+      },
+      {
+        "path": "source.json",
+        "bytes": 3683,
+        "sha256": "bfff7fde559c92ff0a1cdb867ccefba7350df8dd3b683e4a17f7b52fa9fa5682"
+      },
+      {
+        "path": "source.tap",
+        "bytes": 26813,
+        "sha256": "9dfa8e43bd973e84dbe86a681f7c4dffcea3acac4cb3f0771f666c75ed592149"
+      }
+    ],
+    "reuseConditions": [
+      "Keep the original head and hashes; never relabel old originals as fresh evidence from the corrected head.",
+      "Review the exact candidate diff and explicitly establish which passed scopes are unaffected. Scene checkPlacement changes are not byte-identical; scope reasoning and focused fresh v2 placement/escape checks are required.",
+      "A different normal auth/server policy or default entry path may invalidate part of the earlier fixture/preview proof. Preserve old green scopes as historical; qualify normal-policy auth/entry separately.",
+      "Do not rerun or republish the full baseline automatically; select the bounded remaining scope only after auth/policy and source ownership are agreed."
+    ],
+    "pendingScopes": [
+      "current-format occupied move escape at320 and568landscape",
+      "current-format occupied pickup escape at390",
+      "fresh v2 placement and current-v2 lost-response/reload/account fencing",
+      "food-union and actual actor-collision refusal with saved rows unchanged",
+      "normal immutable image/auth/policy/economy and warm-client identity"
+    ]
+  },
+  "preparationBlockers": [],
+  "scope": {
+    "jobs": 1,
+    "browserCases": 5,
+    "freshOriginalPngs": 10,
+    "newVideo": false,
+    "legacyCompatibility": false,
+    "normalSignedTelegramAuth": true,
+    "sourceHook": false,
+    "productionServices": false,
+    "deployment": false,
+    "candidateReceipt": "not-created"
+  },
+  "predecessorReceipt": {
+    "sha256": "db30de94783d1e1b3ec8a6325749990f0d94f3bd2f5888edc0aeb1663af55fc1",
+    "json": "{\"format\":\"cc-gh-yard-accepted-active/v1\",\"repository\":\"le-who/cc-gh\",\"repositoryId\":1162268629,\"status\":\"accepted\",\"release\":{\"commit\":\"6b80c9a2cca146e20afcaced6a34a035c30c13aa\",\"tree\":\"11d0b3664a6657383d4011720e598ff901006f84\",\"imageDigest\":\"sha256:c57d6b224edaab29a94f83d6457787d4398582f573690c4a99331750203d8a29\",\"imageId\":\"sha256:3feb1aa00e39358bf7befbece67215483390ee089e913f8088c3aae8f7ebc9ad\"},\"initialActivation\":{\"commit\":\"462082515947e4558c3a29eaec38d2e8562566aa\",\"tree\":\"29373a982e42a756d893c3ffb8ecebd354e27fe0\",\"imageDigest\":\"sha256:7072c504f5b260d86be899e2625c9e107c8637b23e1e784b4fef2e6f181c107c\",\"contractSha256\":\"f1b1ffc6dd6563d3120be00c6f43610d5145b6b0651653465f590b6b65d2ff3e\",\"closedBuildId\":\"010dd1ede7f435ccaad92545068c495b8a4cf5f3\",\"closedImageDigest\":\"sha256:29d10f6e7725384e41d2375520da086e8ce13c6e06c17a3d395a1eb5eef24be9\"},\"acceptance\":{\"runId\":37220749198,\"runAttempt\":1,\"status\":\"completed\",\"conclusion\":\"success\",\"headCommit\":\"6b80c9a2cca146e20afcaced6a34a035c30c13aa\",\"artifactSha256\":\"966294f8baf8587ec3397f7fd0f2933104a72ba882f96c834901d922008973fe\"},\"deployment\":{\"runId\":37220749198,\"runAttempt\":1,\"status\":\"completed\",\"conclusion\":\"success\",\"headCommit\":\"6b80c9a2cca146e20afcaced6a34a035c30c13aa\",\"artifactSha256\":\"966294f8baf8587ec3397f7fd0f2933104a72ba882f96c834901d922008973fe\"},\"jobs\":[{\"name\":\"Accept published ACTIVE maintenance\",\"id\":111490414932,\"attempt\":1},{\"name\":\"Deploy accepted ACTIVE maintenance\",\"id\":111491734095,\"attempt\":1}]}"
+  },
+  "workflowTrustBoundary": "GitHub hosted runner and official vendor actions at existing repository major tags. Exact workflow bytes are pinned; major-tag action implementation is not represented as immutable.",
+  "unchangedWorkflowPins": [
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "7018f7c054b74195be758c225e2fc9b8ff7bb6e75da84c9e00fb6019cdef0c0f"
+    },
+    {
+      "path": ".github/workflows/deploy.yml",
+      "sha256": "1ca789317a35d0f5d391d38efc7fe61ddc8a2470fbd1a531be112df706a749b6"
+    },
+    {
+      "path": ".github/workflows/provision-caddy.yml",
+      "sha256": "57a834a36a179f6b8fded126afeb54903c14fa690f4b3f1a520fa08c8db45791"
+    },
+    {
+      "path": ".github/workflows/yard-maintenance-acceptance.yml",
+      "sha256": "ae364b1e64c7266ecdfbb07f65e9d741fe97b2a3b4309fb93c1c027f56162144"
+    },
+    {
+      "path": ".github/workflows/yard-maintenance-image.yml",
+      "sha256": "23c1af3ccf828d58650e400554a0ae3370ee70b5fa26b5b7717cefa623fba243"
+    },
+    {
+      "path": ".github/workflows/yard-maintenance-release.yml",
+      "sha256": "162ac726aaf0d80052ad2eb4a640340c7b8b86ccedeaad7c008cdb0c23cafabf"
+    },
+    {
+      "path": ".github/workflows/yard-native-gameplay-qa.yml",
+      "sha256": "7d65562c3fdd5b90b57a54ef458ed643524410613b8f1d039c4258b9f092eb34"
+    },
+    {
+      "path": ".github/workflows/yard-production-acceptance.yml",
+      "sha256": "02e6ecd1bcd62c05ba18d8ed6cb92e77cb499a2aee597823315620bc7939b7de"
+    }
+  ],
+  "reusedReleaseGuard": {
+    "format": "yard-development-reused-release-guard/v1",
+    "kind": "reviewed-local-source-mock-proof",
+    "tests": 53,
+    "passed": 53,
+    "failed": 0,
+    "tapSha256": "d3cf6b4b9e21af866bf8e8bc0f793d263cf9f5dfdf97da011890302e609d6334",
+    "tap": "\u2714 development record explicitly permits v2 and records old-image quarantine without reset (5.23304ms)\n\u2714 approval hash cannot be obtained implicitly from candidate bytes (1.751213ms)\n\u2714 rejects maintenance disguise (0.539302ms)\n\u2714 rejects unreviewed predecessor (0.489638ms)\n\u2714 rejects database reset (1.010112ms)\n\u2714 rejects rollback compatibility claim (0.599792ms)\n\u2714 rejects client enablement authority (0.525221ms)\n\u2714 rejects fixture loader (0.465332ms)\n\u2714 rejects canonical visitor admission (0.743705ms)\n\u2714 rejects foreign public target (0.624278ms)\n\u2714 rejects invented neighbor-health claim (0.498801ms)\n\u2714 rejects acceptance missing capability case (0.577799ms)\n\u2714 rejects acceptance different digest (1.454642ms)\n\u2714 rejects acceptance hidden retry (0.438082ms)\n\u2714 rejects acceptance unsuccessful prior deployment (0.447896ms)\n\u2714 health independently binds image, service, exact build, both dependencies and authentication (0.980298ms)\n\u2714 protected host/neighbor changes fail even when application is healthy (1.102229ms)\n\u2714 CLI failure does not serialize private neighbor comparison values (58.478739ms)\n\u2714 shell success changes only app image/build identity and preserves original compose/env (7544.996909ms)\n\u2714 shell unauthorized-root fails before replacing any app (3.613933ms)\n\u2714 shell root-symlink fails before replacing any app (2.907062ms)\n\u2714 shell packet-symlink fails before replacing any app (4.200094ms)\n\u2714 shell lock-symlink fails before replacing any app (9.951905ms)\n\u2714 shell lock-hardlink fails before replacing any app (10.52702ms)\n\u2714 shell backup-symlink fails before replacing any app (3.491471ms)\n\u2714 shell compose-symlink fails before replacing any app (7.288295ms)\n\u2714 shell env-symlink fails before replacing any app (8.561829ms)\n\u2714 shell verifier-symlink fails before replacing any app (13.117572ms)\n\u2714 shell record-symlink fails before replacing any app (3.785659ms)\n\u2714 shell docker-config-override fails before replacing any app (3.920128ms)\n\u2714 shell backup-corruption fails before replacing any app (5317.165999ms)\n\u2714 shell config-drift fails before replacing any app (1350.339981ms)\n\u2714 shell remote-context fails before replacing any app (51.906056ms)\n\u2714 shell no-compose fails before replacing any app (119.17417ms)\n\u2714 shell wrong-predecessor fails before replacing any app (145.974072ms)\n\u2714 shell wrong-candidate-image fails before replacing any app (1157.132573ms)\n\u2714 shell pre-health fails before replacing any app (1315.620137ms)\n\u2714 shell backup-fail fails before replacing any app (2991.214991ms)\n\u2714 shell backup-invalid fails before replacing any app (3179.796365ms)\n\u2714 disappearing neighbor details stay in private evidence rather than public stderr (2911.532968ms)\n\u2714 Compose timeout stays unverified and does not launch a competing rollback (5459.417791ms)\n\u2714 a later invocation refuses unresolved daemon work despite a stale healthy predecessor (5448.394175ms)\n\u2714 signal immediately after clearing a verified candidate marker cannot start an unmarked rollback (8024.464129ms)\n\u2714 shell candidate-port-drift performs actual healthy predecessor rollback (8898.767938ms)\n\u2714 shell candidate-config-drift performs actual healthy predecessor rollback (9569.776339ms)\n\u2714 shell during-switch performs actual healthy predecessor rollback (7909.108304ms)\n\u2714 shell candidate-local performs actual healthy predecessor rollback (9276.681569ms)\n\u2714 shell candidate-public performs actual healthy predecessor rollback (13923.928672ms)\n\u2714 shell stale-public performs actual healthy predecessor rollback (14018.480752ms)\n\u2714 shell rollback-unhealthy refuses a false recovered claim (6961.055906ms)\n\u2714 shell rollback-command refuses a false recovered claim (5415.725574ms)\n\u2714 shell neighbor-drift refuses a false recovered claim (9620.133905ms)\n\u2714 shell has no host installation, registry login, unrelated deletion, environment dump or database restore (0.540133ms)\n\u2139 tests 53\n\u2139 suites 0\n\u2139 pass 53\n\u2139 fail 0\n\u2139 cancelled 0\n\u2139 skipped 0\n\u2139 todo 0\n\u2139 duration_ms 130868.521213\n",
+    "currentSourcePins": [
+      {
+        "path": "scripts/ccgh-app-development-release.sh",
+        "sha256": "185bc6e90a6ae77fdc35a414b7cc348fb35fd5173a85179b1059d8247124a79c"
+      },
+      {
+        "path": "scripts/yard-development-contract.mjs",
+        "sha256": "a89ed48aaf777e227adf6485b6d3607c7239ebf9d077a9acafef5bbab617072a"
+      },
+      {
+        "path": "tests/yard-development-release.test.mjs",
+        "sha256": "19be103a08e136bdb6a3b40b14e86c7c909ec69f3032803f7ac9a6cbd9fe758c"
+      }
+    ],
+    "sourceChangeSincePriorRun": {
+      "path": "scripts/yard-development-contract.mjs",
+      "kind": "reviewed-comment-only",
+      "beforeSha256": "4b27898da53c3972dd88ea0de62fa41ae0d451a57c186528d95f8e258dea93f4",
+      "afterSha256": "a89ed48aaf777e227adf6485b6d3607c7239ebf9d077a9acafef5bbab617072a",
+      "diffSha256": "58250bc9bda96470867079314c62f44765dd028f6c010f5f6d05bdc3631ea896",
+      "executableBehaviorChanged": false
+    },
+    "limitations": [
+      "Mocked local commands; no live-host or image execution",
+      "Current ordinary-image job reruns five exact app-only smoke cases only"
+    ],
+    "originalReporter": "node-spec"
+  },
+  "sourceSelection": {
+    "nonShellCount": 65,
+    "nonShellDeadlineSeconds": 20,
+    "releaseSmokeCount": 5,
+    "releaseSmokeDeadlineSeconds": 60,
+    "releaseSmokeNames": [
+      "shell success changes only app image/build identity and preserves original compose/env",
+      "shell during-switch performs actual healthy predecessor rollback",
+      "shell stale-public performs actual healthy predecessor rollback",
+      "a later invocation refuses unresolved daemon work despite a stale healthy predecessor",
+      "signal immediately after clearing a verified candidate marker cannot start an unmarked rollback"
+    ],
+    "priorFullReleaseCount": 53
+  },
+  "priorFailedNormalImage": {
+    "runId": 37552764801,
+    "release": {
+      "commit": "3775bca3361be8f113b773bdfa78691f1492e451",
+      "tree": "7fcb37b4d9ee8db822672e88d4e9ca16da1063fe",
+      "imageDigest": "sha256:7e0569fdd123d22e73101d327abb1c16dafdc4653c792366c13679aa78b0400a",
+      "imageId": "sha256:ffa4619f1e6bb0d0d1cb5744a3449fc3b1d55a48b95698ed3a780c319d560860"
+    },
+    "status": "failed",
+    "originals": 23,
+    "originalManifestSha256": "439c8beb51d5f3261da6aa12b33cace782bfebd6a6add3ed20455dfdf5405b72",
+    "scope": "Normal image/auth/warm case passed; three occupied-ledger and one exact-coordinate QA assumptions failed. No acceptance or cross-head image reuse.",
+    "secondRun": {
+      "runId": 37554037384,
+      "status": "failed",
+      "originals": 21,
+      "scope": "Signed-auth/warm and food readiness passed; modal audit clicked background Home; later worker handoff cause unknown from retained logs."
+    }
+  },
+  "editorFeedbackFix": {
+    "scope": "Localized hidden grid reserve prevents feedback from resizing stage during pointer gesture; orientation cancellation and validation unchanged",
+    "reproduction": "Deterministic scene replay; actual original-browser attribution remains probable pending fresh row/stage observations",
+    "supplementalCollisionCaptures": 6,
+    "locales": [
+      "ru",
+      "en"
+    ]
+  }
+}

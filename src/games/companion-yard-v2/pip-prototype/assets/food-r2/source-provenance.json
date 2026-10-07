@@ -1,0 +1,21 @@
+{
+  "id": "yard-food-source-r2/20261006",
+  "asset": "yard-food-source-r2.glb",
+  "sourceCandidate": "yard-canonical-food-source-r2-20261006",
+  "glbSha256": "ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66",
+  "glbBytes": 251996,
+  "blendSha256": "4d075964623c6d5f6c5537af6d845b8fe58a9df9a6f0d100f0caf4f9cd8a2fd5",
+  "sourceKind": "New reference-guided reconstruction, not recovered historical source",
+  "revisionScope": "R2 changes bonito geometry and its two source material colors; runtime GLB is copied byte-identically",
+  "materials": "Ten newly authored source materials retained unchanged by the binding",
+  "canonicalUnitsPerSource": 12,
+  "sourceAxes": "Source XYZ maps to glTF X,Z,-Y",
+  "textures": 0,
+  "externalResources": 0,
+  "neutralAndCanonicalDensityViewsInspected": true,
+  "artAccepted": false,
+  "sceneContactAccepted": false,
+  "presentationReady": false,
+  "runtimeActivated": false,
+  "visitAdmission": false
+}
