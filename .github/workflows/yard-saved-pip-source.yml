@@ -104,6 +104,7 @@ jobs:
           node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/verify-skinned-culling.mjs
           cp qa/saved-pip-visit/*-provenance.json qa/saved-pip-visit/*qualification.json qa/saved-pip-visit/food-selector-result.json qa/saved-pip-visit/source-verification.json qa/saved-pip-visit/complete-resource-closure.json qa/saved-pip-visit/skinned-culling-regression.json test-results/saved-visit/
       - name: Saved client contract and actual Scene lifecycle
+        id: saved_client
         run: |
           set -o pipefail
           node --import ./qa/saved-pip-visit/register.mjs --test tests/yard-canonical-saved-client.test.mjs tests/yard-canonical-saved-scene.test.mjs | tee test-results/saved-visit/saved-client.tap
@@ -116,11 +117,13 @@ jobs:
           YARD_SCENE_OUTPUT: ${{ github.workspace }}/test-results/saved-visit-scene
         run: node qa/saved-visit-scene/run.mjs
       - name: Ordinary Home to Yard navigation and saved visitor
+        if: ${{ !cancelled() && steps.saved_client.outcome == 'success' }}
         env:
           VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
           QUALIFIED_APP_SNAPSHOT: ${{ github.workspace }}/test-results/normal-runtime/qualified-app-snapshot.json
         run: pnpm exec playwright test --config playwright.yard-saved-visit-app.config.mjs
       - name: Real backend buy, fill, exact nonce and PostgreSQL readback
+        if: ${{ !cancelled() && steps.saved_client.outcome == 'success' }}
         env:
           NODE_ENV: test
           DEV_AUTH_ENABLED: 'true'

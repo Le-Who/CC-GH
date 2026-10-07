@@ -20,12 +20,14 @@ async function movingTrial(page,id){
  await page.evaluate(()=>window.sceneQA.advanceTo(window.sceneQA.plan.inspectionPlan.phases[1].startMs+300));
  const samples=[],potCrops=[];let reference=null,start=null;
  for(let i=0;i<3;i++){
-  if(i)await page.waitForTimeout(3000);
-  const row=await page.evaluate(()=>({realMs:performance.now(),d:window.sceneQA.diagnostics()})),d=row.d,scene=d.scene,frame=scene.renderer.lastFrame,ledger=scene.foodResources;
-  assert.equal(scene.resources.renderProfile,'painted-native-1.5-v1');assert.equal(scene.resources.backingWidth,585);assert.equal(scene.resources.backingHeight,972);assert.equal(scene.lastFrame.visibility,'both');assert.equal(d.hostVisibility,'visible');
-  for(const k of ['rgba','knownCPU','estimatedGPU'])assert(ledger.total[k]<=ledger.limits[k],k+' budget');assert.equal(ledger.limits.estimatedGPU,20*1024*1024);
+  if(i){const remaining=await page.evaluate(target=>Math.max(0,target-performance.now()),samples[0].realMs+i*3000);await page.waitForTimeout(remaining);}
+  const row=await page.evaluate(()=>(()=>{const host=document.querySelector('#direct'),surface=host.querySelector('canvas'),rect=surface?.getBoundingClientRect();return{realMs:performance.now(),d:window.sceneQA.diagnostics(),surfaceVisible:getComputedStyle(host).visibility==='visible'&&getComputedStyle(surface).visibility==='visible'&&rect.width>0&&rect.height>0}})()),d=row.d,scene=d.scene,frame=scene.renderer.lastFrame,ledger=scene.foodResources;
+  await fs.writeFile(path.join(output,`${id}-moving-${i}-diagnostics.json`),JSON.stringify(row,null,2)+'\n');
+  assert.equal(scene.resources.renderProfile,'painted-native-1.5-v1');assert.equal(scene.resources.backingWidth,585);assert.equal(scene.resources.backingHeight,972);assert.equal(scene.lastFrame.visibility,'both');assert.equal(row.surfaceVisible,true,'Actual composed surface is visible');
+  for(const k of ['rgba','knownCPU','estimatedGPU'])assert(Number.isSafeInteger(ledger.total[k])&&ledger.total[k]>=0&&ledger.total[k]<=ledger.limits[k],k+' budget');assert.equal(ledger.limits.estimatedGPU,20*1024*1024);
   const camera=[...frame.cameraWorld,...frame.cameraProjection,frame.cssRect.x,frame.cssRect.y,frame.cssRect.width,frame.cssRect.height];if(reference)camera.forEach((n,k)=>assert(Math.abs(n-reference[k])<1e-9,'Camera/raster moved with actor'));else reference=camera;
   const target=await page.evaluate(()=>window.sceneQA.plan.inspectionPlan.target),pot=projectCanonical(frame,{x:target.x,y:target.y,z:2.5}),actor=projectCanonical(frame,scene.lastFrame.root),actorDistanceCss=Math.hypot(actor.x-pot.x,actor.y-pot.y),clip={x:Math.round(pot.x)-4,y:Math.round(pot.y)-3,width:8,height:6};
+  const viewport=page.viewportSize();assert(clip.x>=0&&clip.y>=0&&clip.x+clip.width<=viewport.width&&clip.y+clip.height<=viewport.height,'Projected pot crop inside viewport');
   await page.screenshot({path:path.join(output,`${id}-moving-${i}.png`)});const potBytes=await page.screenshot({path:path.join(output,`${id}-pot-${i}.png`),clip});const potHash=createHash('sha256').update(potBytes).digest('hex');if(actorDistanceCss>32)potCrops.push({i,hash:potHash});
   samples.push({realMs:row.realMs,serverNow:d.savedServerNow,frameCount:scene.frameCount,root:scene.lastFrame.root,phase:scene.lastFrame.savedPhase,frame,resources:scene.resources,ledger,potClip:clip,potHash,actorDistanceCss});
  }
