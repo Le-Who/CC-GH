@@ -17,6 +17,11 @@
       "bytes": 24330,
       "sha256": "a87d559d7178660a7b37168f985cbffa04b79abb7f87587e5786d674d1f9cb36",
       "reviewedSourceCommit": "e4e477973aa386a331cf339ca9bdeb819737216f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/painted-food-appearance.mjs",
+      "bytes": 2728,
+      "sha256": "80a61019be86c775f6c09700712e0cbab5bfae7f05c468b651b2fd2ad7d18689"
     }
   ]
 }

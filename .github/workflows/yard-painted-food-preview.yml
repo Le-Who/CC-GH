@@ -40,6 +40,11 @@ jobs:
           CI: 'true'
         run: |
           YARD_SOURCE_ROOT="$PWD" YARD_ASSET_ROOT="$PWD" YARD_DEPENDENCY_ROOT="$PWD" YARD_OVERLAY_ROOTS='' YARD_SAVED_VISIT_QA="$PWD/qa/saved-pip-visit" YARD_PAINTED_OUTPUT="$RUNNER_TEMP/painted-food-native" node qa/painted-food-native/run-native.mjs
+      - name: Compare food-only authored color and contact at identical native frame
+        env:
+          CI: 'true'
+        run: |
+          YARD_SOURCE_ROOT="$PWD" YARD_ASSET_ROOT="$PWD" YARD_DEPENDENCY_ROOT="$PWD" YARD_OVERLAY_ROOTS='' YARD_SAVED_VISIT_QA="$PWD/qa/saved-pip-visit" YARD_PAINTED_OUTPUT="$RUNNER_TEMP/painted-food-fidelity" node qa/painted-food-native/run-fidelity-probe.mjs
       - name: Preserve bounded native evidence, including failures
         if: always()
         uses: actions/upload-artifact@v7
@@ -47,6 +52,7 @@ jobs:
           name: painted-food-native-${{ github.sha }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/painted-food-native/
+            ${{ runner.temp }}/painted-food-fidelity/
             qa/painted-food-native/module-graph.json
           if-no-files-found: warn
           retention-days: 3
