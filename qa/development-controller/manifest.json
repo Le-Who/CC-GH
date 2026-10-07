@@ -1,0 +1,26 @@
+{
+  "parent": "ab4bd95df88ac6a23ffab151691694d4b5570643",
+  "scope": "No-deploy exact repeat-release controller and real Compose config/Go formatter qualification",
+  "files": [
+    {
+      "path": "qa/development-controller/scripts/ccgh-app-development-release.sh",
+      "sha256": "8be49f606f6c468f024c9d1b9f668be5dae599c1469816ef2b6dbea40eb907f4"
+    },
+    {
+      "path": "qa/development-controller/scripts/yard-development-contract.mjs",
+      "sha256": "64d9d9578918df8cf15f87be9ecf37e05a8be73f1bcfe5287ef37e2c461cf1cb"
+    },
+    {
+      "path": "qa/development-controller/tests/yard-development-release.test.mjs",
+      "sha256": "fd78e942c2713c7e35b1f8bbfd11a0323bc5d174c1bbb885fa5c72b48ef1eb54"
+    },
+    {
+      "path": "qa/development-controller/tests/probe-compose-repeat-release.py",
+      "sha256": "78391ae7857d4f6fc9b6d33cda481e363e2eab320939d6eae657f092790bd9c4"
+    },
+    {
+      "path": "qa/development-controller/inspect-format.go",
+      "sha256": "e1934543430a88ddfeaf7d91a29439eb7cbbc2a4a942928838e959247f750926"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+name: Bounded repeat-release controller qualification
+on:
+  push:
+    branches: ['qa/development-batch-controller-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: development-batch-controller-20261007
+  cancel-in-progress: false
+jobs:
+  controller:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify exact controller closure and no runtime changes
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
+          const m=JSON.parse(fs.readFileSync('qa/development-controller/manifest.json'));assert.equal(execFileSync('git',['rev-parse','HEAD^'],{encoding:'utf8'}).trim(),m.parent);
+          const changed=execFileSync('git',['diff','--name-only',m.parent,'HEAD'],{encoding:'utf8'}).trim().split('\n').sort();assert.deepEqual(changed,[...m.files.map(x=>x.path),'qa/development-controller/manifest.json','.github/workflows/development-controller-qa.yml'].sort());
+          for(const r of m.files)assert.equal(createHash('sha256').update(fs.readFileSync(r.path)).digest('hex'),r.sha256,r.path);
+          fs.mkdirSync('test-results/development-controller',{recursive:true});fs.writeFileSync('test-results/development-controller/source.json',JSON.stringify({commit:process.env.GITHUB_SHA,parent:m.parent,files:m.files,runtimeChanged:false}));
+          JS
+      - name: Full exact controller regressions
+        run: |
+          set -o pipefail
+          timeout 300s node --test --test-reporter=tap qa/development-controller/tests/yard-development-release.test.mjs | tee test-results/development-controller/controller.tap
+      - name: Actual Compose config identity with synthetic files only
+        run: |
+          set -o pipefail
+          python3 qa/development-controller/tests/probe-compose-repeat-release.py | tee test-results/development-controller/compose.json
+      - name: Unchanged strict Go formatter regression
+        env:
+          GOTOOLCHAIN: local
+          GOPROXY: 'off'
+          GOSUMDB: 'off'
+        run: |
+          set -o pipefail
+          go run qa/development-controller/inspect-format.go | tee test-results/development-controller/formatter.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: development-controller-${{ github.sha }}
+          path: test-results/development-controller/
+          if-no-files-found: error
+          retention-days: 7
