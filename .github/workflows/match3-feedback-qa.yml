@@ -33,7 +33,11 @@ jobs:
           node qa/match3-feedback/preflight.mjs > test-results/match3-feedback/preflight.json
           node --test tests/match3.test.js tests/match3-motion.test.js tests/match3-motion-fixture.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/match3-render-budget.test.js > test-results/match3-feedback/unit.tap 2>&1
           pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list > test-results/match3-feedback/collected.txt
-      - name: Build real application
+      - name: Build real application with reviewed native QA flags
+        env:
+          VITE_YARD_PIP_PREVIEW: 'true'
+          VITE_YARD_SAVED_VISITS: 'true'
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
         run: pnpm run build > test-results/match3-feedback/build.log 2>&1
       - run: pnpm exec playwright install --with-deps chromium
       - name: One diagnostic before matrix
