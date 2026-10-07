@@ -1,5 +1,7 @@
 import {useEffect, useId, useRef, useState} from 'react';
 import {api} from '../services/apiClient.js';
+import {useGameHub} from '../game-state/useGameHub.js';
+import {validateNickname} from '../../game-logic/public-profile.js';
 import './profile-nickname.css';
 const COPY = {
   en: { label: 'In-game nickname', help: 'Shown on leaderboards. Leave empty to use your Telegram first name. Up to 32 characters.', save: 'Save nickname', reset: 'Use first name', saving: 'Saving…', saved: 'Nickname saved', failed: 'Could not save. Try again.', loadFailed: 'Could not load your nickname. Reopen your profile to try again.', invalid: 'Use up to 32 characters without control characters.' },
@@ -15,7 +17,7 @@ export function ProfileNickname({language = 'en', accountSession, onDisplayName}
   const [status, setStatus] = useState('');
   useEffect(() => {
     const current = ++generation.current;
-    const isCurrent = () => generation.current === current;
+    const isCurrent = () => generation.current === current && useGameHub.getState().accountSession === accountSession;
     setNickname(''); setReady(false); setBusy(false); setStatus('');
     api(`/api/profile/nickname?lang=${language}`, undefined, {isCurrent}).then(result => {
       if (!isCurrent()) return;
@@ -27,9 +29,9 @@ export function ProfileNickname({language = 'en', accountSession, onDisplayName}
   }, [accountSession, language, onDisplayName]);
   async function save(value) {
     if (!ready || busy) return;
-    if ([...value.normalize('NFC').trim()].length > 32 || /[\p{Cc}\p{Cf}]/u.test(value)) return setStatus('invalid');
+    if (validateNickname(value).error) return setStatus('invalid');
     const current = generation.current;
-    const isCurrent = () => generation.current === current;
+    const isCurrent = () => generation.current === current && useGameHub.getState().accountSession === accountSession;
     setBusy(true); setStatus('');
     const result = await api(`/api/profile/nickname?lang=${language}`, {nickname:value}, {isCurrent});
     if (!isCurrent()) return;

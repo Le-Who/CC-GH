@@ -63,8 +63,12 @@ test('naming precedence never uses legacy profile fields, handles Unicode/reset/
   assert.equal(publicDisplayName({...PRIVATE,firstName:'Анна'}),'Анна');
   assert.equal(publicDisplayName(PRIVATE,'ru'),'Игрок');
   assert.equal(publicDisplayName(PRIVATE,'en'),'Player');
+  assert.equal(publicDisplayName(null,'ru'),'Игрок');
   assert.equal(publicDisplayName({nickname:'bad\nname',firstName:'Анна'}),'Анна');
   assert.equal(publicDisplayName({firstName:'bad\u202Ename'},'ru'),'Игрок');
+  assert.equal(publicDisplayName({firstName:'Миша 👨‍💻'}),'Миша 👨‍💻');
+  assert.equal(validateNickname('Лиса 👩‍💻').nickname,'Лиса 👩‍💻');
+  assert.equal(validateNickname('\u200D\uFE0F').error,'INVALID_NICKNAME');
   assert.deepEqual(validateNickname('  '),{nickname:null});
   assert.deepEqual(validateNickname('я'.repeat(32)),{nickname:'я'.repeat(32)});
   for(const invalid of [null,{},'я'.repeat(33),'bad\nname','bad\u202Ename']) assert.equal(validateNickname(invalid).error,'INVALID_NICKNAME');
@@ -102,4 +106,11 @@ test('authenticated nickname edit/reset is immediate in both cached leaderboards
   assert.equal(players.get('acct:one').nickname,'Лиса <img src=x>');
   await request('/api/profile/nickname','acct:one',{nickname:''});
   for(const path of ['/api/leaderboard','/api/blox/leaderboard']) assert.equal((await request(path)).json[0].displayName,'Анна');
+}));
+test('empty scores stay empty and legacy invalid nickname never revives stored handle',async()=>withServer(async({request,players})=>{
+  players.get('acct:one').nickname='bad\u0000name';
+  players.get('acct:one').first_name='';
+  assert.equal((await request('/api/leaderboard?lang=ru')).json[0].displayName,'Игрок');
+  players.clear();
+  assert.deepEqual((await request('/api/blox/leaderboard')).json,[]);
 }));

@@ -4,6 +4,7 @@ import express from 'express';
 import {initDb,ensureDbSchema,getDb,closeDb} from '../db.js';
 import {getOrCreateAccountForIdentity} from '../accountManager.js';
 import {createDefaultPlayer} from '../game-logic.js';
+import triviaRoutes from '../routes/trivia.js';
 import leaderboardRoutes from '../routes/leaderboard.js';
 
 test('real PostgreSQL: existing Telegram first name refresh, private leaderboard JSON, nickname persistence and score preservation', {skip:process.env.LEADERBOARD_PRIVACY_PG !== '1'}, async()=>{
@@ -18,6 +19,10 @@ test('real PostgreSQL: existing Telegram first name refresh, private leaderboard
     await sql`INSERT INTO players (id,data) VALUES (${accountId},${sql.json({...createDefaultPlayer(accountId,'SYNTHETIC_PRIVATE_HANDLE'),displayName:'OLD_UNSAFE_HANDLE',match3:{highScore:123,totalGames:2},blox:{highScore:456}})})`;
     const auth=(req,res,next)=>{req.authenticatedUser={accountId,telegramUser:{firstName:'Анна'}};next();};
     const app=express();app.use(express.json());app.use(leaderboardRoutes(auth,req=>({userId:req.authenticatedUser.accountId})));
+    const trivia=triviaRoutes(auth,req=>({userId:req.authenticatedUser.accountId}));app.use(trivia);
+    const legacyPlayer={userId:accountId,username:'SYNTHETIC_PRIVATE_HANDLE',displayName:'OLD_UNSAFE_HANDLE',score:123,finished:true,answers:[{correct:true}]};
+    trivia._duelRooms.set('PGROOM',{roomId:'PGROOM',status:'finished',createdAt:Date.now(),questions:[{}],players:{[accountId]:legacyPlayer}});
+    trivia._duelHistory.push({roomId:'PGROOM',finishedAt:Date.now(),players:[{...legacyPlayer,correctCount:1,totalQuestions:1}],winner:'SYNTHETIC_PRIVATE_HANDLE'});
     server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
     const base=`http://127.0.0.1:${server.address().port}`;
     const read=async path=>{const response=await fetch(base+path,{headers:{Authorization:'synthetic-test'}});assert.equal(response.status,200);return response.json();};
@@ -29,6 +34,10 @@ test('real PostgreSQL: existing Telegram first name refresh, private leaderboard
       const response=await fetch(base+'/api/profile/nickname',{method:'POST',headers:{Authorization:'synthetic-test','Content-Type':'application/json'},body:JSON.stringify({nickname,userId:'someone-else'})});
       assert.equal(response.status,200,await response.text());
       for(const path of ['/api/leaderboard','/api/blox/leaderboard']) assert.equal((await read(path))[0].displayName,nickname||'Анна');
+      const duel=await read('/api/trivia/duel/status/PGROOM');
+      const history=await read('/api/trivia/duel/history');
+      assert.equal(duel.players[0].displayName,nickname||'Анна');assert.equal(history.entries[0].winner,nickname||'Анна');
+      for(const forbidden of ['123456789','SYNTHETIC_PRIVATE_HANDLE','OLD_UNSAFE_HANDLE',accountId])assert.equal(JSON.stringify({duel,history}).includes(forbidden),false);
     }
     const [saved]=await sql`SELECT data FROM players WHERE id = ${accountId}`;
     assert.equal(saved.data.match3.highScore,123);assert.equal(saved.data.match3.totalGames,2);assert.equal(saved.data.blox.highScore,456);assert.equal(saved.data.publicProfile.nickname,null);

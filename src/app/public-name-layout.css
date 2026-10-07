@@ -1,0 +1,7 @@
+/* Public choices can be long unbroken Unicode strings. Keep scores readable. */
+.m3-leader-row > span, .bx-leader-row > span, .leaderboard > div > span,
+.trv2-players li > span, .trv2-history li > span, .home-profile summary > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.m3-leader-row > strong, .bx-leader-row > strong, .leaderboard > div > strong { flex-shrink: 0; }

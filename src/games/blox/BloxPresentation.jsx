@@ -1,3 +1,4 @@
+import "../../app/public-name-layout.css";
 import {publicLeaderboardName} from "../../app/publicLeaderboardName.js";
 /** Recovered game-only source from the owned Blox v2 r2 preview. See recovery manifest. */
 import * as React from 'react';

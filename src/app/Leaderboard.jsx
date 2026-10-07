@@ -1,3 +1,4 @@
+import "./public-name-layout.css";
 import { publicLeaderboardName } from "./publicLeaderboardName.js";
 import { useAppI18n } from "./i18n.jsx";
 export function Leaderboard({ entries }) {

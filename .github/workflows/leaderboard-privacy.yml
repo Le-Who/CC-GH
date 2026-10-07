@@ -39,7 +39,7 @@ jobs:
         run: |
           set -o pipefail
           mkdir -p test-results/leaderboard-privacy
-          node --test tests/leaderboard-privacy.test.mjs tests/auth.test.js tests/arcade-reward-once.test.mjs | tee test-results/leaderboard-privacy/contracts.tap
+          node --test tests/leaderboard-privacy.test.mjs tests/profile-nickname-fence.test.mjs tests/trivia-public-privacy.test.mjs tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/auth.test.js tests/arcade-reward-once.test.mjs tests/private-api-cache-lifecycle.test.mjs | tee test-results/leaderboard-privacy/contracts.tap
       - name: Genuine PostgreSQL profile persistence and safe projection
         env:
           DATABASE_URL: postgres://privacy_test@127.0.0.1:55439/privacy_test

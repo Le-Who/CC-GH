@@ -1,3 +1,4 @@
+import "./public-name-layout.css";
 import {ProfileNickname} from "./ProfileNickname.jsx";
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowUpRight, Settings, UserRound, X } from 'lucide-react';
