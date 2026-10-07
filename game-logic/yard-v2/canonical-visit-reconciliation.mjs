@@ -51,6 +51,18 @@ function inspect(player){
  if(active.length>1||yard.activeVisitors.length!==active.length||runtime.canonicalPlacements.length!==1)return outcome('ONE_VISIT_QUALIFICATION_REQUIRED');
  return {player,store,runtime,yard};
 }
+export function inspectCanonicalPlayerState(player){
+ try{
+  const result=inspect(player);if(result.code)return result;
+  const {runtime,yard}=result;
+  if(!object(runtime.canonicalVisitReceipts)||!object(runtime.giftLedger)||!object(runtime.commandReceipts)
+   ||!yard.bowls.every(b=>b.id===CANONICAL_FOOD_CONTRACT.bowlId&&(b.foodId===null
+    ?b.servings===0&&b.placedAt===null&&b.expiresAt===null
+    :Object.hasOwn(YARD_FOODS,b.foodId)&&integer(b.servings)&&b.servings>0&&b.servings<=YARD_FOODS[b.foodId].servings&&integer(b.placedAt)&&integer(b.expiresAt)&&b.expiresAt>b.placedAt)))return outcome('CANONICAL_STATE_REQUIRES_REVIEW');
+  if(runtime.canonicalPending!==undefined){const current=currentRequest(player);if(current.code)return current;}
+  return {valid:true};
+ }catch{return outcome('CANONICAL_STATE_REQUIRES_REVIEW');}
+}
 function select(state,slotId,at){
  const {runtime,yard}=state;
  if(!rowsValid(runtime.canonicalPlacements)||!Array.isArray(yard.bowls)||!yard.bowls.every(object)||!integer(at))return null;
@@ -76,7 +88,7 @@ function currentRequestUnchecked(player){
   const candidate=record.candidate;
   const selected=select({runtime:{...state.runtime,canonicalPlacements:record.before.rows,cursorMs:candidate.arrivedAt-1,nextOpportunityAt:candidate.arrivedAt},yard:{bowls:[record.before.bowl]}},candidate.slotId,candidate.arrivedAt);
   if(!selected||digest(selected.candidate)!==digest(candidate)||wrapper.eventId!==digest({ownerId:player.id,seed:state.runtime.seed,at:candidate.arrivedAt,slotId:candidate.slotId,n:0}))return outcome('SAVED_SELECTION_MISMATCH');
-  const request={ownerId:player.id,operation:'restore',fence:{yardRevision:player._version,layoutRevision:digest(sorted(state.runtime.canonicalPlacements)),cursor:wrapper.eventId,reservationDigest:reservations(state)},
+  const request={ownerId:player.id,operation:'restore',fence:{yardRevision:state.runtime.canonicalRevision??player._version,layoutRevision:digest(sorted(state.runtime.canonicalPlacements)),cursor:wrapper.eventId,reservationDigest:reservations(state)},
    input:{record:clone(record),rows:sorted(state.runtime.canonicalPlacements),serverNow:candidate.arrivedAt}};
   try{snapshotRequest(request,256*1024);}catch(error){return outcome(error.message);}
   return {state,wrapper,request};
@@ -91,7 +103,7 @@ function currentRequestUnchecked(player){
  if(!selected||digest(selected)!==digest(intent.input)||intent.reservationDigest!==reservations(state))return outcome('PENDING_STATE_OBSOLETE');
  if(selected.candidate.visitorId!=='pip_hamster'||selected.candidate.activityId!=='peek'||selected.bowl.id!==CANONICAL_FOOD_CONTRACT.bowlId
   ||!YARD_FOODS[selected.bowl.foodId]||!integer(selected.bowl.servings)||selected.bowl.servings<1)return outcome('SELECTED_CANDIDATE_UNSUPPORTED');
- const request={ownerId:player.id,operation:'prepare',fence:{yardRevision:player._version,layoutRevision:digest(selected.rows),cursor:intent.eventId,reservationDigest:reservations(state)},input:selected};
+ const request={ownerId:player.id,operation:'prepare',fence:{yardRevision:state.runtime.canonicalRevision??player._version,layoutRevision:digest(selected.rows),cursor:intent.eventId,reservationDigest:reservations(state)},input:selected};
  try{snapshotRequest(request,256*1024);}catch(error){return outcome(error.message);}
  return {state,intent,request};
 }
@@ -110,6 +122,8 @@ export function stageCanonicalVisitPreparation(player,{slotId,at}={}){
  if(Object.values(checked.runtime.canonicalVisits).some(v=>v.status==='active'))return outcome('ACTIVE_VISIT_ALREADY_PRESENT');
  if(!identity(slotId)||!integer(at))return outcome('INVALID_OPPORTUNITY');
  const input=select(checked,slotId,at);if(!input)return outcome('NO_SELECTED_CANDIDATE');
+ const target=input.rows.find(r=>r.slotId===slotId);
+ if(target.uses+1>=YARD_GOODIES[target.goodieId].durability)return outcome('SELECTED_CANDIDATE_UNSUPPORTED');
  if(input.candidate.visitorId!=='pip_hamster'||input.candidate.activityId!=='peek'||input.bowl.id!==CANONICAL_FOOD_CONTRACT.bowlId)return outcome('SELECTED_CANDIDATE_UNSUPPORTED');
  if(input.candidate.leavesAt>=at+YARD_HOUR_MS)return outcome('CROSS_OPPORTUNITY_STAY_UNQUALIFIED');
  const intent={format:CANONICAL_PENDING_FORMAT,ownerId:player.id,sourceHash:VISIT_JOB_SOURCE_HASH,slotId,at,
@@ -135,10 +149,10 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
     if(handle.completion){
      handle.completion.then(result=>{
       if(closed)return;
-      if(!result.prepared){observe(outcome(result.code||'WORKER_UNAVAILABLE',{ownerId:request.ownerId,key:handle.key}));return;}
+      if(!result.prepared&&result.state!=='refused'){observe(outcome(result.code||'WORKER_UNAVAILABLE',{ownerId:request.ownerId,key:handle.key}));return;}
       void notify(request.ownerId,handle.key);
      }).catch(()=>observe(outcome('NOTIFICATION_FAILED')));
-    }else if(handle.prepared)void notify(request.ownerId,handle.key);
+    }else if(handle.prepared||handle.state==='refused')void notify(request.ownerId,handle.key);
     else observe(outcome(handle.code||'WORKER_UNAVAILABLE',{ownerId:request.ownerId,key:handle.key}));
    });
  }
@@ -167,6 +181,12 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    const completed=await withReconciliationLock(ownerId,player=>{
     const current=currentRequest(player);if(current.code)return withoutWrite(current);
     const evidence=worker.lookup(current.request,key);
+    if(evidence.state==='refused'&&current.request.operation==='prepare'&&CANONICAL_VISIT_ADMISSION_ENABLED){
+     const runtime=player._yardV2.runtime,intent=current.intent;
+     runtime.canonicalVisitReceipts[intent.eventId]={eventId:intent.eventId,kind:'source-refused',at:intent.at,sourceHash:VISIT_JOB_SOURCE_HASH,sourceCode:evidence.sourceCode};
+     runtime.cursorMs=intent.at;runtime.nextOpportunityAt=intent.at+YARD_HOUR_MS;player.yard.lastSimulatedAt=intent.at;delete runtime.canonicalPending;
+     return {state:'refused',ready:true,prepared:false,admission:false,eventId:intent.eventId};
+    }
     if(!evidence.prepared){
      // This intent is already durable. A stale notification must not write a
      // fresh account version: two processes would invalidate each other forever.
@@ -216,6 +236,27 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    if(!identity(ownerId))return outcome('OWNER_REQUIRED');
    return track(withPlayerLock(ownerId,player=>register(player)));
   },
+  /** Normal service tick. Only already replayed exact-key evidence can run
+   * synchronous effects; cache misses enqueue after the winning commit. */
+  advance(player,{now=Date.now()}={}){
+   const current=currentRequest(player);if(current.code)return current;
+   const cached=validated.get(player.id);
+   if(current.wrapper&&cached&&cached.requestKey===snapshotRequest(current.request,256*1024).key&&cached.expiresAt>performance.now()){
+    const result=completeReplayedCanonicalVisit(player,{state:'prepared',execution:{sourceHash:VISIT_JOB_SOURCE_HASH},artifact:cached.artifact},{now});
+    if(result.state==='completed'){afterPlayerCommit(player,()=>validated.delete(player.id));return result;}
+    if(result.state==='active'){
+     // Expiry can change the semantic fence at commit. Reconstruct it from the
+     // winning player, never from the pre-save snapshot.
+     afterPlayerCommit(player,committed=>{
+      const fresh=currentRequest(committed);if(closed||fresh.code||fresh.wrapper?.visitId!==current.wrapper.visitId||digest(fresh.request.input)!==digest(current.request.input))return;
+      validated.set(player.id,{...cached,requestKey:snapshotRequest(fresh.request,256*1024).key});
+     });
+     return result;
+    }
+    return result;
+   }
+   return register(player);
+  },
   /** Read-only qualified presentation. A cache miss is explicitly pending;
    * it must never be interpreted as an empty authoritative reservation set. */
   read(player,{now=Date.now()}={}){
@@ -224,7 +265,7 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    if(!current.wrapper)return pending({eventId:current.intent.eventId});
    if(integer(now)&&(now>=current.wrapper.leavesAt||player.yard.bowls.some(b=>b.foodId&&integer(b.expiresAt)&&b.expiresAt<=now&&b.expiresAt>player._yardV2.runtime.cursorMs)))return pending({reason:'SOURCE_RECONCILIATION_DUE'});
    const cached=validated.get(player.id);
-   if(!cached||cached.version!==player._version||cached.requestKey!==snapshotRequest(current.request,256*1024).key||cached.expiresAt<=performance.now())return pending({reason:'SOURCE_REPLAY_REQUIRED'});
+   if(!cached||cached.requestKey!==snapshotRequest(current.request,256*1024).key||cached.expiresAt<=performance.now())return pending({reason:'SOURCE_REPLAY_REQUIRED'});
    const valid=inspectReplayedCanonicalVisit(player,{state:'prepared',execution:{sourceHash:VISIT_JOB_SOURCE_HASH},artifact:cached.artifact},{now});
    if(!valid.valid)return valid;
    const {record,plan}=cached.artifact;
@@ -242,7 +283,7 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    const runtime={version:1,storageVersion:3,canonicalVisitProtocol:CANONICAL_VISIT_PRESENTATION_PROTOCOL,status:'ready',mutable:false,serverNow:now,
     canonicalPlacements:clone(player._yardV2.runtime.canonicalPlacements),foodLocationCapabilities:canonicalFoodCapabilities({canonicalFoodLocationEnabled:true}),
     itemPlacementCapabilities:canonicalItemCapabilities({canonicalItemPlacementEnabled:false,canonicalFoodLocationEnabled:true}),
-    visits:[{visitId:visit.visitId,plan:visit.plan}],reservations:visit.boxes,targetReserved:visit.targetReserved};
+    visits:[],canonicalVisits:[{visitId:visit.visitId,plan:visit.plan}],reservations:visit.boxes,targetReserved:visit.targetReserved};
    runtime.canonicalFoodState=selectCanonicalFoodState({yard:player.yard,yardRuntime:runtime});
    if(!runtime.canonicalFoodState.available)return {...runtime,status:'review-required',error:runtime.canonicalFoodState.reason};
    return runtime;

@@ -32,7 +32,7 @@ function commitPreparedCanonicalVisitDraft(player,evidence,{now}={}){
   ||runtime.canonicalPlacements.length!==1||runtime.nextOpportunityAt!==candidate.arrivedAt||runtime.cursorMs>=candidate.arrivedAt)
   return fail('COMMIT_STATE_OBSOLETE');
  if(candidate.leavesAt>=candidate.arrivedAt+YARD_HOUR_MS)return fail('CROSS_OPPORTUNITY_STAY_UNQUALIFIED');
- if(now<candidate.arrivedAt||now>=candidate.leavesAt)return fail('COMMIT_VISIT_TIME_UNAVAILABLE');
+ if(now<candidate.arrivedAt)return fail('COMMIT_VISIT_TIME_UNAVAILABLE');
  if(!object(runtime.canonicalVisits)||!object(runtime.canonicalVisitReceipts)||Object.values(runtime.canonicalVisits).some(v=>v.status!=='completed')
   ||!object(runtime.giftLedger)||!object(runtime.visits)||Object.values(runtime.visits).some(v=>!object(v)||!['completed','historical-unknown'].includes(v.status))
   ||!Array.isArray(yard.placedGoodies)||yard.placedGoodies.length||!Array.isArray(yard.activeVisitors)||yard.activeVisitors.length)return fail('COMMIT_RESERVATION_UNAVAILABLE');

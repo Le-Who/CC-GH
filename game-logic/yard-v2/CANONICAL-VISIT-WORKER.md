@@ -48,12 +48,58 @@ poll: that would create new exact keys continually. A current presentation sampl
 is deliberately excluded from the cache. Later transaction/event processing
 still owns the current clock and remaining reservations.
 
-Only successful replay/preparation evidence is cached. The proposal retains its
+Successful replay/preparation evidence and the audited prepare-only terminal
+refusal evidence below share one bounded cache. The proposal retains its
 original uncommitted economic projection because that is part of its saved hash;
 this is never a cached stock check, permission, capability, conflict clearance,
-spend decision or commit. Refusals, invalid records, failures and timeouts are
-not cached. They return unavailable with retryable unresolved-work semantics.
+spend decision or commit. Invalid records, unknown refusals, failures and timeouts
+are not cached. They return unavailable with retryable unresolved-work semantics.
 No result changes a cursor, stock, uses, petbook, gifts or receipts.
+
+### Exact-key terminal preparation refusals
+
+Protocol `yard-canonical-visit-worker/v2` adds `state:'refused'` evidence with
+`prepared:false`, `ready:false`, `admission:false`, `retryable:false`,
+`code:'SOURCE_REFUSED'`, `key`, `sourceCode` and
+`execution:{threadId,elapsedMs,sourceHash}`. It has no artifact or economic intent.
+The compiler/source manifest remains unchanged; the protocol bump invalidates
+previous exact request keys. Deploy the facade, contract and worker together.
+
+The source-owned whitelist is exactly:
+
+- `R1_SAVED_NO_NEUTRAL_REST_ANCHOR`: the saved-stay finite grid/24-candidate
+  transfer/rest/exit search exhausted its supported paths.
+- `R1_SAVED_REST_TIMING_UNAVAILABLE`: the computed retreat/departure routes
+  cannot fit the exact validated stay and 84% target-release timeline.
+- `R1_STAY_TOO_SHORT_FOR_REAL_ROUTES`: the computed entrance/peek/exit routes
+  cannot fit the exact validated stay with the required 30-second dwell.
+
+These are failures of the pinned supported planner, not a claim that all possible
+geometry or future media is impossible. The prepare bridge validates candidate,
+rows/lifetime and bowl before those searches. No prefix matching, caller-selected
+policy or generic exception is terminal. Every restore result remains retryable
+unless successfully prepared, even if its source code matches this whitelist.
+Source/profile/version drift, malformed input, stock/target availability, unknown
+codes, malformed transport, timeouts, crashes, queue overflow and cancellation
+never become terminal evidence. A legacy `kind:'unavailable'` envelope carrying a
+whitelisted source code also remains retryable.
+
+Only the real worker can emit a `kind:'refused'` payload after source verification
+and prepare classification. The facade validates its exact four-field inactive
+payload, audited code, prepare operation, protocol/source/job/key/thread envelope,
+nonnegative finite duration, result hash and exact byte count before caching it.
+Refusals use the same TTL, LRU, entry and serialized-byte budgets as artifacts.
+Same-key enqueue/coalescing/lookup returns the same deeply frozen evidence;
+expiry, cancellation, invalidation, supersession and restart require fresh work.
+
+A completion value alone never authorizes skipping an opportunity. The caller
+must reacquire the player lock, reconstruct the current request, call
+`lookup(currentRequest, notifiedKey)`, and recheck its current source-owned
+capabilities, candidate and authoritative event fences. Only separately authorized
+simulator reconciliation may decide to record/advance that exact unsupported
+opportunity without economic effects. This worker never moves the cursor or
+writes a refusal receipt. After expiry, a stale notification returns pending.
+
 
 ## Bounds and lifecycle
 
@@ -119,13 +165,13 @@ support or artistic/full-stay acceptance. No old save is reset or reinterpreted.
 ## Evidence and limits
 
 The focused suites cover immutable exact keys, coalescing, owner/state fences,
-input/output/queue/cache bounds, expiry, malformed/mismatched messages, source
+input/output/queue/cache bounds, refusal classification, expiry/retry, malformed/mismatched messages, source
 drift, delayed timers, timeout, cancellation, crash/exit, duplicate output,
 restart, actual source replay and a malicious rehashed saved record.
 
 A real pinned preparation produced the existing sealed record and complete plan
 hash in about 3 seconds while the main thread delivered timer callbacks.
-The actual slow geometry refusal took 23.84 seconds. During that work, an actual
+The original actual slow geometry refusal took 23.84 seconds (historical timing). During that work, an actual
 after-commit hook returned in 0.90 ms; warmed same-account/other-account snapshot
 calls took 3.95/4.25 ms. Existing cold player/media warm-up took 1.25 seconds and
 is reported separately. These are local observations, not production latency
@@ -134,3 +180,8 @@ test-only in-memory store; no PostgreSQL transaction/admission test is claimed.
 
 No new dependencies, browser session, external job, public write, host change,
 server launch, saved-player mutation or renderer change was needed.
+
+The refusal-evidence packet reruns all 20 original worker tests and adds seven
+focused refusal tests. Its logs report fresh timing; the only original expected
+outcome change is that the real audited slow prepare refusal is now cached
+terminal evidence. The transport fixture supplies the v2 required byte count.

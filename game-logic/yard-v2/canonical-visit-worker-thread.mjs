@@ -2,7 +2,7 @@
 import {isMainThread,parentPort,workerData,threadId} from 'node:worker_threads';
 import {readFileSync} from 'node:fs';
 import {performance} from 'node:perf_hooks';
-import {VISIT_JOB_PROTOCOL,VISIT_JOB_SOURCE_HASH,VISIT_WORKER_SOURCES,sha256,boundedJSON,snapshotRequest} from './canonical-visit-job-contract.mjs';
+import {VISIT_JOB_PROTOCOL,VISIT_JOB_SOURCE_HASH,VISIT_WORKER_SOURCES,sha256,boundedJSON,snapshotRequest,isTerminalVisitRefusal} from './canonical-visit-job-contract.mjs';
 
 if(isMainThread||!parentPort)throw Error('CANONICAL_VISIT_WORKER_THREAD_REQUIRED');
 const started=performance.now();
@@ -18,7 +18,10 @@ try{
  if(snapshotRequest(request,workerData.maxInputBytes).key!==workerData.key)throw Error('KEY_MISMATCH');
  const {prepareCanonicalSavedVisit,restoreCanonicalSavedVisit}=await import('./canonical-saved-visit-bridge.mjs');
  const result=request.operation==='prepare'?prepareCanonicalSavedVisit(request.input):restoreCanonicalSavedVisit(request.input.record,{rows:request.input.rows,serverNow:request.input.serverNow});
- if(result.prepared!==true){
+ if(result.prepared===false&&result.ready===false&&result.admission===false&&isTerminalVisitRefusal(request.operation,result.code)){
+  const {json,bytes}=boundedJSON({prepared:false,ready:false,admission:false,sourceCode:result.code},workerData.maxResultBytes);
+  parentPort.postMessage({...envelope,kind:'refused',json,bytes,artifactHash:sha256(json),elapsedMs:performance.now()-started});
+ }else if(result.prepared!==true){
   parentPort.postMessage({...envelope,kind:'unavailable',code:'SOURCE_UNAVAILABLE',sourceCode:typeof result.code==='string'?result.code.slice(0,160):'UNKNOWN_SOURCE_RESULT',elapsedMs:performance.now()-started});
  }else{
   const artifact={prepared:true,ready:false,admission:false,record:result.record,plan:result.plan};

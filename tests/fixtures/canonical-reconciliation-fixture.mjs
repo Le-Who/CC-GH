@@ -9,6 +9,6 @@ export const selectedSeed=(()=>{for(let n=0;n<100000;n++){
 }throw Error('NO_FIXTURE_SEED');})();
 export function fixture(p){
  p.yard.placedGoodies=[];p.yard.activeVisitors=[];p.yard.bowls=[structuredClone(bowl)];
- p._yardV2={format:'yard-persistent/v1',version:3,runtime:{version:1,seed:selectedSeed,cursorMs:999,nextOpportunityAt:1000,
+ p._yardV2={format:'yard-persistent/v1',version:3,runtime:{version:1,canonicalRevision:'fixture-initial',seed:selectedSeed,cursorMs:999,nextOpportunityAt:1000,
   visits:{},canonicalVisits:{},canonicalVisitReceipts:{},canonicalPlacements:[structuredClone(row)],giftLedger:{},commandReceipts:{},events:[]}};
 }

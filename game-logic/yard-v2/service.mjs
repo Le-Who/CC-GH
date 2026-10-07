@@ -15,6 +15,7 @@ import { clone, digest, integer, lookup, put } from './util.mjs';
 import {canonicalStorageValid,canonicalItemCapabilities} from './canonical-locations.mjs';
 
 import {canonicalFoodCapabilities,selectCanonicalFoodState} from './canonical-food-contract.mjs';
+import {CANONICAL_RUNTIME_ENABLED,ensureCanonicalPlayerYard,publicCanonicalPlayerYard,executeCanonicalYardAction} from './canonical-runtime.mjs';
 
 export const YARD_STORAGE_FORMAT = 'yard-persistent/v1';
 export const YARD_SERVER_REVISION = 'persistent-mika/r1';
@@ -22,6 +23,11 @@ const object = value => value !== null && typeof value === 'object' && !Array.is
 const has = (o,k) => Object.hasOwn(o,k);
 const failure = (error, details) => ({ status:409, error, ...(details ? {details} : {}), mutable:false });
 const epoch = value => integer(value) && value <= 8640000000000000;
+// Only an explicit current v3 container can enter the new source-owned runtime.
+// No option, request field or saved capability can upgrade an old container.
+const canonicalRuntimeOwns = (player,now) => CANONICAL_RUNTIME_ENABLED === true
+  && object(player) && player.schemaVersion === 11 && epoch(now)
+  && object(player._yardV2) && player._yardV2.format === YARD_STORAGE_FORMAT && player._yardV2.version === 3;
 
 /** Select only inputs that belong to Yard. No Garden, Merge, shared wallet or player-wide backup. */
 function yardInputs(player, retained=[]) {
@@ -80,6 +86,7 @@ export function inspectPlayerYard(player,{now=Date.now()}={}) { return inspectSt
  * Invalid data stays on the player and is exposed as read-only by publicPersistentYard.
  */
 export function ensurePersistentPlayerYard(player,{now=Date.now(),simulate=false,...options}={}) {
+  if (canonicalRuntimeOwns(player,now)) return {...ensureCanonicalPlayerYard(player,{now,simulate}),yard:player.yard};
   const checked=inspectStored(player,now);
   if (checked.status!==200) return {...checked,yard:player?.yard};
   try {
@@ -95,6 +102,7 @@ export function ensurePersistentPlayerYard(player,{now=Date.now(),simulate=false
  * precedes clock advancement; results commit only yard/_yardV2, never a stale account clone.
  */
 export function executePersistentYardAction(player,action,payload={}, {now=Date.now(),actionId,...options}={}) {
+  if (canonicalRuntimeOwns(player,now)) return executeCanonicalYardAction(player,action,payload,{...options,now,actionId});
   const checked=inspectStored(player,now);
   if (checked.status!==200) return checked;
   const effectiveNow=Math.max(now,checked.state.runtime.cursorMs);
@@ -112,7 +120,8 @@ export function executePersistentYardAction(player,action,payload={}, {now=Date.
 export function yardCommandConflict(player,action,actionId) {
   if (typeof actionId!=='string'||!has(player,'_yardV2')) return null;
   const stored=player._yardV2;
-  if (!object(stored)||stored.format!==YARD_STORAGE_FORMAT||![1,2].includes(stored.version)) return null;
+  if (!object(stored)||stored.format!==YARD_STORAGE_FORMAT
+    || !([1,2].includes(stored.version) || CANONICAL_RUNTIME_ENABLED === true && stored.version === 3)) return null;
   if (lookup(stored.runtime?.commandReceipts,actionId)!==undefined
     ||lookup(stored.runtime?.actionReceipts,actionId)!==undefined
     ||stored.legacyReceipts?.some(r=>r?.clientActionId===actionId)) return 'ACTION_ID_PAYLOAD_CONFLICT';
@@ -134,12 +143,16 @@ export function inspectYardGrantTarget(player,{now=Date.now()}={}) {
 /** Guard for external grants. Caller still owns its own receipt/epoch and atomic commit. */
 export function requireMutablePlayerYard(player,options={}) {
   const result=ensurePersistentPlayerYard(player,options);
-  if (result.status!==200) { const error=new Error(result.error);error.code=result.error;error.status=result.status;throw error; }
+  if (result.status!==200 || result.mutable===false) {
+    const code=result.error||'YARD_RUNTIME_READ_ONLY',error=new Error(code);
+    error.code=code;error.status=result.status===200?409:result.status;throw error;
+  }
   return result.yard;
 }
 
 /** Sanitized presentation. Receipts, raw backups and completed history never leave the server. */
 export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}) {
+  if (canonicalRuntimeOwns(player,now)) return publicCanonicalPlayerYard(player,{now});
   const checked=inspectStored(player,now);
   if (checked.status!==200) return {version:1,revision:YARD_SERVER_REVISION,serverNow:now,status:'review-required',mutable:false,
     error:checked.error,issues:clone(checked.details||[]),visits:[],reservations:[],placementReadiness:[],

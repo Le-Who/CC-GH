@@ -2,7 +2,16 @@
 import {createHash} from 'node:crypto';
 import manifest from './canonical-visit-worker-sources.json' with {type:'json'};
 
-export const VISIT_JOB_PROTOCOL='yard-canonical-visit-worker/v1';
+export const VISIT_JOB_PROTOCOL='yard-canonical-visit-worker/v2';
+// Deliberately exhaustive, not a prefix match. These finite source searches have
+// validated preparation inputs and cannot succeed for this exact source/key.
+// No restore, validation, stock, source-integrity or execution failure qualifies.
+export const VISIT_JOB_TERMINAL_PREPARE_CODES=Object.freeze([
+ 'R1_SAVED_NO_NEUTRAL_REST_ANCHOR',
+ 'R1_SAVED_REST_TIMING_UNAVAILABLE',
+ 'R1_STAY_TOO_SHORT_FOR_REAL_ROUTES',
+]);
+export const isTerminalVisitRefusal=(operation,sourceCode)=>operation==='prepare'&&VISIT_JOB_TERMINAL_PREPARE_CODES.includes(sourceCode);
 export const VISIT_JOB_SOURCE_HASH=sha256(JSON.stringify(manifest));
 export const VISIT_WORKER_SOURCES=Object.freeze(manifest.map(row=>Object.freeze(row)));
 export function sha256(text){return createHash('sha256').update(text).digest('hex');}
@@ -61,5 +70,5 @@ export function snapshotRequest(request,maxBytes){
  const keys=snapshot.operation==='prepare'?['candidate','rows','bowl']:snapshot.operation==='restore'?['record','rows','serverNow']:null;
  if(!keys||!exactKeys(snapshot.input,keys))throw Error('OPERATION_INVALID');
  if(snapshot.operation==='restore'&&(!Number.isSafeInteger(snapshot.input.serverNow)||snapshot.input.serverNow<0))throw Error('SERVER_TIME_INVALID');
- return {...encoded,ownerId:snapshot.ownerId,key:sha256(VISIT_JOB_PROTOCOL+'\n'+VISIT_JOB_SOURCE_HASH+'\n'+encoded.json)};
+ return {...encoded,ownerId:snapshot.ownerId,operation:snapshot.operation,key:sha256(VISIT_JOB_PROTOCOL+'\n'+VISIT_JOB_SOURCE_HASH+'\n'+encoded.json)};
 }

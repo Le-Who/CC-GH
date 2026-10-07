@@ -362,6 +362,54 @@
       "source": "reviewed bounded actor visibility policy",
       "sha256": "a87d559d7178660a7b37168f985cbffa04b79abb7f87587e5786d674d1f9cb36",
       "bytes": 24330
+    },
+    {
+      "path": "src/game-state/canonicalYardItems.mjs",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "f73751aaddc162d4b111a64c989e6943356709ccfe84cc67671f3112a3151a5a",
+      "bytes": 3287
+    },
+    {
+      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "50cc12b1e4c1278e53e693fef9e2bda13a8a49e5a816c235c6590dee9b973c77",
+      "bytes": 43363
+    },
+    {
+      "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "8557ff3eb2c3dd5e49528ab80502ac974490a336f85ccf936f20572b0c26b118",
+      "bytes": 2206
+    },
+    {
+      "path": "src/games/companion-yard-v2/release-presentation.mjs",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "e92e9f7c75ebe2952ec3f7def2be1c4cd1afbc61757f697c20c65bd2f8319de5",
+      "bytes": 930
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-entry.mjs",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "af8b4738985aab9fc5d17bc434fde80d31eeeb73d2c9c3237dd2ed143df54602",
+      "bytes": 541
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-owner.mjs",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "c242a076bcc52e33bcd3c6e9e8962c69af0cc00ab981ed1872d584d59ddbfcf7",
+      "bytes": 9130
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "7d95811bce20d7482002053f159006a1a2f70835abb12609d4d83c995e77cf20",
+      "bytes": 33027
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-saved-visit-client.mjs",
+      "source": "reviewed-normal-runtime-integration",
+      "sha256": "df9b56d228497154cc63a271b18f48a35cbf1f39ea9ebee7a5dc7386ac7965f2",
+      "bytes": 4906
     }
   ]
 }

@@ -77,11 +77,14 @@ test('actual slow geometry refusal leaves the real afterPlayerCommit mutex and a
  const otherAccountSnapshotMs=performance.now()-otherStart;
  assert.ok(sameAccountSnapshotMs<500);assert.ok(otherAccountSnapshotMs<500);assert.equal(done,false);
  let beats=0;const timer=setInterval(()=>beats++,20);t.after(()=>clearInterval(timer));
+ assert.equal(service.enqueue(structuredClone(r)),job);
  const result=await job.completion;
- assert.equal(result.state,'unavailable');assert.equal(result.sourceCode,'R1_SAVED_NO_NEUTRAL_REST_ANCHOR',JSON.stringify(result));
- assert.equal(result.retryable,true);assert.equal(result.admission,false);assert.equal(service.stats().cacheEntries,0);assert.deepEqual(r,before);
+ assert.equal(result.state,'refused');assert.equal(result.sourceCode,'R1_SAVED_NO_NEUTRAL_REST_ANCHOR',JSON.stringify(result));
+ assert.equal(result.retryable,false);assert.equal(result.prepared,false);assert.equal(result.ready,false);assert.equal(result.admission,false);assert.equal(service.stats().cacheEntries,1);assert.deepEqual(r,before);
+ assert.equal(service.lookup(r,job.key),result);assert.equal(service.enqueue(structuredClone(r)),result);assert.equal(service.stats().startedCount,1);assert.ok(result.execution.threadId>0);
+ const stale=structuredClone(r);stale.input.rows[0].x++;assert.equal(service.lookup(stale,job.key).code,'STATE_OBSOLETE');
  await withPlayerLock(r.ownerId,p=>assert.deepEqual(economic(p),originalEconomy));
- assert.ok(beats>100);t.diagnostic(JSON.stringify({baselineWarmupMs,hookLockMs,sameAccountSnapshotMs,otherAccountSnapshotMs,beats,refusalWallMs:performance.now()-hookStart}));
+ assert.ok(beats>100);t.diagnostic(JSON.stringify({baselineWarmupMs,hookLockMs,sameAccountSnapshotMs,otherAccountSnapshotMs,beats,refusalSourceMs:result.execution.elapsedMs,refusalThreadId:result.execution.threadId,refusalWallMs:performance.now()-hookStart}));
 });
 
 test('actual worker deadline and cancellation preserve unresolved cursor, food, uses and gifts',async t=>{

@@ -2,7 +2,7 @@
 
 ## Result
 
-Native visual acceptance is blocked, not passed. Chromium aborts before page creation with `socket() failed: Operation not permitted`. No screenshot or video was produced and no sandbox bypass was attempted. See `browser-probe.txt`.
+Native qualification passed in GitHub run [37577182143](https://github.com/Le-Who/CC-GH/actions/runs/37577182143), commit `e4e477973aa386a331cf339ca9bdeb819737216f`: 31 Node tests with none skipped, 60 phase PNGs across three viewports, and seven sampled 1× clips. The complete 102-file archive is preserved in Library. Exact repeat/scrub/fresh-renderer pixel comparisons passed at retreat-mid in each viewport; this is not an every-pose pixel-equality claim. The earlier local Chromium permission failure remains historical evidence in `browser-probe.txt`.
 
 The genuine saved visit is `visit_v2_rs_7391a59e452822c1096b299310893dd3`, replayed from a committed synthetic-account transaction. Its presentation plan hash matches the saved proposal. This packet never invents or substitutes a route.
 
@@ -20,9 +20,9 @@ The final packet now consumes the exact source-generated v3 snapshot from the fr
 
 `index.html`, `harness.mjs`, and `run-native.mjs` use the actual direct Three renderer, unchanged source assets, camera projection, source sampler, lighting recipe and resource admission. There is no substitute character or trajectory. The fixture mounts only the renderer at canonical gameplay pixel density; it does not reconstruct the app HUD or certify full UI behavior. Viewports are 320×568 DPR1, 390×844 DPR2, and 844×390 DPR1, with mobile/touch contexts.
 
-`capture-plan.json` requests 20 lossless PNG frames per viewport and seven 1× transition segments: entrance/approach/peek, three sparse gestures, retreat through 84% release into neutral rest, neutral rest, and exit. Captured WebM originals include startup and are preserved, with an explicit performance-time/server-time trace. A reviewer must inspect the clips in real time. The runner compares exact PNGs after repeated same-time evaluation, scrubbing, and renderer replacement.
+`capture-plan.json` requests 20 lossless PNG frames per viewport and seven 1× transition segments: entrance/approach/peek, three sparse gestures, retreat through 84% release into neutral rest, neutral rest, and exit. Captured WebM originals include startup and are preserved, with an explicit performance-time/server-time trace. A reviewer must inspect the clips in real time. The runner compares exact retreat-mid PNGs after repeated same-time evaluation, scrubbing, and renderer replacement.
 
-The runner checks every pinned source/asset hash before Chromium and checks each source response again. The packet has been syntax checked and all 44 browser-import graph modules compile in memory with no warnings. Native execution has not been verified. No continuous 45-minute or 110-minute test is implied. No deployment, application build, GitHub action, or billable task was launched.
+The runner checks every pinned source/asset hash before Chromium and checks each source response again. The packet has been syntax checked and all 44 browser-import graph modules compile in memory with no warnings. Native execution was verified in the run above. No continuous 45-minute or 110-minute test, ordinary app navigation, full Yard acceptance, or deployment is implied.
 
 ## Execution in an authorized native environment
 
@@ -35,9 +35,9 @@ Commands from this packet directory:
 
 `prepare-inputs.mjs` copies the exact source-generated snapshot, verifies its relationship to the saved player, and checks the saved proposal hash against the supplied plan. The final packet already contains this verified v3 projection; CI does not need to regenerate it. The runner serves files by Playwright request interception and does not require a local HTTP listener. It still requires a permitted Chromium process.
 
-## Acceptance still owed
+## Acceptance scope
 
-Inspect first entrance pixels and last exit pixels for clipping/pop; full 1× movements for grounding, foot skate, collisions, proportion changes and pose seams; peek/gesture readability at phone scale; quiet neutral rest after release; source art coherence and food identity. Technical results and artistic conclusions must remain separate. Passing deterministic tests alone is not art approval.
+Independent review inspected entrance/exit boundary pixels, selected phase frames, and timestamped clip frames. Native entrance/exit, retreat and quiet rest are visible. Rear-facing sparse gestures remain subtle at gameplay scale. Full-speed continuous full-stay inspection, ordinary UI integration, and artistic acceptance remain owed. Technical results and artistic conclusions are separate.
 
 ## Integrated-checkout CI command
 

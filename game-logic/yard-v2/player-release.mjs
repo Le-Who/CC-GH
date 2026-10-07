@@ -26,6 +26,10 @@ export function inspectReleasedYardGrantTarget(player,options={}) {
 export function requireReleasedPlayerYard(player,options={}) {
   const result=initializeReleasedPlayerYard(player,options);
   if(result.status!==200){const error=Error(result.error);Object.assign(error,{code:result.error,status:result.status});throw error;}
+  if(player?._yardV2?.version===3 && result.mutable===false){
+    const code=result.error||'YARD_RECONCILIATION_PENDING',error=Error(code);
+    Object.assign(error,{code,status:409});throw error;
+  }
   return result.yard;
 }
 export function releasedYardSnapshot(player,options={}) {

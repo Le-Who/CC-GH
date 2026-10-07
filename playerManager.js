@@ -12,6 +12,7 @@
  */
 
 import crypto from "crypto";
+import {captureCanonicalRevision,stampCanonicalRevision} from './game-logic/yard-v2/canonical-revision.mjs';
 import {initializeReleasedPlayerYard,releasedYardSnapshot,usesPersistentYard} from './game-logic/yard-v2/player-release.mjs';
 import { gardenR2Snapshot } from "./game-logic/garden-r2/service.js";
 import { ECONOMY, createDefaultPlayer, createDefaultGardenState, createDefaultYardState, createEmptyMergeBoard, checkAchievements } from "./game-logic.js";
@@ -151,8 +152,10 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
       if (username && player.username !== username) player.username = username;
       player._lastSeen = Date.now();
 
+      const yardBefore=captureCanonicalRevision(player);
       const handlerResult = await asyncFn(player);
       checkAchievements(player);
+      stampCanonicalRevision(player,yardBefore);
       player._syncSeq = Number(player._syncSeq || 0) + 1;
       player._version = crypto.randomUUID();
       _memoryPlayers.set(userId, player);
@@ -196,11 +199,13 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
         // res.json() calls on attempt >= 2 are harmlessly ignored (headersSent).
         // Duplicate-sensitive side effects must register after-commit hooks so
         // losing OCC attempts cannot write external records.
+        const yardBefore=captureCanonicalRevision(player);
         const handlerResult = await asyncFn(player);
 
         // Global safeguard: Verify all achievements automatically before DB freeze
         // even if the route neglected to evaluate or return them.
         checkAchievements(player);
+        stampCanonicalRevision(player,yardBefore);
 
         // 4. Generate next OCC version and realtime sequence.
         player._syncSeq = Number(player._syncSeq || 0) + 1;

@@ -5,7 +5,7 @@
 import {Worker} from 'node:worker_threads';
 import {randomUUID} from 'node:crypto';
 import {performance} from 'node:perf_hooks';
-import {VISIT_JOB_PROTOCOL,VISIT_JOB_SOURCE_HASH,sha256,freeze,snapshotRequest,boundedJSON} from './canonical-visit-job-contract.mjs';
+import {VISIT_JOB_PROTOCOL,VISIT_JOB_SOURCE_HASH,sha256,freeze,snapshotRequest,boundedJSON,isTerminalVisitRefusal} from './canonical-visit-job-contract.mjs';
 
 export const CANONICAL_VISIT_WORKER_ENABLED=false;
 export const CANONICAL_VISIT_WORKER_LIMITS=Object.freeze({
@@ -37,21 +37,30 @@ export function createCanonicalVisitWorker({enabled=CANONICAL_VISIT_WORKER_ENABL
   for(const job of jobs.values())if(job.ownerId===ownerId&&job.key!==exceptKey)finish(job,unavailable(code,job.key));
   for(const [key,entry] of cache)if(entry.ownerId===ownerId&&key!==exceptKey)cacheDelete(key);
  }
+ function remember(job,value,bytes){
+  prune();
+  while(cache.size>=limits.maxCacheEntries||cacheBytes+bytes>limits.maxCacheBytes)cacheDelete(cache.keys().next().value);
+  cache.set(job.key,{ownerId:job.ownerId,value,bytes,expiresAt:now()+limits.cacheTtlMs});cacheBytes+=bytes;
+  return value;
+ }
  function decode(job,message){
   if(!message||message.protocol!==VISIT_JOB_PROTOCOL||message.sourceHash!==VISIT_JOB_SOURCE_HASH||message.id!==job.id||message.key!==job.key||message.threadId!==job.worker.threadId||message.threadId<=0)return unavailable('WORKER_MISMATCH',job.key);
   if(now()>=job.deadline||now()>=job.runDeadline)return unavailable('WORKER_TIMEOUT',job.key);
   if(message.kind==='unavailable')return unavailable('WORKER_UNAVAILABLE',job.key,{workerCode:typeof message.code==='string'?message.code.slice(0,160):'UNKNOWN',...(typeof message.sourceCode==='string'?{sourceCode:message.sourceCode.slice(0,160)}:{})});
-  if(message.kind!=='artifact'||typeof message.json!=='string'||message.json.length>limits.maxResultBytes||Buffer.byteLength(message.json)>limits.maxResultBytes||message.artifactHash!==sha256(message.json))return unavailable('WORKER_RESULT_INVALID',job.key);
+  if(!['artifact','refused'].includes(message.kind)||!Number.isFinite(message.elapsedMs)||message.elapsedMs<0||typeof message.json!=='string'||message.json.length>limits.maxResultBytes||Buffer.byteLength(message.json)>limits.maxResultBytes||message.bytes!==Buffer.byteLength(message.json)||message.artifactHash!==sha256(message.json))return unavailable('WORKER_RESULT_INVALID',job.key);
   try{
    const artifact=JSON.parse(message.json);
    // Also bounds object overhead; the transport byte budget alone is insufficient.
    boundedJSON(artifact,limits.maxResultBytes);
+   const execution={threadId:message.threadId,elapsedMs:message.elapsedMs,sourceHash:VISIT_JOB_SOURCE_HASH};
+   if(message.kind==='refused'){
+    if(!artifact||typeof artifact!=='object'||Array.isArray(artifact)||Object.keys(artifact).sort().join(',')!=='admission,prepared,ready,sourceCode'
+     ||artifact.prepared!==false||artifact.ready!==false||artifact.admission!==false||!isTerminalVisitRefusal(job.operation,artifact.sourceCode))return unavailable('WORKER_RESULT_INVALID',job.key);
+    return remember(job,freeze({state:'refused',prepared:false,ready:false,admission:false,retryable:false,code:'SOURCE_REFUSED',key:job.key,sourceCode:artifact.sourceCode,execution}),message.bytes);
+   }
    if(artifact.prepared!==true||artifact.ready!==false||artifact.admission!==false||artifact.record?.status!=='prepared-inactive'||artifact.record.authoritative!==false||artifact.record.economicIntent?.committed!==false||!artifact.plan)return unavailable('WORKER_RESULT_INVALID',job.key);
-   const value=freeze({state:'prepared',prepared:true,ready:false,admission:false,key:job.key,artifact,execution:{threadId:message.threadId,elapsedMs:message.elapsedMs,sourceHash:VISIT_JOB_SOURCE_HASH}});
-   prune();const bytes=Buffer.byteLength(message.json);
-   while(cache.size>=limits.maxCacheEntries||cacheBytes+bytes>limits.maxCacheBytes)cacheDelete(cache.keys().next().value);
-   cache.set(job.key,{ownerId:job.ownerId,value,bytes,expiresAt:now()+limits.cacheTtlMs});cacheBytes+=bytes;
-   return value;
+   const value=freeze({state:'prepared',prepared:true,ready:false,admission:false,key:job.key,artifact,execution});
+   return remember(job,value,message.bytes);
   }catch{return unavailable('WORKER_RESULT_INVALID',job.key);}
  }
  function start(job){
@@ -88,12 +97,12 @@ export function createCanonicalVisitWorker({enabled=CANONICAL_VISIT_WORKER_ENABL
   /** Called only with a fresh, server-owned immutable opportunity/state snapshot. */
   enqueue(request){
    const s=snapshot(request);if(s.error)return s.error;
-   const existing=lookupSnapshot(s);if(existing.state==='prepared'||existing.completion)return existing;
+   const existing=lookupSnapshot(s);if(existing.state==='prepared'||existing.state==='refused'||existing.completion)return existing;
    // Supersession is bounded to this account; other owners cannot share a key.
    discardOwner(s.ownerId,s.key);
    if(jobs.size>=limits.maxJobs||pendingBytes+s.bytes>limits.maxPendingBytes)return unavailable('QUEUE_FULL',s.key);
    let resolve;const completion=new Promise(done=>{resolve=done;});
-   const job={id:randomUUID(),key:s.key,ownerId:s.ownerId,bytes:s.bytes,requestJSON:s.json,deadline:now()+limits.totalTimeoutMs,resolve,worker:null,finished:false};
+   const job={id:randomUUID(),key:s.key,ownerId:s.ownerId,operation:s.operation,bytes:s.bytes,requestJSON:s.json,deadline:now()+limits.totalTimeoutMs,resolve,worker:null,finished:false};
    job.handle=pending(s.key,{completion});job.timer=setTimeout(()=>finish(job,unavailable('QUEUE_TIMEOUT',job.key)),limits.totalTimeoutMs);
    jobs.set(s.key,job);pendingBytes+=s.bytes;schedule();return job.handle;
   },
