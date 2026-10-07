@@ -29,8 +29,13 @@ jobs:
           corepack prepare pnpm@10.28.2 --activate
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
-      - name: Real Garden browser diagnostic
-        run: pnpm exec playwright test --config qa/garden-tap-layout/playwright.config.mjs --grep 320x568
+      - name: Garden state, interaction and living renderer regression tests
+        run: |
+          mkdir -p test-results/garden-tap-layout
+          set -o pipefail
+          node --test --test-concurrency=1 tests/garden-r2-store.test.mjs tests/garden-interaction.test.js tests/garden-r2-client.test.mjs tests/garden-r2-service.test.mjs tests/garden-living-plant-motion.test.mjs tests/garden-living-plant-surface.test.mjs tests/garden-living-plant-presentation-contract.test.mjs | tee test-results/garden-tap-layout/source.tap
+      - name: Full Garden native browser matrix
+        run: pnpm exec playwright test --config qa/garden-tap-layout/playwright.config.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:

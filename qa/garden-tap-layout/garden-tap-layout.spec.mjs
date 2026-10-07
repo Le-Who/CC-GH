@@ -20,16 +20,17 @@ async function initialize(page, language = 'en') {
   return user;
 }
 async function fixture(page, initial, { loseFirstPurchase = false, loseFirstSale = false, delayPurchase = false } = {}) {
-  const requests = [], state = { current: initial }; let lost = false;
+  const requests = [], receipts = [], state = { current: initial, serverNow: Date.now(), forcedError: null }; let lost = false;
   await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(buildSnapshot(state.current)) }));
   await page.route('**/api/player/mutate', async route => {
     const body = route.request().postDataJSON(); requests.push(body);
     if (delayPurchase && body.payload?.command === 'buyPlant') await new Promise(resolve => setTimeout(resolve, 350));
-    const result = await applyActionWithReceipt(state.current, body.action, body.payload || {}, { clientActionId: body.clientActionId });
+    const result = state.forcedError && body.payload?.command === 'tend' ? {status:409,body:{error:state.forcedError}} : await applyActionWithReceipt(state.current, body.action, body.payload || {}, { clientActionId: body.clientActionId, serverNow: state.serverNow });
+    receipts.push({ command: body.payload?.command, result: result.body });
     if (((loseFirstPurchase && body.payload?.command === 'buyPlant') || (loseFirstSale && body.payload?.command === 'sellPlant')) && !lost && !result.body.error) { lost = true; await route.abort('failed'); return; }
     await route.fulfill({ status: result.status, contentType: 'application/json', body: JSON.stringify(result.body) });
   });
-  return { requests, state };
+  return { requests, state, receipts };
 }
 async function boot(page) {
   await page.goto('/?tab=garden'); await expect(page.locator('.gs2-stage')).toBeVisible();
@@ -37,14 +38,14 @@ async function boot(page) {
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).some(key => key.startsWith('game_hub_garden_r2_intents_v1:') && JSON.parse(localStorage.getItem(key)).nextSequence >= 2))).toBe(true);
 }
 
-for (const [width,height] of [[320,568],[390,844],[844,390]]) test.describe(`${width}x${height}`,()=>{
- test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:true,hasTouch:true,serviceWorkers:'block'});
+for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720]]) test.describe(`${width}x${height}`,()=>{
+ test.use({viewport:{width,height},deviceScaleFactor:width===390?2:1,isMobile:width<1100,hasTouch:width<1100,serviceWorkers:'block'});
  test('confirmed reward paints over living plants and stays within its tap target',async({page},testInfo)=>{
   await initialize(page); await fixture(page,player()); await boot(page);
   const target=page.locator('[data-plant-id="saved-daisy"] .gs2-plant-target');
   await expect(page.locator('.gs2-live-surface')).toHaveCount(1);
   await expect.poll(()=>page.locator('[data-plant-id="saved-daisy"] .gs2-live-plant').getAttribute('data-living-mode')).toBe('animated');
-  await target.tap();
+  if(width<1100) await target.tap(); else await target.click();
   const feedback=page.locator('.gs2-tap-feedback'); await feedback.waitFor();
   const evidence=await feedback.evaluate(node=>{
    for(const a of node.getAnimations()) {a.pause();a.currentTime=150;}
@@ -59,5 +60,48 @@ for (const [width,height] of [[320,568],[390,844],[844,390]]) test.describe(`${w
   await testInfo.attach('confirmed-reward',{body:await page.screenshot(),contentType:'image/png'});
   expect(evidence.top).toBeGreaterThanOrEqual(0); expect(evidence.plant).toBeGreaterThan(evidence.top);
   const box=await target.boundingBox(); expect(evidence.rect.x).toBeGreaterThanOrEqual(box.x);expect(evidence.rect.x+24).toBeLessThanOrEqual(box.x+box.width);
+  expect(evidence.rect.y).toBeGreaterThanOrEqual(box.y);expect(evidence.rect.y+24).toBeLessThanOrEqual(box.y+box.height);
  });
+ test('compact resources, accessible controls and quiet server throttle preserve real rewards',async({page},testInfo)=>{
+  const language=width===320||width===844?'ru':'en';
+  await initialize(page,language);const p=player();const initialGold=p.resources.gold;const {state,receipts}=await fixture(page,p);
+  // This boot checks the same live provider without an English-only locator.
+  await page.goto('/?tab=garden');const target=page.locator('[data-plant-id="saved-daisy"] .gs2-plant-target');await expect(target).toBeEnabled();
+  await expect.poll(()=>receipts.some(r=>r.command==='resume'&&r.result.receiptConfirmed)).toBe(true);
+  await target.focus();await page.keyboard.press('Enter');
+  await expect.poll(()=>receipts.filter(r=>r.command==='tend').length).toBe(1);
+  await expect(target.locator('..')).toHaveAttribute('data-gs2-tapped','true');
+  expect(state.current.resources.gold).toBe(initialGold+1);
+  for(let count=2;count<=4;count++){
+   await page.keyboard.press('Enter');await expect.poll(()=>receipts.filter(r=>r.command==='tend').length).toBe(count);
+   expect(receipts.filter(r=>r.command==='tend').at(-1).result.error).toBe('GARDEN_R2_TAP_COOLDOWN');
+   await expect(page.locator('body')).not.toContainText('GARDEN_R2_TAP_COOLDOWN');
+   await expect(page.locator('.gs2-status')).toHaveAttribute('role','status');
+  }
+  expect(state.current.resources.gold).toBe(initialGold+1);
+  state.serverNow+=500;await page.keyboard.press('Enter');await expect.poll(()=>state.current.resources.gold).toBe(initialGold+2);
+  await expect(page.locator('[data-garden-gold]')).toContainText('10,002');
+  await expect(page.locator('[data-garden-gold]')).toHaveAccessibleName(language==='ru'?'Золото: 10,002 · 8 золота/мин':'Gold: 10,002 · 8 gold/min');
+  await expect(page.locator('[data-garden-gold] small')).toBeVisible();
+  const layout=await page.evaluate(()=>{
+   const failures=[];if(document.documentElement.scrollWidth>innerWidth+1)failures.push('viewport overflow');
+   for(const button of document.querySelectorAll('.gs2-home,.gs2-settings,.gs2-details,.gs2-plant-target,.gs2-empty-target')){const r=button.getBoundingClientRect();if(r.width<44||r.height<44)failures.push('small target '+button.className);}
+   const target=document.querySelector('[data-plant-id="saved-daisy"] .gs2-plant-target'),css=getComputedStyle(target),spot=target.parentElement;
+   if(document.activeElement!==target||css.outlineStyle==='none')failures.push('keyboard focus lost');
+   if(getComputedStyle(spot).borderTopWidth!=='0px')failures.push('heavy plant frame remains');
+   const art=target.querySelector('.gs2-live-plant').getBoundingClientRect();if(art.width<spot.getBoundingClientRect().width-1)failures.push('plant slot still padded');
+   return {failures,focused:document.activeElement.className};
+  });
+  await testInfo.attach('layout-and-throttle',{body:JSON.stringify({language,layout,receipts:receipts.map(r=>({command:r.command,error:r.result.error,confirmed:r.result.receiptConfirmed})),gold:state.current.resources.gold}),contentType:'application/json'});
+  await testInfo.attach('clean-layout',{body:await page.screenshot(),contentType:'image/png'});expect(layout.failures).toEqual([]);
+  state.forcedError='GARDEN_R2_PLANT_NOT_FOUND';await page.keyboard.press('Enter');
+  await expect(page.locator('.gs2-status')).toHaveAttribute('role','alert');
+  expect(state.current.resources.gold).toBe(initialGold+2);
+ });
+
+});
+
+test.afterEach(async({page},info)=>{
+ if(info.status===info.expectedStatus)return;
+ try{await info.attach('failure-state',{body:JSON.stringify(await page.evaluate(()=>({url:location.pathname,queryKeys:[...new URL(location.href).searchParams.keys()],visibleControls:[...document.querySelectorAll('button,[role="alert"],[role="status"]')].filter(n=>n.getBoundingClientRect().width>0).map(n=>({className:n.className,text:n.textContent,disabled:n.disabled,display:getComputedStyle(n).display})),canvases:document.querySelectorAll('.gs2-live-surface').length}))),contentType:'application/json'});}catch(error){console.error('Failure state capture gap:',String(error));}
 });
