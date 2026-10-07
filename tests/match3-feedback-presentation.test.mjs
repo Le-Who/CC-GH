@@ -22,3 +22,11 @@ test('record oracle is unique and exact for real metric HTML in both layout bran
   assert.match(html,/>90<\/strong>/);assert.ok(html.includes('width:18%'));
  }
 });
+
+
+test('short readable combo label retains full run-maximum meaning for assistive technology',()=>{
+ for(const [label,accessibleLabel] of [['Combo','Best combo'],['Комбо','Лучшее комбо']]){
+  const html=renderToStaticMarkup(jsxRuntime.jsx(Match3Metric,{label,accessibleLabel,value:2,className:'m3-combo'}));
+  assert.ok(html.includes(`aria-label="${accessibleLabel}: 2"`));assert.ok(html.includes(`<span>${label}</span>`));
+ }
+});

@@ -226,6 +226,9 @@ for(const [width,height] of [[320,568],[568,320]]) test(`Match3 Russian compact 
  const record=stage.locator('.m3-metric').filter({hasText:/^Рекорд 500/});
  await expect(record).toHaveCount(1);await expect(record).toHaveAttribute('aria-label','Рекорд 500: 90');
  await expect(stage.locator('[data-match3-feedback="gain"]')).toHaveText('+90 очков · Цепь 2');
+ await expect(stage.locator('.m3-combo')).toHaveAttribute('aria-label','Лучшее комбо: 2');
+ const combo=await stage.locator('.m3-combo>span').boundingBox(),pause=await stage.locator('[data-game-pause="true"]').boundingBox();
+ expect(combo.x+combo.width<=pause.x || combo.x>=pause.x+pause.width || combo.y+combo.height<=pause.y || combo.y>=pause.y+pause.height,'combo label never overlaps pause').toBe(true);
  const labels=await stage.locator('.m3-metric>span,[data-match3-feedback="gain"]').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {text:node.textContent,inside:r.left>=0&&r.right<=innerWidth,notClipped:node.scrollWidth<=node.clientWidth+1};}));
  expect(labels.every(label=>label.inside&&label.notClipped),JSON.stringify(labels)).toBe(true);
  await attachFrame(page,testInfo,'russian-compact-feedback');

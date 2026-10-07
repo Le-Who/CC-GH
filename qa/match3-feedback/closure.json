@@ -51,8 +51,8 @@
   },
   {
     "path": "src/games/match3/Match3Presentation.jsx",
-    "sha256": "9884794f7179d57ff6a13ba98756f7ed7ab3c22938e2ae033ba5f31df0f04b0f",
-    "bytes": 20014
+    "sha256": "ddd0a0056f4d98503a1e89861caab1a37090cf853caca57786463225361f2cdf",
+    "bytes": 20186
   },
   {
     "path": "src/games/match3/i18n.js",
@@ -66,8 +66,8 @@
   },
   {
     "path": "tests/e2e/match3-motion.spec.js",
-    "sha256": "28dfb12e293db997a9895bff64e4cb3dc188b613a9f9a654642bc7d2a394c63c",
-    "bytes": 15300
+    "sha256": "2498670cdfdbf39ff5ba74fb3d63ced94564e87848b5d7dd1fcb9ede211846e2",
+    "bytes": 15719
   },
   {
     "path": "tests/match3-controller-recovery.test.js",
@@ -93,7 +93,7 @@
   },
   {
     "path": "tests/match3-feedback-presentation.test.mjs",
-    "sha256": "ee6f6a213538442f8e73cfc21aaeb3c1a08061f658206cb7f4673626d4a46099",
-    "bytes": 1679
+    "sha256": "a0ef99af9a8bc9071c2cf896005a3370f4d33d9bbb2f3a942736739bafdec446",
+    "bytes": 2126
   }
 ]

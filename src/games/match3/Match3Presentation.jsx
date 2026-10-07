@@ -75,6 +75,7 @@ class Match3RuntimeBoundary extends React.Component{
 }
 function Match3Metric({
   label:label,
+  accessibleLabel:accessibleLabel=label,
   value:value,
   className:className="",
   size:size=28,
@@ -84,7 +85,8 @@ function Match3Metric({
   const length=String(value).length;
   return jsxRuntime.jsxs("div", {
     className:`m3-metric ${className}`,
-    "aria-label":`${label}: ${value}`,
+    "aria-label":`${accessibleLabel}: ${value}`,
+    title:accessibleLabel,
     children:[jsxRuntime.jsx("span", {
       children:label
     }), jsxRuntime.jsx("strong", {
@@ -406,7 +408,8 @@ function Match3Presentation(props){
             value:movesLeft,
             size:tightHud?16:composition.compact?18:30
           }), jsxRuntime.jsx(Match3Metric, {
-            label:t("match3.bestChain"),
+            label:t("common.combo"),
+            accessibleLabel:t("match3.bestChain"),
             value:combo||"—",
             size:metricSize,
             pulseKey:props.motionFeedback?.combo>1?`${props.motionFeedback.id}:${props.motionFeedback.phase}`:null,
@@ -439,7 +442,8 @@ function Match3Presentation(props){
           }), jsxRuntime.jsxs("div", {
             className:"m3-combo-reward",
             children:[jsxRuntime.jsx(Match3Metric, {
-              label:t("match3.bestChain"),
+              label:t("common.combo"),
+            accessibleLabel:t("match3.bestChain"),
               value:combo||"—",
               pulseKey:props.motionFeedback?.combo>1?`${props.motionFeedback.id}:${props.motionFeedback.phase}`:null,
               className:"m3-combo",
