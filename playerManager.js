@@ -12,7 +12,8 @@
  */
 
 import crypto from "crypto";
-import {initializeReleasedPlayerYard,releasedYardSnapshot,usesPersistentYard} from './game-logic/yard-v2/player-release.mjs';
+import {captureCanonicalRevision,stampCanonicalRevision} from './game-logic/yard-v2/canonical-revision.mjs';
+import {initializeReleasedPlayerYard,releasedYardSnapshot,usesPersistentYard,freshReleasedPlayerYard} from './game-logic/yard-v2/player-release.mjs';
 import { gardenR2Snapshot } from "./game-logic/garden-r2/service.js";
 import { ECONOMY, createDefaultPlayer, createDefaultGardenState, createDefaultYardState, createEmptyMergeBoard, checkAchievements } from "./game-logic.js";
 import { getDb } from "./db.js";
@@ -24,6 +25,7 @@ import {
 } from "./redisAdapter.js";
 
 const AFTER_COMMIT = Symbol("player.afterCommit");
+const BEFORE_SYNC = Symbol("player.committedProjection");
 
 /* ═══════════════════════════════════════════════════
  *  HYBRID LOCKING: In-Process Mutex + OCC Safety Net
@@ -41,27 +43,31 @@ const AFTER_COMMIT = Symbol("player.afterCommit");
 const _mutexChain = new Map();
 const _memoryPlayers = new Map();
 
-export function afterPlayerCommit(player, fn) {
+// beforeSync is reserved for committed projection metadata, never planning or I/O.
+// Default hooks retain their established ordering after realtime publication.
+export function afterPlayerCommit(player, fn, {beforeSync = false} = {}) {
   if (!player || typeof player !== "object") {
     throw new TypeError("afterPlayerCommit requires a player object");
   }
   if (typeof fn !== "function") {
     throw new TypeError("afterPlayerCommit requires a function");
   }
-  if (!player[AFTER_COMMIT]) {
-    Object.defineProperty(player, AFTER_COMMIT, {
+  if (typeof beforeSync !== "boolean") throw new TypeError("beforeSync must be boolean");
+  const phase = beforeSync ? BEFORE_SYNC : AFTER_COMMIT;
+  if (!player[phase]) {
+    Object.defineProperty(player, phase, {
       value: [],
       enumerable: false,
       configurable: true,
     });
   }
-  player[AFTER_COMMIT].push(fn);
+  player[phase].push(fn);
 }
 
-async function runAfterCommitHooks(userId, player) {
-  const hooks = player?.[AFTER_COMMIT];
+async function runAfterCommitHooks(userId, player, phase = AFTER_COMMIT) {
+  const hooks = player?.[phase];
   if (!Array.isArray(hooks) || hooks.length === 0) return;
-  delete player[AFTER_COMMIT];
+  delete player[phase];
   for (const hook of hooks) {
     try {
       await hook(player);
@@ -145,17 +151,21 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
       let player = _memoryPlayers.get(userId);
       if (!player) {
         player = createDefaultPlayer(userId, displayName);
+        Object.assign(player, freshReleasedPlayerYard(userId, Date.now()) || {});
         player._version = crypto.randomUUID();
       }
       player = applyMigrations(player);
       if (username && player.username !== username) player.username = username;
       player._lastSeen = Date.now();
 
+      const yardBefore=captureCanonicalRevision(player);
       const handlerResult = await asyncFn(player);
       checkAchievements(player);
+      stampCanonicalRevision(player,yardBefore);
       player._syncSeq = Number(player._syncSeq || 0) + 1;
       player._version = crypto.randomUUID();
       _memoryPlayers.set(userId, player);
+      await runAfterCommitHooks(userId, player, BEFORE_SYNC);
       emitPlayerSync(userId, player);
       await runAfterCommitHooks(userId, player);
       return handlerResult === undefined ? player : handlerResult;
@@ -166,6 +176,7 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
     try {
       const displayName = username || `Player_${userId.slice(-4)}`;
       const defaultPlayer = createDefaultPlayer(userId, displayName);
+      Object.assign(defaultPlayer, freshReleasedPlayerYard(userId, Date.now()) || {});
       defaultPlayer._version = crypto.randomUUID();
 
       // 1. Guarantee row exists without bumping state
@@ -196,11 +207,13 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
         // res.json() calls on attempt >= 2 are harmlessly ignored (headersSent).
         // Duplicate-sensitive side effects must register after-commit hooks so
         // losing OCC attempts cannot write external records.
+        const yardBefore=captureCanonicalRevision(player);
         const handlerResult = await asyncFn(player);
 
         // Global safeguard: Verify all achievements automatically before DB freeze
         // even if the route neglected to evaluate or return them.
         checkAchievements(player);
+        stampCanonicalRevision(player,yardBefore);
 
         // 4. Generate next OCC version and realtime sequence.
         player._syncSeq = Number(player._syncSeq || 0) + 1;
@@ -223,7 +236,8 @@ export async function withPlayerLock(userId, asyncFn, username = null) {
             );
           }
 
-          // Emit authenticated realtime sync.
+          // Finalize committed projection metadata, then publish and stamp HTTP.
+          await runAfterCommitHooks(userId, player, BEFORE_SYNC);
           emitPlayerSync(userId, player);
           await runAfterCommitHooks(userId, player);
           

@@ -8,7 +8,7 @@ import './i18n.js';
 const Legacy=React.lazy(()=>import('../companion-yard/CompanionYardGame.jsx'));
 const Persistent=React.lazy(()=>import('./CourtyardGame.jsx'));
 export default function YardReleaseGame(){
- const mode=useGameHub(state=>yardReleasePresentation(state.snapshot));
+ const mode=useGameHub(state=>yardReleasePresentation(state.snapshot,{canonicalSavedVisitsEnabled:import.meta.env.VITE_YARD_SAVED_VISITS==='true'}));
  const {t}=useAppI18n();
  useEffect(()=>{
   if(mode!=='read-only')return;

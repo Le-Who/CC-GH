@@ -1,0 +1,34 @@
+{
+  "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+  "artChanged": false,
+  "assets": [
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
+      "bytes": 3972384,
+      "gitBlob": "a195575d2207406b418965e40d371973cc5287a8",
+      "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b",
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb",
+      "bytes": 120776,
+      "gitBlob": "c3ab4e9337be18ba2260efa47bd9332653f715e7",
+      "sha256": "c2f7c317511cfd84605bde3f6e32ffd24d35ee66a3d8bc365ae8d0742557f3fd",
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/clean-garden.png",
+      "bytes": 1444018,
+      "gitBlob": "75dc660fb401bf58e419af7ab90c7a7e8270bb69",
+      "sha256": "c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79",
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb",
+      "bytes": 251996,
+      "gitBlob": "960b40e5835d5bca591e4b115a69c66a9405c2c2",
+      "sha256": "ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66",
+      "exactLiveMatch": true
+    }
+  ]
+}

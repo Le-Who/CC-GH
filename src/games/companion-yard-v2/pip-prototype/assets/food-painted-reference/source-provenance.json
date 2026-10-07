@@ -1,0 +1,22 @@
+{
+  "status": "art-preview-only-user-and-runtime-acceptance-pending",
+  "asset": "yard-food-painted-reference.glb",
+  "sha256": "122b502fba1bd9e34db0921713bcf9c2e05077fd48472ca52e3dd3204078823f",
+  "bytes": 324808,
+  "sourceBlendSHA256": "a88b83274e2f5551462c2246be991ba8fe78cd99b364e206cc218642ec6330c0",
+  "provenance": "Original editable Blender source created for the project from the approved painted-food reference; one built-in image-generated brushwork texture, optimized to a neutral 128px tint texture. No third-party model or texture imported.",
+  "runtimeTextureSHA256": "85c1d151920038af82a20ea16d99d602ee5355c941b6db3650414e0dd85ccdd1",
+  "bounds": {
+    "radiusCanonicalReserved": 3.843,
+    "heightCanonicalReserved": 3.14,
+    "anchor": [
+      80,
+      82,
+      0
+    ]
+  },
+  "knownCPUBufferPeakBytes": 1101156,
+  "oldAndRestoredGPUBytes": 787128,
+  "rgbaImagePeakBytes": 131072,
+  "independentArtReview": "Candidate-only GO for actual Pip-lighting/phone test. Not user accepted; no mouth-contact or full-app acceptance."
+}

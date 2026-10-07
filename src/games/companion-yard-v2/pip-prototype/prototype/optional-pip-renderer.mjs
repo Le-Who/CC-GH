@@ -1,6 +1,7 @@
+import{pipRenderProfile,DEFAULT_RENDER_PROFILE}from'../render-quality-profile.mjs';
 import{pipGroundingRecipe}from'../grounding-recipe.mjs';
 import{RENDER_UNITS_TO_CANONICAL}from'../world-scale.mjs';
-import{MODEL_CPU_GLB_BYTES,MODEL_CPU_BINARY_BYTES,KNOWN_CPU_BUFFER_PEAK,GARDEN_RASTER}from'../resources.mjs';
+import{MODEL_CPU_GLB_BYTES,MODEL_CPU_BINARY_BYTES,KNOWN_CPU_BUFFER_PEAK}from'../resources.mjs';
 /** Optional one-pet + authored-succulent consumer. Disabled by default.
  * Used by the optional inactive Yard visual mode; no saved visit, authoritative clock or server mutation.
  * Frozen direct renderer has separate browser evidence; this integrated mode remains unqualified.
@@ -11,13 +12,23 @@ import {createPipContactShadow,PIP_CONTACT_SHADOW} from './pip-contact-shadow.mj
 import {createCalibratedPlanter} from './calibrated-planter.mjs';
 import {validateGardenViewport,configureGardenCamera,gardenSurfaceRect,canvasRectToCSS,presentDirectSurface} from './surface-placement.mjs';
 
+/** This bounded actor moves through bones in a stationary Object3D frame.
+ * Three caches a SkinnedMesh sphere from its first visible pose; an off-screen
+ * entrance would otherwise hide every later on-screen pose. Explicit actor
+ * visibility and the fixed garden raster own clipping. Avoid recomputing every
+ * skinned vertex each frame just to obtain a bounds check that is unnecessary
+ * for this already-admitted single actor. Static props retain normal culling. */
+export function configurePipSkinnedVisibility(root){
+ let count=0;root.traverse(object=>{if(object.isSkinnedMesh){object.frustumCulled=false;count++;}});return count;
+}
+
 export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,loadPlanterAssetBytes,signal,calibration,fragmentHelper,
   setupLighting,admitResources,onResources=()=>{},onFrameMetrics=()=>{},planter=null,actorUnitsPerSource=RENDER_UNITS_TO_CANONICAL,
-  presentationMode='copy',directHost=null,rendererFactory=null,groundingRecipe='baseline',
+  renderProfile=DEFAULT_RENDER_PROFILE,presentationMode='copy',directHost=null,rendererFactory=null,groundingRecipe='baseline',
   canvasFactory=()=>document.createElement('canvas'),viewport=null,
   canonicalFoodEnabled=false,getBaseResourceUsage=null,loadCanonicalFoodAssetBytes=null}={}) {
   if(enabled!==true)return null;
-  const grounding=pipGroundingRecipe(groundingRecipe);
+  const grounding=pipGroundingRecipe(groundingRecipe),quality=pipRenderProfile(renderProfile);
   if(![12,16].includes(actorUnitsPerSource))throw Error('Unqualified actor world scale');
   if(!['copy','direct'].includes(presentationMode))throw Error('Unknown presentation mode');
   if(presentationMode==='direct'&&!directHost?.appendChild)throw Error('Direct presentation host required');
@@ -50,7 +61,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
       if(!selected.available){foodBinding?.hide();return foodChanged(selected);}
       if(!foodBinding){
         if(typeof getBaseResourceUsage!=='function'||typeof loadCanonicalFoodAssetBytes!=='function')throw Error('Explicit canonical food resource and byte owners required');
-        const module=await(foodModulePromise??=import('./calibrated-food.mjs'));
+        const module=await(foodModulePromise??=(quality.paintedFood?import('./calibrated-food-painted-trial.mjs'):import('./calibrated-food.mjs')));
         if(!current())return foodUnavailable('CANONICAL_FOOD_SUPERSEDED');
         // Recheck after the import. A disabled/occupied newer snapshot must not
         // start an asset load because an earlier snapshot had been available.
@@ -128,11 +139,11 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     contextLost=false;counts.contextRestorations++;onResources({event:'context-restored',owner,requiresBrowserAcceptance:true,requiresFreshRender:true});
   }
   function requestSize(){
-    const bw=GARDEN_RASTER.width,bh=GARDEN_RASTER.height,pixels=GARDEN_RASTER.pixels;
+    const bw=quality.width,bh=quality.height,pixels=quality.pixels;
     const geometryBytes=[...attributes].reduce((n,a)=>n+a.array.byteLength,0);
     // Three0.186.1 Skeleton.computeBoneTexture: padded square RGBA32F texture.
     const boneTextureBytes=[...skeletons].reduce((n,s)=>{const side=Math.max(4,Math.ceil(Math.sqrt(s.bones.length*4)/4)*4);return n+side*side*16;},0);
-    const estimate={stage:'before-drawing-buffer-allocation',owner,separateFromYard64MiBRGBALedger:true,
+    const estimate={stage:'before-drawing-buffer-allocation',renderProfile:quality.id,owner,separateFromYard64MiBRGBALedger:true,
       rasterPolicy:'garden-reference-grid-v1',backingWidth:bw,backingHeight:bh,
       cpuGLBBytes:MODEL_CPU_GLB_BYTES,cpuParsedBinaryBufferBytes:MODEL_CPU_BINARY_BYTES,cpuBufferViewCopiesBytes:MODEL_CPU_BINARY_BYTES,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK,geometryGPUBufferBytes:geometryBytes,
       contactShadowGeometryCPUBytes:PIP_CONTACT_SHADOW.geometryCPUBytes,contactShadowPendingCPUBytes:PIP_CONTACT_SHADOW.pendingCPUBytes,contactShadowGeometryGPUBytes:PIP_CONTACT_SHADOW.geometryGPUBytes,contactShadowImageTextureBytes:PIP_CONTACT_SHADOW.imageTextureBytes,contactShadowDrawPrimitives:PIP_CONTACT_SHADOW.drawPrimitives,
@@ -161,7 +172,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
   }
   try{
     signal?.throwIfAborted();
-    if(admitResources({stage:'before-import-and-load',owner,separateFromYard64MiBRGBALedger:true,cpuGLBBytes:MODEL_CPU_GLB_BYTES,
+    if(admitResources({stage:'before-import-and-load',renderProfile:quality.id,owner,separateFromYard64MiBRGBALedger:true,cpuGLBBytes:MODEL_CPU_GLB_BYTES,
       cpuParsedBinaryBufferBytes:MODEL_CPU_BINARY_BYTES,cpuBufferViewCopiesBytes:MODEL_CPU_BINARY_BYTES,knownCPUBufferPeakBytes:KNOWN_CPU_BUFFER_PEAK,contactShadowGeometryCPUBytes:PIP_CONTACT_SHADOW.geometryCPUBytes,contactShadowPendingCPUBytes:PIP_CONTACT_SHADOW.pendingCPUBytes,engineAndLoaderObjectOverheadKnown:false})!==true)throw Error('Prototype preload admission rejected');
     let module;[THREE,module]=await Promise.all([import('../vendor/three/build/three.module.js'),import('../vendor/three/addons/loaders/GLTFLoader.js')]);GLTFLoader=module.GLTFLoader;
     signal?.throwIfAborted();
@@ -171,6 +182,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     if(hash!==PIP_PRIVATE_GLB_SHA256)throw Error('Private Pip asset identity mismatch');
     signal?.throwIfAborted();
     gltf=await new module.GLTFLoader().parseAsync(bytes,'');signal?.throwIfAborted();if((gltf.parser.json.images?.length??0)!==0)throw Error('Asset image decoder not admitted');
+    configurePipSkinnedVisibility(gltf.scene);
     gltf.scene.traverse(inventory);proxy=await createCalibratedPlanter(THREE,{...planter,loader:new module.GLTFLoader(),loadAssetBytes:loadPlanterAssetBytes,signal});signal?.throwIfAborted();proxy.root.traverse(inventory);
     const material=[...materials].find(m=>m.name===PIP_COAT_MATERIAL_NAME);if(!material)throw Error('Pinned coat material missing');
     restoreMaterial=installPipAnalyticalCoat(material,{glbSha256:hash,fragmentHelper});

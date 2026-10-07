@@ -1,0 +1,143 @@
+name: Saved Pip source and native qualification
+on:
+  push:
+    branches: ['qa/saved-pip-loop-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: saved-pip-source-20261007
+  cancel-in-progress: false
+jobs:
+  source-and-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ccgh_visit_test
+          POSTGRES_DB: ccgh_visit_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 55437:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_visit_test -d ccgh_visit_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      CI: 'true'
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_PLAYER_API_TEST: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      DEV_AUTH_ENABLED: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Check reserve and default-off normal-runtime boundary
+        run: |
+          git fetch --no-tags --depth=1 origin ec815065f6adb7c36d81f97b41d47ad16e614b07
+          df -h . /tmp
+          mkdir -p test-results/saved-visit
+          node scripts/yard-saved-pip-preflight.mjs
+      - name: Install existing locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Closed policy, versioned projection and corruption guards
+        run: |
+          set -o pipefail
+          node --test tests/yard-canonical-runtime-closed.test.mjs tests/yard-canonical-reconciliation-closed.test.mjs tests/yard-canonical-v3-food-projection.test.mjs | tee test-results/saved-visit/closed.tap
+          node --import ./tests/fixtures/register-admission-test.mjs --test --test-concurrency=1 tests/yard-canonical-transaction-guards.test.mjs tests/yard-canonical-notification-liveness.test.mjs | tee test-results/saved-visit/guards.tap
+      - name: Genuine worker admission, reload, release and exact outcome
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-admission-test.mjs --test tests/yard-canonical-admission-real.test.mjs | tee test-results/saved-visit/admission.tap
+          node --import ./tests/fixtures/register-reconciliation-test.mjs --test --test-concurrency=1 tests/yard-canonical-reconciliation-real.test.mjs tests/yard-canonical-replay-admission-closed.test.mjs | tee test-results/saved-visit/recovery.tap
+      - name: Exact-key refusal and unchanged worker transport contracts
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-visit-worker-transport.mjs --test --test-concurrency=1 tests/yard-canonical-visit-worker.test.mjs tests/yard-canonical-visit-refusal-evidence.test.mjs | tee test-results/saved-visit/worker-transport.tap
+      - name: Normal released-player snapshot, real source clock and cold recovery
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-canonical-revision.test.mjs tests/yard-canonical-runtime-real.test.mjs tests/yard-saved-loop.test.mjs tests/yard-canonical-new-account.test.mjs | tee test-results/saved-visit/normal-runtime.tap
+      - name: Genuine source food commands, replacement receipts and cold replay
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-canonical-food-actions.test.mjs tests/yard-canonical-food-runtime-real.test.mjs tests/yard-canonical-food-realtime.test.mjs tests/yard-canonical-cache-retention.test.mjs tests/garden-r2-routes.test.mjs | tee test-results/saved-visit/food-runtime.tap
+          node --test tests/yard-canonical-saved-food-client.test.mjs tests/yard-canonical-saved-food-outbox.test.mjs tests/yard-canonical-saved-inventory-client.test.mjs tests/hub-account-boundaries.test.mjs tests/garden-r2-store.test.mjs tests/yard-real-backend-contract.test.mjs | tee test-results/saved-visit/food-outbox.tap
+          node --import ./qa/saved-pip-visit/register.mjs --test tests/yard-painted-food-renderer.test.mjs tests/yard-painted-profile.test.mjs | tee test-results/saved-visit/painted-source.tap
+      - name: Real two-process PostgreSQL optimistic-concurrency and restart
+        env:
+          DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test
+          YARD_SAVED_VISIT_PG: '1'
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-canonical-admission-postgres.test.mjs | tee test-results/saved-visit/postgres.tap
+      - name: Install official Chromium for native pixel qualification
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Verify genuine saved source and renderer resource closure
+        env:
+          YARD_SOURCE_ROOT: ${{ github.workspace }}
+          YARD_ASSET_ROOT: ${{ github.workspace }}
+          YARD_DEPENDENCY_ROOT: ${{ github.workspace }}
+          YARD_OVERLAY_ROOTS: ''
+          QUALIFIED_PLAYER: ${{ github.workspace }}/test-results/normal-runtime/qualified-player.json
+          QUALIFIED_SNAPSHOT: ${{ github.workspace }}/test-results/normal-runtime/qualified-snapshot.json
+          YARD_VISUAL_OUTPUT: ${{ github.workspace }}/test-results/saved-visit/native
+        run: |
+          cp test-results/normal-runtime/qualified-plan.json qa/saved-pip-visit/qualified-plan.json
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/prepare-inputs.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/pin-sources.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/qualify-cpu.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/verify-food-projection.mjs
+          node qa/saved-pip-visit/verify-harness.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/verify-skinned-culling.mjs
+          cp qa/saved-pip-visit/*-provenance.json qa/saved-pip-visit/*qualification.json qa/saved-pip-visit/food-selector-result.json qa/saved-pip-visit/source-verification.json qa/saved-pip-visit/complete-resource-closure.json qa/saved-pip-visit/skinned-culling-regression.json test-results/saved-visit/
+      - name: Saved client contract and actual Scene lifecycle
+        id: saved_client
+        run: |
+          set -o pipefail
+          node --import ./qa/saved-pip-visit/register.mjs --test tests/yard-canonical-saved-client.test.mjs tests/yard-canonical-saved-scene.test.mjs | tee test-results/saved-visit/saved-client.tap
+      - name: Native saved Scene entry, resume and renderer replacement
+        if: ${{ !contains(github.event.head_commit.message, '[backend-qa-only]') }}
+        env:
+          VITE_YARD_SAVED_VISITS: 'true'
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
+          YARD_SOURCE_ROOT: ${{ github.workspace }}
+          YARD_DEPENDENCY_ROOT: ${{ github.workspace }}
+          YARD_SCENE_OUTPUT: ${{ github.workspace }}/test-results/saved-visit-scene
+        run: node qa/saved-visit-scene/run.mjs
+      - name: Ordinary Home to Yard navigation and saved visitor
+        if: ${{ !cancelled() && steps.saved_client.outcome == 'success' && !contains(github.event.head_commit.message, '[backend-qa-only]') }}
+        env:
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
+          QUALIFIED_APP_SNAPSHOT: ${{ github.workspace }}/test-results/normal-runtime/qualified-app-snapshot.json
+        run: pnpm exec playwright test --config playwright.yard-saved-visit-app.config.mjs
+      - name: Real backend buy, fill, gift claim, exact nonce and PostgreSQL readback
+        if: ${{ !cancelled() && steps.saved_client.outcome == 'success' }}
+        env:
+          NODE_ENV: test
+          DEV_AUTH_ENABLED: 'true'
+          YARD_SAVED_VISIT_PG: '1'
+          DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test
+          REDIS_URL: ''
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
+        run: pnpm exec playwright test --config playwright.yard-saved-visit-real.config.mjs
+      - name: Preserve exact evidence and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saved-pip-${{ github.sha }}
+          path: test-results/
+          if-no-files-found: error
+          retention-days: 7

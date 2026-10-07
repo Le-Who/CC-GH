@@ -1,4 +1,5 @@
 import { isExpectedGardenTapCooldown } from '../games/garden-shelf/lib/gardenActionFeedback.js';
+import {canonicalSavedActionCapability as canonicalSavedFoodCapability,canonicalSavedActionPendingResult as canonicalSavedFoodPendingResult,canonicalSavedActionReplayAllowed as canonicalSavedFoodReplayAllowed,canonicalSavedActionResumeWitness as canonicalSavedFoodResumeWitness,canonicalSavedActionPermissionScope as canonicalSavedFoodPermissionScope} from './canonicalSavedActionProtocol.mjs';
 import { create } from "zustand";
 import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,canonicalCommandScope,canonicalNoncePrefix,canonicalReplayCapability,canonicalSupersededReceipt,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
 import { readYardOutbox, writeYardOutbox } from "./yardOutboxStorage.js";
@@ -29,6 +30,9 @@ let yardOutboxPauseEpoch = {};
 let yardOutboxResumeSession = null;
 let canonicalOutboxResumeSession = null;
 let canonicalOutboxPauseEpoch = {};
+let savedFoodOutboxPauseEpoch = {};
+let savedFoodOutboxResumeSession = null;
+let savedFoodOutboxResumeWitness = null;
 
 function writableYardSnapshot(snapshot) {
   const runtime = snapshot?.yardRuntime;
@@ -37,6 +41,10 @@ function writableYardSnapshot(snapshot) {
 }
 
 function canDrainOutboxItem(item, snapshot) {
+  if ((item.requiresSavedFoodResume || item.status === 'saved-food-pending')
+    && !(savedFoodOutboxResumeSession === snapshotAccountSession && canonicalSavedFoodReplayAllowed(item,savedFoodOutboxResumeWitness) && canonicalSavedFoodReplayAllowed(item,snapshot))) return false;
+  // Fences are conjunctive: food authority never replaces a prior Yard or
+  // canonical pause, and broad writable authority never replaces food scope.
   return item.status !== "failed" && !item.requiresCanonicalReview && (!isCanonicalItemIntent(item.payload,item.clientActionId) || (canonicalReplayCapability(snapshot,item.action,item.clientActionId)
       && (!(item.requiresYardResume || item.status === "canonical-blocked" || item.status === "rollout-paused") || canonicalOutboxResumeSession === snapshotAccountSession)))
     && (!(item.requiresYardResume || item.status === "rollout-paused" || item.status === "canonical-blocked")
@@ -126,6 +134,7 @@ function normalizeOutboxItems(items) {
     ...item,
     // The resume fence survives sending/pending normalization and failed writes.
     ...(["rollout-paused","canonical-blocked"].includes(item.status) ? { requiresYardResume: true } : {}),
+    ...(item.status === 'saved-food-pending' ? {requiresSavedFoodResume:true} : {}),
     accountId: item.accountId,
     clientActionId: String(item.clientActionId),
     action: String(item.action),
@@ -200,6 +209,7 @@ export const useGameHub = create((set, get) => ({
     const requestToken = latestSnapshotRequest = {};
     const requestYardPauseEpoch = yardOutboxPauseEpoch;
     const requestCanonicalPauseEpoch = canonicalOutboxPauseEpoch;
+    const requestSavedFoodPauseEpoch = savedFoodOutboxPauseEpoch;
     set({ status: "syncing", snapshotRequestPending: true });
     try {
       const result = await api("/api/player/snapshot", undefined, { isCurrent: () => snapshotAccountSession === requestSession
@@ -218,6 +228,7 @@ export const useGameHub = create((set, get) => ({
         // Successful responses still use the existing server-observation merge.
         if (latestSnapshotRequest !== requestToken) return { error: "SNAPSHOT_SUPERSEDED" };
         if (CANONICAL_PENDING_ERRORS.has(result.error)) {
+          savedFoodOutboxResumeSession=null;savedFoodOutboxResumeWitness=null;savedFoodOutboxPauseEpoch={};
           // An unsupported authoritative read invalidates the displayed capability,
           // not the retained game records or their unresolved durable intents.
           canonicalOutboxResumeSession = null; canonicalOutboxPauseEpoch = {};
@@ -235,6 +246,11 @@ export const useGameHub = create((set, get) => ({
           && compareSnapshotFreshness(result, get().snapshot) >= 0 && writableYardSnapshot(result)
           ? requestSession : null;
         canonicalOutboxResumeSession = yardOutboxResumeSession === requestSession && requestCanonicalPauseEpoch === canonicalOutboxPauseEpoch && canonicalCapability(result) ? requestSession : null;
+        savedFoodOutboxResumeSession = options.resumeYardOutbox !== false && requestSavedFoodPauseEpoch === savedFoodOutboxPauseEpoch
+          && Number.isSafeInteger(result.serverTime) && result.serverTime >= 0
+          && Number.isSafeInteger(result.player?.syncSeq) && result.player.syncSeq >= 0
+          && compareSnapshotFreshness(result,get().snapshot) >= 0 && canonicalSavedFoodCapability(result) ? requestSession : null;
+        savedFoodOutboxResumeWitness=savedFoodOutboxResumeSession===requestSession?canonicalSavedFoodResumeWitness(result):null;
       }
       const snapshot = normalizeSnapshot(protectHubSnapshot(get().snapshot, result));
       set({ snapshot, status: "ready", message: "" });
@@ -515,6 +531,20 @@ export const useGameHub = create((set, get) => ({
         return result;
       }
 
+      if (canonicalSavedFoodPendingResult(sending,result)) {
+        savedFoodOutboxPauseEpoch={};savedFoodOutboxResumeSession=null;savedFoodOutboxResumeWitness=null;
+        set(state=>({pendingActions:normalizeOutboxItems(state.pendingActions).map(candidate=>candidate.clientActionId===sending.clientActionId
+          ? {...candidate,status:'saved-food-pending',requiresSavedFoodResume:true,blockedReason:result.error,nextAttemptAt:0}:candidate),
+          lastResult:result,status:'ready',message:result.error}));
+        const retained=await persistOutbox(accountId,get().pendingActions);
+        if(!isCurrent())return {error:'ACCOUNT_CHANGED'};
+        set({outboxStorageError:retained.error||null});
+        // The denial's own GET cannot create a POST/GET retry loop. Only a
+        // later fresh same-session HTTP snapshot with this exact capability can.
+        await get().loadSnapshot({resumeYardOutbox:false});
+        return isCurrent()?result:{error:'ACCOUNT_CHANGED'};
+      }
+
       if (isYardAction(sending.action) && (result.error === "CANONICAL_COMMAND_SUPERSEDED" || result.error === "YARD_ROLLOUT_PAUSED" || result.error === "CANONICAL_LOCATION_REQUIRED"
         || result.error === "UNSUPPORTED_YARD_STORAGE_VERSION" && /^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(sending.clientActionId)
         || isCanonicalItemIntent(sending.payload,sending.clientActionId) && (Number(result._httpStatus) === 409 || CANONICAL_PENDING_ERRORS.has(result.error)))) {
@@ -697,6 +727,11 @@ export const useGameHub = create((set, get) => ({
 // The first account binds an unscoped boot. Any departure from a bound account
 // starts a new session, including clearing it or switching away and back.
 useGameHub.subscribe((state, previous) => {
+  if(state.snapshot!==previous.snapshot&&(!canonicalSavedFoodCapability(state.snapshot)
+    ||canonicalSavedFoodPermissionScope(state.snapshot)!==canonicalSavedFoodPermissionScope(previous.snapshot)
+      &&canonicalSavedFoodPermissionScope(state.snapshot)!==canonicalSavedFoodPermissionScope(savedFoodOutboxResumeWitness))){
+    savedFoodOutboxResumeSession=null;savedFoodOutboxResumeWitness=null;savedFoodOutboxPauseEpoch={};
+  }
   if (state.snapshot !== previous.snapshot && !writableYardSnapshot(state.snapshot)) {
     yardOutboxResumeSession = null;
     yardOutboxPauseEpoch = {};
@@ -707,6 +742,7 @@ useGameHub.subscribe((state, previous) => {
   if (accountId === previousAccountId) return;
   if (previousAccountId != null) {
     snapshotAccountSession = {};
+    savedFoodOutboxResumeSession=null;savedFoodOutboxResumeWitness=null;savedFoodOutboxPauseEpoch={};
     canonicalOutboxResumeSession = null;
     useGameHub.setState({ snapshotRequestPending: false });
   }

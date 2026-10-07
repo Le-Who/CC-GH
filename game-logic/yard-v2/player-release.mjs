@@ -1,3 +1,5 @@
+import {CANONICAL_RUNTIME_ENABLED} from './canonical-runtime.mjs';
+import {createFreshCanonicalYard} from './canonical-new-yard.mjs';
 /** Rollout boundary. A previously migrated save must never enter the legacy
  * normalizer/simulator after a rollback. Closed rollout leaves it read-only. */
 import {YARD_PLAYER_RELEASE_POLICY,hasPersistentYardStorage,usesPersistentYard} from './release-policy.mjs';
@@ -26,10 +28,20 @@ export function inspectReleasedYardGrantTarget(player,options={}) {
 export function requireReleasedPlayerYard(player,options={}) {
   const result=initializeReleasedPlayerYard(player,options);
   if(result.status!==200){const error=Error(result.error);Object.assign(error,{code:result.error,status:result.status});throw error;}
+  if(player?._yardV2?.version===3 && result.mutable===false){
+    const code=result.error||'YARD_RECONCILIATION_PENDING',error=Error(code);
+    Object.assign(error,{code,status:409});throw error;
+  }
   return result.yard;
 }
 export function releasedYardSnapshot(player,options={}) {
   if(!usesPersistentYard(player))return {};
   const runtime=yardDevelopmentSnapshot(publicPersistentYard(player,yardDevelopmentOptions(options)));
   return {yardRuntime:YARD_PLAYER_RELEASE_POLICY.enabled?runtime:{...runtime,status:'rollout-paused',mutable:false,error:'YARD_ROLLOUT_PAUSED'}};
+}
+
+/** Called only for a newly constructed player before its first insert. Existing
+ * saved players never enter this factory, even when a rollout is enabled. */
+export function freshReleasedPlayerYard(ownerId,now){
+ return YARD_PLAYER_RELEASE_POLICY.enabled&&CANONICAL_RUNTIME_ENABLED===true?createFreshCanonicalYard(ownerId,now):null;
 }
