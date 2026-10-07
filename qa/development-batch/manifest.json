@@ -29,6 +29,12 @@
       "gitBlob": "bf74561b2e9421fbdac787d6447771244e402307"
     },
     {
+      "path": ".github/workflows/yard-development-image.yml",
+      "sha256": "771722028c44a3ecca0550cc7d619b3f5d3671bb5164c4f18353795d62f19e3e",
+      "bytes": 5050,
+      "gitBlob": "c5e1c00985d38a647a30fe8d51899f094dcd0fdf"
+    },
+    {
       "path": "accountManager.js",
       "sha256": "0dd813b1db5a8e1efb6393973092f7fd29d7b17b80028009921518ea59bca9e0",
       "bytes": 3519,
@@ -125,6 +131,30 @@
       "gitBlob": "adb9a904c79079ca2cdf913297c74df226af5b19"
     },
     {
+      "path": "qa/yard-development-image/activation-controller-proof.json",
+      "sha256": "a6627d64a5c1f6fa394a49c79ea5fb341279f19614d471fc1fdcdaa1dcb0e135",
+      "bytes": 940,
+      "gitBlob": "1f8ad04a013f9d7cef49129496c2810de7ffba69"
+    },
+    {
+      "path": "qa/yard-development-image/activation-controller.log",
+      "sha256": "be64859cd7b67ce207767fb45d31f40bd536f20160f49818c712ca76b80d1118",
+      "bytes": 4627,
+      "gitBlob": "3db9871ae1cc36598ce87c6d21b3cd08e42ad0e2"
+    },
+    {
+      "path": "qa/yard-development-image/batch-qualification.json",
+      "sha256": "e8418f6ad44cd63b821ad028cca624fd9fa224c6b97520e8e4d31f5d84098fb3",
+      "bytes": 10944,
+      "gitBlob": "c83f9e872352c43246af984f30c3c636e1bf217d"
+    },
+    {
+      "path": "qa/yard-development-image/manifest.json",
+      "sha256": "790d67145f88613068221f6525aeab33274d5aa3ad812dcb7acab064c875c394",
+      "bytes": 17191,
+      "gitBlob": "2c30ee599f0df68f55699b0a010944897f5c17b9"
+    },
+    {
       "path": "routes/leaderboard.js",
       "sha256": "ea83a60a61e108c5da4dd252817c868ac2d3b821736930faa91ddea250565f50",
       "bytes": 4678,
@@ -135,6 +165,18 @@
       "sha256": "e6811b872251582d8b4c9eace8556368bf73620e7a2eefd40b46a562b4ff1ae9",
       "bytes": 23208,
       "gitBlob": "566cc8c333f7d7e38f770f5bd2d2a149314da865"
+    },
+    {
+      "path": "scripts/yard-development-acceptance.mjs",
+      "sha256": "dde418c793aa0662db721cd343a0b6c6ce998cf0594653425e99980d1c540ba0",
+      "bytes": 16063,
+      "gitBlob": "97ac590c24d7241727760df4c23436a1ac427ba9"
+    },
+    {
+      "path": "scripts/yard-development-receipt.mjs",
+      "sha256": "f4afcf984d690f0be120589071049da3c09da54b261bd176addcc1236cec465b",
+      "bytes": 24466,
+      "gitBlob": "4a8cc45e4763a7bdddff7ee88b43cee31dbad5c5"
     },
     {
       "path": "server.js",
@@ -383,6 +425,12 @@
       "gitBlob": "ddaa204c831d5094ef7f5863e758992239139636"
     },
     {
+      "path": "tests/helpers/yard-development-acceptance.mjs",
+      "sha256": "35b9529cbb76b649ec38d7c804a85fec27a36249c4084e7c8b798d35c5d13383",
+      "bytes": 17776,
+      "gitBlob": "d54e9f2387df97154ee8cb20147722bdc2cc3cff"
+    },
+    {
       "path": "tests/helpers/yard-normal-entry-route.mjs",
       "sha256": "c3b2467611c6f93abcacc11c85a146ca1d7b408769e1d2f201c91a76902aae04",
       "bytes": 1095,
@@ -431,6 +479,24 @@
       "gitBlob": "9d7133a63968420eecaf15b30422f4dfba967b58"
     },
     {
+      "path": "tests/yard-development-acceptance.test.mjs",
+      "sha256": "38a59c3940e773ebacb47cd66c09b68c3a7f05711377bcd9ace06b901ff15c92",
+      "bytes": 16163,
+      "gitBlob": "60e26608f7686ba61b3beadec1c2d905b9774ea8"
+    },
+    {
+      "path": "tests/yard-development-e2e/development.spec.mjs",
+      "sha256": "5b82491eca272f59cef059c89cbaae5c2d07233747a5e9b9afc6c1b14c61d321",
+      "bytes": 32500,
+      "gitBlob": "7678e3b2f42d80a7a85e1406808e50e41897640a"
+    },
+    {
+      "path": "tests/yard-development-receipt.test.mjs",
+      "sha256": "d164354f59e63fd842df963530dbee6385b0b42520ddf9d912e77ad8ec936cca",
+      "bytes": 15151,
+      "gitBlob": "644eb49f4eb0b1731d8353a320ef4a2eb6906efc"
+    },
+    {
       "path": "tests/yard-initial-framing.test.mjs",
       "sha256": "798f7163fede3d0f2bdb359ead959f8d1fa08b4a31d6ec9ae657c29c57822697",
       "bytes": 2347,
@@ -442,5 +508,12 @@
       "bytes": 1379,
       "gitBlob": "3c39c8a28e01bb0f6ef76654675c5514d0559fec"
     }
-  ]
+  ],
+  "imageAcceptance": {
+    "scope": "Five exact immutable-image cases with same product runtime; host controller qualification separate",
+    "integrationParent": "693b851197c7fd7002566ad883ecdd475c6830b7",
+    "predecessorActiveReceiptSha256": "fa8f4450438549bdaec5e85ef60186cf808097df1742afa670c38abe58e728fb",
+    "batchQualificationSha256": "e8418f6ad44cd63b821ad028cca624fd9fa224c6b97520e8e4d31f5d84098fb3",
+    "activationControllerProofSha256": "a6627d64a5c1f6fa394a49c79ea5fb341279f19614d471fc1fdcdaa1dcb0e135"
+  }
 }

@@ -1,13 +1,13 @@
 name: Yard normal development image
 on:
   push:
-    branches: ['qa/yard-development-entry-20261007']
+    branches: ['qa/development-batch-image-20261007']
 permissions:
   contents: read
   actions: read
   packages: write
 concurrency:
-  group: yard-development-entry-20261007
+  group: development-batch-image-20261007
   cancel-in-progress: false
 jobs:
   acceptance:
@@ -39,7 +39,9 @@ jobs:
         with:
           node-version: '24'
       - name: Verify reviewed source before dependencies
-        run: node scripts/yard-development-acceptance.mjs preflight
+        run: |
+          git fetch --no-tags --depth=1 origin aa43b9167c0af475bec294878d55bcb95a4ff244
+          node scripts/yard-development-acceptance.mjs preflight
       - name: Install locked test dependencies
         run: |
           corepack enable

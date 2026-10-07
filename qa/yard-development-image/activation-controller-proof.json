@@ -1,0 +1,24 @@
+{
+  "format": "cc-gh-yard-external-controller-proof/v1",
+  "kind": "reviewed-external-source-mocked-release-proof",
+  "sourcePins": [
+    {
+      "path": "scripts/ccgh-app-development-release.sh",
+      "sha256": "c7fb2494a1097b1c16878ef7ccba89b73721a135ccc728bb04ea5945d4def95c"
+    },
+    {
+      "path": "scripts/yard-development-contract.mjs",
+      "sha256": "f5772ffe1a8cf89a73ff6ebbb63d038558cb0caf9e14e816db5963cd32606564"
+    },
+    {
+      "path": "tests/yard-development-release.test.mjs",
+      "sha256": "dc2b7b74ecadd00a49b1fab94598bd1cd52bd64ad473d88a638a0db9f7e5da5f"
+    }
+  ],
+  "tests": 60,
+  "originalReporter": "node-spec",
+  "logSha256": "be64859cd7b67ce207767fb45d31f40bd536f20160f49818c712ca76b80d1118",
+  "scope": "Separate rebound9b controller source; deterministic mocked tools, no actual host activation",
+  "predecessorCommit": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
+  "runtimeOperationPerformed": false
+}

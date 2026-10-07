@@ -1,0 +1,143 @@
+{
+  "format": "cc-gh-development-batch-qualification/v1",
+  "runtimeBase": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
+  "candidate": "693b851197c7fd7002566ad883ecdd475c6830b7",
+  "productBaseCandidate": "53c7e1ac073e8aa536153d46ede1324d744a1afa",
+  "runtimeInputsUnchanged": true,
+  "runtimeManifestSha256": "d9575f32572e5997d945c147feaa2dae73aa69bb3ed7f4dbbdd6977b53da9965",
+  "firstRun": {
+    "id": 37609985148,
+    "status": "failed",
+    "passed": 51,
+    "failed": 6
+  },
+  "targetedRun": {
+    "id": 37612683084,
+    "status": "success",
+    "sourceTests": 205,
+    "sourceSkipped": 0,
+    "postgresTests": 1,
+    "browserPassed": 7,
+    "browserFailed": 0,
+    "scope": "All six failed original cases plus deterministic pending-response case; unchanged product/build inputs"
+  },
+  "artifact": {
+    "libraryFileId": "libfile_a7b40f82c730819185df0a433172ecb1",
+    "githubArtifactId": 11478369996,
+    "sha256": "54e2e3e4af4a4b1d0da1da9b9f6ac541019f363d103b8bd91eef41c80cbb13dd"
+  },
+  "visualReview": {
+    "reviewers": [
+      "integration owner",
+      "framing owner",
+      "parent"
+    ],
+    "result": "GO for narrow framing correction and bounded touch checks",
+    "limitations": [
+      "612 app stage600x760 differs from inferred Telegram464x458",
+      "Desktop side/lower pale gutters remain",
+      "Short landscape remains decor-free",
+      "Small old bowl/manualPip unchanged; no painted or saved-visit rollout",
+      "No physical-device or full-Yard acceptance"
+    ]
+  },
+  "imagePublished": false,
+  "deployed": false,
+  "caseEvidenceMap": {
+    "sha256": "a568a6436c6f37dcfaf28845d6dbc00da85fc15e08838c296ff18d6255375ee5",
+    "path": "case-evidence-map.json",
+    "firstRun": {
+      "id": 37609985148,
+      "commit": "53c7e1ac073e8aa536153d46ede1324d744a1afa",
+      "overall": "failure",
+      "jobId": 112754639243,
+      "decodedJobLogSha256": "e0b0ec6d110c8244035e766b09946890685ded7a6c0732e04f38cf2dfae3d683",
+      "mappingMethod": "All57 executed case identities from line reporter; exclude exact final6-failure summary, independently reconcile final51-pass count",
+      "passedCases": [
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 320x568 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 320x568 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 320x568 \u203a detail reward stays above art and retires on actual scroll or dismissal",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 360x800 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 360x800 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 390x844 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 390x844 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 414x896 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 414x896 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 844x390 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 844x390 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 844x390 \u203a detail reward stays above art and retires on actual scroll or dismissal",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 768x1024 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 768x1024 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1024x768 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1024x768 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1280x720 \u203a confirmed reward paints over living plants and stays within its tap target",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1280x720 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 320x568",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 360x800",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 390x844",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 414x896",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 568x320",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 844x390",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 768x1024",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 1024x768",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 1280x720",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 393x873",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a capture actual blox gameplay",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a capture actual bubbo gameplay",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a capture actual trivia gameplay",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a static poster loading no-preference",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a static poster loading reduce",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Russian labels and theme 320x568",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a Russian labels and theme 844x390",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a record one genuine Bubbo shot for optional preview",
+        "tests/home-theme-e2e/home-theme.spec.mjs \u203a one explicit Bubbo preview loads only on request and pauses safely",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 320x568",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 360x800",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 390x844",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 414x896",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 568x320",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 844x390",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 768x1024",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 1024x768",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 1280x720",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 393x873",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a match3 public and historical names, safe HTML and self label",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a blox public and historical names, safe HTML and self label",
+        "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a Trivia public history and lobby render safe names and reject old username/winner snapshots"
+      ],
+      "failedCases": [
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 390x844 \u203a held touch aims without firing; release makes exactly one persisted shot",
+        "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 568x320 \u203a held touch aims without firing; release makes exactly one persisted shot",
+        "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 612x982",
+        "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 320x568",
+        "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 568x320"
+      ]
+    },
+    "targetedRun": {
+      "id": 37612683084,
+      "commit": "693b851197c7fd7002566ad883ecdd475c6830b7",
+      "overall": "success",
+      "browserJsonSha256": "81ef6fdcc3045fd381980049cd55108d6c6f3d41e74c4fcb977d5a5b65cbe0cb",
+      "passedCases": [
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a a pending response coalesces an overlapping key before the next settled tend",
+        "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 390x844 \u203a held touch aims without firing; release makes exactly one persisted shot",
+        "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 568x320 \u203a held touch aims without firing; release makes exactly one persisted shot",
+        "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 612x982",
+        "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 320x568",
+        "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 568x320"
+      ]
+    },
+    "coverage": {
+      "originalCases": 57,
+      "originalFailedNowPassed": 6,
+      "newRegressionCases": [
+        "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a a pending response coalesces an overlapping key before the next settled tend"
+      ],
+      "uniquePassedCasesAcrossRuns": 58,
+      "singleGreenFullSuiteClaim": false
+    }
+  }
+}
