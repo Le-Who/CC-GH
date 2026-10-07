@@ -1,0 +1,54 @@
+name: Match3 feedback and elemental art QA
+on:
+  push:
+    branches: ['qa/match3-feedback-art-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: match3-feedback-art-20261007
+  cancel-in-progress: false
+jobs:
+  native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      CI: 'true'
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Exact dependencies
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Source and media closure before browser
+        run: |
+          mkdir -p test-results/match3-feedback
+          node qa/match3-feedback/preflight.mjs > test-results/match3-feedback/preflight.json
+          node --test tests/match3.test.js tests/match3-motion.test.js tests/match3-motion-fixture.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/match3-render-budget.test.js > test-results/match3-feedback/unit.tap 2>&1
+          pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list > test-results/match3-feedback/collected.txt
+      - name: Build real application
+        run: pnpm run build > test-results/match3-feedback/build.log 2>&1
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: One diagnostic before matrix
+        env:
+          MATCH3_QA_SLICE: diagnostic
+        run: pnpm exec playwright test --config playwright.match3-feedback.config.mjs --grep '^Match3 1x swap invalid cascade and refill 320x568$'
+      - name: Required native viewport and lifecycle matrix
+        env:
+          MATCH3_QA_SLICE: matrix
+        run: pnpm exec playwright test --config playwright.match3-feedback.config.mjs
+      - name: Preserve successful and failed evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: match3-feedback-${{ github.sha }}
+          path: test-results/match3-feedback/
+          if-no-files-found: error
+          retention-days: 14

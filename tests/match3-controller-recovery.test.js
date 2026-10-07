@@ -45,7 +45,7 @@ function harness(original,{saved=null,actionOverride=null}={}){
  };
 }
 // Compare gameplay/save contracts; motion descriptors now intentionally use renderer completion.
-const logicalTree=tree=>{const value=plain(tree);delete value.motionFeedback;delete value.sceneState.match3Animation;return value};
+const logicalTree=tree=>{const value=plain(tree);delete value.motionFeedback;delete value.actionFeedback;delete value.highScore;delete value.idleMotion;delete value.sceneState.match3.idleMotion;delete value.sceneState.match3Animation;return value};
 const same=(a,b)=>{assert.deepEqual(logicalTree(a.tree),logicalTree(b.tree));assert.deepEqual(a.actions,b.actions)};
 test('authored production controller matches frozen preview across classic/drop modes and action boundaries',async()=>{
  for(const mode of['classic','drop']){
@@ -244,4 +244,18 @@ test('reload before the final cascade completes restores zero-move runs as termi
   assert.equal(h.actions.filter(x=>x.name==='match3.syncMode').length,0);
   const ends=h.actions.filter(x=>x.name==='match3.end');assert.equal(ends.length,1);assert.equal(ends[0].payload.score,120);
  }
+});
+
+
+test('feedback uses accepted points and never writes presentation preferences to the action payload', async()=>{
+ const h=harness(false);await h.settle();h.tree.onStart();await h.settle();
+ h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();
+ assert.equal(h.tree.actionFeedback.points,120);
+ assert.equal(h.tree.highScore,123);
+ const before=h.actions.length;h.tree.onIdleMotion();h.render();
+ assert.equal(h.tree.idleMotion,false);assert.equal(h.tree.sceneState.match3.idleMotion,false);
+ assert.equal(h.actions.length,before);
+ assert.ok(h.actions.every(action=>!JSON.stringify(action).includes('idleMotion')));
+ h.tick(2000);h.tree.sceneState.onMatch3Swap({x:0,y:0},{x:1,y:0});h.render();
+ assert.equal(h.tree.actionFeedback,null,'invalid moves never repeat the previous gain');
 });

@@ -1,0 +1,94 @@
+[
+  {
+    "path": ".github/workflows/match3-feedback-qa.yml",
+    "sha256": "edeba7e435986820e377bc05bb4c28bef7d206721b22fb1efeb95b0bd743ff76",
+    "bytes": 2258
+  },
+  {
+    "path": "playwright.match3-feedback.config.mjs",
+    "sha256": "d3bba30784cfdf5032a7b033b5b67622ddccf329f9051525af896eabd0d3defc",
+    "bytes": 704
+  },
+  {
+    "path": "public/games/match3-v2/gems/air.webp",
+    "sha256": "4b7a27dafca52dfa87dd27363bd18e8c08ece03a6e3234e61459a68ab44ee7eb",
+    "bytes": 6450
+  },
+  {
+    "path": "public/games/match3-v2/gems/dark.webp",
+    "sha256": "f9de219533ec805bbe03eb42435a1422272029e419fcdc47406e7876b85f0985",
+    "bytes": 9252
+  },
+  {
+    "path": "public/games/match3-v2/gems/earth.webp",
+    "sha256": "5927d2e6973b1d3bf5078a193fbd0ed5e057b3acffd146129e0317eed9e98f6c",
+    "bytes": 10118
+  },
+  {
+    "path": "public/games/match3-v2/gems/fire.webp",
+    "sha256": "321c7befe78e5abee82fd966d5b6c15e0c40e3baed773b621cc4ba10ade5e877",
+    "bytes": 9376
+  },
+  {
+    "path": "public/games/match3-v2/gems/light.webp",
+    "sha256": "27157502fe9872d13cbff3ab9847020857281395878fc003295f332e6ec67234",
+    "bytes": 8772
+  },
+  {
+    "path": "public/games/match3-v2/gems/water.webp",
+    "sha256": "ce1e4568f33fc17fe9816b34b07f9f472754707a9aec1117a3814fc54ab2ee65",
+    "bytes": 7776
+  },
+  {
+    "path": "src/game-runtime/scenes/match3Scene.js",
+    "sha256": "641581e9a593f7680572e8bc09e0c8855284d2d215e81c941dbf7b3f7f523a58",
+    "bytes": 15456
+  },
+  {
+    "path": "src/games/match3/Match3Game.jsx",
+    "sha256": "81e1269d0aff548ed25c37340396b86bad6103188b091d6db1b85a5d1a34b50d",
+    "bytes": 18882
+  },
+  {
+    "path": "src/games/match3/Match3Presentation.jsx",
+    "sha256": "9884794f7179d57ff6a13ba98756f7ed7ab3c22938e2ae033ba5f31df0f04b0f",
+    "bytes": 20014
+  },
+  {
+    "path": "src/games/match3/i18n.js",
+    "sha256": "8a8d6e6b4ac949615c53a87ea34e2d47e4b41e03ffef79d6a4c824f38010a973",
+    "bytes": 4885
+  },
+  {
+    "path": "src/games/match3/match3-presentation.css",
+    "sha256": "d5d3bab69758fbd8895f00f7f0df1808e35239a0260548736182a92f8117ec1f",
+    "bytes": 10834
+  },
+  {
+    "path": "tests/e2e/match3-motion.spec.js",
+    "sha256": "ea101dd09730deb786783ded4c7a1926b836714d1bb1436dc8ee486ed3827247",
+    "bytes": 13976
+  },
+  {
+    "path": "tests/match3-controller-recovery.test.js",
+    "sha256": "e16fdb7f826bc6db18ca675f7196a024ef707e924d11a738a53e9ff641781412",
+    "bytes": 20914
+  },
+  {
+    "path": "tests/match3-scene-recovery.test.js",
+    "sha256": "dee73ad0d3feea02a454e689247d34a6117b758c9a1721d5dd69e73b51949741",
+    "bytes": 16546
+  },
+  {
+    "path": "src/game-core/match3/engine.js",
+    "sha256": "9f212a98b4dd0e98c67d29553fe91791e16042b20a8cc323734d37e40471935d",
+    "bytes": 27902,
+    "unchanged": true
+  },
+  {
+    "path": "src/game-core/match3/motion.js",
+    "sha256": "8e89f143e3617888c581bf99b89f8c83272e9cb7f4d6f1c5626259a840f9cc8e",
+    "bytes": 8986,
+    "unchanged": true
+  }
+]

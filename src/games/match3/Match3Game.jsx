@@ -57,6 +57,8 @@ export default function Match3Game() {
   const pausedRef = useRef(paused);
   pausedRef.current = paused;
   const [motionFeedback, setMotionFeedback] = useState(null);
+  const [actionFeedback, setActionFeedback] = useState(null);
+  const [idleMotion, setIdleMotion] = useState(true);
   const restoredRunKeyRef = useRef("");
   const clockRef = useRef(createMatch3Clock(30));
   const tickClockRef = useRef(null);
@@ -127,6 +129,8 @@ export default function Match3Game() {
     animationIdRef.current = id;
     inputLockRef.current = true;
     setInputLocked(true);
+    setMotionFeedback(null);
+    setActionFeedback(animation.type === "cascade" ? { id, points: animation.points, depth: animation.steps?.length || 0 } : null);
     setMatchAnimation({ ...animation, id });
   }, []);
   const onAnimationComplete = useCallback((id) => {
@@ -208,6 +212,7 @@ export default function Match3Game() {
     animationIdRef.current = null;
     setInputLocked(false);
     setMotionFeedback(null);
+    setActionFeedback(null);
     setMatchAnimation(null);
     setShuffleCharges(1);
     setBoosters(nextBoosters);
@@ -312,7 +317,7 @@ export default function Match3Game() {
       setMovesLeft(nextMoves);
       setSelected(null);
       queueMatchAnimation(
-        { type: "cascade", from, to, fromGem, toGem, startBoard: board, swapBoard, steps: result.steps, finalBoard: nextBoard },
+        { type: "cascade", from, to, fromGem, toGem, startBoard: board, swapBoard, steps: result.steps, points: result.totalPoints, finalBoard: nextBoard },
       );
       haptic("success");
       audioManager.play(result.dropCollected?.length || result.combo > 1 || result.special ? "clear" : "merge");
@@ -354,7 +359,7 @@ export default function Match3Game() {
     setBoosters(nextBoosters);
     setActiveBooster("");
     queueMatchAnimation(
-      { type: "cascade", from: target, to: target, fromGem: targetGem, toGem: targetGem, startBoard: board, swapBoard: board, steps: result.steps, booster: activeBooster, finalBoard: nextBoard },
+      { type: "cascade", from: target, to: target, fromGem: targetGem, toGem: targetGem, startBoard: board, swapBoard: board, steps: result.steps, points: result.totalPoints, booster: activeBooster, finalBoard: nextBoard },
     );
     haptic("success");
     audioManager.play("clear");
@@ -380,7 +385,7 @@ export default function Match3Game() {
 
   const sceneState = useMemo(
     () => ({
-      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked, boosters, activeBooster },
+      match3: { board, score, movesLeft, combo, gameMode: mode, gameActive: isPlaying, inputLocked, idleMotion, boosters, activeBooster },
       match3Timer: mode === "timed" ? {
         label: `${Math.max(0, movesLeft)}s`,
         progress: Math.max(0, Math.min(1, movesLeft / 90)),
@@ -395,11 +400,12 @@ export default function Match3Game() {
       onMatch3Swap: attemptSwap,
       fallbackBoard: board,
     }),
-    [activeBooster, attemptSwap, board, boosters, combo, currentMode.labelKey, inputLocked, isPlaying, matchAnimation, mode, movesLeft, onAnimationComplete, onMotionPhase, onCell, score, selected, t],
+    [activeBooster, attemptSwap, board, boosters, combo, currentMode.labelKey, inputLocked, idleMotion, isPlaying, matchAnimation, mode, movesLeft, onAnimationComplete, onMotionPhase, onCell, score, selected, t],
   );
 
   return jsxRuntime.jsx(Match3Presentation, {
-    gameActive,paused,inputLocked,score,movesLeft,combo,currentReward,motionFeedback,
+    gameActive,paused,inputLocked,score,movesLeft,combo,currentReward,motionFeedback,actionFeedback,
+    highScore:Math.max(0,Number(snapshot?.match3?.highScore)||0),idleMotion,onIdleMotion:()=>setIdleMotion(value=>!value),
     rewardProgress:rewardChest.progress,mode,currentMode,modes:MATCH3_MODES,
     selectedGemType,activeBooster,shuffleCharges,boosters,leaders,sceneState,runtimeAssetManifest,
     onPause:pauseRun,onResume:()=>setPaused(false),

@@ -40,6 +40,25 @@ function buildMatch3Scene(app, initial = {}) {
   const gemPool = [], burstPool = [];
   const motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)');
   let reduced = !!motionQuery?.matches;
+  let idleTimer = null, idleActor = null, idleSerial = 0;
+  const idleAllowed = () => playing() && !locked() && !drag && !data.selectedGem && !data.match3?.activeBooster && data.match3?.idleMotion !== false && !reduced && !document.hidden && document.visibilityState !== 'hidden';
+  function cancelIdle() {
+    if (idleTimer !== null) window.clearTimeout?.(idleTimer);
+    idleTimer = null; idleActor = null;
+  }
+  function syncIdle() {
+    if (!idleAllowed()) { cancelIdle(); return; }
+    if (idleTimer !== null || idleActor || !window.setTimeout) return;
+    idleTimer = window.setTimeout(() => {
+      idleTimer = null;
+      if (disposed || !idleAllowed()) return;
+      const candidates = boardPoses(currentBoard()).filter(pose => MATCH3_GEM_ART[pose.type]);
+      if (!candidates.length) return;
+      const pose = candidates[(idleSerial++ * 17 + 9) % candidates.length];
+      idleActor = { x:pose.x, y:pose.y, started:performance.now() };
+      render();
+    }, 12000 + (idleSerial % 3) * 2000);
+  }
   const dragVisual = makeRafScheduler(() => render());
   const playing = () => data.match3?.gameActive === true;
   const canAnimate = () => !!plan && playing() && !document.hidden && document.visibilityState !== 'hidden';
@@ -102,7 +121,7 @@ function buildMatch3Scene(app, initial = {}) {
     if (plan && sample.done) { complete(); return; }
     if (plan && sample.phaseIndex !== lastPhase) {
       lastPhase = sample.phaseIndex;
-      if (sample.kind === 'clear') data.onMatch3MotionPhase?.({ id: plan.id, combo: sample.combo, phase: sample.phaseIndex });
+      if (sample.kind === 'clear') data.onMatch3MotionPhase?.({ id: plan.id, combo: sample.combo, depth: plan.phases.slice(0, sample.phaseIndex + 1).filter(phase => phase.kind === 'clear').length, phase: sample.phaseIndex });
     }
     // The rectangular clip is needed only while a refill crosses the board
     // edge. Never pay for masked full-board passes on the idle touch surface.
@@ -117,6 +136,12 @@ function buildMatch3Scene(app, initial = {}) {
       app.canvas.dataset.match3InputLocked = String(locked());
       app.canvas.dataset.match3ReducedMotion = String(reduced);
     }
+    if (idleActor && performance.now() - idleActor.started >= 720) idleActor = null;
+    syncIdle();
+    if (app.canvas?.dataset) {
+      app.canvas.dataset.match3IdleActive = String(!!idleActor);
+      app.canvas.dataset.match3IdleAllowed = String(idleAllowed());
+    }
     const selected = data.selectedGem;
     sample.poses.forEach((pose, index) => {
       const view = gemView(index, pose.type);
@@ -126,6 +151,12 @@ function buildMatch3Scene(app, initial = {}) {
       view.position.set(center.x, center.y);
       view.scale.set(pose.scaleX * (picked ? 1.04 : 1), pose.scaleY * (picked ? 1.04 : 1));
       view.alpha = pose.alpha;
+      view.rotation = 0;
+      if (idleActor?.x === pose.x && idleActor?.y === pose.y) {
+        const life = Math.sin(Math.PI * Math.min(1, (performance.now() - idleActor.started) / 720));
+        view.rotation = life * .025;
+        view.y -= life * layout.cell * .018;
+      }
       // A swipe previews the target, without detaching a ghost from its source.
       if (drag?.from.x === pose.x && drag?.from.y === pose.y && !plan) view.scale.set(1.06);
     });
@@ -217,8 +248,9 @@ function buildMatch3Scene(app, initial = {}) {
 
   const detachStage = setupStage(app, pointer.move, pointer.end, () => pointer.cancel('stage'));
   function syncTicker() {
-    const running = canAnimate();
-    if (clock.running !== running) advanceClock(running);
+    const motionRunning = canAnimate();
+    const running = motionRunning || !!idleActor;
+    if (clock.running !== motionRunning) advanceClock(motionRunning);
     if (running) app.start?.();
     else app.stop?.();
   }
@@ -236,7 +268,7 @@ function buildMatch3Scene(app, initial = {}) {
   motionQuery?.addEventListener?.('change', onPreference);
   const tick = () => {
     advanceClock();
-    if (!canAnimate()) { app.stop?.(); return; }
+    if (!canAnimate() && !idleActor) { app.stop?.(); return; }
     render();
   };
   app.ticker.add(tick);
@@ -259,7 +291,7 @@ function buildMatch3Scene(app, initial = {}) {
       drawChrome(); syncAnimation(); render();
     },
     destroy() {
-      disposed = true; detachStage(); app.ticker.remove(tick); dragVisual.cancel(); pointer.cancel('destroy');
+      disposed = true; cancelIdle(); detachStage(); app.ticker.remove(tick); dragVisual.cancel(); pointer.cancel('destroy');
       document.removeEventListener('visibilitychange', onVisibility);
       motionQuery?.removeEventListener?.('change', onPreference);
       plan = null;

@@ -39,6 +39,7 @@ async function boot(page, viewport, reduced = false, moves = 30, initialBoard = 
   await page.addInitScript(installMatch3RefillSeed);
   const player = await mountHomePlayerFixture(page);
   fixturePlayers.set(page,player);
+  player.match3.highScore=500;
   player.match3.currentGame = { board:initialBoard,mode:'classic',score:0,movesLeft:moves,combo:0,boosters:{bomb:3,lightning:3,rainbow:2,hammer:3} };
   await page.route('**/api/leaderboard',route=>route.fulfill({contentType:'application/json',body:'[]'}));
   await loadFixture(page, player);
@@ -96,6 +97,9 @@ for(const [width,height] of viewports) test(`Match3 1x swap invalid cascade and 
   await settled(canvas);
   await expect.poll(()=>player.match3.currentGame.movesLeft).toBe(29);
   expect(player.match3.currentGame.score).toBe(90);
+  await expect(stage.locator('[data-match3-feedback="gain"]')).toContainText('+90');
+  await expect(stage.locator('[data-match3-feedback="gain"]')).toContainText(/(?:Chain|Цепь) 2/);
+  await expect(stage.locator('.m3-score')).toContainText('500');
   await seedRestored(page);
   const phases=await page.evaluate(()=>window.__match3MotionPhases);
   expect(phases).toContain('swap');expect(phases.filter(p=>p==='clear').length).toBeGreaterThanOrEqual(2);
@@ -192,4 +196,21 @@ test('Match3 reload of a final accepted zero-move save cannot grant an extra sco
   expect(mutations.filter(item=>item.action==='match3.end')).toHaveLength(1);
   expect(mutations.find(item=>item.action==='match3.end').payload.score).toBe(90);
   expect(mutations.filter(item=>item.action==='match3.syncMode')).toHaveLength(0);
+});
+
+
+test('Match3 idle life is rare and static option suppresses it',async({page},testInfo)=>{
+ const {stage,canvas}=await boot(page,{width:390,height:844});
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','false');
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','true',{timeout:17000});
+ await attachFrame(page,testInfo,'single-piece-idle');
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','false');
+ await stage.locator('[data-game-pause="true"]').click();
+ await expect(canvas).toHaveAttribute('data-match3-idle-allowed','false');
+ await stage.getByRole('button',{name:/Piece motion: on|Движение камней: вкл/}).click();
+ await stage.getByRole('button',{name:/^(Resume|Продолжить)$/}).click();
+ await expect(canvas).toHaveAttribute('data-match3-idle-allowed','false');
+ await page.waitForTimeout(17000);
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','false');
+ await attachFrame(page,testInfo,'static-board');
 });
