@@ -78,7 +78,11 @@ for(const reducedMotion of ['no-preference','reduce'])test(`static poster loadin
  const decode=[];
  for(const card of await page.locator('[data-home-game]').all()){
   await card.scrollIntoViewIfNeeded();
+  const readyStart=Date.now();
+  await expect.poll(()=>card.locator('img').evaluate(img=>img.complete&&img.naturalWidth>0)).toBe(true);
+  const readinessWaitMs=Date.now()-readyStart;
   decode.push(await card.locator('img').evaluate(async img=>{const started=performance.now();await img.decode();return {src:img.currentSrc,width:img.naturalWidth,height:img.naturalHeight,decodeReadyMs:performance.now()-started,loading:img.loading,decoding:img.decoding};}));
+  decode.at(-1).readinessWaitMs=readinessWaitMs;
  }
  expect(decode).toHaveLength(7);expect(decode.every(x=>x.width>0&&x.loading==='lazy'&&x.decoding==='async')).toBe(true);
  expect(await page.locator('.home-catalogue video,.home-catalogue audio').count()).toBe(0);
@@ -128,6 +132,8 @@ test('one explicit Bubbo preview loads only on request and pauses safely',async(
  // this is explicitly a lifecycle simulation, not a physical-device test.
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(true);
  await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(false);
+ await page.keyboard.press('Escape');await expect(page.getByTestId('home-catalogue')).toHaveCount(0);await expect(video).toHaveCount(0);
+ await openHome(page);await expect(video).toHaveCount(0);await page.getByRole('button',{name:'Preview Bubbo gameplay',exact:true}).click();await expect.poll(()=>video.evaluate(v=>v.readyState>=2&&!v.paused)).toBe(true);
  await page.emulateMedia({reducedMotion:'reduce'});await expect(video).toHaveCount(0);await expect(page.locator('.home-preview-control')).toHaveCount(0);
  const requestsBeforeReload=mediaRequests.length;await page.reload();await expect(page.locator('.gs2-stage')).toBeVisible();await openHome(page);await page.locator('[data-home-game="bubbo"]').scrollIntoViewIfNeeded();expect(mediaRequests.length).toBe(requestsBeforeReload);
  await fs.writeFile(`${OUT}/one-loop-proof.json`,JSON.stringify({readinessMs,before,after,mediaRequests,offscreenPause:true,backgroundPause:'document.hidden + visibilitychange lifecycle simulation',reducedMotionNoAdditionalRequest:true},null,2));
