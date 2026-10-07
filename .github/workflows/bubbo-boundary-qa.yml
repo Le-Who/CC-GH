@@ -1,0 +1,58 @@
+name: Bubbo boundary and local reaction QA
+on:
+  push:
+    branches: ['qa/bubbo-boundary-reaction-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: bubbo-boundary-reaction-20261007
+  cancel-in-progress: false
+jobs:
+  field:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: |
+            /package.json
+            /pnpm-lock.yaml
+            /pnpm-workspace.yaml
+            /.npmrc
+            /src/games/bubbo/
+            /src/game-core/bubbo/
+            /src/app/hud-layout/defaultLayouts/bubbo.json
+            /src/app/arcadeBoundary.js
+            /src/platform/
+            /src/game-runtime/
+            /game-logic/bubbo-engine.js
+            /tests/bubbo*.test.js
+            /tests/fixtures/bubbo-v2-preview-reference.cjs
+            /qa/bubbo-boundary/
+            /public/games/bubbo-v2/
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Focused engine, component and geometry regressions
+        run: |
+          mkdir -p test-results/bubbo-boundary
+          node --test tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/bubbo-loss-boundary.test.js tests/bubbo-neighbor-reaction.test.js tests/bubbo-recovery-differential.test.js > test-results/bubbo-boundary/unit.tap 2>&1
+      - name: Install exact test dependencies
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Single diagnostic viewport before matrix
+        run: node qa/bubbo-boundary/run.mjs --diagnostic
+      - name: Responsive real-field matrix
+        run: node qa/bubbo-boundary/run.mjs
+      - name: Preserve results and failures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: bubbo-field-${{ github.sha }}
+          path: test-results/bubbo-boundary/
+          if-no-files-found: error
+          retention-days: 14
