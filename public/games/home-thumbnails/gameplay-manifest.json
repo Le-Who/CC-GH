@@ -1,0 +1,63 @@
+{
+  "format": "home-gameplay-posters/v1",
+  "media": "Static real-gameplay screenshots. No video/audio or animation decoding.",
+  "files": [
+    {
+      "id": "blox",
+      "path": "/games/home-thumbnails/blox.webp",
+      "width": 400,
+      "height": 300,
+      "bytes": 12156,
+      "sourceCommit": "f1a5d5d1c4f1184fe8dec74285dc1c37c37c414a",
+      "sourceRun": "https://github.com/Le-Who/CC-GH/actions/runs/37601078258",
+      "sourceSha256": "f90f01ca72c4e0b1b6289e1d6839cf6b307ac42ca4e405bec1e3fa7be04d2f85",
+      "sha256": "2fb3afcb40718ae25eed54787c1d36e573afc63d304e836c30b85903645ac17f",
+      "crop": null,
+      "note": "Actual native Blox run: one piece selected and placed through keyboard controls; board and remaining tray are genuine."
+    },
+    {
+      "id": "bubbo",
+      "path": "/games/home-thumbnails/bubbo.webp",
+      "width": 400,
+      "height": 300,
+      "bytes": 29354,
+      "sourceCommit": "35f75fa7ca41e57705f455ab0bb075d99fbe6e74",
+      "sourceRun": "https://github.com/Le-Who/CC-GH/actions/runs/37600401213",
+      "sourceSha256": "2b07fba47dcf7495f487d05ef0945c2e83b7a2c44a2e0deaa4c94cb493edb75e",
+      "sha256": "8c04108b70484da0350025dd9b260fd29c6abdb4697ac6697a14ed98b0d449b5",
+      "crop": null,
+      "note": "Actual native game started through ordinary Bubbo UI; real board, launcher and aim guide."
+    },
+    {
+      "id": "trivia",
+      "path": "/games/home-thumbnails/trivia.webp",
+      "width": 400,
+      "height": 300,
+      "bytes": 11890,
+      "sourceCommit": "35f75fa7ca41e57705f455ab0bb075d99fbe6e74",
+      "sourceRun": "https://github.com/Le-Who/CC-GH/actions/runs/37600401213",
+      "sourceSha256": "1ca46d0527ac415e26add9ed906c486b62b5f0210bdf48a37461a6732c9d0ffd",
+      "sha256": "24250ba6dfdda647b99f835c475825ceaa90fac3913b8a50a6372aaa5f14d420",
+      "crop": null,
+      "note": "Actual solo game started through ordinary Trivia UI; genuine question and four answers."
+    },
+    {
+      "id": "room",
+      "path": "/games/home-thumbnails/room.webp",
+      "width": 400,
+      "height": 300,
+      "bytes": 2262,
+      "sourceCommit": "44358934954e92a595b478536900865e673780d5",
+      "sourceRun": "https://github.com/Le-Who/CC-GH/actions/runs/37597560243",
+      "sourceSha256": "3f5643e11ddfaab2ec59aa894cba7b4c2ea41e2f623adee809e23853a4e1afb5",
+      "sha256": "b5192d2d19894b7d6c34df79c56137e9c9903386d42d22288785661de047d778",
+      "crop": {
+        "left": 130,
+        "top": 855,
+        "width": 480,
+        "height": 360
+      },
+      "note": "Crop of verified real-backend purchase/fill screenshot with saved Pip, T2 pot and bowl. Candidate build; no composited actors or props."
+    }
+  ]
+}

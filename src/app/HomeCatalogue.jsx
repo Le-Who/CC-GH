@@ -4,7 +4,7 @@ import { VISIBLE_GAME_IDS, GAME_REGISTRY } from './gameRegistry.js';
 import { useDialogFocus } from './useDialogFocus.js';
 import { useEscapeDismiss } from './useDismissableLayer.js';
 import './home-catalogue.css';
-import { homeGameCopy } from './homeGameCopy.js';
+import { homeGameCopy, homeThumbnailUrl } from './homeGameCopy.js';
 
 const COPY = {
   en: { home: 'Home', games: 'All games', back: 'Back to game', close: 'Close Home', current: 'Current game', open: 'Play', profile: 'Profile & settings', gold: 'Gold', energy: 'Energy', tokens: 'Tokens', switch: 'Finish this round?', switchBody: 'Finish your current round before opening another game.', confirm: 'Finish & open', cancel: 'Stay here', saving: 'Saving…', failed: 'Could not finish. Your game is still here. Try again.', player: 'Player', unavailable: 'Coming soon', waiting: 'Finish or check the current action in your game before switching.' },
@@ -36,7 +36,7 @@ export function HomeCatalogue({ language = 'en', t = key => key, activeTab, hasA
       <h2 className="home-section-title">{c.games}<span>{VISIBLE_GAME_IDS.length}</span></h2>
       {(target || error) && <div className="home-switch" role={error ? 'alert' : 'status'}><strong>{error ? c.failed : switching ? c.saving : c.switch}</strong>{target && <><p>{c.switchBody}</p><div><button type="button" className="home-primary" disabled={switching || !readyToSwitch} onClick={() => onSelect(target)}>{switching ? c.saving : c.confirm}</button><button type="button" disabled={switching} onClick={() => setTarget(null)}>{c.cancel}</button></div></>}</div>}
       <nav className="home-games" aria-label={c.games}>{VISIBLE_GAME_IDS.map(id => <button type="button" key={id} data-home-game={id} className={`home-game${id === activeTab ? ' home-current' : ''}`} aria-label={gameCopy(id).title} aria-current={id === activeTab ? 'true' : undefined} disabled={switching || (!readyToSwitch && id !== activeTab) || unavailableGames.includes(id)} onClick={() => choose(id)}>
-        <div className="home-thumbnail"><img src={`/games/home-thumbnails/${id}.webp`} alt="" width="400" height="300" loading="lazy" decoding="async" draggable="false"/>{id === activeTab && <span className="home-current-label">{c.current}</span>}</div>
+        <div className="home-thumbnail"><img src={homeThumbnailUrl(id)} alt="" width="400" height="300" loading="lazy" decoding="async" draggable="false"/>{id === activeTab && <span className="home-current-label">{c.current}</span>}</div>
         <div className="home-game-copy"><strong>{gameCopy(id).title}<ArrowUpRight size={17}/></strong><span>{unavailableGames.includes(id) ? c.unavailable : gameCopy(id).description}</span></div>
       </button>)}</nav>
       <details className="home-profile"><summary tabIndex={0}><UserRound size={20}/><span>{profileName || c.player}<small>{c.profile}</small></span><Settings size={18}/></summary>{profileBotName && <p className="home-bot-name">{profileBotName}</p>}<div className="home-wallet">{[[c.gold, resources.gold || 0], [c.energy, `${resources.energy?.current ?? 0}/${resources.energy?.max ?? 0}`], [c.tokens, resources.gachaTokens || 0]].map(([label, value]) => <span key={label}>{label}<strong>{value}</strong></span>)}</div><div className="home-settings">{settings}</div></details>

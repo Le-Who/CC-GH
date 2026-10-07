@@ -18,6 +18,7 @@ for (const [width,height] of sizes) test(`Home toggle and Garden persistence ${w
  const proof={width,height,errors};
  try {
  await page.goto(info.project.use.baseURL+'/');await expect(page.locator('.gs2-stage')).toBeVisible();
+ await page.addStyleTag({content:':root{--safe-top:28px!important;--safe-bottom:16px!important}'});
  await openHome(page);await page.locator('.home-profile summary').click();
  proof.before=await surface();
  await page.getByRole('button',{name:'Switch to dark theme',exact:true}).click();
@@ -64,4 +65,25 @@ for(const id of ['blox','bubbo','trivia'])test(`capture actual ${id} gameplay`,a
  await page.waitForTimeout(600);
  await page.screenshot({path:`${OUT}/${id}-actual-gameplay.png`});
  await fs.writeFile(`${OUT}/${id}-dom.txt`,await page.locator('body').innerText());
+});
+
+for(const reducedMotion of ['no-preference','reduce'])test(`static poster loading ${reducedMotion}`,async({page})=>{
+ await page.setViewportSize({width:390,height:844});await page.emulateMedia({reducedMotion});
+ const requests=[];page.on('request',request=>requests.push(request.url()));
+ await page.goto('/');await expect(page.locator('.gs2-stage')).toBeVisible();
+ const beforeHome=requests.filter(url=>url.includes('/home-thumbnails/'));
+ expect(beforeHome).toEqual([]);
+ await openHome(page);
+ const initial=await page.locator('.home-thumbnail img').evaluateAll(images=>images.map(img=>({src:img.currentSrc||img.src,complete:img.complete,loading:img.loading,decoding:img.decoding})));
+ const decode=[];
+ for(const card of await page.locator('[data-home-game]').all()){
+  await card.scrollIntoViewIfNeeded();
+  decode.push(await card.locator('img').evaluate(async img=>{const started=performance.now();await img.decode();return {src:img.currentSrc,width:img.naturalWidth,height:img.naturalHeight,decodeReadyMs:performance.now()-started,loading:img.loading,decoding:img.decoding};}));
+ }
+ expect(decode).toHaveLength(7);expect(decode.every(x=>x.width>0&&x.loading==='lazy'&&x.decoding==='async')).toBe(true);
+ expect(await page.locator('.home-catalogue video,.home-catalogue audio').count()).toBe(0);
+ const resources=await page.evaluate(()=>performance.getEntriesByType('resource').filter(x=>x.name.includes('/home-thumbnails/')).map(x=>({url:x.name,transferSize:x.transferSize,encodedBodySize:x.encodedBodySize,duration:x.duration})));
+ const gameCode=requests.filter(url=>/\/(?:BloxGame|BubboGame|TriviaGame)-/.test(url));expect(gameCode).toEqual([]);
+ await fs.writeFile(`${OUT}/poster-loading-${reducedMotion}.json`,JSON.stringify({scope:'Cold Home opening, static lazy WebP images. decodeReadyMs is readiness wait after scrolling, not an isolated codec benchmark.',reducedMotion,beforeHome,initial,decode,resources,gameCode,estimatedRgbaSurfaceBytes:decode.reduce((n,x)=>n+x.width*x.height*4,0)},null,2));
+ await page.locator('[data-home-game="bubbo"]').scrollIntoViewIfNeeded();await page.screenshot({path:`${OUT}/home-real-posters-${reducedMotion}.png`});
 });

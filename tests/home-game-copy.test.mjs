@@ -17,3 +17,8 @@ test('unknown language and unknown game retain usable fallbacks',()=>{
  assert.deepEqual(homeGameCopy('bubbo','xx','Fallback'),homeGameCopy('bubbo','en','Fallback'));
  assert.deepEqual(homeGameCopy('unknown','ru','Translated'),{title:'Translated',description:''});
 });
+test('real gameplay posters receive a cache-busting revision without touching other artwork',async()=>{
+ const {homeThumbnailUrl}=await import('../src/app/homeGameCopy.js');
+ for(const id of ['blox','bubbo','trivia','room'])assert.match(homeThumbnailUrl(id),/\?v=gameplay-20261007$/);
+ assert.equal(homeThumbnailUrl('garden'),'/games/home-thumbnails/garden.webp');
+});

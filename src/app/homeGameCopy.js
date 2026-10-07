@@ -23,3 +23,9 @@ export function homeGameCopy(id, language, fallbackTitle = id) {
   const copy = (HOME_GAME_COPY[language] || HOME_GAME_COPY.en)[id] || {};
   return { title: copy.title || fallbackTitle, description: copy.description || '' };
 }
+
+const GAMEPLAY_POSTERS = new Set(['blox', 'bubbo', 'trivia', 'room']);
+export function homeThumbnailUrl(id) {
+  const revision = GAMEPLAY_POSTERS.has(id) ? '?v=gameplay-20261007' : '';
+  return `/games/home-thumbnails/${id}.webp${revision}`;
+}
