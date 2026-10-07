@@ -25,7 +25,7 @@ try{for(const [width,height] of matrix){
      if(g&&/\/(mint|sky|coral|amber|berry)\.webp/.test(image.src||'')){
        const fx=JSON.parse(this.canvas.dataset.bubboFx||'{}');
        this.__tokenIndex=(this.__tokenIndex||0)+1;
-       if(fx.reactions>0&&this.__tokenIndex<=window.bubboQA.tokenCount){const scale=args.at(-1)/(g.cell*.99);window.fieldEvidence.maxScale=Math.max(window.fieldEvidence.maxScale,scale);if(window.fieldEvidence.reactionFrames.length<100)window.fieldEvidence.reactionFrames.push({time:performance.now(),reactions:fx.reactions,scale,transform:[this.getTransform().a,this.getTransform().b,this.getTransform().c,this.getTransform().d]});}
+       if(fx.reactions>0&&this.__tokenIndex<=window.bubboQA.tokenCount){const scale=args.at(-1)/(g.cell*.99);window.fieldEvidence.maxScale=Math.max(window.fieldEvidence.maxScale,scale);if(scale>1+1e-9&&window.fieldEvidence.reactionFrames.length<100)window.fieldEvidence.reactionFrames.push({time:performance.now(),reactions:fx.reactions,scale,transform:[this.getTransform().a,this.getTransform().b,this.getTransform().c,this.getTransform().d]});}
      }
      return draw.call(this,image,...args);
    };
@@ -71,7 +71,7 @@ try{for(const [width,height] of matrix){
    }
    await page.evaluate(()=>window.bubboQA.reset());
    const field=page.locator('.bb-field');await field.focus();await field.press('Space');
-   await page.waitForFunction(()=>window.fieldEvidence.reactionFrames.length>0);
+   await page.waitForFunction(()=>window.fieldEvidence.reactionFrames.length>0&&window.fieldEvidence.maxScale>1);
    const shot=await capture('shot');
    assert(shot.evidence.maxScale>1&&shot.evidence.maxScale<=1.0251);
    assert(shot.evidence.reactionFrames.every(f=>f.reactions>0&&f.reactions<=6));
