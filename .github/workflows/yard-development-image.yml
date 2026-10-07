@@ -1,0 +1,98 @@
+name: Yard normal development image
+on:
+  push:
+    branches: ['qa/yard-development-entry-20261007']
+permissions:
+  contents: read
+  actions: read
+  packages: write
+concurrency:
+  group: yard-development-entry-20261007
+  cancel-in-progress: false
+jobs:
+  acceptance:
+    name: Accept normal development image
+    if: github.event.created == true && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      CI: 'true'
+      DOCKER_BUILD_RECORD_UPLOAD: 'false'
+      DOCKER_BUILD_SUMMARY: 'false'
+      YARD_DEVELOPMENT_IMAGE_ACCEPTANCE: '1'
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      YARD_PRODUCTION_ACCEPTANCE: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_CANONICAL_API_TEST: ''
+      YARD_PLAYER_API_TEST: ''
+      YARD_PLAYER_WIRING_TEST: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify reviewed source before dependencies
+        run: node scripts/yard-development-acceptance.mjs preflight
+      - name: Install locked test dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Source and release guard checks
+        run: |
+          set -o pipefail
+          timeout 20s node --test-skip-pattern='^(shell (?!has no)|disappearing neighbor |Compose timeout |a later invocation |signal immediately after)' --import ./tests/yard-pip-register-vendor.mjs --test --test-reporter=tap --test-concurrency=1 tests/yard-development-capabilities.test.mjs tests/yard-internal-entry.test.mjs tests/yard-occupied-decor-labels.test.mjs tests/yard-canonical-food-host-scene.test.mjs tests/yard-renderer-chunk.test.mjs tests/yard-development-release.test.mjs tests/yard-development-acceptance.test.mjs tests/yard-development-receipt.test.mjs | tee test-results/yard-development/source.tap
+          timeout 60s node --test --test-reporter=tap --test-name-pattern='^(shell success changes only app image/build identity and preserves original compose/env|shell during-switch performs actual healthy predecessor rollback|shell stale-public performs actual healthy predecessor rollback|a later invocation refuses unresolved daemon work despite a stale healthy predecessor|signal immediately after clearing a verified candidate marker cannot start an unmarked rollback)$' tests/yard-development-release.test.mjs | tee test-results/yard-development/release-smoke.tap
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and publish exact normal image
+        id: image
+        uses: docker/build-push-action@v7
+        with:
+          context: .
+          file: Dockerfile
+          push: true
+          build-args: |
+            BUILD_ID=${{ github.sha }}
+            VITE_YARD_PIP_PREVIEW=true
+          tags: ghcr.io/le-who/cc-gh:development-${{ github.sha }}
+          labels: org.opencontainers.image.revision=${{ github.sha }}
+      - name: Pull immutable registry outputs
+        env:
+          PUBLISHED_DIGEST: ${{ steps.image.outputs.digest }}
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const m=JSON.parse(fs.readFileSync('qa/yard-development-image/manifest.json'));
+          assert.match(process.env.PUBLISHED_DIGEST,/^sha256:[a-f0-9]{64}$/);
+          fs.mkdirSync('test-results/yard-development-work',{recursive:true});
+          fs.writeFileSync('test-results/yard-development-work/published-image.json',JSON.stringify({commit:process.env.GITHUB_SHA,digest:process.env.PUBLISHED_DIGEST,origin:'docker/build-push-action actual registry output'}));
+          for(const image of ['ghcr.io/le-who/cc-gh@'+process.env.PUBLISHED_DIGEST,'ghcr.io/le-who/cc-gh@'+m.predecessor.imageDigest,'postgres:15','redis:7-alpine'])execFileSync('docker',['pull',image],{stdio:'inherit',timeout:60000});
+          JS
+      - name: Five bounded normal-image cases
+        run: node scripts/yard-development-acceptance.mjs run
+      - name: Preserve every original within fixed cap
+        if: always()
+        run: node scripts/yard-development-acceptance.mjs package
+      - name: Upload original evidence
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: yard-development-image-${{ github.sha }}-${{ github.run_attempt }}
+          path: test-results/yard-development-upload/
+          if-no-files-found: error
+          retention-days: 3
+          compression-level: 0

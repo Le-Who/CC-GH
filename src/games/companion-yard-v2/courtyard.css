@@ -1,5 +1,151 @@
-.cy-app{--cy-paper:#f8f2e5;--cy-ink:#344c3d;--cy-muted:#70816a;--cy-green:#587456;--cy-line:#e1d9c5;display:grid;grid-template:"header" 44px "scene" minmax(100px,1fr) "status" 26px "placement" auto "nav" 66px;width:100%;height:100%;max-height:100%;min-height:0;position:relative;overflow:hidden;background:var(--cy-paper);color:var(--cy-ink);font:14px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;container-type:size}
-.cy-app *,.cy-dialog *{box-sizing:border-box}.cy-header{grid-area:header;display:flex;align-items:center;gap:6px;padding-right:10px;background:var(--cy-paper)}.cy-header h1{font-size:16px;white-space:nowrap;line-height:1;margin:0}.cy-header>button{width:44px;border:0;background:none;font-size:28px}.cy-preview{font-size:9px;color:var(--cy-muted)}.cy-wallet{margin-left:auto;white-space:nowrap;font-weight:750;color:#8e6c38}.cy-scene{grid-area:scene;position:relative;min-height:0;overflow:hidden;background:#a6bd6a}.cy-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 50%;pointer-events:none}.cy-scene canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none}.cy-status{grid-area:status;display:flex;align-items:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 10px;font-size:11px;background:#edf0e2;pointer-events:none}.cy-placement{grid-area:placement;display:flex;justify-content:center;gap:10px;background:var(--cy-paper);padding:3px}.cy-actions{grid-area:nav;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:6px}.cy-app button,.cy-dialog button{font:inherit;color:inherit;min-height:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;border:1px solid var(--cy-line);border-radius:12px;background:#fffaf0;padding:6px 10px}.cy-app button:disabled,.cy-dialog button:disabled{opacity:.5;cursor:default}.cy-app button:focus-visible,.cy-dialog button:focus-visible,.cy-dialog input:focus-visible{outline:3px solid #bf8d40;outline-offset:-3px}.cy-actions button{display:flex;flex-direction:column;justify-content:center;gap:4px;text-align:left;min-width:0}.cy-actions strong{font-size:12px}.cy-actions span{color:var(--cy-muted);font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}.cy-dialog{--cy-paper:#f8f2e5;--cy-ink:#344c3d;--cy-muted:#70816a;--cy-green:#587456;--cy-line:#e1d9c5;border:1px solid var(--cy-line);border-radius:20px;background:var(--cy-paper);color:var(--cy-ink);padding:0;width:min(430px,calc(100vw - 20px));max-width:calc(100vw - 20px);max-height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 24px);overflow:auto;overscroll-behavior:contain;box-shadow:0 12px 80px #213b2d45}.cy-dialog::backdrop{background:#253c3059}.cy-dialog>header{display:flex;align-items:center;gap:8px;padding:8px 12px 8px 18px;position:sticky;top:0;background:var(--cy-paper);z-index:1}.cy-dialog h2{font-size:18px;margin:0}.cy-dialog>header button{margin-left:auto;min-width:44px;background:none;border:0;font-size:26px}.cy-panel{padding:0 18px 18px}.cy-panel p{font-size:13px;line-height:1.5}.cy-row{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 0;border-top:1px solid var(--cy-line)}.cy-row>div:first-child{flex:1;min-width:110px;overflow-wrap:anywhere}.cy-row strong,.cy-row small{display:block}.cy-row small{color:var(--cy-muted);line-height:1.5}.cy-row-actions{display:flex;flex-wrap:wrap;gap:6px}.cy-wide{width:100%;margin:6px 0}.cy-panel label{display:flex;align-items:center;gap:10px}.cy-panel input{min-width:0;min-height:44px;flex:1;border:1px solid var(--cy-line);border-radius:10px;padding:6px 10px;font:inherit}.cy-note{background:#e9eddb;padding:12px;border-radius:12px;font-size:12px}
-@container(min-aspect-ratio:8/5) and (max-height:500px){.cy-header h1{font-size:15px}.cy-background{object-position:52% 67%}.cy-actions{grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(44px,1fr));gap:6px}.cy-status{font-size:10px}}
-@media(min-aspect-ratio:8/5) and (max-height:550px){.cy-app{grid-template:"header nav" 44px "scene nav" minmax(80px,1fr) "status nav" 24px "placement nav" auto/minmax(0,1fr) 112px}.cy-actions{grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(44px,1fr))}.cy-header h1{font-size:15px}.cy-background{object-position:52% 67%}.cy-preview{display:none}}
-.cy-food-select{max-width:100%;min-width:130px;min-height:44px;border:1px solid var(--cy-line);border-radius:10px;background:#fffaf0;color:inherit;padding:6px 10px;font:inherit;touch-action:manipulation}.cy-food-select:focus-visible{outline:3px solid #bf8d40;outline-offset:-3px}
+/* Existing Yard HUD regions use this reserved CSS grid. Dialog chrome and card
+   skins are intentionally fixed, data-free nine-slice art inside that flow;
+   they never change scene/world geometry or provide player layout overrides. */
+.cy-app,.cy-dialog{--cy-ink:#3d2a16;--cy-muted:#65513a;--cy-line:#bca66a;--cy-sage:#59682f;--cy-strip-art:url('/assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp');--cy-panel-art:url('/assets/yard-ui/surfaces/yard-ui-panel-frame.webp');--cy-card-art:url('/assets/yard-ui/surfaces/yard-ui-card-frame.webp');--cy-button-art:url('/assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp');color:var(--cy-ink);font:14px/1.35 "Nunito",system-ui,-apple-system,"Segoe UI",sans-serif}
+.cy-app{display:grid;grid-template:"header" 88px "scene" minmax(80px,1fr) "status" auto "placement" auto "nav" 76px;width:100%;height:100%;max-height:100%;min-height:0;position:relative;overflow:hidden;background:#62723b;container-type:size}
+.cy-app *,.cy-dialog *{box-sizing:border-box}
+.cy-header{grid-area:header;display:grid;grid-template-columns:44px minmax(0,1fr) 44px;grid-template-rows:44px 36px;align-items:center;gap:0 4px;padding:2px 8px 6px;border:0 solid transparent;border-image:var(--cy-strip-art) 48 84 48 84 fill / 16px 28px;position:relative;z-index:1}
+.cy-header h1{font-size:20px;line-height:1.1;text-align:center;margin:0;font-weight:900}
+.cy-home{grid-column:1;grid-row:1}
+.cy-wallets{grid-column:1/-1;grid-row:2;display:flex;justify-content:center;gap:12px;min-width:0}
+.cy-wallet{display:flex;align-items:center;gap:4px;min-width:0;padding:0 10px;background:#fdf0c7;border:1px solid #c39a46;border-radius:20px;font-variant-numeric:tabular-nums}
+.cy-wallet>span:last-child{display:grid;gap:0;align-items:center;min-width:0;line-height:1.05}.cy-wallet small{font-size:14px;font-weight:800}.cy-wallet strong{font-size:15px}.cy-wallet .cy-icon{width:27px;height:27px}
+.cy-icon{display:inline-block;flex:0 0 auto;width:34px;height:34px;background-size:100% 100%;background-repeat:no-repeat}
+.cy-icon-treats{background-image:url('/assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp')}.cy-icon-shiny{background-image:url('/assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp')}.cy-icon-back{background-image:url('/assets/yard-ui/delivery/hud-back.webp')}.cy-icon-close{background-image:url('/assets/yard-ui/delivery/hud-close.webp')}
+.cy-scene{grid-area:scene;position:relative;min-height:0;overflow:hidden;background:#a6bd6a}
+.cy-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:52% 50%;pointer-events:none}
+.cy-scene canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;user-select:none}
+.cy-status{grid-area:status;display:flex;align-items:center;min-height:32px;overflow:visible;padding:5px 12px;font-size:14px;line-height:1.3;background:#e4e6be;color:#3d461e;pointer-events:none}
+/* The editor's longest placement message reserves its own localized height.
+   A collision can then change feedback without resizing the pointer's stage. */
+.cy-status[data-editing="true"]{display:grid}
+.cy-status[data-editing="true"]>span{grid-area:1/1;min-width:0}
+.cy-placement-status-reserve{visibility:hidden;pointer-events:none}
+.cy-placement{grid-area:placement;display:grid;grid-template-columns:minmax(0,1fr);gap:4px;padding:6px 10px;background:#e4e6be}.cy-placement>strong{overflow-wrap:anywhere;text-align:center}.cy-placement>div{display:flex;justify-content:center;gap:8px}.cy-placement button{flex:1;max-width:220px}
+.cy-actions{grid-area:nav;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;padding:5px 8px 6px;border:0}
+.cy-app button,.cy-dialog button{font:inherit;font-weight:850;color:#20160d;min-height:44px;min-width:44px;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer;border:0;position:relative;isolation:isolate;background:none;padding:10px 14px;line-height:1.25}
+.cy-app button::before,.cy-dialog button::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;border:0 solid transparent;border-image:var(--cy-button-art) 48 72 48 72 fill / 12px 18px;filter:none}
+.cy-app button:disabled,.cy-dialog button:disabled{color:#675744;cursor:default}.cy-app button:disabled::before,.cy-dialog button:disabled::before{filter:grayscale(.65) brightness(1.3);opacity:.55}.cy-home::before,.cy-dialog>header button::before,.cy-dialog .cy-catalog-choice::before{display:none}
+.cy-app button:focus-visible,.cy-scene canvas:focus-visible,.cy-dialog button:focus-visible,.cy-dialog input:focus-visible,.cy-dialog select:focus-visible{outline:3px solid #715019;outline-offset:-3px}
+.cy-header .cy-home{padding:5px;background:none;display:flex;align-items:center;justify-content:center}
+.cy-actions button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;min-width:0;padding:3px 6px;font-size:14px}.cy-actions img{width:32px;height:32px;object-fit:contain}.cy-actions strong{font-size:14px;overflow-wrap:anywhere}
+.cy-dialog{border:16px solid transparent;border-image:var(--cy-panel-art) 64 fill / 32px;background:transparent;padding:0;width:min(560px,calc(100vw - 12px));max-width:calc(100vw - 12px);height:min(760px,calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 28px));max-height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 28px);overflow:hidden;overscroll-behavior:contain;box-shadow:0 12px 70px #213b2d55;color:var(--cy-ink)}
+.cy-dialog[open]{display:flex;flex-direction:column}
+.cy-dialog::backdrop{background:#253c307a}
+.cy-dialog>header{display:flex;align-items:center;gap:8px;flex:0 0 auto;min-height:52px;padding:2px 2px 5px}.cy-dialog>header>img{width:34px;height:34px;object-fit:contain}.cy-dialog h2{font-size:20px;margin:0;font-weight:900;min-width:0;overflow-wrap:anywhere}.cy-dialog>header button{margin-left:auto;flex:0 0 44px;background:none;padding:5px;display:flex;align-items:center;justify-content:center}
+.cy-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;flex:0 0 auto;padding:0 0 8px}.cy-tabs button{padding:10px 6px;overflow-wrap:anywhere;font-size:14px}.cy-tabs button[aria-pressed=true]{color:#20160d;text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.cy-tabs button[aria-pressed=true]::before{filter:none}
+.cy-panel{min-height:0;flex:1;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:0 2px 10px;scrollbar-width:thin;scrollbar-color:#8d783d transparent}
+.cy-panel p{font-size:14px;line-height:1.4}.cy-intro{margin:4px 2px 12px}.cy-panel h3{font-size:16px;margin:14px 2px 8px;font-weight:900}.cy-panel h3:first-child{margin-top:4px}
+.cy-catalog-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;align-items:stretch}
+.cy-card,.cy-dialog .cy-catalog-choice{min-width:0;position:relative;display:flex;flex-direction:column;align-items:stretch;gap:5px;text-align:center;padding:10px 8px 11px;border:10px solid transparent;border-image:var(--cy-card-art) 36 fill / 18px;background:none;font-weight:normal;overflow-wrap:anywhere}
+.cy-card>strong,.cy-catalog-choice>strong{font-size:14px;font-weight:900;min-height:2.5em;display:flex;align-items:center;justify-content:center;line-height:1.25}.cy-card>small,.cy-catalog-choice>small{color:var(--cy-muted);font-size:14px;line-height:1.3;display:block}.cy-card-actions{display:flex;flex-direction:column;margin-top:auto;padding-top:5px;gap:5px}.cy-card-actions button{width:100%;padding-left:8px;padding-right:8px;font-size:14px}
+.cy-preview-art{display:flex;align-items:center;justify-content:center;position:relative;isolation:isolate;width:100%;height:94px;flex:0 0 auto;overflow:hidden}
+.cy-preview-object{display:block;width:100%;height:100%;object-fit:contain;position:relative;z-index:2}
+.cy-selected-mark{position:absolute;top:4px;right:4px;background:#506320;color:white;border:2px solid #f4d679;border-radius:50%;width:23px;height:23px;font-size:15px;line-height:19px;font-weight:900;z-index:3}
+.cy-selected-actions{flex:0 0 auto;display:flex;flex-direction:column;gap:7px;padding:10px 4px 4px;border-top:2px solid #b7a15a}.cy-selected-actions>div:first-child{min-width:0;overflow-wrap:anywhere}.cy-selected-actions strong,.cy-selected-actions small{display:block}.cy-selected-actions strong{font-size:15px;font-weight:900}.cy-selected-actions small{font-size:14px;color:var(--cy-muted)}.cy-selected-actions .cy-row-actions{width:100%}
+/* Let localized labels choose their natural width before wrapping the action
+   group. A zero flex basis would squeeze three long labels into equal cells. */
+.cy-selected-actions button{flex:1 0 auto;max-width:100%;white-space:normal;overflow-wrap:break-word;padding:10px 12px}
+.cy-row{display:flex;align-items:center;flex-wrap:wrap;gap:8px;padding:12px 2px;border-bottom:1px solid var(--cy-line)}.cy-row>.cy-preview-art{width:76px;height:70px}.cy-row-copy{flex:1;min-width:110px;overflow-wrap:anywhere}.cy-row strong,.cy-row small{display:block}.cy-row strong{font-weight:900}.cy-row small{color:var(--cy-muted);font-size:14px;line-height:1.4}.cy-row-actions{display:flex;flex-wrap:wrap;gap:6px;min-width:0}.cy-row>.cy-row-actions{width:100%}.cy-row-actions .cy-food-select{flex:1;min-width:0}
+.cy-food-select{max-width:100%;min-width:130px;min-height:44px;border:1px solid #a48c53;border-radius:10px;background:#fff5d4;color:inherit;padding:6px 10px;font:inherit;touch-action:manipulation}
+.cy-photo-art{height:110px;border:5px solid #fff2c9;box-shadow:0 2px 5px #644a2540}.cy-photo-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.cy-photo-goodie{position:absolute;bottom:0;right:0;width:55%;height:58%;object-fit:contain;z-index:1}.cy-photo-art .cy-preview-object{width:75%;height:85%;align-self:flex-end}
+.cy-empty{display:flex;align-items:center;gap:12px;padding:15px 8px;min-height:118px}.cy-empty .cy-preview-art{width:78px;height:78px}.cy-empty p{margin:0;flex:1;color:var(--cy-muted)}
+.cy-helper-portrait{display:flex;align-items:center;gap:15px}.cy-helper-portrait .cy-preview-art{width:110px;height:115px}.cy-helper-portrait h3{margin:0}
+.cy-panel label{display:flex;flex-direction:column;gap:6px;margin:12px 2px;font-weight:800}.cy-panel input{width:100%;min-width:0;min-height:44px;border:1px solid #a48c53;border-radius:10px;padding:8px 10px;font:inherit;background:#fff5d4;color:inherit}.cy-wide{width:100%;margin:6px 0}.cy-feedback{padding:10px;border:1px solid #ac8640;border-radius:8px;background:#fff1c5}
+@media(max-width:359px){.cy-wallets{gap:6px}.cy-wallet{padding:0 6px;gap:2px}.cy-wallet>span:last-child{gap:0}.cy-header h1{font-size:18px}.cy-dialog{border-width:12px}.cy-dialog>header{gap:5px}.cy-catalog-grid{gap:6px}.cy-card,.cy-dialog .cy-catalog-choice{padding:8px 5px 10px;border-width:7px}.cy-preview-art{height:82px}}
+@media(min-width:700px) and (orientation:landscape),(min-aspect-ratio:8/5) and (max-height:550px){.cy-app{grid-template:"header nav" 56px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 90px}.cy-header{display:flex;gap:4px;padding:2px 4px;border-width:0}.cy-header h1{font-size:16px;flex:1;text-align:left}.cy-header .cy-home{flex:0 0 44px}.cy-wallets{margin-left:auto;gap:4px}.cy-wallet{padding:0 5px}.cy-wallet>span:last-child{display:block;line-height:1.1}.cy-wallet small{display:block;font-size:14px}.cy-wallet strong{font-size:14px}.cy-wallet .cy-icon{width:23px;height:23px}.cy-actions{grid-template-columns:1fr;grid-template-rows:repeat(3,minmax(44px,1fr));padding:6px 4px;gap:5px;border-width:0}.cy-actions button{padding:4px 2px}.cy-actions strong{font-size:12px;white-space:nowrap;overflow-wrap:normal}.cy-status{font-size:14px}.cy-placement{grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px;padding:4px 8px}.cy-placement>strong{text-align:left;font-size:14px}.cy-placement button{min-width:92px}.cy-dialog{width:340px;max-width:calc(100vw - 16px);height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 12px);max-height:calc(min(100dvh,var(--tg-viewport-stable-height,100dvh)) - 12px);margin:6px 8px 6px auto;border-width:12px}.cy-dialog>header{min-height:46px;padding:0}.cy-tabs{padding-bottom:4px}.cy-panel .cy-intro{margin:4px 2px 8px}.cy-selected-actions{padding-top:6px;gap:4px}.cy-preview-art{height:80px}}
+@media(prefers-reduced-motion:reduce){.cy-app *,.cy-dialog *{scroll-behavior:auto}}
+
+/* Local visual prototype: stage-owned transparent depth surface; no layout override. */
+.cy-pip-direct-layer{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.cy-pip-direct-layer canvas{inset:auto;touch-action:auto}
+.cy-pip-controls{display:flex;flex-wrap:wrap;gap:4px;justify-content:center}
+.cy-pip-controls[data-active="true"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px;align-items:center}
+.cy-pip-controls button{min-width:0;min-height:44px;max-width:none;padding:8px 12px;white-space:nowrap;overflow:visible}
+.cy-pip-controls small{grid-column:1/-1;flex-basis:100%;text-align:center}
+.cy-pip-viewport-note{position:absolute;inset:0;display:grid;place-content:center;margin:0;padding:16px;text-align:center;pointer-events:none;color:var(--cy-ink)}
+
+/* Local preview-only compact profile: its short header carries visible status. */
+@media (min-aspect-ratio:8/5) and (max-height:550px){.cy-app[data-pip-preview="true"][data-canonical-items="false"] .cy-status{position:absolute;width:1px;height:1px;min-height:0;padding:0;overflow:hidden;clip-path:inset(50%)}}
+
+/* The compact preview reserves exactly52px:44px controls plus4px top/bottom. */
+@media (min-aspect-ratio:8/5) and (max-height:550px){
+ .cy-pip-controls[data-active="true"]{height:52px;min-height:52px;max-height:52px;padding:4px 8px;grid-template-rows:44px}
+ .cy-pip-controls[data-active="true"] small{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+}
+
+/* The compact item editor reuses the existing dock reserve for visible save
+   status, while its full live announcement stays in the registered status strip. */
+.cy-actions button[data-canonical-status="true"] strong{white-space:normal;overflow-wrap:anywhere}
+
+/* Quiet navigation chrome. Gameplay, dialog buttons and their handlers retain
+   their own styles; only the registered header/dock reserves change here. */
+.cy-visually-hidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;border:0!important;overflow:hidden!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+.cy-app{grid-template:"header" 56px "scene" minmax(80px,1fr) "status" auto "placement" auto "nav" 68px}
+.cy-header{display:flex;align-items:center;gap:8px;padding:6px 10px;border-image-width:16px 28px}
+.cy-header .cy-home{flex:0 0 44px}
+.cy-wallets{display:flex;justify-content:flex-end;align-items:center;flex:1;gap:16px;min-width:0;margin:0}
+.cy-wallet{display:flex;align-items:center;gap:5px;min-width:0;padding:0;border:0;border-radius:0;background:none}
+.cy-wallet>span:last-child{display:block;line-height:1}
+.cy-wallet strong{font-size:16px;font-weight:700;line-height:1.15;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cy-wallet .cy-icon{width:30px;height:30px;flex:0 0 30px}
+.cy-actions{display:flex;align-items:stretch;justify-content:center;gap:0;padding:6px 8px;border-image:none;border:0;background:#edf0d2;box-shadow:inset 0 1px #87985b55}
+.cy-actions button{flex:1 1 0;width:auto;height:56px;min-width:44px;min-height:56px;padding:4px 6px;border-radius:8px;background:transparent;transition:background-color .12s ease}
+.cy-actions button::before{display:none}
+.cy-actions button+button::after{content:"";position:absolute;left:0;top:9px;bottom:9px;width:1px;background:#87985b66;pointer-events:none}
+.cy-actions strong{display:block;font-size:12px;font-weight:700;line-height:16px;white-space:nowrap}
+.cy-actions button[aria-pressed="true"]{background:#cbd8a6}
+.cy-actions button:active{background:#d5dfb6}
+.cy-actions img{display:block;flex:0 0 auto;width:32px;height:32px;object-fit:contain}
+.cy-actions img[data-nav-art="food"]{width:40px;height:32px}
+.cy-actions img[data-nav-art="guests"]{width:29px;height:32px}
+.cy-actions .cy-dock-status-copy{display:block;font-size:12px;font-weight:600;line-height:1.1;white-space:normal;text-align:center}
+.cy-actions button[data-canonical-status="true"] img{display:none}
+.cy-status{font-weight:600}
+.cy-dialog h2{font-size:18px;font-weight:800}
+.cy-dialog>header>img{width:40px;height:40px;object-fit:contain}
+.cy-pip-controls button{font-weight:700}
+@media(max-width:359px){.cy-header{padding-inline:8px;gap:4px}.cy-wallets{gap:10px}.cy-wallet{gap:3px}.cy-wallet .cy-icon{width:28px;height:28px;flex-basis:28px}.cy-wallet strong{font-size:15px}}
+@media(min-width:700px) and (orientation:landscape),(min-aspect-ratio:8/5) and (max-height:550px){
+ .cy-app{grid-template:"header nav" 56px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 76px}
+ .cy-header{padding:6px 10px;gap:8px}.cy-wallets{gap:16px;margin:0}.cy-wallet strong{font-size:16px}.cy-wallet .cy-icon{width:30px;height:30px;flex-basis:30px}
+ .cy-actions{flex-direction:column;justify-content:center;gap:0;padding:8px 6px;background:#edf0d2;border-image:none;box-shadow:inset 1px 0 #87985b55}
+ .cy-actions button{flex:0 0 64px;width:64px;height:64px;padding:7px 3px}.cy-actions strong{white-space:normal}
+ .cy-actions button+button::after{left:8px;right:8px;top:0;bottom:auto;width:auto;height:1px}
+}
+@media(prefers-reduced-motion:reduce){.cy-actions button{transition:none}}
+
+/* Canonical errors keep a visible registered row in landscape. The shortest
+   profile below also accounts for the shared shell's vertical safe-area gutter. */
+@media (min-aspect-ratio:8/5) and (max-height:550px){
+ .cy-app[data-canonical-items="true"] .cy-status{min-height:28px;padding:0 8px;font-size:12px;line-height:14px}
+ .cy-app[data-canonical-items="true"] .cy-placement{padding-top:0;padding-bottom:0;min-height:44px}
+ .cy-app[data-canonical-items="true"] .cy-pip-controls[data-active="true"]{height:44px;min-height:44px;max-height:44px;padding:0 8px;grid-template-rows:44px}
+}
+
+/* Registered custom Yard compact-landscape adapter. At 568x320 the immersive
+   shell leaves 310px: 44 header +28 status +44 controls preserves 194px of live
+   stage. The dialog profile below also covers common phone landscape. */
+@media (min-aspect-ratio:8/5) and (max-height:360px){
+ .cy-app[data-canonical-items="true"]{grid-template:"header nav" 44px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 76px}
+ .cy-app[data-canonical-items="true"] .cy-header{padding:0 8px}
+}
+
+/* Phone-landscape native dialogs keep the full-size actions beside the item
+   scroll region. Three localized actions never compete for one narrow row. */
+@media (orientation:landscape) and (min-aspect-ratio:8/5) and (max-height:550px){
+ .cy-app[data-canonical-items="true"] .cy-dialog{width:min(640px,calc(100vw - 16px))}
+ .cy-app[data-canonical-items="true"] .cy-dialog[open]{display:grid;grid-template:"head head" 44px "tabs tabs" 48px "content actions" minmax(0,1fr)/minmax(0,1fr) 176px;gap:0 8px}
+ .cy-app[data-canonical-items="true"] .cy-dialog>header{grid-area:head;min-height:44px}
+ .cy-app[data-canonical-items="true"] .cy-dialog>.cy-tabs{grid-area:tabs}
+ .cy-app[data-canonical-items="true"] .cy-dialog>.cy-panel{grid-area:content;min-width:0;padding:0 4px 4px 0}
+ .cy-app[data-canonical-items="true"] .cy-dialog>.cy-selected-actions{grid-area:actions;min-height:0;overflow-y:auto;border-top:0;border-left:1px solid var(--cy-line);padding:0 0 0 8px;gap:6px}
+ .cy-app[data-canonical-items="true"] .cy-selected-actions .cy-row-actions{flex-direction:column;flex-wrap:nowrap;gap:4px}
+ .cy-app[data-canonical-items="true"] .cy-selected-actions button{flex:0 0 auto;padding:8px}
+ .cy-app[data-canonical-items="true"] .cy-dialog .cy-catalog-grid{grid-template-columns:minmax(0,1fr);gap:6px}
+ .cy-app[data-canonical-items="true"] .cy-dialog .cy-catalog-choice{display:grid;grid-template:"art name" auto "art detail" auto/56px minmax(0,1fr);gap:2px 8px;min-height:92px;border-width:6px;padding:12px;text-align:left}
+ .cy-app[data-canonical-items="true"] .cy-catalog-choice>.cy-preview-art{grid-area:art;width:56px;height:56px}
+ .cy-app[data-canonical-items="true"] .cy-catalog-choice>strong{grid-area:name;min-height:0;padding-right:22px;align-self:end;justify-content:flex-start}
+ .cy-app[data-canonical-items="true"] .cy-catalog-choice>small{grid-area:detail;padding-right:22px;align-self:start}
+}

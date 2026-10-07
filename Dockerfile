@@ -6,6 +6,8 @@ FROM node:24-alpine AS build
 WORKDIR /app
 ARG BUILD_ID=local
 ENV VITE_BUILD_ID=$BUILD_ID
+ARG VITE_YARD_PIP_PREVIEW=false
+ENV VITE_YARD_PIP_PREVIEW=$VITE_YARD_PIP_PREVIEW
 
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 COPY package.json pnpm-lock.yaml ./
@@ -14,7 +16,8 @@ RUN pnpm install --frozen-lockfile
 COPY . .
 
 # Run Vite build to generate the production dist/ folder.
-RUN pnpm run build && node scripts/yard-public-media.mjs --verify dist
+RUN case "$VITE_YARD_PIP_PREVIEW" in true|false) ;; *) exit 64 ;; esac \
+    && pnpm run build && node scripts/yard-public-media.mjs --verify dist
 
 # ── Stage 2: Production ──
 FROM node:24-alpine
