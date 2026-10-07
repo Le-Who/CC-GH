@@ -33,6 +33,7 @@ jobs:
           node qa/match3-feedback/preflight.mjs > test-results/match3-feedback/preflight.json
           node --test tests/match3.test.js tests/match3-motion.test.js tests/match3-motion-fixture.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/match3-render-budget.test.js > test-results/match3-feedback/unit.tap 2>&1
           pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list > test-results/match3-feedback/collected.txt
+          pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list --grep 'Match3 1x swap invalid cascade and refill 320x568$' > test-results/match3-feedback/diagnostic-collected.txt
       - name: Build real application with reviewed native QA flags
         env:
           VITE_YARD_PIP_PREVIEW: 'true'
@@ -43,7 +44,7 @@ jobs:
       - name: One diagnostic before matrix
         env:
           MATCH3_QA_SLICE: diagnostic
-        run: pnpm exec playwright test --config playwright.match3-feedback.config.mjs --grep '^Match3 1x swap invalid cascade and refill 320x568$'
+        run: pnpm exec playwright test --config playwright.match3-feedback.config.mjs --grep 'Match3 1x swap invalid cascade and refill 320x568$'
       - name: Required native viewport and lifecycle matrix
         env:
           MATCH3_QA_SLICE: matrix
