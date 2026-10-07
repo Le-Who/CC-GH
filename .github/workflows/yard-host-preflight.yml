@@ -1,0 +1,298 @@
+# Activate-ready proposal. Only the coordinator may publish/launch this reviewed scope.
+name: CC-GH bounded read-only host preflight
+on:
+  push:
+    branches: ['qa/yard-host-preflight-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: cc-gh-production
+  cancel-in-progress: false
+jobs:
+  inspect-existing-host:
+    if: github.event.created == true && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check secret-free Docker formatter with local standard-library Go
+        env:
+          GOTOOLCHAIN: local
+          GOPROXY: 'off'
+          GOSUMDB: 'off'
+        run: |
+          set -euo pipefail
+          probe_dir="$(mktemp -d "${RUNNER_TEMP}/ccgh-preflight-template.XXXXXX")"
+          trap 'rm -rf -- "$probe_dir"' EXIT
+          cat > "$probe_dir/environment.go.tmpl" <<'CCGH_TEMPLATE'
+          {{- $production := false -}}{{- $devOff := true -}}{{- $noOptions := true -}}{{- $build := false -}}
+          {{- $seenProduction := false -}}{{- $seenDev := false -}}{{- $seenOptions := false -}}{{- $seenBuild := false -}}{{- $ambiguous := false -}}
+          {{- range .Config.Env -}}
+            {{- $key := index (split . "=") 0 -}}
+            {{- if eq $key "NODE_ENV" -}}{{- if $seenProduction -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenProduction = true -}}{{- $production = eq . "NODE_ENV=production" -}}{{- end -}}
+            {{- if eq $key "DEV_AUTH_ENABLED" -}}{{- if $seenDev -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenDev = true -}}{{- $devOff = or (eq . "DEV_AUTH_ENABLED=false") (eq . "DEV_AUTH_ENABLED=") -}}{{- end -}}
+            {{- if eq $key "NODE_OPTIONS" -}}{{- if $seenOptions -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenOptions = true -}}{{- $noOptions = eq . "NODE_OPTIONS=" -}}{{- end -}}
+            {{- if eq $key "APP_BUILD_ID" -}}{{- if $seenBuild -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenBuild = true -}}{{- $build = eq . "APP_BUILD_ID=__EXPECTED_BUILD__" -}}{{- end -}}
+          {{- end -}}
+          {{- $command := eq (json .Config.Cmd) "[\"node\",\"server.js\"]" -}}
+          {{- $entrypoint := or (eq (json .Config.Entrypoint) "[\"docker-entrypoint.sh\"]") (eq (json .Config.Entrypoint) "null") (eq (json .Config.Entrypoint) "[]") -}}
+          {"nodeEnvProduction":{{$production}},"devAuthDisabled":{{$devOff}},"nodePreloadAbsent":{{and $noOptions $command $entrypoint}},"expectedBuildConfigured":{{$build}},"unambiguousKeys":{{not $ambiguous}}}
+          CCGH_TEMPLATE
+          cat > "$probe_dir/environment-template.go" <<'CCGH_GO_HARNESS'
+          package main
+          
+          import (
+           "bytes"
+           "encoding/json"
+           "fmt"
+           "os"
+           "strings"
+           "text/template"
+          )
+          
+          func main() {
+           source,err:=os.ReadFile(os.Args[1]);if err!=nil{panic(err)}
+           funcs:=template.FuncMap{"split":strings.Split,"json":func(v any)string{b,e:=json.Marshal(v);if e!=nil{panic(e)};return string(b)}}
+           t,err:=template.New("environment").Funcs(funcs).Parse(strings.ReplaceAll(string(source),"__EXPECTED_BUILD__",strings.Repeat("a",40)));if err!=nil{panic(err)}
+           base:=map[string]any{"Env":[]string{"NODE_ENV=production","APP_BUILD_ID="+strings.Repeat("a",40),"SECRET_CANARY=DO_NOT_EMIT"},"Cmd":[]string{"node","server.js"},"Entrypoint":[]string{"docker-entrypoint.sh"}}
+           cases:=[]struct{name string;env []string;cmd []string;entry []string;unsafe bool}{
+            {"safe",nil,nil,nil,false},
+            {"explicit safe",[]string{"NODE_ENV=production","APP_BUILD_ID="+strings.Repeat("a",40),"DEV_AUTH_ENABLED=false","NODE_OPTIONS="},nil,nil,false},
+            {"nonproduction",[]string{"NODE_ENV=development"},nil,nil,true},
+            {"dev auth",[]string{"NODE_ENV=production","DEV_AUTH_ENABLED=true"},nil,nil,true},
+            {"preload",[]string{"NODE_ENV=production","NODE_OPTIONS=--require SECRET_CANARY"},nil,nil,true},
+            {"loader",[]string{"NODE_ENV=production","NODE_OPTIONS=--import=data:text/javascript,SECRET_CANARY"},nil,nil,true},
+            {"unknown node options",[]string{"NODE_ENV=production","NODE_OPTIONS=--max-old-space-size=64"},nil,nil,true},
+            {"duplicate",[]string{"NODE_ENV=production","NODE_ENV=production","APP_BUILD_ID="+strings.Repeat("a",40)},nil,nil,true},
+            {"unknown command",nil,[]string{"node","--require","SECRET_CANARY","server.js"},nil,true},
+            {"unknown entrypoint",nil,nil,[]string{"SECRET_CANARY"},true},
+           }
+           for _,c:=range cases{
+            config:=map[string]any{};for k,v:=range base{config[k]=v};if c.env!=nil{config["Env"]=c.env};if c.cmd!=nil{config["Cmd"]=c.cmd};if c.entry!=nil{config["Entrypoint"]=c.entry}
+            var out bytes.Buffer;if err:=t.Execute(&out,map[string]any{"Config":config});err!=nil{panic(err)}
+            if strings.Contains(out.String(),"SECRET_CANARY")||strings.Contains(out.String(),"DO_NOT_EMIT"){panic("Secret escaped template")}
+            var values map[string]bool;if err:=json.Unmarshal(out.Bytes(),&values);err!=nil{panic(err)};if len(values)!=5{panic("Unexpected fields")}
+            unsafe:=false;for _,value:=range values{if !value{unsafe=true}};if unsafe!=c.unsafe{panic(c.name+": unexpected result")}
+           }
+           fmt.Println("10 environment-template cases passed; only five booleans emitted.")
+          }
+          CCGH_GO_HARNESS
+          go run "$probe_dir/environment-template.go" "$probe_dir/environment.go.tmpl"
+      - name: Observe exact CC-GH host without changes
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          command_timeout: 3m
+          script: |
+            timeout --kill-after=5s 150s bash -s -- <<'CCGH_READ_ONLY_PREFLIGHT'
+            #!/usr/bin/env bash
+            # Prepared read-only observation. No app switch, image pull, host staging or reset.
+            set +x
+            set -euo pipefail
+            exec 2>/dev/null
+            stage=0
+            trap 'status=$?; if [ "$status" -ne 0 ]; then printf "{\"preflightCompleted\":false,\"failedStage\":%s,\"deploymentReady\":false}\n" "$stage"; fi' EXIT
+            readonly release_root=/opt/game-hub
+            readonly predecessor_commit=6b80c9a2cca146e20afcaced6a34a035c30c13aa
+            readonly predecessor_digest=sha256:c57d6b224edaab29a94f83d6457787d4398582f573690c4a99331750203d8a29
+            readonly predecessor_image=sha256:3feb1aa00e39358bf7befbece67215483390ee089e913f8088c3aae8f7ebc9ad
+            readonly candidate_receipt_bound=false
+            readonly candidate_receipt_sha256=
+            readonly candidate_identity_known=false
+            readonly candidate_commit=e7735e15e814519256e89d7d6c2c8da1094af7a4
+            readonly candidate_digest=
+            readonly expected_candidate_image=
+            readonly compose_sha256=d5e6e1e6afef6733ce340ccc9b3eefb45630ac2dba14ac9810a9af1676293a4f
+            [ "$#" -eq 0 ]
+            [[ "$candidate_commit" =~ ^[a-f0-9]{40}$ ]]
+            if [ "$candidate_identity_known" = true ]; then [[ "$candidate_digest" =~ ^sha256:[a-f0-9]{64}$ && "$expected_candidate_image" =~ ^sha256:[a-f0-9]{64}$ ]]; fi
+            if [ "$candidate_receipt_bound" = true ]; then [[ "$candidate_receipt_sha256" =~ ^[a-f0-9]{64}$ ]]; fi
+            for tool in docker timeout curl flock stat sha256sum awk sort systemctl cat df; do command -v "$tool" >/dev/null; done
+            for option in DOCKER_HOST DOCKER_CONTEXT DOCKER_TLS_VERIFY DOCKER_CERT_PATH DOCKER_CONFIG; do [ -z "${!option:-}" ]; done
+            run_docker() { timeout --foreground --kill-after=3s 20s docker "$@"; }
+            hash_bytes() { sha256sum | awk '{print $1}'; }
+            safe_file() { test -f "$1" && test ! -L "$1" && [ "$(stat -Lc %h -- "$1")" = 1 ]; }
+            stage=1
+            test -d "$release_root"; test ! -L "$release_root"
+            [ "$(cd -- "$release_root" && pwd -P)" = "$release_root" ]
+            for file in .release.lock docker-compose.yml .env; do safe_file "$release_root/$file"; done
+            cd -- "$release_root"
+            lock_identity="$(stat -Lc '%d:%i:%h:%F' -- .release.lock)"
+            exec 9< .release.lock
+            [ "$(stat -Lc '%d:%i:%h:%F' -- /proc/self/fd/9)" = "$lock_identity" ]
+            flock -n 9
+            safe_file .release.lock
+            [ "$(stat -Lc '%d:%i:%h:%F' -- .release.lock)" = "$lock_identity" ]
+            interlock_absent=true
+            if [ -e .yard-development-inflight ] || [ -L .yard-development-inflight ]; then interlock_absent=false; fi
+            [ "$interlock_absent" = true ]
+            stage=2
+            [ "$(run_docker context show)" = default ]
+            [ "$(run_docker context inspect default --format '{{.Endpoints.docker.Host}}')" = unix:///var/run/docker.sock ]
+            run_docker compose version >/dev/null
+            [ "$(run_docker inspect --format '{{.Image}}' ccgh-app)" = "$predecessor_image" ]
+            [ "$(run_docker inspect --format '{{.State.Running}}' ccgh-app)" = true ]
+            [ "$(run_docker inspect --format '{{index .Config.Labels "com.docker.compose.project"}}' ccgh-app)" = ccgh ]
+            [ "$(run_docker inspect --format '{{index .Config.Labels "com.docker.compose.service"}}' ccgh-app)" = app ]
+            [ "$(run_docker inspect --format '{{index .Config.Labels "com.docker.compose.project.working_dir"}}' ccgh-app)" = "$release_root" ]
+            [ "$(run_docker inspect --format '{{index .Config.Labels "com.docker.compose.project.config_files"}}' ccgh-app)" = "$release_root/docker-compose.yml" ]
+            [ "$(run_docker image inspect "$predecessor_image" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')" = "$predecessor_commit" ]
+            prior_repos="$(run_docker image inspect "$predecessor_image" --format '{{range .RepoDigests}}{{println .}}{{end}}')"
+            [[ $'\n'"$prior_repos"$'\n' == *$'\n'"ghcr.io/le-who/cc-gh@$predecessor_digest"$'\n'* ]]
+            [ "$(sha256sum docker-compose.yml | awk '{print $1}')" = "$compose_sha256" ]
+            env_identity="$(stat -Lc '%d:%i:%s:%y:%z' -- .env)"
+            config_hash="$(env -i PATH="$PATH" HOME="$HOME" GHCR_REPO=le-who/cc-gh COMPOSE_PROJECT_NAME=ccgh COMPOSE_FILE="$release_root/docker-compose.yml" timeout --foreground --kill-after=3s 20s docker compose -p ccgh config --hash app)"
+            [[ "$config_hash" =~ ^app\ ([a-f0-9]{64})$ ]]
+            config_hash="${BASH_REMATCH[1]}"
+            [ "$(run_docker inspect --format '{{index .Config.Labels "com.docker.compose.config-hash"}}' ccgh-app)" = "$config_hash" ]
+            controller_source_matched=false
+            if [ -d scripts ] && [ ! -L scripts ] && [ "$(cd -- scripts && pwd -P)" = "$release_root/scripts" ] && safe_file scripts/yard-maintenance-pre-switch-guard.sh; then
+              if [ "$(sha256sum scripts/yard-maintenance-pre-switch-guard.sh | awk '{print $1}')" = 8c33595b085d192b531a4086dbf5a8f59c556f17a3f9f81fa5d830d6e82fcdad ]; then controller_source_matched=true; fi
+            fi
+            # These templates evaluate locally inside Docker's formatter. No env values or
+            # full configuration are emitted, piped, copied to another container or logged.
+            environment_template="$(cat <<'ENV_TEMPLATE'
+            {{- $production := false -}}{{- $devOff := true -}}{{- $noOptions := true -}}{{- $build := false -}}
+            {{- $seenProduction := false -}}{{- $seenDev := false -}}{{- $seenOptions := false -}}{{- $seenBuild := false -}}{{- $ambiguous := false -}}
+            {{- range .Config.Env -}}
+              {{- $key := index (split . "=") 0 -}}
+              {{- if eq $key "NODE_ENV" -}}{{- if $seenProduction -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenProduction = true -}}{{- $production = eq . "NODE_ENV=production" -}}{{- end -}}
+              {{- if eq $key "DEV_AUTH_ENABLED" -}}{{- if $seenDev -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenDev = true -}}{{- $devOff = or (eq . "DEV_AUTH_ENABLED=false") (eq . "DEV_AUTH_ENABLED=") -}}{{- end -}}
+              {{- if eq $key "NODE_OPTIONS" -}}{{- if $seenOptions -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenOptions = true -}}{{- $noOptions = eq . "NODE_OPTIONS=" -}}{{- end -}}
+              {{- if eq $key "APP_BUILD_ID" -}}{{- if $seenBuild -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenBuild = true -}}{{- $build = eq . "APP_BUILD_ID=__EXPECTED_BUILD__" -}}{{- end -}}
+            {{- end -}}
+            {{- $command := eq (json .Config.Cmd) "[\"node\",\"server.js\"]" -}}
+            {{- $entrypoint := or (eq (json .Config.Entrypoint) "[\"docker-entrypoint.sh\"]") (eq (json .Config.Entrypoint) "null") (eq (json .Config.Entrypoint) "[]") -}}
+            {"nodeEnvProduction":{{$production}},"devAuthDisabled":{{$devOff}},"nodePreloadAbsent":{{and $noOptions $command $entrypoint}},"expectedBuildConfigured":{{$build}},"unambiguousKeys":{{not $ambiguous}}}
+            ENV_TEMPLATE
+            )"
+            actual_environment="$(run_docker inspect --format "${environment_template//__EXPECTED_BUILD__/$predecessor_commit}" ccgh-app)"
+            candidate_present=false
+            candidate_bound=false
+            candidate_environment='{"observed":false}'
+            candidate_id_sha256=0000000000000000000000000000000000000000000000000000000000000000
+            if [ "$candidate_identity_known" = true ] && candidate_id="$(run_docker image inspect "ghcr.io/le-who/cc-gh@$candidate_digest" --format '{{.Id}}')"; then
+              [[ "$candidate_id" =~ ^sha256:[a-f0-9]{64}$ ]]
+              candidate_present=true
+              candidate_id_sha256="${candidate_id#sha256:}"
+              candidate_revision="$(run_docker image inspect "$candidate_id" --format '{{index .Config.Labels "org.opencontainers.image.revision"}}')"
+              candidate_repos="$(run_docker image inspect "$candidate_id" --format '{{range .RepoDigests}}{{println .}}{{end}}')"
+              if [ "$candidate_id" = "$expected_candidate_image" ] && [ "$candidate_revision" = "$candidate_commit" ] && [[ $'\n'"$candidate_repos"$'\n' == *$'\n'"ghcr.io/le-who/cc-gh@$candidate_digest"$'\n'* ]]; then candidate_bound=true; fi
+              candidate_environment="$(run_docker image inspect "$candidate_id" --format "${environment_template//__EXPECTED_BUILD__/$candidate_commit}")"
+            fi
+            stage=3
+            # Do not execute a probe binary through an unexpected host mount.
+            [ "$(run_docker inspect --format '{{len .Mounts}}' ccgh-app)" = 0 ]
+            app_id="$(run_docker inspect --format '{{.Id}}' ccgh-app)"
+            [[ "$app_id" =~ ^[a-f0-9]{64}$ ]]
+            boundary_format='{"ports":{{json .HostConfig.PortBindings}},"mounts":{{json .Mounts}},"networks":"{{range $name,$network := .NetworkSettings.Networks}}{{$name}};{{end}}","networkMode":{{json .HostConfig.NetworkMode}},"restartPolicy":{{json .HostConfig.RestartPolicy}}}'
+            app_boundary_hash="$(run_docker inspect --format "$boundary_format" ccgh-app | hash_bytes)"
+            [ "$(run_docker inspect --format '{{len (index .HostConfig.PortBindings "8080/tcp")}}' ccgh-app)" = 1 ]
+            [ "$(run_docker inspect --format '{{range (index .HostConfig.PortBindings "8080/tcp")}}{{.HostIp}}{{end}}' ccgh-app)" = 127.0.0.1 ]
+            app_port="$(run_docker inspect --format '{{range (index .HostConfig.PortBindings "8080/tcp")}}{{.HostPort}}{{end}}' ccgh-app)"
+            [[ "$app_port" =~ ^[0-9]{4,5}$ ]] && [ "$app_port" -gt 1024 ] && [ "$app_port" -lt 65536 ]
+            health_program="$(cat <<'HEALTH_PROGRAM'
+            // Piped fixed-origin public health/config payload only. No environment reads.
+            import {readFileSync} from 'node:fs';
+            const [kind, expected] = process.argv.slice(1);
+            try {
+              if (!/^[a-f0-9]{40}$/.test(expected)) throw Error();
+              const bytes = readFileSync(0, 'utf8');
+              if (Buffer.byteLength(bytes) > 262144) throw Error();
+              if (kind === 'html') {
+                process.stdout.write(JSON.stringify({readable:true,buildMatches:new RegExp(`__APP_BUILD_ID__\\s*=\\s*["']${expected}["']`).test(bytes)}));
+              } else {
+                const value = JSON.parse(bytes);
+                if (kind === 'health') process.stdout.write(JSON.stringify({readable:true,statusOk:value.status === 'ok',buildMatches:value.buildId === expected,postgresHealthy:value.postgres === true,redisHealthy:value.redis === true}));
+                else if (kind === 'config') process.stdout.write(JSON.stringify({readable:true,buildMatches:value.buildId === expected,productionAuthRequired:value.telegramAuthRequired === true,devAuthDisabled:value.devAuthEnabled === false}));
+                else throw Error();
+              }
+            } catch {
+              process.stdout.write('{"readable":false}');
+              process.exitCode = 1;
+            }
+            HEALTH_PROGRAM
+            )"
+            health() {
+              local kind="$1" origin="$2" path="$3"
+              curl --disable --noproxy '*' --connect-timeout 5 --max-time 10 --max-filesize 262144 -fsS "$origin$path" |
+                run_docker exec -i -e NODE_OPTIONS= -e NODE_PATH= -e LD_PRELOAD= -e LD_LIBRARY_PATH= ccgh-app \
+                  /usr/bin/env -i PATH=/usr/local/bin:/usr/bin:/bin /usr/local/bin/node --input-type=module -e "$health_program" "$kind" "$predecessor_commit"
+            }
+            local_health="$(health health "http://127.0.0.1:$app_port" /api/health)" || local_health='{"readable":false}'
+            public_health="$(health health https://games.tri.mom /api/health)" || public_health='{"readable":false}'
+            local_config="$(health config "http://127.0.0.1:$app_port" /api/config)" || local_config='{"readable":false}'
+            public_config="$(health config https://games.tri.mom /api/config)" || public_config='{"readable":false}'
+            public_html="$(health html https://games.tri.mom /)" || public_html='{"readable":false}'
+            stage=4
+            container_format='{"id":{{json .Id}},"image":{{json .Image}},"startedAt":{{json .State.StartedAt}},"restarts":{{json .RestartCount}},"status":{{json .State.Status}},"health":{{if .State.Health}}{{json .State.Health.Status}}{{else}}null{{end}}}'
+            snapshot() {
+              local id service ids services value service_value
+              container_count=0; container_running=0; container_unhealthy=0
+              container_rows=''
+              ids="$(run_docker ps -aq --no-trunc | sort)"
+              while IFS= read -r id; do
+                [ -n "$id" ] || continue
+                [[ "$id" =~ ^[a-f0-9]{64}$ ]]
+                [ "$id" = "$app_id" ] && continue
+                container_count=$((container_count+1)); [ "$container_count" -le 256 ]
+                container_rows+="$(run_docker inspect --format "$container_format" "$id")"$'\n'
+                [ "$(run_docker inspect --format '{{.State.Running}}' "$id")" != true ] || container_running=$((container_running+1))
+                value="$(run_docker inspect --format '{{if .State.Health}}{{.State.Health.Status}}{{else}}none{{end}}' "$id")"
+                [ "$value" != unhealthy ] || container_unhealthy=$((container_unhealthy+1))
+              done <<< "$ids"
+              container_hash="$(printf '%s' "$container_rows" | hash_bytes)"
+              services="$(timeout --foreground --kill-after=3s 20s systemctl list-units --type=service --all --no-legend --no-pager --plain | awk 'NF{print $1}' | sort)"
+              service_count=0; service_active_count=0; service_failed_count=0; service_rows=''
+              while IFS= read -r service; do
+                [ -n "$service" ] || continue
+                [[ "$service" = *.service && "$service" != -* && "$service" != *[[:space:]]* && "${#service}" -le 256 ]]
+                service_count=$((service_count+1)); [ "$service_count" -le 256 ]
+                service_value="$(timeout --foreground --kill-after=3s 5s systemctl show "$service" --property=Id,LoadState,ActiveState,SubState,MainPID,ExecMainStartTimestampMonotonic)"
+                service_rows+="$service_value"$'\n'
+                if [[ $'\n'"$service_value"$'\n' == *$'\n'"ActiveState=active"$'\n'* ]]; then service_active_count=$((service_active_count+1)); fi
+                if [[ $'\n'"$service_value"$'\n' == *$'\n'"ActiveState=failed"$'\n'* ]]; then service_failed_count=$((service_failed_count+1)); fi
+              done <<< "$services"
+              service_hash="$(printf '%s' "$service_rows" | hash_bytes)"
+              caddy="$(timeout --foreground --kill-after=3s 5s systemctl show caddy.service --property=Id,LoadState,ActiveState,SubState,MainPID,ExecMainStartTimestampMonotonic)"
+              caddy_hash="$(printf '%s' "$caddy" | hash_bytes)"
+              caddy_active=false
+              if [[ $'\n'"$caddy"$'\n' == *$'\n'"LoadState=loaded"$'\n'* && $'\n'"$caddy"$'\n' == *$'\n'"ActiveState=active"$'\n'* ]]; then caddy_active=true; fi
+              boot_hash="$(cat /proc/sys/kernel/random/boot_id | hash_bytes)"
+            }
+            snapshot
+            before_container_hash="$container_hash"; before_service_hash="$service_hash"; before_caddy_hash="$caddy_hash"; before_boot_hash="$boot_hash"
+            before_count="$container_count"; before_services="$service_count"
+            snapshot
+            protected_stable=true
+            if [ "$container_hash" != "$before_container_hash" ] || [ "$service_hash" != "$before_service_hash" ] || [ "$caddy_hash" != "$before_caddy_hash" ] || [ "$boot_hash" != "$before_boot_hash" ] || [ "$container_count" != "$before_count" ] || [ "$service_count" != "$before_services" ]; then protected_stable=false; fi
+            backup_directory_safe=false; backup_available_kib=0
+            if [ -d backups ] && [ ! -L backups ] && [ "$(cd -- backups && pwd -P)" = "$release_root/backups" ]; then
+              backup_directory_safe=true
+              backup_available_kib="$(df -Pk backups | awk 'NR==2{print $4}')"
+              [[ "$backup_available_kib" =~ ^[0-9]+$ ]]
+            fi
+            stage=5
+            [ "$(run_docker inspect --format '{{.Image}}' ccgh-app)" = "$predecessor_image" ]
+            [ "$(run_docker inspect --format '{{.Id}}' ccgh-app)" = "$app_id" ]
+            [ "$(run_docker inspect --format "$boundary_format" ccgh-app | hash_bytes)" = "$app_boundary_hash" ]
+            for file in .env docker-compose.yml .release.lock; do safe_file "$file"; done
+            [ "$(stat -Lc '%d:%i:%s:%y:%z' -- .env)" = "$env_identity" ]
+            [ "$(sha256sum docker-compose.yml | awk '{print $1}')" = "$compose_sha256" ]
+            safe_file .release.lock
+            [ "$(stat -Lc '%d:%i:%h:%F' -- .release.lock)" = "$lock_identity" ]
+            test ! -e .yard-development-inflight; test ! -L .yard-development-inflight
+            actual_environment_safe=true
+            case "$actual_environment" in *false*) actual_environment_safe=false;; esac
+            proposed_environment_proven=false
+            if [ "$candidate_bound" = true ] && [ "$actual_environment_safe" = true ]; then case "$candidate_environment" in *false*) ;; *) proposed_environment_proven=true;; esac; fi
+            host_gates_passed=true
+            case "$local_health$public_health$local_config$public_config$public_html$actual_environment$proposed_environment_proven$protected_stable$caddy_active$controller_source_matched$backup_directory_safe" in *false*) host_gates_passed=false;; esac
+            if [ "$container_unhealthy" -ne 0 ] || [ "$service_failed_count" -ne 0 ]; then host_gates_passed=false; fi
+            printf '{"preflightCompleted":true,"hostGatesPassed":%s,"deploymentReady":false,"candidateReceiptBound":%s,"candidateIdentityKnown":%s,"candidateAccepted":null,"candidateAcceptanceProvenByHost":false,"candidateReceiptSha256":"%s","candidateCommit":"%s","candidateDigest":"%s","predecessorCommit":"%s","predecessorDigest":"%s","controller":{"authoritativePredecessorMatched":true,"gameOnlyServiceMatched":true,"sharedLockAvailable":true,"inflightInterlockAbsent":true,"composeSourceMatched":true,"effectiveConfigMatched":true,"activeControllerSourceMatched":%s,"effectiveConfigSha256":"%s","allReleasePathsHonorInterlockProven":false},"actualEnvironment":%s,"actualEnvironmentSafe":%s,"proposedCandidateEnvironmentProven":%s,"candidateImage":{"present":%s,"sourceAndDigestBound":%s,"imageIdSha256":"%s","environment":%s},"health":{"local":%s,"public":%s,"localConfig":%s,"publicConfig":%s,"publicHtml":%s},"protected":{"stableDuringObservation":%s,"containerCount":%s,"runningContainerCount":%s,"unhealthyContainerCount":%s,"serviceCount":%s,"activeServiceCount":%s,"failedServiceCount":%s,"containerIdentitySha256":"%s","serviceIdentitySha256":"%s","caddyIdentitySha256":"%s","hostBootIdentitySha256":"%s","caddyActive":%s,"neighborHttpHealthProven":false},"appBoundarySha256":"%s","backup":{"directorySafe":%s,"availableKiB":%s,"archiveCreated":false,"capacitySufficientProven":false}}\n' \
+              "$host_gates_passed" "$candidate_receipt_bound" "$candidate_identity_known" "$candidate_receipt_sha256" "$candidate_commit" "$candidate_digest" "$predecessor_commit" "$predecessor_digest" "$controller_source_matched" "$config_hash" "$actual_environment" "$actual_environment_safe" "$proposed_environment_proven" "$candidate_present" "$candidate_bound" "$candidate_id_sha256" "$candidate_environment" \
+              "$local_health" "$public_health" "$local_config" "$public_config" "$public_html" "$protected_stable" "$container_count" "$container_running" "$container_unhealthy" "$service_count" "$service_active_count" "$service_failed_count" \
+              "$container_hash" "$service_hash" "$caddy_hash" "$boot_hash" "$caddy_active" "$app_boundary_hash" "$backup_directory_safe" "$backup_available_kib"
+            CCGH_READ_ONLY_PREFLIGHT
