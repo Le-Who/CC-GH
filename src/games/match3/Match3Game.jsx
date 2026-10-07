@@ -253,6 +253,8 @@ export default function Match3Game() {
     const nextBoard = createModeBoard(mode);
     setBoard(nextBoard);
     setSelected(null);
+    setActionFeedback(null);
+    setMotionFeedback(null);
     setShuffleCharges((value) => Math.max(0, value - 1));
     audioManager.play("tap");
     performAction("match3.syncMode", {

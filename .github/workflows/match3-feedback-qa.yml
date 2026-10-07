@@ -33,10 +33,8 @@ jobs:
           node qa/match3-feedback/preflight.mjs > test-results/match3-feedback/preflight.json
           node --test tests/match3-feedback-presentation.test.mjs tests/match3.test.js tests/match3-motion.test.js tests/match3-motion-fixture.test.js tests/match3-recovery-differential.test.js tests/match3-controller-recovery.test.js tests/match3-scene-recovery.test.js tests/match3-render-budget.test.js > test-results/match3-feedback/unit.tap 2>&1
           pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list > test-results/match3-feedback/collected.txt
-          pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list --grep 'Match3 1x swap invalid cascade and refill 320x568$' > test-results/match3-feedback/diagnostic-collected.txt
+          pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list --grep 'Match3 shuffle clears prior gain without awarding points$' > test-results/match3-feedback/diagnostic-collected.txt
           grep -F 'Total: 1 test in 1 file' test-results/match3-feedback/diagnostic-collected.txt
-          pnpm exec playwright test --config playwright.match3-feedback.config.mjs --list --grep 'Match3 1x swap invalid cascade and refill (568x320|844x390|1024x768|1280x720)$|Match3 Russian compact feedback' > test-results/match3-feedback/targeted-collected.txt
-          grep -F 'Total: 6 tests in 1 file' test-results/match3-feedback/targeted-collected.txt
       - name: Build real application with reviewed native QA flags
         env:
           VITE_YARD_PIP_PREVIEW: 'true'
@@ -44,14 +42,10 @@ jobs:
           VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
         run: pnpm run build > test-results/match3-feedback/build.log 2>&1
       - run: pnpm exec playwright install --with-deps chromium
-      - name: One diagnostic before matrix
+      - name: Single swap settle shuffle native probe
         env:
-          MATCH3_QA_SLICE: diagnostic
-        run: pnpm exec playwright test --config playwright.match3-feedback.config.mjs --grep 'Match3 1x swap invalid cascade and refill 320x568$'
-      - name: Complete blocked landscape and Russian label slice
-        env:
-          MATCH3_QA_SLICE: landscape-ru
-        run: pnpm exec playwright test --config playwright.match3-feedback.config.mjs --grep 'Match3 1x swap invalid cascade and refill (568x320|844x390|1024x768|1280x720)$|Match3 Russian compact feedback'
+          MATCH3_QA_SLICE: shuffle
+        run: pnpm exec playwright test --config playwright.match3-feedback.config.mjs --grep 'Match3 shuffle clears prior gain without awarding points$'
       - name: Preserve successful and failed evidence
         if: always()
         uses: actions/upload-artifact@v7

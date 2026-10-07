@@ -1,8 +1,8 @@
 [
   {
     "path": ".github/workflows/match3-feedback-qa.yml",
-    "sha256": "36394ac411c5d0b4839aefc764f56a82f79d88fdc2988f2297e9cece0f99b01f",
-    "bytes": 3268
+    "sha256": "80282bf738782b04bd2c651bc525d1f27121dc239e660e47989fe5c7f361165e",
+    "bytes": 2605
   },
   {
     "path": "playwright.match3-feedback.config.mjs",
@@ -46,8 +46,8 @@
   },
   {
     "path": "src/games/match3/Match3Game.jsx",
-    "sha256": "81e1269d0aff548ed25c37340396b86bad6103188b091d6db1b85a5d1a34b50d",
-    "bytes": 18882
+    "sha256": "7aca2434b80453539e2605494b56cfecd8bfbe63e38b6ef9824f3a973d2faa62",
+    "bytes": 18940
   },
   {
     "path": "src/games/match3/Match3Presentation.jsx",
@@ -66,13 +66,13 @@
   },
   {
     "path": "tests/e2e/match3-motion.spec.js",
-    "sha256": "2498670cdfdbf39ff5ba74fb3d63ced94564e87848b5d7dd1fcb9ede211846e2",
-    "bytes": 15719
+    "sha256": "cdaf8ab0d432f230b90d6b4269e80977dfd05f59a7f95cec279a22bb72f0cb72",
+    "bytes": 17084
   },
   {
     "path": "tests/match3-controller-recovery.test.js",
-    "sha256": "e16fdb7f826bc6db18ca675f7196a024ef707e924d11a738a53e9ff641781412",
-    "bytes": 20914
+    "sha256": "a119afaa202f3bd69cef837394f8ba8730afbfcd2b72e4a12e5e3ca4e5d27129",
+    "bytes": 21715
   },
   {
     "path": "tests/match3-scene-recovery.test.js",

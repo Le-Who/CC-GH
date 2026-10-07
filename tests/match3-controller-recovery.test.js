@@ -259,3 +259,17 @@ test('feedback uses accepted points and never writes presentation preferences to
  h.tick(2000);h.tree.sceneState.onMatch3Swap({x:0,y:0},{x:1,y:0});h.render();
  assert.equal(h.tree.actionFeedback,null,'invalid moves never repeat the previous gain');
 });
+
+
+test('shuffle clears only stale scored-action feedback and never grants points',async()=>{
+ const h=harness(false);await h.settle();h.tree.onStart();await h.settle();
+ h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();h.tick(2000);await h.settle();
+ assert.equal(h.tree.actionFeedback.points,120);
+ const score=h.tree.score,moves=h.tree.movesLeft,combo=h.tree.combo;
+ h.tree.onShuffle();h.render();await h.settle();
+ assert.equal(h.tree.actionFeedback,null);assert.equal(h.tree.motionFeedback,null);
+ assert.equal(h.tree.score,score);assert.equal(h.tree.movesLeft,moves);assert.equal(h.tree.combo,combo);
+ assert.equal(h.tree.shuffleCharges,0);
+ const action=h.actions.findLast(action=>action.options?.key==='match3.shuffleBooster');
+ assert.equal(action.payload.game.score,score);
+});

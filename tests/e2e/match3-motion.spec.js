@@ -233,3 +233,21 @@ for(const [width,height] of [[320,568],[568,320]]) test(`Match3 Russian compact 
  expect(labels.every(label=>label.inside&&label.notClipped),JSON.stringify(labels)).toBe(true);
  await attachFrame(page,testInfo,'russian-compact-feedback');
 });
+
+
+test('Match3 shuffle clears prior gain without awarding points',async({page},testInfo)=>{
+ const {stage,canvas,player}=await boot(page,{width:320,height:568});
+ await swap(page,canvas,{x:1,y:6},{x:1,y:7},2);await settled(canvas);await seedRestored(page);
+ await expect(stage.locator('[data-match3-feedback="gain"]')).toHaveText('+90 points · Chain 2');
+ await expect.poll(()=>player.match3.currentGame.score).toBe(90);
+ const shuffle=stage.locator('[data-match3-shuffle="true"]');await expect(shuffle).toHaveAttribute('data-count','1');
+ const saved=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/player/mutate'&&response.request().postDataJSON()?.action==='match3.syncMode');
+ await shuffle.click();const response=await saved;expect(response.status()).toBe(200);
+ await expect(stage.locator('[data-match3-feedback="gain"]')).toHaveCount(0);
+ await expect(shuffle).toHaveAttribute('data-count','0');
+ await expect(shuffle).toBeDisabled();
+ const record=stage.locator('.m3-metric').filter({hasText:/^Record 500/});
+ await expect(record).toHaveCount(1);await expect(record).toHaveAttribute('aria-label','Record 500: 90');
+ expect(player.match3.currentGame.score).toBe(90);expect(player.match3.currentGame.movesLeft).toBe(29);expect(player.match3.currentGame.combo).toBe(2);
+ await attachFrame(page,testInfo,'shuffle-no-stale-reward');
+});
