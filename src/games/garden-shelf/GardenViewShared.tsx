@@ -79,7 +79,35 @@ function usePlantTapAcknowledgement() {
 }
 
 function PlantTapFeedback({ acknowledgement, mature }: any) {
-  return acknowledgement.active ? <span key={acknowledgement.sequence} className="gs2-tap-feedback" aria-hidden="true"><Art name={mature ? 'coin' : 'leaf'} /></span> : null;
+  const anchor = useRef<HTMLSpanElement>(null);
+  const [placement, setPlacement] = useState<{ root: HTMLElement; left: number; top: number } | null>(null);
+  useLayoutEffect(() => {
+    setPlacement(null);
+    if (!acknowledgement.active) return;
+    const target = anchor.current?.closest('button');
+    const root = target?.closest<HTMLElement>('.gs2-modal-layer,.gs2-stage');
+    if (!target || !root) return;
+    const bounds = target.getBoundingClientRect(), surface = root.getBoundingClientRect();
+    if (!bounds.width || !bounds.height || !surface.width || !surface.height) return;
+    const scaleX = surface.width / root.offsetWidth, scaleY = surface.height / root.offsetHeight;
+    // The stage-level WebGL canvas paints above the transformed HUD shelf.
+    // Keep this visual-only feedback beside that canvas, inside the tap area.
+    setPlacement({ root,
+      left: (bounds.left + bounds.width / 2 - surface.left) / scaleX - 12,
+      top: (bounds.top - surface.top) / scaleY + Math.max(24, Math.min(bounds.height / scaleY - 32, bounds.height / scaleY * .38))
+    });
+    // A fleeting receipt must not stay floating over a newly scrolled control.
+    const clear = () => setPlacement(null);
+    document.addEventListener('scroll', clear, true);
+    window.addEventListener('resize', clear);
+    return () => {
+      document.removeEventListener('scroll', clear, true);
+      window.removeEventListener('resize', clear);
+    };
+  }, [acknowledgement.active, acknowledgement.sequence]);
+  return <><span ref={anchor} className="gs2-tap-anchor" aria-hidden="true" />{acknowledgement.active && placement && createPortal(
+    <span key={acknowledgement.sequence} className="gs2-tap-feedback" style={{ left: placement.left, top: placement.top }} aria-hidden="true"><Art name={mature ? 'coin' : 'leaf'} /></span>, placement.root
+  )}</>;
 }
 
 const LivingPlantArt=makeLivingPlantArt(React,LegacyPlantArt);

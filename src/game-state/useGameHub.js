@@ -1,3 +1,4 @@
+import { isExpectedGardenTapCooldown } from '../games/garden-shelf/lib/gardenActionFeedback.js';
 import {canonicalSavedFoodCapability,canonicalSavedFoodPendingResult,canonicalSavedFoodReplayAllowed,canonicalSavedFoodResumeWitness,canonicalSavedFoodPermissionScope} from './canonicalSavedFoodProtocol.mjs';
 import { create } from "zustand";
 import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,canonicalCommandScope,canonicalNoncePrefix,canonicalReplayCapability,canonicalSupersededReceipt,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
@@ -296,7 +297,7 @@ export const useGameHub = create((set, get) => ({
         return {
           busy,
           snapshot: errorView === state.snapshot ? state.snapshot : { ...errorView, receivedAt: Date.now() },
-          message: result.error,
+          message: isExpectedGardenTapCooldown(action, payload, result.error) ? '' : result.error,
           lastResult: result,
         };
       }
@@ -747,3 +748,4 @@ useGameHub.subscribe((state, previous) => {
   }
   useGameHub.setState({ accountSession: snapshotAccountSession, pendingActions: [], busy: {}, outboxLoaded: false, outboxAccountId: null, outboxStorageError: null, lastResult: null, message: "" });
 });
+
