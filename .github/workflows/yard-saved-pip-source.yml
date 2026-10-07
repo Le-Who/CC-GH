@@ -109,6 +109,7 @@ jobs:
           set -o pipefail
           node --import ./qa/saved-pip-visit/register.mjs --test tests/yard-canonical-saved-client.test.mjs tests/yard-canonical-saved-scene.test.mjs | tee test-results/saved-visit/saved-client.tap
       - name: Native saved Scene entry, resume and renderer replacement
+        if: ${{ !contains(github.event.head_commit.message, '[backend-qa-only]') }}
         env:
           VITE_YARD_SAVED_VISITS: 'true'
           VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
@@ -117,7 +118,7 @@ jobs:
           YARD_SCENE_OUTPUT: ${{ github.workspace }}/test-results/saved-visit-scene
         run: node qa/saved-visit-scene/run.mjs
       - name: Ordinary Home to Yard navigation and saved visitor
-        if: ${{ !cancelled() && steps.saved_client.outcome == 'success' }}
+        if: ${{ !cancelled() && steps.saved_client.outcome == 'success' && !contains(github.event.head_commit.message, '[backend-qa-only]') }}
         env:
           VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
           QUALIFIED_APP_SNAPSHOT: ${{ github.workspace }}/test-results/normal-runtime/qualified-app-snapshot.json

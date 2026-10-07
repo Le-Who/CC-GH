@@ -42,7 +42,7 @@ test(`real saved Yard buy/fill/reload ${viewport.width}x${viewport.height}`,asyn
   }).catch(error=>{row.decodeError=String(error);}));
  });
  await page.addInitScript(({externalId})=>{localStorage.setItem('gh_dev_user_id',externalId);localStorage.setItem('garden_shelf_language','en');},{externalId});
- const capture=async name=>{const diagnostics=await read(page);checkpoints.push({name,diagnostics});await page.screenshot({path:path.join(OUT,id+'-'+name+'.png'),scale:'device'});return diagnostics;};
+ const capture=async name=>{const diagnostics=await read(page);checkpoints.push({name,diagnostics,queryKeys:[...new URL(page.url()).searchParams.keys()]});await page.screenshot({path:path.join(OUT,id+'-'+name+'.png'),scale:'device'});return diagnostics;};
  const successfulAction=action=>page.waitForResponse(response=>response.url().endsWith('/api/player/mutate')&&response.request().method()==='POST'
   &&response.request().postDataJSON()?.action===action&&response.status()===200,{timeout:30000});
  let buy,fill,replayProof;
@@ -50,7 +50,10 @@ test(`real saved Yard buy/fill/reload ${viewport.width}x${viewport.height}`,asyn
   await page.goto(info.project.use.baseURL+'/');await expect(page.locator('.gs2-stage')).toBeVisible({timeout:30000});
   await selectHomeGame(page,'room');await ready(page,account.candidate.visitId);const first=await capture('normal-entry');
   assert.equal(first.scene.plannerWorkerActive,false);assert.equal(first.scene.inspectionCount,0);assert.equal(first.scene.canonicalRecords[0].uses,1);
-  assert.equal(new URL(page.url()).searchParams.size,0);
+  // Ordinary Home routing sets tab=room; authentication/routing parameters
+  // are not preview activation. Reject only actual opt-in controls.
+  const query=new URL(page.url()).searchParams;
+  for(const key of ['yardPipPreview','yardPipGrounding','yardCanonicalFood'])assert.equal(query.has(key),false,key+' must not opt in a fixture');
   await page.locator('[data-nav-item="food"]').click();
   assert.equal(account.testFoodId,foodId);
   const buyButton=page.locator(`[data-yard-action="buy-food"][data-food-id="${foodId}"]`);await expect(buyButton).toBeEnabled({timeout:20000});
