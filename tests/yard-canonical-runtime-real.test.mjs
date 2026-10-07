@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
 import {withPlayerLock} from '../playerManager.js';
-import playerRoutes from '../routes/player.js';
+import playerRoutes,{applyActionWithReceipt} from '../routes/player.js';
 import {fixture} from './fixtures/canonical-reconciliation-fixture.mjs';
 import {closeCanonicalRuntime} from '../game-logic/yard-v2/canonical-runtime.mjs';
 import {initializeReleasedPlayerYard as ensureCanonicalPlayerYard,releasedYardSnapshot} from '../game-logic/yard-v2/player-release.mjs';
@@ -12,7 +12,14 @@ const publicCanonicalPlayerYard=(p,options)=>releasedYardSnapshot(p,options).yar
 test('normal tick publishes genuine saved visit across unrelated snapshots, cold recovery, and exact departure',async t=>{
  const oldNow=Date.now;let now=1001;Date.now=()=>now;t.after(async()=>{await closeCanonicalRuntime();Date.now=oldNow;});
  const id='normal-runtime-pip';
- await withPlayerLock(id,p=>{fixture(p);p._onboarded=true;p._yardV2.runtime.canonicalRevision='initial';});
+ await withPlayerLock(id,async p=>{
+  fixture(p);p._onboarded=true;p._yardV2.runtime.canonicalRevision='initial';
+  // The disposable app fixture starts in Garden. Complete its ordinary source
+  // adoption here so navigation smoke does not manufacture or block that step.
+  const streamId='yard_ui_fixture_garden';
+  const adopted=await applyActionWithReceipt(p,'garden.r2',{version:1,catalogRevision:'garden-r2-20261002',accountId:id,command:'adopt',input:{acknowledgedTotal:0,legacyRevision:0},expectedRevision:0,intent:{streamId,sequence:1,createdAt:now}},{clientActionId:`garden-r2:${streamId}:1`,serverNow:now});
+  assert.equal(adopted.status,200,JSON.stringify(adopted));assert.equal(p._gardenProgression.revision,1);
+ });
  await withPlayerLock(id,p=>assert.equal(ensureCanonicalPlayerYard(p,{now,simulate:true}).status,200));
  const router=playerRoutes((_req,_res,next)=>next(),()=>({userId:id,username:'Normal Runtime Owner'}));
  const route=router.stack.find(layer=>layer.route?.path==='/api/player/snapshot'&&layer.route.methods.get);
