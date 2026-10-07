@@ -9,7 +9,7 @@ import {initializeReleasedPlayerYard} from '../../game-logic/yard-v2/player-rele
 import {canonicalStorageValid} from '../../game-logic/yard-v2/canonical-locations.mjs';
 import {PRODUCTION_PORTS,FIXTURE_BOT_TOKEN,DATABASE_URL} from './yard-production-guard.mjs';
 export {PRODUCTION_PORTS,FIXTURE_BOT_TOKEN,DATABASE_URL};
-export const PREDECESSOR='9b6b96b4cd1b019d016a741f7300e3172192c3ee',BRANCH='qa/development-batch-image-20261007';
+export const PREDECESSOR='9b6b96b4cd1b019d016a741f7300e3172192c3ee',BRANCH='qa/development-batch-match3-image-20261007';
 export const CAPS=Object.freeze({jobMinutes:10,browserMs:220000,artifactBytes:8388608,retentionDays:3,retries:0,actionMs:5000,replyMs:10000,checkpointBytes:131072});
 export const CHECKS=Object.freeze(['reviewed-source-inventory','normal-production-image','authenticated-capability-policy','canonical-placement-storage-v2','economy-inventory','lost-response-exactly-once','pending-intent-account-fences','receipt-security','occupied-food-socket','warm-client-update','mobile-functional','mobile-visual','app-only-failure-rollback','prior-image-v2-compatible-replay-preserves-state']);
 export const sha=b=>createHash('sha256').update(b).digest('hex');

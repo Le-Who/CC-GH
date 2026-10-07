@@ -1,10 +1,10 @@
 {
   "format": "cc-gh-development-batch-qualification/v1",
   "runtimeBase": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
-  "candidate": "693b851197c7fd7002566ad883ecdd475c6830b7",
+  "candidate": "4de9a6fd099c8a1779b72a969191d9b2697c7811",
   "productBaseCandidate": "53c7e1ac073e8aa536153d46ede1324d744a1afa",
-  "runtimeInputsUnchanged": true,
-  "runtimeManifestSha256": "d9575f32572e5997d945c147feaa2dae73aa69bb3ed7f4dbbdd6977b53da9965",
+  "runtimeInputsUnchanged": false,
+  "runtimeManifestSha256": "b20c975fe353bfda0344add34429d6f2d3cf50ef5fa70243668b3c36f0f75b9c",
   "firstRun": {
     "id": 37609985148,
     "status": "failed",
@@ -138,6 +138,40 @@
       ],
       "uniquePassedCasesAcrossRuns": 58,
       "singleGreenFullSuiteClaim": false
+    }
+  },
+  "previousQualifiedCandidate": "693b851197c7fd7002566ad883ecdd475c6830b7",
+  "previousQualificationSha256": "e8418f6ad44cd63b821ad028cca624fd9fa224c6b97520e8e4d31f5d84098fb3",
+  "runtimeDelta": "Only sealed Match3 product/art delta after qualifiedab4; prior privacy/batch paths otherwise preserved",
+  "match3Qualification": {
+    "runId": 37621455369,
+    "commit": "4de9a6fd099c8a1779b72a969191d9b2697c7811",
+    "status": "success",
+    "sourceTests": 282,
+    "postgresTests": 1,
+    "browserPassed": 6,
+    "browserFailed": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "passedCases": [
+      "tests/e2e/match3-motion.spec.js \u203a Match3 1x swap invalid cascade and refill 320x568",
+      "tests/e2e/match3-motion.spec.js \u203a Match3 idle life is rare and static option suppresses it",
+      "tests/e2e/match3-motion.spec.js \u203a Match3 Russian compact feedback 320x568",
+      "tests/e2e/match3-motion.spec.js \u203a Match3 Russian compact feedback 568x320",
+      "tests/e2e/match3-motion.spec.js \u203a Match3 shuffle clears prior gain without awarding points",
+      "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a match3 public and historical names, safe HTML and self label"
+    ],
+    "browserJsonSha256": "e4fa91e3cb8b02274850c274a4390122e81abae133948e21f9f5024f7eb7f3bf",
+    "artifactId": 11481938181,
+    "artifactSha256": "0d757e0918f081c5e30f34525e8830dccbdd5870c395203d4080811b0b4166d4",
+    "visualReview": {
+      "verdict": "accepted",
+      "scope": "Six combined native cases only; original pixels and video samples inspected",
+      "reviewers": [
+        "Match3 owner",
+        "root original pixel recheck"
+      ],
+      "clarification": "Initial sliver concern was a false visual read; original pixel crops and terminal video show normal geometry. No code changed."
     }
   }
 }

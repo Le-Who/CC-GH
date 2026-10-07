@@ -2,7 +2,7 @@
   "base": "aa43b9167c0af475bec294878d55bcb95a4ff244",
   "baseTree": "0a85221a42b3d0241ee18a48a2cd8c9e1ce9a266",
   "sourceLive": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
-  "scope": "Qualified development batch plus sealed Match3; fresh focused combined QA pending",
+  "scope": "Qualified combined development fixes and Match3; exact immutable-image gate pending",
   "reviewedInputs": {
     "privacy": "5d7e08f157200d4b5e317d0a824fca5acc3ba31f",
     "garden": "ac1ae8804ace497573e7638c2961e8e129081367",
@@ -31,9 +31,9 @@
     },
     {
       "path": ".github/workflows/yard-development-image.yml",
-      "sha256": "771722028c44a3ecca0550cc7d619b3f5d3671bb5164c4f18353795d62f19e3e",
-      "bytes": 5050,
-      "gitBlob": "c5e1c00985d38a647a30fe8d51899f094dcd0fdf"
+      "sha256": "eb641ed421fbd3c9cf73be2772707d038af8f4f466094dac659900e596514984",
+      "bytes": 5064,
+      "gitBlob": "0d6814117ddedbbca9278967a454c0a2b186d6b4"
     },
     {
       "path": "accountManager.js",
@@ -187,15 +187,15 @@
     },
     {
       "path": "qa/yard-development-image/batch-qualification.json",
-      "sha256": "e8418f6ad44cd63b821ad028cca624fd9fa224c6b97520e8e4d31f5d84098fb3",
-      "bytes": 10944,
-      "gitBlob": "c83f9e872352c43246af984f30c3c636e1bf217d"
+      "sha256": "c624c1c94bd83d9b7474ef8de38b8bbf022d58b0043321d5aa22525b5e5efb05",
+      "bytes": 12761,
+      "gitBlob": "5a1efaacda4c99e61b57a3a8721d769128c7c5e2"
     },
     {
       "path": "qa/yard-development-image/manifest.json",
-      "sha256": "790d67145f88613068221f6525aeab33274d5aa3ad812dcb7acab064c875c394",
-      "bytes": 17191,
-      "gitBlob": "2c30ee599f0df68f55699b0a010944897f5c17b9"
+      "sha256": "dcd1db81364c16ed2daadc0e3b3da9bee84ec6594c13021a853f6dcae7ace69b",
+      "bytes": 17059,
+      "gitBlob": "9b795e56b950c7c99392af0acb44ad6eb0fd2d3f"
     },
     {
       "path": "routes/leaderboard.js",
@@ -211,15 +211,15 @@
     },
     {
       "path": "scripts/yard-development-acceptance.mjs",
-      "sha256": "dde418c793aa0662db721cd343a0b6c6ce998cf0594653425e99980d1c540ba0",
+      "sha256": "7b909e00e4278da4324380550c739cf050f82007abf80aacdee68efecf673b42",
       "bytes": 16063,
-      "gitBlob": "97ac590c24d7241727760df4c23436a1ac427ba9"
+      "gitBlob": "d31c4bfae7a7658cea6ca61faa9a3f1a51a3a703"
     },
     {
       "path": "scripts/yard-development-receipt.mjs",
-      "sha256": "f4afcf984d690f0be120589071049da3c09da54b261bd176addcc1236cec465b",
-      "bytes": 24466,
-      "gitBlob": "4a8cc45e4763a7bdddff7ee88b43cee31dbad5c5"
+      "sha256": "45be75ce64eb782ab86ed7dec3667721aea900aeecdfad134b57b6a5b85affc6",
+      "bytes": 24899,
+      "gitBlob": "c15bf955e0360b9de7046b1ce5b951ca9ab47775"
     },
     {
       "path": "server.js",
@@ -493,9 +493,9 @@
     },
     {
       "path": "tests/helpers/yard-development-acceptance.mjs",
-      "sha256": "35b9529cbb76b649ec38d7c804a85fec27a36249c4084e7c8b798d35c5d13383",
-      "bytes": 17776,
-      "gitBlob": "d54e9f2387df97154ee8cb20147722bdc2cc3cff"
+      "sha256": "b644d49a61c1296ea53f8b529c32e58d185256067790e97ae2103fd79513c46a",
+      "bytes": 17783,
+      "gitBlob": "8e8e2775c5c8aa3c5a97ed45b4ad8fadf41ae3da"
     },
     {
       "path": "tests/helpers/yard-normal-entry-route.mjs",
@@ -577,9 +577,9 @@
     },
     {
       "path": "tests/yard-development-receipt.test.mjs",
-      "sha256": "d164354f59e63fd842df963530dbee6385b0b42520ddf9d912e77ad8ec936cca",
-      "bytes": 15151,
-      "gitBlob": "644eb49f4eb0b1731d8353a320ef4a2eb6906efc"
+      "sha256": "bcfed34c305cb88a7dd982baa9edb6f4674da604a45b69e11ed37230f6c9b08d",
+      "bytes": 15158,
+      "gitBlob": "0ed4ecd63cb71e316b901e6c691b08d0a41742db"
     },
     {
       "path": "tests/yard-initial-framing.test.mjs",

@@ -17,7 +17,7 @@ const json=async(name,v)=>{await fs.mkdir(OUT,{recursive:true});await fs.writeFi
 const git=(...args)=>execFileSync('git',args,{encoding:'utf8',timeout:15000}).trim();
 export async function preflight(){
  const head=assertDevelopmentEnvironment(),m=JSON.parse(await fs.readFile('qa/yard-development-image/manifest.json','utf8'));
- assert.equal(m.finalized,true,'Reviewed exact source manifest required');assert.equal(m.base,'aa43b9167c0af475bec294878d55bcb95a4ff244');assert.equal(m.integrationParent,'693b851197c7fd7002566ad883ecdd475c6830b7');assert.equal(git('rev-parse','HEAD'),head);assert.equal(git('rev-parse','HEAD^'),m.integrationParent);assert.equal(git('status','--porcelain','--untracked-files=no'),'');
+ assert.equal(m.finalized,true,'Reviewed exact source manifest required');assert.equal(m.base,'aa43b9167c0af475bec294878d55bcb95a4ff244');assert.equal(m.integrationParent,'4de9a6fd099c8a1779b72a969191d9b2697c7811');assert.equal(git('rev-parse','HEAD'),head);assert.equal(git('rev-parse','HEAD^'),m.integrationParent);assert.equal(git('status','--porcelain','--untracked-files=no'),'');
  assert.equal(process.env.GITHUB_EVENT_NAME,'push');const event=JSON.parse(await fs.readFile(process.env.GITHUB_EVENT_PATH,'utf8'));assert.equal(event.created,true);assert.equal(event.forced,false);assert.equal(event.deleted,false);assert.equal(event.after,head);
  execFileSync(process.execPath,['qa/development-batch/preflight.mjs'],{stdio:'inherit',timeout:20000});
  const batch=JSON.parse(await fs.readFile('qa/development-batch/manifest.json'));assert.equal(batch.sourceLive,PREDECESSOR);assert.deepEqual(batch.liveBuildFlags,{VITE_YARD_PIP_PREVIEW:'true',VITE_YARD_SAVED_VISITS:'false',VITE_YARD_PAINTED_FOOD_TRIAL:'false'});

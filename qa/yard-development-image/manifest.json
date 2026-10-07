@@ -29,7 +29,7 @@
   "workflowTrustBoundary": "GitHub hosted runner and official vendor actions at existing repository major tags. Exact workflow bytes are pinned; major-tag action implementation is not represented as immutable.",
   "finalized": true,
   "base": "aa43b9167c0af475bec294878d55bcb95a4ff244",
-  "integrationParent": "693b851197c7fd7002566ad883ecdd475c6830b7",
+  "integrationParent": "4de9a6fd099c8a1779b72a969191d9b2697c7811",
   "checks": [
     "reviewed-source-inventory",
     "normal-production-image",
@@ -204,16 +204,13 @@
   "acceptanceOnlyPaths": [
     ".github/workflows/yard-development-image.yml",
     "qa/development-batch/manifest.json",
-    "qa/yard-development-image/activation-controller-proof.json",
-    "qa/yard-development-image/activation-controller.log",
     "qa/yard-development-image/batch-qualification.json",
     "qa/yard-development-image/manifest.json",
     "scripts/yard-development-acceptance.mjs",
     "scripts/yard-development-receipt.mjs",
     "tests/helpers/yard-development-acceptance.mjs",
-    "tests/yard-development-acceptance.test.mjs",
-    "tests/yard-development-e2e/development.spec.mjs",
     "tests/yard-development-receipt.test.mjs"
   ],
-  "activationControllerProofSha256": "a6627d64a5c1f6fa394a49c79ea5fb341279f19614d471fc1fdcdaa1dcb0e135"
+  "activationControllerProofSha256": "a6627d64a5c1f6fa394a49c79ea5fb341279f19614d471fc1fdcdaa1dcb0e135",
+  "batchQualificationSha256": "c624c1c94bd83d9b7474ef8de38b8bbf022d58b0043321d5aa22525b5e5efb05"
 }

@@ -1,13 +1,13 @@
 name: Yard normal development image
 on:
   push:
-    branches: ['qa/development-batch-image-20261007']
+    branches: ['qa/development-batch-match3-image-20261007']
 permissions:
   contents: read
   actions: read
   packages: write
 concurrency:
-  group: development-batch-image-20261007
+  group: development-batch-match3-image-20261007
   cancel-in-progress: false
 jobs:
   acceptance:
