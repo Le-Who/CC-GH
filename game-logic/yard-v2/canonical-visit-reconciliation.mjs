@@ -210,7 +210,10 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
       const fresh=currentRequest(committed);
       if(!fresh.code){
        while(validated.size>=8)validated.delete(validated.keys().next().value);
-       validated.set(ownerId,{version:committed._version,requestKey:snapshotRequest(fresh.request,256*1024).key,artifact:evidence.artifact,expiresAt:performance.now()+60000});
+       // Exact-key replay proof is immutable for this visit. Retain it through
+       // the remaining supported stay plus one bounded settlement minute. The
+       // monotonic deadline is fixed here; rekeying never extends it.
+       validated.set(ownerId,{version:committed._version,requestKey:snapshotRequest(fresh.request,256*1024).key,artifact:evidence.artifact,expiresAt:performance.now()+Math.min(YARD_HOUR_MS,Math.max(0,fresh.wrapper.leavesAt-Date.now()))+60000});
       }
      },{beforeSync:true});
      if(result.state==='completed')afterPlayerCommit(player,()=>{validated.delete(ownerId);},{beforeSync:true});

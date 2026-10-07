@@ -61,6 +61,22 @@ test(`real saved Yard buy/fill/reload ${viewport.width}x${viewport.height}`,asyn
   const query=new URL(page.url()).searchParams;
   for(const key of ['yardPipPreview','yardPipGrounding','yardCanonicalFood'])assert.equal(query.has(key),false,key+' must not opt in a fixture');
   await page.locator('[data-nav-item="food"]').click();
+  if(viewport.width===320){
+   // One natural-time window crosses the former60s replay TTL while the actual
+   // Courtyard10s polling runs. Preserve the same open dialog and renderer owner.
+   const canvas=await page.locator('.cy-pip-direct-layer canvas').elementHandle();
+   const dialog=await page.locator('.cy-dialog').elementHandle();
+   const started=performance.now();
+   for(let n=0;n<7;n++){
+    await page.waitForTimeout(10000);
+    await ready(page,account.candidate.visitId);
+    assert.equal(await canvas.evaluate(el=>el.isConnected&&el===document.querySelector('.cy-pip-direct-layer canvas')),true,'same renderer across replay-retention boundary');
+    assert.equal(await dialog.evaluate(el=>el.isConnected&&el.open),true,'same Food dialog across replay-retention boundary');
+    await expect(page.locator('.cy-food-select').first()).toBeVisible();
+   }
+   assert.ok(performance.now()-started>=70000);
+   await capture('retained-open-food');lastCompletedStep='retention-window';
+  }
   assert.equal(account.testFoodId,foodId);
   const buyButton=page.locator(`[data-yard-action="buy-food"][data-food-id="${foodId}"]`);await expect(buyButton).toBeEnabled({timeout:20000});
   const buyResponse=successfulAction('yard.buyFood');await buyButton.click();const boughtResponse=await buyResponse,bought=await boughtResponse.json();buy=boughtResponse.request().postDataJSON();
