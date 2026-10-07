@@ -77,6 +77,7 @@ class Match3RuntimeBoundary extends React.Component{
 }
 function Match3Metric({
   label:label,
+  accessibleLabel:accessibleLabel=label,
   value:value,
   className:className="",
   size:size=28,
@@ -86,7 +87,8 @@ function Match3Metric({
   const length=String(value).length;
   return jsxRuntime.jsxs("div", {
     className:`m3-metric ${className}`,
-    "aria-label":`${label}: ${value}`,
+    "aria-label":`${accessibleLabel}: ${value}`,
+    title:accessibleLabel,
     children:[jsxRuntime.jsx("span", {
       children:label
     }), jsxRuntime.jsx("strong", {
@@ -122,7 +124,9 @@ function Match3Dialog({
   onModeChange:onModeChange,
   onReroll:onReroll,
   dialogRef:dialogRef,
-  maxWidth:maxWidth
+  maxWidth:maxWidth,
+  idleMotion:idleMotion,
+  onIdleMotion:onIdleMotion
 }){
   const{
     t:j
@@ -174,6 +178,10 @@ function Match3Dialog({
           primary:true,
           onClick:onResume,
           children:j("common.resume")
+        }), jsxRuntime.jsx(Match3Button, {
+          onClick:onIdleMotion,
+          "aria-pressed":!idleMotion,
+          children:j(idleMotion?"match3.idleOn":"match3.idleOff")
         }), jsxRuntime.jsxs("div", {
           className:"m3-two-actions",
           children:[jsxRuntime.jsx(Match3Button, {
@@ -323,6 +331,11 @@ function Match3Presentation(props){
     runtimeManifest:runtimeAssetManifest
   }):null;
   const selectionText=inputLocked?t("match3.settling"):activeBooster?t(`match3.booster.${activeBooster}`):selectedGemType?`${t("match3.selectedGem")}: ${t(`match3.gem.${selectedGemType}`)}`:t("match3.noSelection");
+  const feedback=props.actionFeedback;
+  const feedbackText=feedback&&!selectedGemType&&!activeBooster
+    ? `${t("match3.gain",{points:feedback.points})} · ${inputLocked&&!props.motionFeedback?.depth?t("match3.settling"):t("match3.chain",{depth:inputLocked?props.motionFeedback.depth:feedback.depth})}`
+    : selectionText;
+  const recordText=props.highScore>0 ? (score>props.highScore?t("match3.recordPassed"):t("match3.toRecord",{points:Math.max(0,props.highScore-score)})) : t("match3.firstRecord");
   const formattedScore=new Intl.NumberFormat(language==="ru"?"ru":"en").format(score);
   const hud=composition.hud;
   const tightHud=composition.landscape&&composition.hud.height<82;
@@ -388,7 +401,9 @@ function Match3Presentation(props){
         children:[composition.landscape?jsxRuntime.jsxs("div", {
           className:"m3-stat-grid",
           children:[jsxRuntime.jsx(Match3Metric, {
-            label:t("common.score"),
+            label:props.highScore>0?t("match3.scoreRecord",{points:props.highScore}):t("common.score"),
+            progress:props.highScore>0?score/props.highScore:null,
+            pulseKey:feedback?.id,
             value:formattedScore,
             size:metricSize
           }), jsxRuntime.jsx(Match3Metric, {
@@ -397,7 +412,8 @@ function Match3Presentation(props){
             size:tightHud?16:composition.compact?18:30
           }), jsxRuntime.jsx(Match3Metric, {
             label:t("common.combo"),
-            value:combo?`×${combo}`:"—",
+            accessibleLabel:t("match3.bestChain"),
+            value:combo||"—",
             size:metricSize,
             pulseKey:props.motionFeedback?.combo>1?`${props.motionFeedback.id}:${props.motionFeedback.phase}`:null,
             className:"m3-combo"
@@ -410,7 +426,9 @@ function Match3Presentation(props){
         }):jsxRuntime.jsxs(jsxRuntime.Fragment, {
           children:[jsxRuntime.jsx(Match3Metric, {
             className:"m3-score",
-            label:t("common.score"),
+            label:props.highScore>0?t("match3.scoreRecord",{points:props.highScore}):t("common.score"),
+            progress:props.highScore>0?score/props.highScore:null,
+            pulseKey:feedback?.id,
             value:formattedScore,
             size:metricSize
           }), jsxRuntime.jsxs("div", {
@@ -428,7 +446,8 @@ function Match3Presentation(props){
             className:"m3-combo-reward",
             children:[jsxRuntime.jsx(Match3Metric, {
               label:t("common.combo"),
-              value:combo?`×${combo}`:"—",
+            accessibleLabel:t("match3.bestChain"),
+              value:combo||"—",
               pulseKey:props.motionFeedback?.combo>1?`${props.motionFeedback.id}:${props.motionFeedback.phase}`:null,
               className:"m3-combo",
               size:composition.compact?18:26
@@ -476,8 +495,9 @@ function Match3Presentation(props){
           })
         }), jsxRuntime.jsx("span", {
           "aria-live":"polite",
-          title:selectionText,
-          children:selectionText
+          title:feedbackText,
+          "data-match3-feedback":feedback?"gain":"selection",
+          children:feedbackText
         })]
       }), jsxRuntime.jsx(HudEditableRegion, {
         id:"match3ActionDock",
@@ -527,7 +547,9 @@ function Match3Presentation(props){
         id:"match3ModeLabel",
         className:"m3-mode-label",
         style:absoluteRect(composition.mode),
-        children:t(currentMode.labelKey)
+        title:recordText,
+        "data-match3-record-target":props.highScore,
+        children:recordText
       })]
     }), phase!=="playing"&&jsxRuntime.jsxs(jsxRuntime.Fragment, {
       children:[jsxRuntime.jsx("div", {

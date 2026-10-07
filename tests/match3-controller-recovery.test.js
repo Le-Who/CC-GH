@@ -29,7 +29,7 @@ function harness(original,{saved=null,actionOverride=null}={}){
  // Pure engine behavior itself is covered separately; fixed outcomes isolate controller serialization/locking.
  const move=(board,from,to)=>({valid:from.x!==0,totalPoints:120,combo:2,board:board.map(row=>[...row]),steps:[],dropCollected:[]});
  const boost=(board,_id,x)=>({valid:x>=0,totalPoints:90,combo:1,board:board.map(row=>[...row]),steps:[]});
- const canonical={getQueuedMatch3Action,createMatch3Clock,advanceMatch3Clock,match3ClockSeconds,React,jsxRuntime:{jsx:(_type,props)=>props},useState:React.useState,useRef:React.useRef,useMemo:React.useMemo,useCallback:React.useCallback,useEffect:React.useEffect,useSnapshot:()=>snapshot,useAction:()=>performAction,useExitToHub:()=>()=>{},useAppI18n:()=>({t}),useImmersiveGame(){},generateBoard,normalizeMatch3Boosters,getRewardChestProgress,calcGoldReward,loadRuntimeAssetManifest:async()=>null,api:async()=>[],seedDropTokens:board=>board.map((row,y)=>row.map((gem,x)=>y===0&&x<3?'drop_gold':gem)),selectMatch3InitialRun,audioManager:{play(){}},attemptMatch3Move:move,hasValidMoves:()=>true,estimateMatch3CascadeLockMs,applyMatch3Booster:boost,Match3Presentation:'presentation',haptic:kind=>haptics.push(kind)};
+ const canonical={getQueuedMatch3Action,createMatch3Clock,advanceMatch3Clock,match3ClockSeconds,React,jsxRuntime:{jsx:(_type,props)=>props},useState:React.useState,useRef:React.useRef,useMemo:React.useMemo,useCallback:React.useCallback,useEffect:React.useEffect,useSnapshot:()=>snapshot,usePublicLeaderboard:()=>[],useAction:()=>performAction,useExitToHub:()=>()=>{},useAppI18n:()=>({t}),useImmersiveGame(){},generateBoard,normalizeMatch3Boosters,getRewardChestProgress,calcGoldReward,loadRuntimeAssetManifest:async()=>null,api:async()=>[],seedDropTokens:board=>board.map((row,y)=>row.map((gem,x)=>y===0&&x<3?'drop_gold':gem)),selectMatch3InitialRun,audioManager:{play(){}},attemptMatch3Move:move,hasValidMoves:()=>true,estimateMatch3CascadeLockMs,applyMatch3Booster:boost,Match3Presentation:'presentation',haptic:kind=>haptics.push(kind)};
  const names={Y:'React',G:'jsxRuntime',vx:'useSnapshot',Sx:'useAction',xx:'useExitToHub',es:'useAppI18n',U0:'generateBoard',jl:'normalizeMatch3Boosters',Pi:'getRewardChestProgress',og:'calcGoldReward',yx:'useImmersiveGame',Yx:'loadRuntimeAssetManifest',Lr:'api',FS:'seedDropTokens',Tx:'selectMatch3InitialRun',pa:'audioManager',ex:'attemptMatch3Move',Y0:'hasValidMoves',q0:'estimateMatch3CascadeLockMs',PS:'applyMatch3Booster',a_:'Match3Presentation'};
  const deterministicMath=Object.create(Math);deterministicMath.random=()=>0.314159;
  const visibilityListeners=new Set();const document={hidden:false,addEventListener:(name,fn)=>visibilityListeners.add(fn),removeEventListener:(name,fn)=>visibilityListeners.delete(fn)};
@@ -45,7 +45,7 @@ function harness(original,{saved=null,actionOverride=null}={}){
  };
 }
 // Compare gameplay/save contracts; motion descriptors now intentionally use renderer completion.
-const logicalTree=tree=>{const value=plain(tree);delete value.motionFeedback;delete value.sceneState.match3Animation;return value};
+const logicalTree=tree=>{const value=plain(tree);delete value.motionFeedback;delete value.actionFeedback;delete value.highScore;delete value.idleMotion;delete value.sceneState.match3.idleMotion;delete value.sceneState.match3Animation;return value};
 const same=(a,b)=>{assert.deepEqual(logicalTree(a.tree),logicalTree(b.tree));assert.deepEqual(a.actions,b.actions)};
 test('authored production controller matches frozen preview across classic/drop modes and action boundaries',async()=>{
  for(const mode of['classic','drop']){
@@ -244,4 +244,32 @@ test('reload before the final cascade completes restores zero-move runs as termi
   assert.equal(h.actions.filter(x=>x.name==='match3.syncMode').length,0);
   const ends=h.actions.filter(x=>x.name==='match3.end');assert.equal(ends.length,1);assert.equal(ends[0].payload.score,120);
  }
+});
+
+
+test('feedback uses accepted points and never writes presentation preferences to the action payload', async()=>{
+ const h=harness(false);await h.settle();h.tree.onStart();await h.settle();
+ h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();
+ assert.equal(h.tree.actionFeedback.points,120);
+ assert.equal(h.tree.highScore,123);
+ const before=h.actions.length;h.tree.onIdleMotion();h.render();
+ assert.equal(h.tree.idleMotion,false);assert.equal(h.tree.sceneState.match3.idleMotion,false);
+ assert.equal(h.actions.length,before);
+ assert.ok(h.actions.every(action=>!JSON.stringify(action).includes('idleMotion')));
+ h.tick(2000);h.tree.sceneState.onMatch3Swap({x:0,y:0},{x:1,y:0});h.render();
+ assert.equal(h.tree.actionFeedback,null,'invalid moves never repeat the previous gain');
+});
+
+
+test('shuffle clears only stale scored-action feedback and never grants points',async()=>{
+ const h=harness(false);await h.settle();h.tree.onStart();await h.settle();
+ h.tree.sceneState.onMatch3Swap({x:1,y:0},{x:2,y:0});h.render();h.tick(2000);await h.settle();
+ assert.equal(h.tree.actionFeedback.points,120);
+ const score=h.tree.score,moves=h.tree.movesLeft,combo=h.tree.combo;
+ h.tree.onShuffle();h.render();await h.settle();
+ assert.equal(h.tree.actionFeedback,null);assert.equal(h.tree.motionFeedback,null);
+ assert.equal(h.tree.score,score);assert.equal(h.tree.movesLeft,moves);assert.equal(h.tree.combo,combo);
+ assert.equal(h.tree.shuffleCharges,0);
+ const action=h.actions.findLast(action=>action.options?.key==='match3.shuffleBooster');
+ assert.equal(action.payload.game.score,score);
 });
