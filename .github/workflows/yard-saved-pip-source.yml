@@ -87,8 +87,9 @@ jobs:
           node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/qualify-cpu.mjs
           node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/verify-food-projection.mjs
           node qa/saved-pip-visit/verify-harness.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/verify-skinned-culling.mjs
           node qa/saved-pip-visit/run-native.mjs
-          cp qa/saved-pip-visit/*-provenance.json qa/saved-pip-visit/*qualification.json qa/saved-pip-visit/food-selector-result.json qa/saved-pip-visit/source-verification.json qa/saved-pip-visit/complete-resource-closure.json test-results/saved-visit/
+          cp qa/saved-pip-visit/*-provenance.json qa/saved-pip-visit/*qualification.json qa/saved-pip-visit/food-selector-result.json qa/saved-pip-visit/source-verification.json qa/saved-pip-visit/complete-resource-closure.json qa/saved-pip-visit/skinned-culling-regression.json test-results/saved-visit/
       - name: Preserve exact evidence and failures
         if: always()
         uses: actions/upload-artifact@v4

@@ -11,6 +11,16 @@ import {createPipContactShadow,PIP_CONTACT_SHADOW} from './pip-contact-shadow.mj
 import {createCalibratedPlanter} from './calibrated-planter.mjs';
 import {validateGardenViewport,configureGardenCamera,gardenSurfaceRect,canvasRectToCSS,presentDirectSurface} from './surface-placement.mjs';
 
+/** This bounded actor moves through bones in a stationary Object3D frame.
+ * Three caches a SkinnedMesh sphere from its first visible pose; an off-screen
+ * entrance would otherwise hide every later on-screen pose. Explicit actor
+ * visibility and the fixed garden raster own clipping. Avoid recomputing every
+ * skinned vertex each frame just to obtain a bounds check that is unnecessary
+ * for this already-admitted single actor. Static props retain normal culling. */
+export function configurePipSkinnedVisibility(root){
+ let count=0;root.traverse(object=>{if(object.isSkinnedMesh){object.frustumCulled=false;count++;}});return count;
+}
+
 export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,loadPlanterAssetBytes,signal,calibration,fragmentHelper,
   setupLighting,admitResources,onResources=()=>{},onFrameMetrics=()=>{},planter=null,actorUnitsPerSource=RENDER_UNITS_TO_CANONICAL,
   presentationMode='copy',directHost=null,rendererFactory=null,groundingRecipe='baseline',
@@ -171,6 +181,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
     if(hash!==PIP_PRIVATE_GLB_SHA256)throw Error('Private Pip asset identity mismatch');
     signal?.throwIfAborted();
     gltf=await new module.GLTFLoader().parseAsync(bytes,'');signal?.throwIfAborted();if((gltf.parser.json.images?.length??0)!==0)throw Error('Asset image decoder not admitted');
+    configurePipSkinnedVisibility(gltf.scene);
     gltf.scene.traverse(inventory);proxy=await createCalibratedPlanter(THREE,{...planter,loader:new module.GLTFLoader(),loadAssetBytes:loadPlanterAssetBytes,signal});signal?.throwIfAborted();proxy.root.traverse(inventory);
     const material=[...materials].find(m=>m.name===PIP_COAT_MATERIAL_NAME);if(!material)throw Error('Pinned coat material missing');
     restoreMaterial=installPipAnalyticalCoat(material,{glbSha256:hash,fragmentHelper});

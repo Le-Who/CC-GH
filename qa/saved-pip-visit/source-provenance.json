@@ -356,6 +356,12 @@
       "source": "/workspace/shared/yard-r1-stay-behavior-20261006/overlay/src/games/companion-yard-v2/pip-prototype/canonical-stay-routes.mjs",
       "sha256": "1b02c601e45d5eb7de24d3da056d14f74ade89cbb693f0d8a9cc87f8332ab247",
       "bytes": 8817
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "source": "reviewed bounded actor visibility policy",
+      "sha256": "a87d559d7178660a7b37168f985cbffa04b79abb7f87587e5786d674d1f9cb36",
+      "bytes": 24330
     }
   ]
 }
