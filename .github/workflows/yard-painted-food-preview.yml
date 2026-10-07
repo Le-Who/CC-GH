@@ -32,6 +32,7 @@ jobs:
           pnpm exec playwright install --with-deps chromium
       - name: Verify exact painted food lifecycle and source graph
         run: |
+          node qa/painted-food-native/context-policy.test.mjs
           node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-painted-food-renderer.test.mjs
           YARD_SOURCE_ROOT="$PWD" YARD_ASSET_ROOT="$PWD" YARD_DEPENDENCY_ROOT="$PWD" YARD_OVERLAY_ROOTS='' YARD_SAVED_VISIT_QA="$PWD/qa/saved-pip-visit" node qa/painted-food-native/check-graph.mjs
       - name: Capture actual Pip renderer at fixed garden camera

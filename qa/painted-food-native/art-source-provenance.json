@@ -11,6 +11,12 @@
       "path": "src/games/companion-yard-v2/pip-prototype/assets/food-painted-reference/yard-food-painted-reference.glb",
       "bytes": 324808,
       "sha256": "122b502fba1bd9e34db0921713bcf9c2e05077fd48472ca52e3dd3204078823f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "bytes": 24330,
+      "sha256": "a87d559d7178660a7b37168f985cbffa04b79abb7f87587e5786d674d1f9cb36",
+      "reviewedSourceCommit": "e4e477973aa386a331cf339ca9bdeb819737216f"
     }
   ]
 }
