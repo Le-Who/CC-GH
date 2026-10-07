@@ -1,3 +1,4 @@
+import {ProfileNickname} from "./ProfileNickname.jsx";
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowUpRight, Settings, UserRound, X } from 'lucide-react';
 import { VISIBLE_GAME_IDS, GAME_REGISTRY } from './gameRegistry.js';
@@ -21,6 +22,8 @@ export function HomeCatalogue({ language = 'en', t = key => key, activeTab, hasA
   const hints = HINTS[language] || HINTS.en;
   const ref = useRef(null);
   const [target, setTarget] = useState(null);
+  const [publicName, setPublicName] = useState(null);
+  useEffect(() => setPublicName(null), [accountSession]);
   useEffect(() => setTarget(null), [accountSession]);
   useDialogFocus(ref);
   useEscapeDismiss(true, () => { if (!switching) target ? setTarget(null) : onClose(); }, { priority: 100 });
@@ -41,7 +44,8 @@ export function HomeCatalogue({ language = 'en', t = key => key, activeTab, hasA
         <div className="home-thumbnail"><img src={`/games/home-thumbnails/${id}.webp`} alt="" width="256" height="144" loading="lazy" decoding="async" draggable="false"/>{id === activeTab && <span className="home-current-label">{c.current}</span>}</div>
         <div className="home-game-copy"><strong>{t(GAME_REGISTRY[id].labelKey)}<ArrowUpRight size={17}/></strong><span>{unavailableGames.includes(id) ? c.unavailable : hints[id]}</span></div>
       </button>)}</nav>
-      <details className="home-profile"><summary tabIndex={0}><UserRound size={20}/><span>{profileName || c.player}<small>{c.profile}</small></span><Settings size={18}/></summary>{profileBotName && <p className="home-bot-name">{profileBotName}</p>}<div className="home-wallet">{[[c.gold, resources.gold || 0], [c.energy, `${resources.energy?.current ?? 0}/${resources.energy?.max ?? 0}`], [c.tokens, resources.gachaTokens || 0]].map(([label, value]) => <span key={label}>{label}<strong>{value}</strong></span>)}</div><div className="home-settings">{settings}</div></details>
+      <details className="home-profile"><summary tabIndex={0}><UserRound size={20}/><span>{publicName || profileName || c.player}<small>{c.profile}</small></span><Settings size={18}/></summary>{profileBotName && <p className="home-bot-name">{profileBotName}</p>}<div className="home-wallet">{[[c.gold, resources.gold || 0], [c.energy, `${resources.energy?.current ?? 0}/${resources.energy?.max ?? 0}`], [c.tokens, resources.gachaTokens || 0]].map(([label, value]) => <span key={label}>{label}<strong>{value}</strong></span>)}</div><div className="home-settings">{settings}</div><ProfileNickname language={language} accountSession={accountSession} onDisplayName={setPublicName}/></details>
     </div>
   </section>;
 }
+

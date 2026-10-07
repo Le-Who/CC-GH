@@ -1,3 +1,4 @@
+import {publicLeaderboardName} from "../../app/publicLeaderboardName.js";
 /** Recovered game-only source from the owned Match3 v2 r2 preview. See recovery manifest. */
 import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
@@ -224,12 +225,13 @@ function Match3Dialog({
             children:j("common.leaderboard")
           }), leaders.length?leaders.slice(0, 3).map((X, te)=>jsxRuntime.jsxs("div", {
             className:"m3-leader-row",
+            "aria-current":X.isSelf ? "true" : undefined,
             children:[jsxRuntime.jsxs("span", {
-              children:[X.rank||te+1, ". ", X.username]
+              children:[X.rank||te+1, ". ", publicLeaderboardName(X, j("app.player")), X.isSelf ? ` (${j("common.you")})` : ""]
             }), jsxRuntime.jsx("strong", {
               children:X.highScore
             })]
-          }, `${X.rank}-${X.username}`)):jsxRuntime.jsx("p", {
+          }, X.rank)):jsxRuntime.jsx("p", {
             className:"m3-empty",
             children:j("common.noScores")
           })]
@@ -543,3 +545,4 @@ function Match3Presentation(props){
 }
 
 export default Match3Presentation;
+

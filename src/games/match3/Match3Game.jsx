@@ -1,6 +1,6 @@
+import {usePublicLeaderboard} from "../../app/usePublicLeaderboard.js";
 import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
-import {api} from '../../services/apiClient.js';
 import {audioManager} from '../../services/audioManager.js';
 import {haptic} from '../../platform/telegram.js';
 import {applyMatch3Booster,attemptMatch3Move,generateBoard,hasValidMoves,normalizeMatch3Boosters,seedDropTokens} from '../../game-core/match3/engine.js';
@@ -45,7 +45,7 @@ export default function Match3Game() {
   const [paused, setPaused] = useState(false);
   const [inputLocked, setInputLocked] = useState(false);
   const [matchAnimation, setMatchAnimation] = useState(null);
-  const [leaders, setLeaders] = useState([]);
+  const leaders = usePublicLeaderboard("/api/leaderboard", snapshot?.match3?.highScore);
   const [runtimeAssetManifest, setRuntimeAssetManifest] = useState(undefined);
   const [shuffleCharges, setShuffleCharges] = useState(1);
   const [boosters, setBoosters] = useState(() => normalizeMatch3Boosters());
@@ -100,11 +100,7 @@ export default function Match3Game() {
   }, []);
 
 
-  useEffect(() => {
-    api("/api/leaderboard").then((data) => {
-      if (Array.isArray(data)) setLeaders(data);
-    });
-  }, [snapshot?.match3?.highScore]);
+
 
   function createModeBoard(nextMode = mode) {
     const nextBoard = generateBoard();
@@ -408,3 +404,4 @@ export default function Match3Game() {
     onShuffle:useShuffleBooster,onBooster:(id)=>setActiveBooster(value=>value===id?'':id),
   });
 }
+

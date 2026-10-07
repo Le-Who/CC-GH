@@ -1,0 +1,64 @@
+name: Leaderboard privacy and nickname qualification
+on:
+  push:
+    branches: ['qa/leaderboard-privacy-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: leaderboard-privacy-20261007
+  cancel-in-progress: false
+jobs:
+  privacy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: privacy_test
+          POSTGRES_DB: privacy_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['55439:5432']
+        options: >-
+          --health-cmd "pg_isready -U privacy_test -d privacy_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      CI: 'true'
+      DATABASE_URL: ''
+      REDIS_URL: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Strict public JSON and profile ownership contracts
+        run: |
+          set -o pipefail
+          mkdir -p test-results/leaderboard-privacy
+          node --test tests/leaderboard-privacy.test.mjs tests/auth.test.js tests/arcade-reward-once.test.mjs | tee test-results/leaderboard-privacy/contracts.tap
+      - name: Genuine PostgreSQL profile persistence and safe projection
+        env:
+          DATABASE_URL: postgres://privacy_test@127.0.0.1:55439/privacy_test
+          LEADERBOARD_PRIVACY_PG: '1'
+        run: |
+          set -o pipefail
+          node --test tests/leaderboard-privacy-postgres.test.mjs | tee test-results/leaderboard-privacy/postgres.tap
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: Real mobile profile and both leaderboard UIs
+        run: |
+          set -o pipefail
+          DEBUG=pw:webserver pnpm exec playwright test --config playwright.leaderboard-privacy.config.mjs 2>&1 | tee test-results/leaderboard-privacy/browser-build.log
+      - name: Preserve exact source identity
+        if: always()
+        run: mkdir -p test-results/leaderboard-privacy && git rev-parse HEAD > test-results/leaderboard-privacy/source-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: leaderboard-privacy-${{ github.sha }}
+          path: test-results/leaderboard-privacy/
+          retention-days: 7
+          if-no-files-found: error

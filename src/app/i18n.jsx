@@ -82,6 +82,7 @@ const APP_TRANSLATIONS = {
     "common.ready": "Ready",
     "common.setup": "Setup",
     "common.leaderboard": "Leaderboard",
+    "common.you": "you",
     "common.noScores": "No scores yet.",
     "common.best": "Best",
     "common.tap": "Tap",
@@ -163,6 +164,7 @@ const APP_TRANSLATIONS = {
     "common.ready": "Готов",
     "common.setup": "Настройка",
     "common.leaderboard": "Лидеры",
+    "common.you": "вы",
     "common.noScores": "Пока нет результатов.",
     "common.best": "Рекорд",
     "common.tap": "Тап",
@@ -207,3 +209,4 @@ export const AppI18nContext = createContext({
 export function useAppI18n() {
   return useContext(AppI18nContext);
 }
+
