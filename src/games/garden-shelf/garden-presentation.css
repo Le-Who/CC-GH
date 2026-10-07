@@ -106,7 +106,7 @@
 .gs2-water-ready{z-index:3}.gs2-live-plant{position:relative}.gs2-live-surface{contain:strict}
 
 /* R3: plants are the card focus; exact time and level belong to Care. */
-.gs2-spot:not(.gs2-empty){position:relative;padding:0;border:0;background:transparent;overflow:visible}
+.gs2-spot:not(.gs2-empty){position:relative;padding:0;border:0;background:transparent;overflow:hidden}
 .gs2-spot:not(.gs2-empty)>h3{order:-1;min-height:36px;padding:2px 30px 2px 5px;text-align:left;display:flex;align-items:center;border-radius:8px;background:rgba(255,248,226,.78)}
 .gs2-spot:not(.gs2-empty)>.gs2-plant-state{display:none}
 .gs2-plant-target{position:static;height:calc(var(--gs2-plant-height) + 20px);flex:1;min-height:70px}

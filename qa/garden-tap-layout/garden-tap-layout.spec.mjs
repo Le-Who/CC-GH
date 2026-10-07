@@ -45,6 +45,17 @@ for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],
   const target=page.locator('[data-plant-id="saved-daisy"] .gs2-plant-target');
   await expect(page.locator('.gs2-live-surface')).toHaveCount(1);
   await expect.poll(()=>page.locator('[data-plant-id="saved-daisy"] .gs2-live-plant').getAttribute('data-living-mode')).toBe('animated');
+  if(width===844){
+   const geometry=await target.evaluate(button=>{
+    const spot=button.parentElement,shelf=spot.closest('.gs2-shelf-viewport');
+    const read=()=>({card:spot.getBoundingClientRect().height,target:button.getBoundingClientRect().height,shelf:shelf.getBoundingClientRect().height,overflow:getComputedStyle(spot).overflow});
+    const actual=read();spot.style.overflow='visible';const uncontained=read();spot.style.removeProperty('overflow');return {actual,uncontained,restored:read()};
+   });
+   await testInfo.attach('landscape-containment',{body:JSON.stringify(geometry),contentType:'application/json'});
+   expect(geometry.actual.overflow).toBe('hidden');expect(geometry.actual.card).toBeLessThanOrEqual(geometry.actual.shelf);
+   expect(geometry.uncontained.card).toBeGreaterThan(geometry.actual.card);
+  }
+
   if(width<1100) await target.tap(); else await target.click();
   const feedback=page.locator('.gs2-tap-feedback'); await feedback.waitFor();
   const evidence=await feedback.evaluate(node=>{
