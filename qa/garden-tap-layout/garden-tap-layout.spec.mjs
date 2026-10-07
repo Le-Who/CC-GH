@@ -99,6 +99,25 @@ for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],
   expect(state.current.resources.gold).toBe(initialGold+2);
  });
 
+ if(width===320||width===844) test('detail reward stays above art and retires on actual scroll or dismissal',async({page},testInfo)=>{
+  await initialize(page);const {state}=await fixture(page,player());await boot(page);
+  await page.locator('[data-plant-id="saved-daisy"] [data-plant-details-button]').click();
+  const dialog=page.locator('[data-garden-panel="plant-detail"]'),target=dialog.locator('.gs2-detail-tap');
+  await expect(target).toBeVisible();await expect.poll(()=>target.locator('.gs2-live-plant').getAttribute('data-living-mode')).toBe('animated');
+  await target.click();const feedback=page.locator('.gs2-modal-layer>.gs2-tap-feedback');await feedback.waitFor();
+  const evidence=await feedback.evaluate(async node=>{
+   const canvas=node.parentElement.querySelector('.gs2-live-surface'),rect=node.getBoundingClientRect();
+   node.style.pointerEvents='auto';canvas.style.pointerEvents='auto';const stack=document.elementsFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);node.style.removeProperty('pointer-events');canvas.style.pointerEvents='none';
+   const target=document.querySelector('.gs2-detail-tap').getBoundingClientRect(),scroll=document.querySelector('.gs2-dialog-scroll'),before=scroll.scrollTop;
+   scroll.scrollTop=before+40;const after=scroll.scrollTop;
+   await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
+   return {coin:stack.indexOf(node),canvas:stack.indexOf(canvas),withinTarget:rect.left>=target.left&&rect.right<=target.right&&rect.top>=target.top&&rect.bottom<=target.bottom,before,after,retired:!node.isConnected};
+  });
+  await testInfo.attach('detail-layer-scroll',{body:JSON.stringify(evidence),contentType:'application/json'});
+  expect(evidence.coin).toBeGreaterThanOrEqual(0);expect(evidence.canvas).toBeGreaterThan(evidence.coin);expect(evidence.withinTarget).toBe(true);expect(evidence.after).toBeGreaterThan(evidence.before);expect(evidence.retired).toBe(true);
+  state.serverNow+=500;await target.click();await feedback.waitFor();await dialog.locator('.gs2-close').click();await expect(dialog).toHaveCount(0);await expect(page.locator('.gs2-tap-feedback')).toHaveCount(0);
+ });
+
 });
 
 test.afterEach(async({page},info)=>{
