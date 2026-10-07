@@ -1,0 +1,3 @@
+import {defineConfig} from '@playwright/test';
+const port=3321;
+export default defineConfig({testDir:'./tests/home-theme-e2e',workers:1,retries:0,forbidOnly:true,timeout:45000,globalTimeout:240000,reporter:[['line'],['json',{outputFile:'test-results/home-theme/results.json'}]],outputDir:'test-results/home-theme/work',use:{baseURL:`http://127.0.0.1:${port}`,serviceWorkers:'block',screenshot:'only-on-failure',trace:'retain-on-failure',video:'off',actionTimeout:8000},webServer:{command:'node scripts/playwright-web-server.mjs',url:`http://127.0.0.1:${port}`,reuseExistingServer:false,timeout:180000,env:{NODE_ENV:'test',PORT:String(port),DEV_AUTH_ENABLED:'true',DATABASE_URL:'',REDIS_URL:''}}});
