@@ -6,8 +6,8 @@
   },
   {
     "path": "playwright.match3-feedback.config.mjs",
-    "sha256": "d3bba30784cfdf5032a7b033b5b67622ddccf329f9051525af896eabd0d3defc",
-    "bytes": 704
+    "sha256": "bcd5c509663bd489d0dec9bb2decf07cf7c6b3ca6409dd340b38f9c231190f96",
+    "bytes": 754
   },
   {
     "path": "public/games/match3-v2/gems/air.webp",
