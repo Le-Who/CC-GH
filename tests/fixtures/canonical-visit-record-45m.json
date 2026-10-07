@@ -1,0 +1,298 @@
+{
+  "format": "yard-canonical-saved-visit/v2",
+  "status": "prepared-inactive",
+  "authoritative": false,
+  "requiredContainerVersion": 3,
+  "profile": {
+    "id": "r1-peek-release84-neutral-rest/v1",
+    "navigationProfile": "pip-food-r2-front-portal-curved-hulls/v1",
+    "storageLocation": {
+      "locationId": "pip-garden",
+      "locationVersion": 1,
+      "geometryRevision": "pip-garden-t2-r1"
+    },
+    "placementGeometryHash": "f8e160811cadfcb2d84b0cbb09eee65e0a0a832f72e6d7d619238b43967f457d",
+    "requiredContainerVersion": 3,
+    "actorId": "Pip-R1-A2",
+    "visitorId": "pip_hamster",
+    "modelSha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b",
+    "unitsPerSource": 16,
+    "movement": "r1-supported-baseline-v1",
+    "portal": {
+      "id": "pip-front-edge-portal-r1",
+      "revision": "actor-only-corridor-v1",
+      "actorOnly": true
+    },
+    "routeCoverage": "source-bezier-control-hull-and-gait-endpoint-envelopes/v1",
+    "foodDescriptorId": "canonical-food-r2/20261006",
+    "foodDescriptorHash": "16347f423a924a6510b78bffa06192beaf0a51e2a2da19e7680a3de62e867d05",
+    "release": "arrivedAt+ceil((leavesAt-arrivedAt)*0.84)",
+    "postRelease": "neutral-rest-outside-target-and-incoming-envelopes",
+    "conditions": [
+      "new"
+    ],
+    "admission": false
+  },
+  "candidate": {
+    "visitId": "visit_v2_source_45",
+    "visitorId": "pip_hamster",
+    "goodieId": "leaf_pot",
+    "activityId": "peek",
+    "slotId": "canonical:a",
+    "arrivedAt": 1000,
+    "leavesAt": 2701000
+  },
+  "releaseAt": 2269000,
+  "departureAt": 2672972,
+  "motionSeed": "a022fe3f304d9586",
+  "geometryHash": "01ff504446bdb4f721e9283ae207392c091b74e334387980d6b24491a82ac311",
+  "before": {
+    "rows": [
+      {
+        "slotId": "canonical:a",
+        "goodieId": "leaf_pot",
+        "locationId": "pip-garden",
+        "locationVersion": 1,
+        "geometryRevision": "pip-garden-t2-r1",
+        "itemGeometryRevision": "yard-succulent-T2",
+        "x": 98,
+        "y": 118,
+        "condition": "new",
+        "uses": 0,
+        "placedAt": 1
+      }
+    ],
+    "bowl": {
+      "id": "bowl-1",
+      "foodId": "kibble",
+      "servings": 4,
+      "placedAt": 1,
+      "expiresAt": 7200000
+    }
+  },
+  "after": {
+    "rows": [
+      {
+        "slotId": "canonical:a",
+        "goodieId": "leaf_pot",
+        "locationId": "pip-garden",
+        "locationVersion": 1,
+        "geometryRevision": "pip-garden-t2-r1",
+        "itemGeometryRevision": "yard-succulent-T2",
+        "x": 98,
+        "y": 118,
+        "condition": "new",
+        "uses": 1,
+        "placedAt": 1
+      }
+    ],
+    "bowl": {
+      "id": "bowl-1",
+      "foodId": "kibble",
+      "servings": 3,
+      "placedAt": 1,
+      "expiresAt": 7200000
+    }
+  },
+  "economicIntent": {
+    "servings": 1,
+    "itemUses": 1,
+    "giftId": "gift_v2_37578147db3c70d263b562ac5f86ff7d",
+    "giftCreationAt": 2701000,
+    "petbookVisitDelta": 1,
+    "committed": false
+  },
+  "presentationHash": "64757d6de564d3325f12b6892730dd6de841d34d8ef5f76949308c95329fc053",
+  "reservations": {
+    "format": "canonical-visit-reservation-requirements/v2",
+    "authoritative": false,
+    "coordinateSpace": "canonical-ground",
+    "locationId": "pip-garden",
+    "navigationProfile": "pip-food-r2-front-portal-curved-hulls/v1",
+    "target": {
+      "slotId": "canonical:a",
+      "startMs": 1000,
+      "endMs": 2269000,
+      "rect": {
+        "x": 93.35,
+        "y": 113.35,
+        "width": 9.3,
+        "height": 9.3
+      }
+    },
+    "spatial": [
+      {
+        "kind": "front-edge-enter",
+        "startMs": 1000,
+        "endMs": 17358,
+        "bodyEnvelope": {
+          "x": 131.71311557483443,
+          "y": 0.6424972818385282,
+          "width": 64.90268137205149,
+          "height": 82.7584607312159
+        },
+        "supportEnvelope": {
+          "x": 136.4917226300139,
+          "y": 10.12637421335837,
+          "width": 52.138068056101325,
+          "height": 68.32664148056708
+        }
+      },
+      {
+        "kind": "approach",
+        "startMs": 17358,
+        "endMs": 29028,
+        "bodyEnvelope": {
+          "x": 94.95097368619327,
+          "y": 61.687896800349336,
+          "width": 58.47520310134627,
+          "height": 56.91217356272831
+        },
+        "supportEnvelope": {
+          "x": 99.72357879571024,
+          "y": 71.17177373186918,
+          "width": 45.71659173105859,
+          "height": 42.5213020515991
+        }
+      },
+      {
+        "kind": "peek-and-target-rest",
+        "startMs": 29028,
+        "endMs": 2245132,
+        "bodyEnvelope": {
+          "x": 94.95097368619327,
+          "y": 96.88700915037255,
+          "width": 21.713061212705103,
+          "height": 21.713061212705103
+        },
+        "supportEnvelope": {
+          "x": 99.72357879571024,
+          "y": 106.21523865868464,
+          "width": 8.804103949505734,
+          "height": 7.477837124783637
+        }
+      },
+      {
+        "kind": "back-away",
+        "startMs": 2245132,
+        "endMs": 2248052,
+        "bodyEnvelope": {
+          "x": 94.95097368619327,
+          "y": 93.70424414082255,
+          "width": 24.135870923347728,
+          "height": 24.8958262222551
+        },
+        "supportEnvelope": {
+          "x": 99.72357879571024,
+          "y": 103.03247364913464,
+          "width": 11.226913660148359,
+          "height": 10.660602134333633
+        }
+      },
+      {
+        "kind": "orient-with-steps",
+        "startMs": 2248052,
+        "endMs": 2252222,
+        "bodyEnvelope": {
+          "x": 97.37378339683589,
+          "y": 93.70424414082255,
+          "width": 21.713061212705103,
+          "height": 21.713061212705103
+        },
+        "supportEnvelope": {
+          "x": 102.14551881077304,
+          "y": 98.58902443694303,
+          "width": 10.983328735596903,
+          "height": 12.055628637013672
+        }
+      },
+      {
+        "kind": "return-to-portal",
+        "startMs": 2252222,
+        "endMs": 2264830,
+        "bodyEnvelope": {
+          "x": 93.14346939364745,
+          "y": 37.14346939364745,
+          "width": 25.943375215893543,
+          "height": 78.2738359598802
+        },
+        "supportEnvelope": {
+          "x": 98.68568005810508,
+          "y": 43.34757927300186,
+          "width": 14.443167488264866,
+          "height": 60.32582973032637
+        }
+      },
+      {
+        "kind": "face-exit-with-steps",
+        "startMs": 2264830,
+        "endMs": 2269000,
+        "bodyEnvelope": {
+          "x": 93.14346939364745,
+          "y": 37.14346939364745,
+          "width": 21.713061212705103,
+          "height": 21.713061212705103
+        },
+        "supportEnvelope": {
+          "x": 98.68568005810508,
+          "y": 41.95355533657242,
+          "width": 11.229578899091027,
+          "height": 12.106782641247332
+        }
+      },
+      {
+        "kind": "neutral-rest",
+        "startMs": 2269000,
+        "endMs": 2672972,
+        "bodyEnvelope": {
+          "x": 93.14346939364745,
+          "y": 37.14346939364745,
+          "width": 21.713061212705103,
+          "height": 21.713061212705103
+        },
+        "supportEnvelope": {
+          "x": 102.84532680082701,
+          "y": 44.92098990596512,
+          "width": 6.9969680257044935,
+          "height": 9.13934807185463
+        }
+      },
+      {
+        "kind": "return-to-portal",
+        "startMs": 2672972,
+        "endMs": 2684642,
+        "bodyEnvelope": {
+          "x": 93.14346939364745,
+          "y": 37.14346939364745,
+          "width": 60.28270739389208,
+          "height": 58.57337791617688
+        },
+        "supportEnvelope": {
+          "x": 102.84532680082701,
+          "y": 44.92098990596512,
+          "width": 45.80224293153308,
+          "height": 37.14468380450767
+        }
+      },
+      {
+        "kind": "front-edge-exit",
+        "startMs": 2684642,
+        "endMs": 2701000,
+        "bodyEnvelope": {
+          "x": 131.71311557483443,
+          "y": 0.6424972818385282,
+          "width": 64.90268137205149,
+          "height": 82.7584607312159
+        },
+        "supportEnvelope": {
+          "x": 139.69912183560513,
+          "y": 5.590439600967531,
+          "width": 52.138068056101325,
+          "height": 68.32664148056705
+        }
+      }
+    ]
+  },
+  "propCommits": [],
+  "recordHash": "e8d6cb3c0d92b32f95d359ac1a730c8b621311a048f8f429983d41a217c2db61"
+}

@@ -1,0 +1,106 @@
+[
+  {
+    "specifier": "../yard-catalog.js",
+    "sha256": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b"
+  },
+  {
+    "specifier": "../yard-playzones.js",
+    "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af"
+  },
+  {
+    "specifier": "./canonical-food-contract.json",
+    "sha256": "d1abe6d5922fa855e4f4856bc633e628b767bdd0a22402e873d02882d5cb9461"
+  },
+  {
+    "specifier": "./canonical-food-protocol.mjs",
+    "sha256": "3297e848f038a5bd59ca25bbd8f5836a2079e54f0c6e563e7533590d01eeeaba"
+  },
+  {
+    "specifier": "./canonical-item-protocol.json",
+    "sha256": "8f098f5d32d70f2b06157967c094c24b04e955ba29a509181a1eb3e101be2dc4"
+  },
+  {
+    "specifier": "./canonical-location-geometry.json",
+    "sha256": "13da6998467168a065adbc2431ead832d736cdea2c5067b25adfddb11cd040ba"
+  },
+  {
+    "specifier": "./canonical-locations.mjs",
+    "sha256": "f7077c1e06005aa50a3873b2c16b020f4a2aa437ce2651ca25069c1df9e201e0"
+  },
+  {
+    "specifier": "./canonical-saved-visit-bridge.mjs",
+    "sha256": "757c7231f39fdae8c408ace6b7ac73de54b0c0952da83b59e12334b4be83556a"
+  },
+  {
+    "specifier": "./catalog.mjs",
+    "sha256": "b157b05aea487f0e8e396d33961ecda743f4462c548ea119d68c59c54abdac40"
+  },
+  {
+    "specifier": "./sha256.mjs",
+    "sha256": "2090ca5c72ac826b3147bd8db37b4cb28a746380d99e77937d3a8d1742eadabf"
+  },
+  {
+    "specifier": "./util.mjs",
+    "sha256": "c29d9a42722cc0af141d6a1902680e4f74641215e9dd7200a08f107667224692"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
+    "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/canonical-saved-stay.mjs",
+    "sha256": "3bdbbd8b11047ae65dc715d923381081b95c444c29ac78331cd4d000d8e244cf"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/canonical-stay-presentation.mjs",
+    "sha256": "5316133d765a3634c24ea80ebba6a0b2534cc07e18019a45f3a895ffe4477b03"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/canonical-stay-routes.mjs",
+    "sha256": "1b02c601e45d5eb7de24d3da056d14f74ade89cbb693f0d8a9cc87f8332ab247"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/data/calibration.json",
+    "sha256": "a06c5ebb322e3fe6690868552ec9223dd55672c710f365667cfea7a882b53306"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/data/fixture.json",
+    "sha256": "8e39abd867f6833212d534e7cce0824d9a95cf76d5ca2aa073650528bdba1021"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/data/interaction-leaf-anchors.json",
+    "sha256": "a43a37be2580ca98d38c49eec3e5160d0ab8647bc8288090595d2f638e6e2c3c"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/dynamic-navigation.mjs",
+    "sha256": "9f2da049d20e09f9fadd743149fd49cbc0572b6aeff014065946d4f0408a18df"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/dynamic-prop-planner.mjs",
+    "sha256": "2d227cb987549ab4a5e26194292a2857e83ea3cd6cd5922749147a8d9680e0e5"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/dynamic-trajectory.mjs",
+    "sha256": "8dc977a8af9cd8c141b3599a7cb0beff35c4ded5c2a4781cf06b0e2356fa35b7"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/motion/kinematics.mjs",
+    "sha256": "c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/motion/math.mjs",
+    "sha256": "9a52990677f0445f09d18f4cf8c98b16c231215c1b5c5bc080d178f0dfc1d0b9"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/motion/polygon-domain.mjs",
+    "sha256": "778d2f02dcbdadf6787b223c27229d2c09e55e9beab8fd22e58320aa71de0f0c"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/motion/trajectory.mjs",
+    "sha256": "c004ccd88f71ff35e69fef3433e0c77b461b787d207eef45b1d8e3dd1878669e"
+  },
+  {
+    "specifier": "../../src/games/companion-yard-v2/pip-prototype/source/pip-analytical-coat.mjs",
+    "sha256": "9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241"
+  }
+]

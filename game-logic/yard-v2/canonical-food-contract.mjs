@@ -4,6 +4,7 @@ import {CANONICAL_FOOD_CONTRACT as descriptor,CANONICAL_FOOD_LOCATION,canonicalF
 import itemProtocol from './canonical-item-protocol.json' with {type:'json'};
 import {integer} from './util.mjs';
 import {canonicalStorageValid} from './canonical-locations.mjs';
+import {CANONICAL_VISIT_PRESENTATION_PROTOCOL,canonicalVisitPlacementRowsValid} from './canonical-visit-placement-contract.mjs';
 const same=(value,scope)=>Object.entries(scope).every(([k,v])=>value?.[k]===v);
 /** Fixed gameplay geometry deliberately is not a draggable HUD/legacy yardBowls anchor. */
 export function selectCanonicalFoodState(snapshot){
@@ -13,7 +14,10 @@ export function selectCanonicalFoodState(snapshot){
   ||cap.descriptorId!==descriptor.id||cap.enabled!==true||cap.coordinateSpace!==descriptor.coordinateSpace
   ||cap.presentationReady!==false||cap.runtimeActivated!==false||cap.visitAdmission!==false||!same(cap.storageLocation,itemProtocol.location))return no('CANONICAL_FOOD_LOCATION_DISABLED');
  const rows=runtime.canonicalPlacements;
- if(!canonicalStorageValid(rows,snapshot?.yard?.placedGoodies||[]))return no('CANONICAL_AUTHORITATIVE_LAYOUT_INVALID');
+ const v3=runtime.storageVersion===3&&runtime.canonicalVisitProtocol===CANONICAL_VISIT_PRESENTATION_PROTOCOL;
+ if(runtime.storageVersion!==undefined&&![1,2,3].includes(runtime.storageVersion))return no('CANONICAL_VISIT_PRESENTATION_VERSION_UNSUPPORTED');
+ if((runtime.storageVersion===3||runtime.canonicalVisitProtocol!==undefined)&&!v3)return no('CANONICAL_VISIT_PRESENTATION_VERSION_UNSUPPORTED');
+ if(!(v3?canonicalVisitPlacementRowsValid:canonicalStorageValid)(rows,snapshot?.yard?.placedGoodies||[]))return no('CANONICAL_AUTHORITATIVE_LAYOUT_INVALID');
  const occupiedSlotIds=rows.filter(p=>canonicalFoodOverlap(p.x,p.y)).map(p=>p.slotId);
  if(occupiedSlotIds.length)return no('CANONICAL_FOOD_SOCKET_OCCUPIED',{occupiedSlotIds});
  const bowls=snapshot?.yard?.bowls;

@@ -1,0 +1,361 @@
+{
+  "commit": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
+  "baseline": [
+    {
+      "path": "game-logic/yard-catalog.js",
+      "sha256": "78a2fddad699859662e6e721ac5415c6a4d8a66f95c0a79208c61fda3fd1322b",
+      "bytes": 20698,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-playzones.js",
+      "sha256": "ab0c290e76ed796a3c87cd455b838c924016bd485cb305cf09e548f2771ea3af",
+      "bytes": 4289,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-contract.json",
+      "sha256": "d1abe6d5922fa855e4f4856bc633e628b767bdd0a22402e873d02882d5cb9461",
+      "bytes": 674,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-contract.mjs",
+      "sha256": "667dd1877c20d1fa81ff0f688a862dac6bfb994667e5264ee1a0052646f05df0",
+      "bytes": 2435,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-food-protocol.mjs",
+      "sha256": "3297e848f038a5bd59ca25bbd8f5836a2079e54f0c6e563e7533590d01eeeaba",
+      "bytes": 2125,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-item-protocol.json",
+      "sha256": "8f098f5d32d70f2b06157967c094c24b04e955ba29a509181a1eb3e101be2dc4",
+      "bytes": 706,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-location-geometry.json",
+      "sha256": "13da6998467168a065adbc2431ead832d736cdea2c5067b25adfddb11cd040ba",
+      "bytes": 5716,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-locations.mjs",
+      "sha256": "f7077c1e06005aa50a3873b2c16b020f4a2aa437ce2651ca25069c1df9e201e0",
+      "bytes": 9553,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/catalog.mjs",
+      "sha256": "b157b05aea487f0e8e396d33961ecda743f4462c548ea119d68c59c54abdac40",
+      "bytes": 441,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/sha256.mjs",
+      "sha256": "2090ca5c72ac826b3147bd8db37b4cb28a746380d99e77937d3a8d1742eadabf",
+      "bytes": 3007,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "game-logic/yard-v2/util.mjs",
+      "sha256": "c29d9a42722cc0af141d6a1902680e4f74641215e9dd7200a08f107667224692",
+      "bytes": 2044,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/game-state/canonicalYardProtocol.mjs",
+      "sha256": "4694e1068ed05ca86b8ebed136c02de59262d221e7d5f8525337770bd76deafd",
+      "bytes": 5035,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-preview-gate.mjs",
+      "sha256": "22587b16bb38adc86552349289476032c8666f7d3b4c17e7df5cda446943bc8e",
+      "bytes": 1504,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/source-provenance.json",
+      "sha256": "9b3341616be1c01f4eea2220d0d3e6ecfe3cebc590040ffc1a2ce51b38bc84bc",
+      "bytes": 955,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
+      "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b",
+      "bytes": 3972384,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-food-scene.mjs",
+      "sha256": "5e5a9c6191f0de300c935eb96f251d980288e076fd3274cd51a68b1dc9c917e6",
+      "bytes": 1534,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/calibration.json",
+      "sha256": "a06c5ebb322e3fe6690868552ec9223dd55672c710f365667cfea7a882b53306",
+      "bytes": 1834,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/fixture.json",
+      "sha256": "8e39abd867f6833212d534e7cce0824d9a95cf76d5ca2aa073650528bdba1021",
+      "bytes": 10773,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/interaction-leaf-anchors.json",
+      "sha256": "a43a37be2580ca98d38c49eec3e5160d0ab8647bc8288090595d2f638e6e2c3c",
+      "bytes": 1566,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/data/location.json",
+      "sha256": "a3c8ee0cf38f2c99e60184e4f0c904fb857fa6165d892a4be366c87a12438f9e",
+      "bytes": 2729,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-navigation.mjs",
+      "sha256": "9f2da049d20e09f9fadd743149fd49cbc0572b6aeff014065946d4f0408a18df",
+      "bytes": 7152,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-controller.mjs",
+      "sha256": "a661bfd90adc55ac8ba3042d2a2ab40891742c065c76e00a5adf25892be37923",
+      "bytes": 8772,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-planner.mjs",
+      "sha256": "2d227cb987549ab4a5e26194292a2857e83ea3cd6cd5922749147a8d9680e0e5",
+      "bytes": 10630,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-worker-client.mjs",
+      "sha256": "b7d9e62020f6854b5d590e1e1f8490d62fdda8e49d7ac1897540f4db40f8adec",
+      "bytes": 1336,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-prop-worker.mjs",
+      "sha256": "9e76c6caf8a7c4320fb8bb1fa1f78349510348213622b0e8a8d2f33eb1f32979",
+      "bytes": 429,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/dynamic-trajectory.mjs",
+      "sha256": "8dc977a8af9cd8c141b3599a7cb0beff35c4ded5c2a4781cf06b0e2356fa35b7",
+      "bytes": 5501,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/fixture-clock.mjs",
+      "sha256": "40c45055c6e9248fa6af16e98213a98a8c5ab38128a7377abbdf8c35dd8d9a5b",
+      "bytes": 1242,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/fixture-scheduler.mjs",
+      "sha256": "3c64824cdba15b8ea9dd963ddcae61369b4bdd327607cd0d221c867e3b7c3935",
+      "bytes": 1687,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/grounding-recipe.mjs",
+      "sha256": "69952f142064efadff304375dcdd717bae262f8d65476133d9b94ac9a8c34a03",
+      "bytes": 2770,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/item-catalog.mjs",
+      "sha256": "9417b49caf060f2c251405a2fb151f3b20f9c3866245a33a0920cfb3f0aad30a",
+      "bytes": 514,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/kinematics.mjs",
+      "sha256": "c0c6541ad8f6ae84a6f94f6a9485b1414d80ded831e3bde934106659ef14e7e1",
+      "bytes": 5000,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/math.mjs",
+      "sha256": "9a52990677f0445f09d18f4cf8c98b16c231215c1b5c5bc080d178f0dfc1d0b9",
+      "bytes": 900,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/polygon-domain.mjs",
+      "sha256": "778d2f02dcbdadf6787b223c27229d2c09e55e9beab8fd22e58320aa71de0f0c",
+      "bytes": 5195,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/motion/trajectory.mjs",
+      "sha256": "c004ccd88f71ff35e69fef3433e0c77b461b787d207eef45b1d8e3dd1878669e",
+      "bytes": 5901,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/planter-interaction.mjs",
+      "sha256": "236687a7d4fdf89645110e9fac75ccabd84a85644f5f7d280b2c2a98fcd1e785",
+      "bytes": 9900,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/projection.mjs",
+      "sha256": "a958b595484badfbd6b3eb0b85f800e77075da81a10b367b9cb5c069367e36d0",
+      "bytes": 5034,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/adaptive-pose-driver.mjs",
+      "sha256": "31a6a1c165ec41b9951f41684a4188bb2d261e269c082250940314614125be8f",
+      "bytes": 7859,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-food.mjs",
+      "sha256": "f13687a9daf377f3a6ec1240ff8ff5d41d8b87fdc53e38f50464ab7641b5882f",
+      "bytes": 13206,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-planter.mjs",
+      "sha256": "a5cba814b61f358abca97b5c9c7bbf87f05c29a994ed646e7ce3e76e81db8c56",
+      "bytes": 4432,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "sha256": "1b6767b1a641108521d8ada64c0da871f2afe7717cef4df20a037ca7662ac5b4",
+      "bytes": 23641,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/pip-contact-shadow.mjs",
+      "sha256": "2f23791f966768ac1ed98465fce9f4ffa492efdd54dc5b626262512d598d649b",
+      "bytes": 5693,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/planter-inspection-pose.mjs",
+      "sha256": "4f46288dbecca537671439b217380502e93655b830dfce55e2d09cfd87aa22e7",
+      "bytes": 3123,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/surface-placement.mjs",
+      "sha256": "22f0f3685854831d6c80b3144765ee63020ea93c89cfb61ed553e8fe525ffc09",
+      "bytes": 3788,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/resources.mjs",
+      "sha256": "787b6a12a6efd6b6db4475b26b8bba19f8d3b67ee836a04167bdf7bf14b173a6",
+      "bytes": 4372,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/routes.mjs",
+      "sha256": "68f043aba485a22cfe162c5eb63afd56e120e0d8e7899727acfe2f2aab74aa09",
+      "bytes": 2480,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/source/pip-analytical-coat.mjs",
+      "sha256": "9d99e1475696463b68c3af04c3e0c8b0bc4b716435a227d79978f39a67ef9241",
+      "bytes": 3766,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/loaders/GLTFLoader.js",
+      "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16",
+      "bytes": 117570,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/BufferGeometryUtils.js",
+      "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797",
+      "bytes": 37712,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/SkeletonUtils.js",
+      "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f",
+      "bytes": 11535,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.core.js",
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6",
+      "bytes": 1458113,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.module.js",
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea",
+      "bytes": 662772,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/world-scale.mjs",
+      "sha256": "c4d3f2de5056f1021c9b4408c8032bea1cffc29e164e8cb8a30c377801b808a2",
+      "bytes": 735,
+      "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "sha256": "7f5b83e525d3dacc7b4cf8a4eac05d73db11a4fa5c5258f2fe6fdf6096e7eba8",
+      "bytes": 28695,
+      "exactLiveMatch": true
+    }
+  ],
+  "overlay": [
+    {
+      "path": "game-logic/yard-v2/canonical-food-contract.mjs",
+      "source": "/workspace/shared/yard-canonical-saved-visits-20261007/overlay/game-logic/yard-v2/canonical-food-contract.mjs",
+      "sha256": "a63270a1adfb28985205967171e6e65d57e9d9f1e6863912ac5fa4cb949499d5",
+      "bytes": 3002
+    },
+    {
+      "path": "game-logic/yard-v2/canonical-visit-placement-contract.mjs",
+      "source": "/workspace/shared/yard-canonical-saved-visits-20261007/overlay/game-logic/yard-v2/canonical-visit-placement-contract.mjs",
+      "sha256": "e18ca0173eada156b0a37d34ea361c8e319a9867537f8f6f68ca4590ce31ca02",
+      "bytes": 1436
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-saved-stay.mjs",
+      "source": "/workspace/shared/yard-r1-saved-visit-bridge-20261006/overlay/src/games/companion-yard-v2/pip-prototype/canonical-saved-stay.mjs",
+      "sha256": "3bdbbd8b11047ae65dc715d923381081b95c444c29ac78331cd4d000d8e244cf",
+      "bytes": 11970
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-stay-presentation.mjs",
+      "source": "/workspace/shared/yard-r1-stay-behavior-20261006/overlay/src/games/companion-yard-v2/pip-prototype/canonical-stay-presentation.mjs",
+      "sha256": "5316133d765a3634c24ea80ebba6a0b2534cc07e18019a45f3a895ffe4477b03",
+      "bytes": 16030
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-stay-routes.mjs",
+      "source": "/workspace/shared/yard-r1-stay-behavior-20261006/overlay/src/games/companion-yard-v2/pip-prototype/canonical-stay-routes.mjs",
+      "sha256": "1b02c601e45d5eb7de24d3da056d14f74ade89cbb693f0d8a9cc87f8332ab247",
+      "bytes": 8817
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/canonical-stay-runtime-adapter.mjs",
+      "source": "/workspace/shared/yard-r1-stay-behavior-20261006/overlay/src/games/companion-yard-v2/pip-prototype/canonical-stay-runtime-adapter.mjs",
+      "sha256": "867caba151292c6cf38c7d712fce40f2911cd2f7b4da2ebc427b506ab0f746c3",
+      "bytes": 2430
+    }
+  ]
+}

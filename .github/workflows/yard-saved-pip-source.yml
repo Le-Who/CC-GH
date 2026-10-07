@@ -1,0 +1,98 @@
+name: Saved Pip source and native qualification
+on:
+  push:
+    branches: ['qa/saved-pip-visit-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: saved-pip-source-20261007
+  cancel-in-progress: false
+jobs:
+  source-and-native:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: ccgh_visit_test
+          POSTGRES_DB: ccgh_visit_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 55437:5432
+        options: >-
+          --health-cmd "pg_isready -U ccgh_visit_test -d ccgh_visit_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      CI: 'true'
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      YARD_CANDIDATE_CI: ''
+      YARD_PLAYER_API_TEST: ''
+      YARD_PLAYER_WIRING_TEST: ''
+      DEV_AUTH_ENABLED: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 3
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Check reserve and immutable closed runtime boundary
+        run: |
+          df -h . /tmp
+          mkdir -p test-results/saved-visit
+          node scripts/yard-saved-pip-preflight.mjs
+      - name: Install existing locked dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+      - name: Closed policy, versioned projection and corruption guards
+        run: |
+          set -o pipefail
+          node --test tests/yard-canonical-reconciliation-closed.test.mjs tests/yard-canonical-v3-food-projection.test.mjs | tee test-results/saved-visit/closed.tap
+          node --import ./tests/fixtures/register-admission-test.mjs --test tests/yard-canonical-transaction-guards.test.mjs | tee test-results/saved-visit/guards.tap
+      - name: Genuine worker admission, reload, release and exact outcome
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-admission-test.mjs --test tests/yard-canonical-admission-real.test.mjs | tee test-results/saved-visit/admission.tap
+          node --import ./tests/fixtures/register-reconciliation-test.mjs --test --test-concurrency=1 tests/yard-canonical-reconciliation-real.test.mjs tests/yard-canonical-replay-admission-closed.test.mjs | tee test-results/saved-visit/recovery.tap
+      - name: Real two-process PostgreSQL optimistic-concurrency and restart
+        env:
+          DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test
+          YARD_SAVED_VISIT_PG: '1'
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-admission-test.mjs --test --test-concurrency=1 tests/yard-canonical-admission-postgres.test.mjs | tee test-results/saved-visit/postgres.tap
+      - name: Install official Chromium for native pixel qualification
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Qualify genuine saved plan in unchanged native renderer
+        env:
+          YARD_SOURCE_ROOT: ${{ github.workspace }}
+          YARD_ASSET_ROOT: ${{ github.workspace }}
+          YARD_DEPENDENCY_ROOT: ${{ github.workspace }}
+          YARD_OVERLAY_ROOTS: ''
+          QUALIFIED_PLAYER: ${{ github.workspace }}/test-results/saved-visit/qualified-player.json
+          QUALIFIED_SNAPSHOT: ${{ github.workspace }}/test-results/saved-visit/qualified-snapshot.json
+          YARD_VISUAL_OUTPUT: ${{ github.workspace }}/test-results/saved-visit/native
+        run: |
+          cp test-results/saved-visit/qualified-plan.json qa/saved-pip-visit/qualified-plan.json
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/prepare-inputs.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/pin-sources.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/qualify-cpu.mjs
+          node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/verify-food-projection.mjs
+          node qa/saved-pip-visit/verify-harness.mjs
+          node qa/saved-pip-visit/run-native.mjs
+          cp qa/saved-pip-visit/*-provenance.json qa/saved-pip-visit/*qualification.json qa/saved-pip-visit/food-selector-result.json qa/saved-pip-visit/source-verification.json test-results/saved-visit/
+      - name: Preserve exact evidence and failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: saved-pip-${{ github.sha }}
+          path: test-results/saved-visit/
+          if-no-files-found: error
+          retention-days: 7
