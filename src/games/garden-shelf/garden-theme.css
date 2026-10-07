@@ -27,3 +27,5 @@
 :root[data-ui-theme="dark"] :is(.gs2-shelf-viewport,.gs2-dialog-scroll,.gs2-header)::-webkit-scrollbar-track{background:#26392b}
 
 :root[data-ui-theme="dark"] .gs2-dialog{box-shadow:0 16px 60px #13271966,inset 0 0 0 1px #596b48}
+/* Long localized language names should not split in the compact settings row. */
+.gs2-dialog[data-garden-panel="settings"] .gs2-action-row>.gs2-button{padding-inline:4px}

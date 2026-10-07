@@ -99,6 +99,7 @@ for(const [width,height] of [[320,568],[844,390]])test(`Russian labels and theme
  await page.screenshot({path:`${OUT}/${width}x${height}-home-ru.png`});
  await page.locator('.home-profile summary').click();await page.getByRole('button',{name:'Переключить на темную тему',exact:true}).click();
  await page.getByRole('button',{name:'Закрыть главную',exact:true}).click();await page.locator('.gs2-settings').click();
+ await expect.poll(()=>page.getByRole('button',{name:'Английский',exact:true}).locator('.gs2-button-content').evaluate(el=>el.getBoundingClientRect().height<=parseFloat(getComputedStyle(el).lineHeight)+1)).toBe(true);
  await expect(page.getByRole('button',{name:'Тёмная тема',exact:true})).toHaveAttribute('aria-pressed','true');
  await page.getByRole('button',{name:'Светлая тема',exact:true}).click();await expect(page.locator('html')).toHaveAttribute('data-ui-theme','light');
  await page.screenshot({path:`${OUT}/${width}x${height}-garden-settings-ru.png`});
