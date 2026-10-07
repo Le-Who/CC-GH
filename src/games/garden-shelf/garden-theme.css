@@ -1,0 +1,31 @@
+/* UI-only theme adapter. Scene art, plants and shelf geometry retain their
+   authored colors. Scope includes body-portaled Garden dialogs. */
+:root[data-ui-theme="dark"] :is(.gs2-stage,.gs2-modal-layer){
+  --gs2-ink:#edf2e5;--gs2-muted:#c0ccb4;--gs2-focus:#a7d2ff;
+  --gs2-panel-image:none;--gs2-button-image:none;color:var(--gs2-ink);
+}
+:root[data-ui-theme="dark"] .gs2-stage{background-color:#263d2b}
+:root[data-ui-theme="dark"] :is(.gs2-metric,.gs2-dialog,.gs2-button,.gs2-r2-card,.gs2-quest-card,.gs2-catalog-row,.gs2-expansion){background-color:#2c3e2e;color:var(--gs2-ink);border-color:transparent;border-image:none;box-shadow:inset 0 0 0 1px #596b48}
+:root[data-ui-theme="dark"] .gs2-metric:disabled{background:#2c3e2e!important;color:var(--gs2-ink)!important}
+:root[data-ui-theme="dark"] .gs2-home{background:#2c3e2e!important;border-color:#596b48!important;color:var(--gs2-ink)}
+:root[data-ui-theme="dark"] .gs2-stage[data-gs2-arrangement=side] .gs2-header{background:#25392b;border-color:#596b48}
+:root[data-ui-theme="dark"] .gs2-spot{border-image:none;background:transparent}
+:root[data-ui-theme="dark"] .gs2-spot:not(.gs2-empty)>h3{background:rgba(30,48,33,.9);color:#edf2e5}
+:root[data-ui-theme="dark"] :is(.gs2-empty-target,.gs2-detail-tap,.gs2-detail-stat,.gs2-reward){background:#304632;color:var(--gs2-ink);border-color:#738766}
+:root[data-ui-theme="dark"] :is(.gs2-button.gs2-primary,.gs2-details){background:#486738;color:#fff8e0;border-color:transparent;box-shadow:inset 0 0 0 1px #829b63}
+:root[data-ui-theme="dark"] :is(.gs2-stage,.gs2-modal-layer) button:disabled{color:#bec9b5;background-color:#3d4d38;filter:none}
+:root[data-ui-theme="dark"] :is(.gs2-rail-help,.gs2-kicker,.gs2-quest-card p,.gs2-quest-card small,.gs2-catalog-row p,.gs2-catalog-row small,.gs2-empty-state,.gs2-pending,.gs2-reward span,.gs2-plant-state small){color:var(--gs2-muted)}
+:root[data-ui-theme="dark"] .gs2-status{background:#26392b;color:#d6e4c6}
+:root[data-ui-theme="dark"] :is(.gs2-status[role=alert],.gs2-error-banner,.gs2-danger){background:#503b29;color:#ffdec1;border-color:#ac8663}
+:root[data-ui-theme="dark"] .gs2-progress{background:#526046}
+:root[data-ui-theme="dark"] .gs2-progress>i{background:#aac775}
+:root[data-ui-theme="dark"] .gs2-dialog-heading{border-color:#657455}
+:root[data-ui-theme="dark"] .gs2-name input{background:#273e2d;color:#edf2e5;border-color:#95ad79}
+:root[data-ui-theme="dark"] .gs2-water-ready{background:#314e3a;border-color:#9dbf94}
+:root[data-ui-theme="dark"] :is(.gs2-shelf-viewport,.gs2-dialog-scroll,.gs2-header){scrollbar-color:#8ca47a #26392b}
+:root[data-ui-theme="dark"] :is(.gs2-shelf-viewport,.gs2-dialog-scroll,.gs2-header)::-webkit-scrollbar-thumb{background:#8ca47a;border-color:#26392b}
+:root[data-ui-theme="dark"] :is(.gs2-shelf-viewport,.gs2-dialog-scroll,.gs2-header)::-webkit-scrollbar-track{background:#26392b}
+
+:root[data-ui-theme="dark"] .gs2-dialog{box-shadow:0 16px 60px #13271966,inset 0 0 0 1px #596b48}
+/* Long localized language names should not split in the compact settings row. */
+.gs2-dialog[data-garden-panel="settings"] .gs2-action-row>.gs2-button{padding-inline:4px}

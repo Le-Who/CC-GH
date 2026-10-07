@@ -1,3 +1,5 @@
+import {getBubboNeighbors} from '../../game-core/bubbo/engine.js';
+
 /** Presentation-only timing. Never imported by the aim, flight or game engine. */
 export const BUBBO_FX_LIMITS = Object.freeze({
   maxEffects: 32,
@@ -120,4 +122,34 @@ export function sampleBubboEffect(effect) {
   };
   return { visible, waiting, progress, alpha: visible ? 1 - progress : 0,
     scale: 1 + Math.sin(Math.PI * clamp(progress / .32)) * .08, x: 0, y: 0, rotation: 0 };
+}
+
+
+/** Immediate survivors only: no board displacement, random calls or chain propagation. */
+export function createBubboNeighborReactions(shot, {board = [], pendingRow = [], rowOffset = 0, reducedMotion = false} = {}) {
+  if (!shot || reducedMotion || shot.shifted || shot.recovered) return [];
+  const origins = [...(shot.popped || []), shot.landed].filter(validCell);
+  const excluded = new Set([...origins, ...(shot.dropped || []).filter(validCell)].map(cellKey));
+  const reactions = [];
+  const seen = new Set();
+  for (const origin of origins) {
+    for (const [row, col] of getBubboNeighbors(origin.row, origin.col, rowOffset, {includePendingRow: true})) {
+      const key = cellKey({row, col});
+      const color = row === -1 ? pendingRow[col] : board[row]?.[col];
+      if (!color || excluded.has(key) || seen.has(key)) continue;
+      seen.add(key);
+      reactions.push({row, col, color, kind: 'neighbor', age: 0, delay: 0, duration: 360,
+        direction: (row + col) % 2 ? 1 : -1});
+      if (reactions.length === 6) return reactions;
+    }
+  }
+  return reactions;
+}
+
+export function sampleBubboNeighborReaction(effect) {
+  const progress = clamp(effect.age / effect.duration);
+  if (progress === 0 || progress === 1) return {rotation: 0, scale: 1};
+  const envelope = Math.sin(Math.PI * progress) ** 2;
+  return {rotation: Math.sin(2 * Math.PI * progress) * envelope * .06 * effect.direction,
+    scale: 1 + envelope * .025};
 }

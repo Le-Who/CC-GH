@@ -38,6 +38,7 @@ import { useEscapeDismiss } from "./app/useDismissableLayer.js";
 import { HomeCatalogue } from './app/HomeCatalogue.jsx';
 import { OPEN_HOME_EVENT, isHomeLeaveReady, leaveGameForHome } from './app/homeNavigation.js';
 import { createHomeHistoryLayer, installHomeHistoryGuard, markHomeHistoryEntry } from './app/homeHistory.js';
+import { UiThemeContext } from "./app/uiThemeContext.js";
 import { HomeVisibilityContext } from './app/homeContext.js';
 import { useTelegramGameNavigation } from "./platform/useTelegramGameNavigation.js";
 import { HudEditableRegion, HudLayoutProvider, HudPreviewSurface, HudRegion } from "./app/hud-layout/index.js";
@@ -162,6 +163,10 @@ export default function App() {
       explicit: true,
     }));
   }, []);
+  const setUiTheme = useCallback((theme) => {
+    if (theme === "light" || theme === "dark") setUiThemePreference({ theme, explicit: true });
+  }, []);
+  const uiThemeContext = useMemo(() => ({ theme: uiTheme, setTheme: setUiTheme }), [uiTheme, setUiTheme]);
   const closeHome = useCallback(async () => {
     if (switchLock.current) return;
     await homeHistory.current?.close();
@@ -397,6 +402,7 @@ export default function App() {
 
   return (
     <AppI18nContext.Provider value={i18nValue}>
+      <UiThemeContext.Provider value={uiThemeContext}>
       <HudLayoutProvider gameId={activeTab} buildId={config?.buildId || ""}>
         <HudPreviewSurface>
           <main
@@ -447,6 +453,7 @@ export default function App() {
         </HudPreviewSurface>
         {!homeOpen && <HudEditorOverlay />}
       </HudLayoutProvider>
+      </UiThemeContext.Provider>
     </AppI18nContext.Provider>
   );
 }

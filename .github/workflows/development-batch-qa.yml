@@ -1,0 +1,77 @@
+name: Exact live-base development fixes qualification
+on:
+  push:
+    branches: ['qa/development-fixes-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: development-fixes-20261007
+  cancel-in-progress: false
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 24
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: privacy_test
+          POSTGRES_DB: privacy_test
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports: ['55439:5432']
+        options: >-
+          --health-cmd "pg_isready -U privacy_test -d privacy_test"
+          --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      NODE_ENV: test
+      CI: 'true'
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      VITE_YARD_PIP_PREVIEW: 'true'
+      VITE_YARD_SAVED_VISITS: 'false'
+      VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify exact reviewed live-base closure before dependencies
+        run: |
+          git fetch --no-tags --depth=1 origin aa43b9167c0af475bec294878d55bcb95a4ff244
+          node qa/development-batch/preflight.mjs
+      - name: Install existing locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Privacy, shared-state, field and framing contracts
+        run: |
+          set -o pipefail
+          node --test tests/leaderboard-privacy.test.mjs tests/profile-nickname-fence.test.mjs tests/trivia-public-privacy.test.mjs tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/auth.test.js tests/arcade-reward-once.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/garden-r2-store.test.mjs tests/home-game-copy.test.mjs tests/yard-initial-framing.test.mjs tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/bubbo-loss-boundary.test.js tests/bubbo-neighbor-reaction.test.js tests/bubbo-recovery-differential.test.js | tee test-results/development-batch/contracts.tap
+      - name: Actual disposable PostgreSQL nickname and public-name projection
+        env:
+          DATABASE_URL: postgres://privacy_test@127.0.0.1:55439/privacy_test
+          LEADERBOARD_PRIVACY_PG: '1'
+        run: |
+          set -o pipefail
+          node --test tests/leaderboard-privacy-postgres.test.mjs | tee test-results/development-batch/privacy-postgres.tap
+      - name: Check exact combined browser test collection
+        run: pnpm exec playwright test --config playwright.development-batch.config.mjs --list
+      - run: pnpm exec playwright install --with-deps chromium
+      - name: One production build with live flags and combined ordinary-app probes
+        run: |
+          set -o pipefail
+          DEBUG=pw:webserver pnpm exec playwright test --config playwright.development-batch.config.mjs 2>&1 | tee test-results/development-batch/browser-build.log
+      - name: Preserve exact build and all failures
+        if: always()
+        run: |
+          mkdir -p test-results/development-batch
+          git rev-parse HEAD > test-results/development-batch/source-commit.txt
+          test ! -f dist/.vite/manifest.json || cp dist/.vite/manifest.json test-results/development-batch/vite-manifest.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: development-fixes-${{ github.sha }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: error

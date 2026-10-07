@@ -3,6 +3,8 @@ import { BUBBO_POWERUP_CHARGES, normalizeBubboPowerups } from "../../../game-log
 
 export const BUBBO_ROWS = 11;
 export const BUBBO_COLS = 9;
+// First occupied row that ends a run; shared with the visual loss boundary.
+export const BUBBO_DANGER_ROW = BUBBO_ROWS - 2;
 export const BUBBO_START_ROWS = 5;
 export const BUBBO_SHOTS = 36;
 export const BUBBO_TIMED_SECONDS = 90;
@@ -296,13 +298,13 @@ export function getBubboRemainingCount(board = []) {
 }
 
 export function isBubboDanger(board = []) {
-  return board[BUBBO_ROWS - 2]?.some(Boolean) || board[BUBBO_ROWS - 1]?.some(Boolean) || false;
+  return board[BUBBO_DANGER_ROW]?.some(Boolean) || board[BUBBO_ROWS - 1]?.some(Boolean) || false;
 }
 
 export function getBubboDangerRows(board = []) {
   const normalized = normalizeBubboBoard(board);
   let dangerRows = 0;
-  for (let row = BUBBO_ROWS - 2; row < BUBBO_ROWS; row += 1) {
+  for (let row = BUBBO_DANGER_ROW; row < BUBBO_ROWS; row += 1) {
     if (normalized[row]?.some(Boolean)) dangerRows += 1;
   }
   return dangerRows;
@@ -752,3 +754,4 @@ export function resolveBubboPowerup(state = {}, powerup, row, col, fallbackColor
     overflow: !!recovered.overflow,
   };
 }
+

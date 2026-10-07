@@ -3,7 +3,7 @@ import{GARDEN_RASTER}from'./resources.mjs';
 /** Separate inactive canonical domain. Never accepts or converts saved M2 XY. */
 export const CLEAN_STAGE_MIN=Object.freeze({width:280,height:192});
 export const supportsCleanViewport=(width,height)=>Number.isFinite(width)&&Number.isFinite(height)&&width>=CLEAN_STAGE_MIN.width&&height>=CLEAN_STAGE_MIN.height;
-export function createCleanProjection(descriptor,width,height,{focus=null}={}){
+export function createCleanProjection(descriptor,width,height,{focus=null,framing='focus',contextPoints=[]}={}){
  if(descriptor.id!=='pip-clean-garden-prototype-v1'||![width,height].every(x=>Number.isFinite(x)&&x>0))throw Error('Invalid clean-location viewport');
  const c=descriptor.camera,scale=Math.min(width/390,1),left=(width-390*scale)/2;let top=height>=648*scale?(height-648*scale)/2:Math.max(height-648*scale,Math.min(0,height/2-362*scale));
  if(!supportsCleanViewport(width,height))throw Error('Prototype stage requires at least 280×192 CSS pixels');
@@ -13,6 +13,18 @@ export function createCleanProjection(descriptor,width,height,{focus=null}={}){
   const center=(c.projectionOriginCss[1]+q.reduce((sum,v,i)=>sum+v*c.down[i],0)*c.pixelsPerSceneUnitCss)*scale;
   const artHeight=descriptor.background.height/descriptor.background.width*390*scale;
   top=height>=artHeight?(height-artHeight)/2:Math.max(height-artHeight,Math.min(0,height/2-center));
+ }
+ // Top-biased framing reveals as much upper decoration as the usable stage
+ // allows while keeping the selected item and fixed gameplay context visible.
+ // This changes only the shared CSS crop; the camera/raster and world stay fixed.
+ if(framing==='top-biased'){
+  const points=[focus,...contextPoints].filter(p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.y));
+  const bottoms=points.map(p=>{
+   const q=[p.x-c.projectionOriginCanonical[0],p.y-c.projectionOriginCanonical[1],p.z??0].map(v=>v/CANONICAL_PER_SCENE_UNIT);
+   return(c.projectionOriginCss[1]+q.reduce((sum,v,i)=>sum+v*c.down[i],0)*c.pixelsPerSceneUnitCss+(p.paddingCss??24))*scale;
+  });
+  const artHeight=descriptor.background.height/descriptor.background.width*390*scale;
+  top=Math.max(Math.min(0,height-artHeight),Math.min(0,height-Math.max(0,...bottoms)));
  }
  const project=p=>{
   const q=[p.x-c.projectionOriginCanonical[0],p.y-c.projectionOriginCanonical[1],p.z??0].map(x=>x/CANONICAL_PER_SCENE_UNIT);

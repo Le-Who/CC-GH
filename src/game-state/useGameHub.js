@@ -1,3 +1,4 @@
+import { isExpectedGardenTapCooldown } from '../games/garden-shelf/lib/gardenActionFeedback.js';
 import { create } from "zustand";
 import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,canonicalCommandScope,canonicalNoncePrefix,canonicalReplayCapability,canonicalSupersededReceipt,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
 import { readYardOutbox, writeYardOutbox } from "./yardOutboxStorage.js";
@@ -280,7 +281,7 @@ export const useGameHub = create((set, get) => ({
         return {
           busy,
           snapshot: errorView === state.snapshot ? state.snapshot : { ...errorView, receivedAt: Date.now() },
-          message: result.error,
+          message: isExpectedGardenTapCooldown(action, payload, result.error) ? '' : result.error,
           lastResult: result,
         };
       }
