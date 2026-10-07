@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import express from 'express';
+import batchRoutes from '../routes/batch.js';
 import leaderboardRoutes from '../routes/leaderboard.js';
 import {publicDisplayName, publicLeaderboardEntry, validateNickname} from '../game-logic/public-profile.js';
 import {publicLeaderboardName} from '../src/app/publicLeaderboardName.js';
@@ -36,7 +37,7 @@ function fixture() {
     row.nickname=player.publicProfile.nickname;
     return result;
   };
-  const app=express();app.use(express.json());app.use(leaderboardRoutes(requireAuth,resolveUser,{getDb:()=>sql,withPlayerLock:lock}));
+  const app=express();app.use(express.json());app.use(leaderboardRoutes(requireAuth,resolveUser,{getDb:()=>sql,withPlayerLock:lock}));app.use(batchRoutes(requireAuth,resolveUser,0,app));
   return {app,players,scoreReads:()=>scoreReads};
 }
 async function withServer(fn) {
@@ -113,4 +114,10 @@ test('empty scores stay empty and legacy invalid nickname never revives stored h
   assert.equal((await request('/api/leaderboard?lang=ru')).json[0].displayName,'Игрок');
   players.clear();
   assert.deepEqual((await request('/api/blox/leaderboard')).json,[]);
+}));
+
+test('batch transport uses the same private public projection',async()=>withServer(async({request})=>{
+ const result=await request('/api/batch','acct:one',{requests:[{id:'match3',path:'/api/leaderboard'},{id:'blox',path:'/api/blox/leaderboard'}]});
+ assert.equal(result.status,200);assert.equal(result.json.results.length,2);
+ for(const item of result.json.results){assert.equal(item.status,200);assertPrivate(item.data);assert.equal(item.data[0].isSelf,true);}
 }));
