@@ -3,6 +3,7 @@
 import {test,expect} from '@playwright/test';
 import fs from 'node:fs/promises';
 import {openHome} from '../e2e/helpers/home.js';
+import {assertNormalYardRoute} from '../helpers/yard-normal-entry-route.mjs';
 import {mountHomePlayerFixture} from '../e2e/helpers/homePlayerFixture.js';
 import geometry from '../../game-logic/yard-v2/canonical-location-geometry.json' with {type:'json'};
 const OUT='test-results/development-batch/yard-framing';
@@ -49,7 +50,8 @@ for(const [width,height,mobile] of [[612,982,false],[320,568,true],[568,320,true
   await page.locator('[data-home-game="room"]').click();await expect(page.locator('.cy-app')).toBeVisible();
   await expect(page.locator('[data-yard-action="open-canonical-yard"]')).toBeEnabled();await page.locator('[data-yard-action="open-canonical-yard"]').click();
   await expect.poll(async()=>{const s=await readScene(page);return s?.ready===true&&!s.viewportBlocked&&s.lastFrame?.canonicalState==='ready'&&s.canonicalFood?.loading===false&&s.renderer?.canonicalFood?.pending===0;},{timeout:30000}).toBe(true);
-  expect(new URL(page.url()).search).toBe('');
+  proof.normalEntryRoute=assertNormalYardRoute(page.url());
+  await expect(page.locator('.telegram-app')).toHaveAttribute('data-active-tab','room');
   await expect(page.locator('.cy-app')).toHaveAttribute('data-canonical-items','true');
   const empty=await capture(page,proof,'empty-default');expect(empty.scene.canonicalRecords).toHaveLength(0);
   expect(empty.dom.horizontalOverflow).toBe(false);expect(empty.dom.canvas.width).toBeCloseTo(empty.scene.projection.width,1);expect(empty.dom.canvas.height).toBeCloseTo(empty.scene.projection.height,1);
@@ -67,6 +69,11 @@ for(const [width,height,mobile] of [[612,982,false],[320,568,true],[568,320,true
   await transact(page,'yard.placeGoodie',()=>page.locator('[data-yard-action="commit-placement"]').click());
   await expect.poll(async()=>(await readScene(page))?.canonicalRecords?.length).toBe(1);
   await expect.poll(async()=>{const s=await readScene(page);return s?.lastFrame?.visibility==='both'&&s.lastFrame?.committed===true;},{timeout:20000}).toBe(true);
+  // Placement updates layout; inspection starts only via the actual control.
+  await page.locator('[data-nav-item="decor"]').click();await page.locator('[data-decor-tab="placed"]').click();
+  await page.locator('.cy-catalog-choice[data-goodie-id="leaf_pot"]').click();
+  await expect(page.locator('[data-pip-control="inspect-selected"]')).toBeEnabled();
+  await page.locator('[data-pip-control="inspect-selected"]').click();await expect(page.locator('.cy-dialog')).not.toBeVisible();
   for(let i=0;i<4;i++){await capture(page,proof,`one-pot-motion-${i}`);await page.waitForTimeout(650);}
   await expect.poll(async()=>{const s=await readScene(page);return ['inspecting','settled'].includes(s?.interaction?.phase);},{timeout:25000}).toBe(true);
   const placed=await capture(page,proof,'one-pot-interaction');expect(placed.dom.horizontalOverflow).toBe(false);

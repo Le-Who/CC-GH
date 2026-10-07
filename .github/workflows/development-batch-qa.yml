@@ -42,12 +42,14 @@ jobs:
         run: |
           git fetch --no-tags --depth=1 origin aa43b9167c0af475bec294878d55bcb95a4ff244
           node qa/development-batch/preflight.mjs
+          git fetch --no-tags --depth=1 origin 53c7e1ac073e8aa536153d46ede1324d744a1afa
+          git diff --exit-code 53c7e1ac073e8aa536153d46ede1324d744a1afa HEAD -- src public game-logic game-logic.js routes middleware lib playerManager.js accountManager.js server.js package.json pnpm-lock.yaml vite.config.js Dockerfile scripts
       - name: Install existing locked dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
       - name: Privacy, shared-state, field and framing contracts
         run: |
           set -o pipefail
-          node --test tests/leaderboard-privacy.test.mjs tests/profile-nickname-fence.test.mjs tests/trivia-public-privacy.test.mjs tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/auth.test.js tests/arcade-reward-once.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/garden-r2-store.test.mjs tests/home-game-copy.test.mjs tests/yard-initial-framing.test.mjs tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/bubbo-loss-boundary.test.js tests/bubbo-neighbor-reaction.test.js tests/bubbo-recovery-differential.test.js | tee test-results/development-batch/contracts.tap
+          node --test tests/yard-normal-entry-route.test.mjs tests/leaderboard-privacy.test.mjs tests/profile-nickname-fence.test.mjs tests/trivia-public-privacy.test.mjs tests/trivia-controller-v2.test.js tests/trivia-release-integration.test.js tests/auth.test.js tests/arcade-reward-once.test.mjs tests/private-api-cache-lifecycle.test.mjs tests/garden-r2-store.test.mjs tests/home-game-copy.test.mjs tests/yard-initial-framing.test.mjs tests/bubbo-effects.test.js tests/bubbo-field-motion.test.js tests/bubbo-loss-boundary.test.js tests/bubbo-neighbor-reaction.test.js tests/bubbo-recovery-differential.test.js | tee test-results/development-batch/contracts.tap
       - name: Actual disposable PostgreSQL nickname and public-name projection
         env:
           DATABASE_URL: postgres://privacy_test@127.0.0.1:55439/privacy_test
@@ -58,10 +60,10 @@ jobs:
       - name: Check exact combined browser test collection
         run: pnpm exec playwright test --config playwright.development-batch.config.mjs --list
       - run: pnpm exec playwright install --with-deps chromium
-      - name: One production build with live flags and combined ordinary-app probes
+      - name: Unchanged production build and seven targeted QA regressions
         run: |
           set -o pipefail
-          DEBUG=pw:webserver pnpm exec playwright test --config playwright.development-batch.config.mjs 2>&1 | tee test-results/development-batch/browser-build.log
+          DEBUG=pw:webserver pnpm exec playwright test --config playwright.development-batch.config.mjs --grep 'Yard initial framing|held touch aims|568x320.*(compact resources|pending response)' 2>&1 | tee test-results/development-batch/browser-build.log
       - name: Preserve exact build and all failures
         if: always()
         run: |

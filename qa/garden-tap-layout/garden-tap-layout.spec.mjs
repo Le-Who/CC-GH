@@ -19,16 +19,22 @@ async function initialize(page, language = 'en') {
   await page.addInitScript(({ user, language }) => { localStorage.setItem('gh_dev_user_id', user); localStorage.setItem('garden_shelf_language', language); }, { user, language });
   return user;
 }
-async function fixture(page, initial, { loseFirstPurchase = false, loseFirstSale = false, delayPurchase = false } = {}) {
+async function fixture(page, initial, { loseFirstPurchase = false, loseFirstSale = false, delayPurchase = false, holdTendResponseNumber = 0 } = {}) {
   const requests = [], receipts = [], state = { current: initial, serverNow: Date.now(), forcedError: null }; let lost = false;
   await page.route(/\/api\/player\/snapshot(?:\?.*)?$/, route => route.fulfill({ contentType: 'application/json', body: JSON.stringify(buildSnapshot(state.current)) }));
   await page.route('**/api/player/mutate', async route => {
     const body = route.request().postDataJSON(); requests.push(body);
     if (delayPurchase && body.payload?.command === 'buyPlant') await new Promise(resolve => setTimeout(resolve, 350));
     const result = state.forcedError && body.payload?.command === 'tend' ? {status:409,body:{error:state.forcedError}} : await applyActionWithReceipt(state.current, body.action, body.payload || {}, { clientActionId: body.clientActionId, serverNow: state.serverNow });
-    receipts.push({ command: body.payload?.command, result: result.body });
+    const receipt = { command: body.payload?.command, result: result.body, recordedAt: Date.now(), fulfilledAt: null };receipts.push(receipt);
+    if (body.payload?.command === 'tend' && receipts.filter(row => row.command === 'tend').length === holdTendResponseNumber) {
+      state.heldTendResponse = true;
+      await new Promise(resolve => { state.releaseHeldTendResponse = resolve; });
+      state.heldTendResponse = false;
+    }
     if (((loseFirstPurchase && body.payload?.command === 'buyPlant') || (loseFirstSale && body.payload?.command === 'sellPlant')) && !lost && !result.body.error) { lost = true; await route.abort('failed'); return; }
     await route.fulfill({ status: result.status, contentType: 'application/json', body: JSON.stringify(result.body) });
+    receipt.fulfilledAt = Date.now();
   });
   return { requests, state, receipts };
 }
@@ -36,6 +42,20 @@ async function boot(page) {
   await page.goto('/?tab=garden'); await expect(page.locator('.gs2-stage')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Garden progress', exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).some(key => key.startsWith('game_hub_garden_r2_intents_v1:') && JSON.parse(localStorage.getItem(key)).nextSequence >= 2))).toBe(true);
+}
+
+
+// A fixture receipt precedes route delivery, journal settlement and release of
+// the Provider's busy gate. Wait for the actual account command to finish before
+// expecting another key press to create a distinct server request.
+async function waitForGardenCommandSettled(page, accountId) {
+  await expect.poll(() => page.evaluate(async id => {
+    const raw = localStorage.getItem(`game_hub_garden_r2_intents_v1:${encodeURIComponent(id)}`);
+    if (!raw || JSON.parse(raw).pending !== null) return false;
+    const locks = await navigator.locks.query();
+    const name = `garden-r2-accounting:${id}`;
+    return ![...locks.held, ...locks.pending].some(lock => lock.name === name);
+  }, accountId), { message: 'Garden account command must settle before the next sequential key press' }).toBe(true);
 }
 
 for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720]]) test.describe(`${width}x${height}`,()=>{
@@ -79,17 +99,19 @@ for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],
   // This boot checks the same live provider without an English-only locator.
   await page.goto('/?tab=garden');const target=page.locator('[data-plant-id="saved-daisy"] .gs2-plant-target');await expect(target).toBeEnabled();
   await expect.poll(()=>receipts.some(r=>r.command==='resume'&&r.result.receiptConfirmed)).toBe(true);
-  await target.focus();await page.keyboard.press('Enter');
+  await target.focus();await waitForGardenCommandSettled(page,p.id);await expect(target).toBeFocused();await page.keyboard.press('Enter');
   await expect.poll(()=>receipts.filter(r=>r.command==='tend').length).toBe(1);
   await expect(target.locator('..')).toHaveAttribute('data-gs2-tapped','true');
   expect(state.current.resources.gold).toBe(initialGold+1);
   for(let count=2;count<=4;count++){
+   await waitForGardenCommandSettled(page,p.id);await expect(target).toBeFocused();await expect(target).toBeEnabled();
    await page.keyboard.press('Enter');await expect.poll(()=>receipts.filter(r=>r.command==='tend').length).toBe(count);
    expect(receipts.filter(r=>r.command==='tend').at(-1).result.error).toBe('GARDEN_R2_TAP_COOLDOWN');
    await expect(page.locator('body')).not.toContainText('GARDEN_R2_TAP_COOLDOWN');
    await expect(page.locator('.gs2-status')).toHaveAttribute('role','status');
   }
   expect(state.current.resources.gold).toBe(initialGold+1);
+  await waitForGardenCommandSettled(page,p.id);await expect(target).toBeFocused();
   state.serverNow+=500;await page.keyboard.press('Enter');await expect.poll(()=>state.current.resources.gold).toBe(initialGold+2);
   await expect(page.locator('[data-garden-gold]')).toContainText('10,002');
   await expect(page.locator('[data-garden-gold]')).toHaveAccessibleName(language==='ru'?'Золото: 10,002 · 8 золота/мин':'Gold: 10,002 · 8 gold/min');
@@ -105,6 +127,7 @@ for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],
   });
   await testInfo.attach('layout-and-throttle',{body:JSON.stringify({language,layout,receipts:receipts.map(r=>({command:r.command,error:r.result.error,confirmed:r.result.receiptConfirmed})),gold:state.current.resources.gold}),contentType:'application/json'});
   await testInfo.attach('clean-layout',{body:await page.screenshot(),contentType:'image/png'});expect(layout.failures).toEqual([]);
+  await waitForGardenCommandSettled(page,p.id);await expect(target).toBeFocused();
   state.forcedError='GARDEN_R2_PLANT_NOT_FOUND';await page.keyboard.press('Enter');
   await expect(page.locator('.gs2-status')).toHaveAttribute('role','alert');
   expect(state.current.resources.gold).toBe(initialGold+2);
@@ -129,6 +152,40 @@ for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],
   await testInfo.attach('detail-layer-scroll',{body:JSON.stringify(evidence),contentType:'application/json'});
   expect(evidence.coin).toBeGreaterThanOrEqual(0);expect(evidence.canvas).toBeGreaterThan(evidence.coin);expect(evidence.withinTarget).toBe(true);expect(evidence.after).toBeGreaterThan(evidence.before);expect(evidence.retired).toBe(true);
   state.serverNow+=500;await target.click();await feedback.waitFor();await dialog.locator('.gs2-close').click();await expect(dialog).toHaveCount(0);await expect(page.locator('.gs2-tap-feedback')).toHaveCount(0);
+ });
+
+ if(width===568) test('a pending response coalesces an overlapping key before the next settled tend',async({page},testInfo)=>{
+  await initialize(page);const p=player();const initialGold=p.resources.gold;
+  const {state,receipts}=await fixture(page,p,{holdTendResponseNumber:3});
+  const tends=()=>receipts.filter(row=>row.command==='tend');
+  try{
+   await boot(page);const target=page.locator('[data-plant-id="saved-daisy"] .gs2-plant-target');await target.focus();
+   for(let count=1;count<=2;count++){
+    await waitForGardenCommandSettled(page,p.id);await expect(target).toBeFocused();await page.keyboard.press('Enter');
+    await expect.poll(()=>tends().length).toBe(count);await waitForGardenCommandSettled(page,p.id);
+   }
+   await page.keyboard.press('Enter');await expect.poll(()=>tends().length).toBe(3);
+   expect(state.heldTendResponse).toBe(true);await expect(target).toBeFocused();await expect(target).toBeEnabled();
+   const held=await page.evaluate(async id=>({
+    observedAt:Date.now(),pending:JSON.parse(localStorage.getItem(`game_hub_garden_r2_intents_v1:${encodeURIComponent(id)}`)).pending,
+    locks:await navigator.locks.query(),
+    focusedPlant:document.activeElement.closest('[data-plant-id]')?.dataset.plantId,
+    disabled:document.activeElement.disabled
+   }),p.id);
+   expect(held.pending.payload.command).toBe('tend');expect(held.focusedPlant).toBe('saved-daisy');expect(held.disabled).toBe(false);
+   expect(held.locks.held.some(lock=>lock.name===`garden-r2-accounting:${p.id}`)).toBe(true);
+   // The response is still withheld, so this input is definitively inside the
+   // actual Provider busy window. It must not queue another monetary intent.
+   const overlapPressedAt=Date.now();await page.keyboard.press('Enter');expect(tends()).toHaveLength(3);
+   const releasedAt=Date.now();state.releaseHeldTendResponse();await waitForGardenCommandSettled(page,p.id);const settledAt=Date.now();
+   expect(tends()).toHaveLength(3);
+   await expect(target).toBeFocused();await page.keyboard.press('Enter');await expect.poll(()=>tends().length).toBe(4);
+   await waitForGardenCommandSettled(page,p.id);
+   expect(tends().slice(1).map(row=>row.result.error)).toEqual(Array(3).fill('GARDEN_R2_TAP_COOLDOWN'));
+   expect(state.current.resources.gold).toBe(initialGold+1);
+   await expect(page.locator('body')).not.toContainText('GARDEN_R2_TAP_COOLDOWN');
+   await testInfo.attach('pending-response-boundary',{body:JSON.stringify({held,overlapPressedAt,releasedAt,settledAt,serverReceipts:tends().map(row=>({command:row.command,recordedAt:row.recordedAt,fulfilledAt:row.fulfilledAt,error:row.result.error,receiptConfirmed:row.result.receiptConfirmed})),gold:state.current.resources.gold}),contentType:'application/json'});
+  }finally{state.releaseHeldTendResponse?.();}
  });
 
 });

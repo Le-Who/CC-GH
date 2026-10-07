@@ -24,9 +24,9 @@
   "files": [
     {
       "path": ".github/workflows/development-batch-qa.yml",
-      "sha256": "423933300de6ae25c6494b3788e012cf31adad4962444c2b331bde69a2b48dcc",
-      "bytes": 3632,
-      "gitBlob": "9a93e114ed9cb7b6398cecf45f7807fe31a89f94"
+      "sha256": "e05d33ee50506d81b090b908c7e338d53c20ff1efa66134d5a199790099f9396",
+      "bytes": 4087,
+      "gitBlob": "bf74561b2e9421fbdac787d6447771244e402307"
     },
     {
       "path": "accountManager.js",
@@ -120,9 +120,9 @@
     },
     {
       "path": "qa/garden-tap-layout/garden-tap-layout.spec.mjs",
-      "sha256": "68fe618918a7097b7a683ecb9fe5ac885f20c3490886ce731873fa0a2862fd34",
-      "bytes": 12957,
-      "gitBlob": "e1d3276369f0da2a6907bb9c01db2e03e6b0b91d"
+      "sha256": "9f0727f01cafca02bb92be163dde6d5ecf9688dae221aeac932bbe57653f5bea",
+      "bytes": 17348,
+      "gitBlob": "adb9a904c79079ca2cdf913297c74df226af5b19"
     },
     {
       "path": "routes/leaderboard.js",
@@ -366,21 +366,27 @@
     },
     {
       "path": "tests/development-batch-e2e/bubbo-touch.spec.mjs",
-      "sha256": "25b2a58d333c934493252a06445c0a14fc5a1006b2cc857fb743e70d3a6567a9",
-      "bytes": 7331,
-      "gitBlob": "d4b360c3701f4d15ae351e4c8df178fa3c38c1bd"
+      "sha256": "9066e5739083ca61f7e0573a4107f96cdb374a2402027de2313b7ba12eb0743c",
+      "bytes": 7494,
+      "gitBlob": "949b2b133f62739f3a24312d9a3c587efbf7c56b"
     },
     {
       "path": "tests/development-batch-e2e/yard-framing.spec.mjs",
-      "sha256": "2d238fc7c21ead856c176a10a9f1f56908fdf275eafb2d385489a2da9e09f9b2",
-      "bytes": 9090,
-      "gitBlob": "dc2b0d97418904dca357636a0bbc1301b926f625"
+      "sha256": "53e176f0b4c7ce2658253868e790d767894785c30cb105dde8c14ddbb42d7b2b",
+      "bytes": 9755,
+      "gitBlob": "a2d99b354bc004b2f758e23ed7749d4352ba5344"
     },
     {
       "path": "tests/garden-r2-store.test.mjs",
       "sha256": "ffe0be2ed7695074ff5de00374dab167b4434a181e785405402a280645b888b3",
       "bytes": 34144,
       "gitBlob": "ddaa204c831d5094ef7f5863e758992239139636"
+    },
+    {
+      "path": "tests/helpers/yard-normal-entry-route.mjs",
+      "sha256": "c3b2467611c6f93abcacc11c85a146ca1d7b408769e1d2f201c91a76902aae04",
+      "bytes": 1095,
+      "gitBlob": "4a91647ada67383d26cd0e061f062de3553fd7d2"
     },
     {
       "path": "tests/home-game-copy.test.mjs",
@@ -429,6 +435,12 @@
       "sha256": "798f7163fede3d0f2bdb359ead959f8d1fa08b4a31d6ec9ae657c29c57822697",
       "bytes": 2347,
       "gitBlob": "d67adde84c4c033c431b1a6d9faa7d3de3968751"
+    },
+    {
+      "path": "tests/yard-normal-entry-route.test.mjs",
+      "sha256": "f32bc9ff3a87523d397b3b6f85ef2dd28ccccc0e52dc1a9352a34c5edcd56735",
+      "bytes": 1379,
+      "gitBlob": "3c39c8a28e01bb0f6ef76654675c5514d0559fec"
     }
   ]
 }

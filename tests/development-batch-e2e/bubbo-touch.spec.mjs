@@ -41,8 +41,10 @@ for(const [width,height] of [[390,844],[568,320]])test.describe(`Bubbo full-app 
     let cdp;
     try{
       await page.goto('/?tab=bubbo');
-      await expect(page.locator('.status-dot.ready')).toBeVisible({timeout:20000});
-      await expect(page.getByTestId('bb-start')).toBeVisible();
+      // Bubbo is immersive even in its menu: the App topbar is intentionally hidden.
+      // App mounts ActiveGame only after the fixture snapshot has been received.
+      await expect(page.getByTestId('bb-start')).toBeVisible({timeout:20000});
+      await expect(page.getByTestId('bb-start')).toBeEnabled();
       await page.getByTestId('bb-start').tap();
       await expect(page.getByTestId('bb-stage')).toHaveAttribute('data-bb-phase','playing');
       const field=page.getByTestId('bb-field');
