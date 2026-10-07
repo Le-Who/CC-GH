@@ -109,3 +109,26 @@ test('record one genuine Bubbo shot for optional preview',async({browser},info)=
   await page.screenshot({path:`${OUT}/bubbo-loop-end.png`});
  }finally{const video=page.video();await context.close();await video.saveAs(`${OUT}/bubbo-native-shot.webm`);}
 });
+test('one explicit Bubbo preview loads only on request and pauses safely',async({page})=>{
+ await page.setViewportSize({width:390,height:500});const mediaRequests=[];page.on('request',request=>{if(request.url().endsWith('.mp4'))mediaRequests.push(request.url());});
+ await page.goto('/');await expect(page.locator('.gs2-stage')).toBeVisible();await openHome(page);
+ expect(mediaRequests).toEqual([]);await expect(page.locator('.home-preview-video')).toHaveCount(0);
+ const control=page.getByRole('button',{name:'Preview Bubbo gameplay',exact:true});await control.scrollIntoViewIfNeeded();
+ const start=Date.now();await control.click();const video=page.locator('.home-preview-video');await expect(video).toHaveCount(1);
+ await expect.poll(()=>video.evaluate(v=>v.readyState>=2&&!v.paused)).toBe(true);const readinessMs=Date.now()-start;
+ const before=await video.evaluate(v=>({time:v.currentTime,quality:(()=>{const q=v.getVideoPlaybackQuality();return {totalVideoFrames:q.totalVideoFrames,droppedVideoFrames:q.droppedVideoFrames};})(),muted:v.muted,inline:v.playsInline,codec:v.canPlayType('video/mp4; codecs="avc1.42E01E"')}));
+ await page.waitForTimeout(1300);
+ const after=await video.evaluate(v=>({time:v.currentTime,quality:(()=>{const q=v.getVideoPlaybackQuality();return {totalVideoFrames:q.totalVideoFrames,droppedVideoFrames:q.droppedVideoFrames};})(),width:v.videoWidth,height:v.videoHeight,duration:v.duration}));
+ expect(before.muted).toBe(true);expect(before.inline).toBe(true);expect(before.codec).not.toBe('');expect(after.quality.totalVideoFrames).toBeGreaterThan(before.quality.totalVideoFrames);
+ await page.screenshot({path:`${OUT}/home-bubbo-preview-playing.png`});
+ await page.locator('.home-catalogue').evaluate(el=>el.scrollTop=0);await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(true);
+ const pausedTime=await video.evaluate(v=>v.currentTime);await page.waitForTimeout(500);expect(await video.evaluate(v=>v.currentTime)).toBe(pausedTime);
+ await page.locator('[data-home-game="bubbo"]').scrollIntoViewIfNeeded();await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(false);
+ // Deterministic visibility event exercises the exact browser event handler;
+ // this is explicitly a lifecycle simulation, not a physical-device test.
+ await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,value:true});document.dispatchEvent(new Event('visibilitychange'));});await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(true);
+ await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});await expect.poll(()=>video.evaluate(v=>v.paused)).toBe(false);
+ await page.emulateMedia({reducedMotion:'reduce'});await expect(video).toHaveCount(0);await expect(page.locator('.home-preview-control')).toHaveCount(0);
+ const requestsBeforeReload=mediaRequests.length;await page.reload();await expect(page.locator('.gs2-stage')).toBeVisible();await openHome(page);await page.locator('[data-home-game="bubbo"]').scrollIntoViewIfNeeded();expect(mediaRequests.length).toBe(requestsBeforeReload);
+ await fs.writeFile(`${OUT}/one-loop-proof.json`,JSON.stringify({readinessMs,before,after,mediaRequests,offscreenPause:true,backgroundPause:'document.hidden + visibilitychange lifecycle simulation',reducedMotionNoAdditionalRequest:true},null,2));
+});

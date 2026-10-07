@@ -59,5 +59,24 @@
       },
       "note": "Crop of verified real-backend purchase/fill screenshot with saved Pip, T2 pot and bowl. Candidate build; no composited actors or props."
     }
-  ]
+  ],
+  "optionalPreview": {
+    "id": "bubbo",
+    "path": "/games/home-thumbnails/bubbo-shot-preview.mp4",
+    "bytes": 39807,
+    "sha256": "cdd4f263bfa0b5a5bb335dcf4002462ce19eab288b9377af0dea3be8b5cd64c1",
+    "sourceSha256": "2c04369e5a37bf3d71460e6b174e1633957ae4d659b321bbc24754bdefb33cd9",
+    "sourceCommit": "9b144c4b8610918aee4f883978e887fd16a0c837",
+    "sourceRun": "https://github.com/Le-Who/CC-GH/actions/runs/37602390786",
+    "source": "bubbo-native-shot.webm, actual ordinary game start and Fire button. No scene/state injection.",
+    "codec": "H.264 Constrained Baseline, yuv420p, MP4 faststart",
+    "width": 400,
+    "height": 300,
+    "fps": 12,
+    "durationSeconds": 2.25,
+    "audioStreams": 0,
+    "ffmpegVersion": "7.1.5-0+deb13u1",
+    "recipe": "ffmpeg -ss 1.15 -i bubbo-native-shot.webm -t 2.25 -an -vf scale=400:300,fps=12 -c:v libx264 -profile:v baseline -level 3.0 -pix_fmt yuv420p -crf 30 -movflags +faststart bubbo-shot-preview.mp4",
+    "loading": "No element/src or request until explicit preview. One preview; pause offscreen and document.hidden. Reduced motion keeps static poster."
+  }
 }
