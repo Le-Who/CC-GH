@@ -318,6 +318,12 @@
       "sha256": "7f5b83e525d3dacc7b4cf8a4eac05d73db11a4fa5c5258f2fe6fdf6096e7eba8",
       "bytes": 28695,
       "exactLiveMatch": true
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/source/pip-rest-coat.glsl",
+      "sha256": "58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367",
+      "bytes": 2781,
+      "exactLiveMatch": true
     }
   ],
   "overlay": [
