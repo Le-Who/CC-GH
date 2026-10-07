@@ -45,6 +45,11 @@ jobs:
           CI: 'true'
         run: |
           YARD_SOURCE_ROOT="$PWD" YARD_ASSET_ROOT="$PWD" YARD_DEPENDENCY_ROOT="$PWD" YARD_OVERLAY_ROOTS='' YARD_SAVED_VISIT_QA="$PWD/qa/saved-pip-visit" YARD_PAINTED_OUTPUT="$RUNNER_TEMP/painted-food-fidelity" node qa/painted-food-native/run-fidelity-probe.mjs
+      - name: Compare fixed-camera 1.5x sampling with explicit isolated resource allowance
+        env:
+          CI: 'true'
+        run: |
+          YARD_SOURCE_ROOT="$PWD" YARD_ASSET_ROOT="$PWD" YARD_DEPENDENCY_ROOT="$PWD" YARD_OVERLAY_ROOTS='' YARD_SAVED_VISIT_QA="$PWD/qa/saved-pip-visit" YARD_PAINTED_OUTPUT="$RUNNER_TEMP/painted-food-sampling" node qa/painted-food-native/run-sampling-probe.mjs
       - name: Preserve bounded native evidence, including failures
         if: always()
         uses: actions/upload-artifact@v7
@@ -53,6 +58,7 @@ jobs:
           path: |
             ${{ runner.temp }}/painted-food-native/
             ${{ runner.temp }}/painted-food-fidelity/
+            ${{ runner.temp }}/painted-food-sampling/
             qa/painted-food-native/module-graph.json
           if-no-files-found: warn
           retention-days: 3

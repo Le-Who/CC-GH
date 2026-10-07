@@ -39,8 +39,10 @@ export function paintedFoodAssetURL(assetId=PAINTED_FOOD_ASSET.id) {
  * Reserve before loading. Retired GPU estimates remain charged until the host
  * confirms renderer disposal; dispose events alone do not prove driver release.
  */
-export function createPaintedFoodResourceOwner({getBaseUsage}={}) {
+export function createPaintedFoodResourceOwner({getBaseUsage,resourceProfile="production"}={}) {
   if(typeof getBaseUsage!=='function')throw Error('Explicit current host resource usage required');
+  if(!['production','isolated-native-sampling-1.5'].includes(resourceProfile))throw Error('Unknown resource profile');
+  const limits=resourceProfile==='production'?LIMITS:{...LIMITS,estimatedGPU:20*1024*1024};
   const reservations=new Map();let nextId=0,visibleOwner=null;
   const peak={rgba:0,knownCPU:0,estimatedGPU:0};
   function usage(extra=null) {
@@ -54,7 +56,7 @@ export function createPaintedFoodResourceOwner({getBaseUsage}={}) {
   }
   function admit(extra) {
     const u=usage(extra);
-    if(!['rgba','knownCPU','estimatedGPU'].every(k=>quantity(u.total[k])&&u.total[k]<=LIMITS[k]))throw Error('Canonical food resource cap exceeded');
+    if(!['rgba','knownCPU','estimatedGPU'].every(k=>quantity(u.total[k])&&u.total[k]<=limits[k]))throw Error('Canonical food resource cap exceeded');
     for(const k of Object.keys(peak))peak[k]=Math.max(peak[k],u.total[k]);
     return u;
   }
@@ -78,7 +80,7 @@ export function createPaintedFoodResourceOwner({getBaseUsage}={}) {
       // Call only after the owning renderer is disposed / its context retired.
       for(const [id,row] of reservations)if(row.retired)reservations.delete(id);
     },
-    snapshot(){return {...usage(),peak:{...peak},limits:{rgba:LIMITS.rgba,knownCPU:LIMITS.knownCPU,estimatedGPU:LIMITS.estimatedGPU},
+    snapshot(){return {...usage(),peak:{...peak},resourceProfile,limits:{rgba:limits.rgba,knownCPU:limits.knownCPU,estimatedGPU:limits.estimatedGPU},
       loadingOrLiveOwners:[...reservations.values()].filter(r=>!r.retired).length,
       retiredOwners:[...reservations.values()].filter(r=>r.retired).length,visibleOwners:visibleOwner===null?0:1,
       rgbaAdded:[...reservations.values()].reduce((n,r)=>n+r.rgba,0),driverAllocationKnown:false,physicalGPUReleaseKnown:false};}

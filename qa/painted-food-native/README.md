@@ -1,6 +1,6 @@
 # Inactive painted-food adapter and native art QA packet
 
-Ready for an independent no-deploy CI art job. No production/ordinary app import changed. The default R2 asset owner and canonical-food-contract.json remain unchanged, including the saved-visit source graph.
+Native no-deploy CI passed at commit 05d0c43e8639a8efe0d26a2a07f7950541521908 (run 37583190346). No production/ordinary app import changed. The default R2 asset owner and canonical-food-contract.json remain unchanged, including the saved-visit source graph.
 
 ## Files to integrate
 
@@ -23,7 +23,7 @@ Independent art review permits the bounded runtime/Pip-lighting test, not final 
 
 ## Source tests and resource policy
 
-10 tests pass in `evidence/node-tests.tap`. They use the actual Three r186 GLTFLoader, real embedded PNG Blob extraction/fetch, geometry and materials. Only browser image decoding is replaced by a documented Node ImageBitmap boundary shim, so they do not claim rendered pixels. The actual browser import graph compiles: 44 modules, zero warnings.
+11 tests pass in `evidence/node-tests.tap`. They use the actual Three r186 GLTFLoader, real embedded PNG Blob extraction/fetch, geometry and materials. Only browser image decoding is replaced by a documented Node ImageBitmap boundary shim, so they do not claim rendered pixels. The actual browser import graph compiles: 45 modules, zero warnings.
 
 The owner reserves 1,101,156 known CPU bytes, 131,072 RGBA image/decode-staging bytes and 787,128 estimated GPU bytes including old/restored geometry and mipmapped texture overlap. PNG Blob storage and both hash scratch outputs are conservatively included. One 128×128 embedded PNG and one shared texture are strictly verified by dimensions, byte identity and SHA256. All caps stay 64/16/12 MiB.
 
@@ -45,4 +45,7 @@ At 320×568, 390×844 DPR2, and 844×390: all four food states with actual Pip R
 
 The input snapshots are local, cloned visual fixtures; no player/storage mutation or transaction occurs. The fixture does not reconstruct the app HUD or qualify a full app shell. A higher bowl still requires a future genuine feeding/muzzle-contact check if such gameplay is introduced.
 
-Local Chromium was not retried after the earlier socket denial. Native CI and visual inspection remain pending; source/node success is not runtime acceptance.
+Local Chromium was not retried after the earlier socket denial. GitHub native CI passed: all four states at three viewports; context loss followed by renderer retirement/recreation and fresh-owner pixel equality at the fixed bonito pose only. This does not certify every pose or ordinary game UI. An additional 12-capture probe compared three appearance variants across all four states at 390×844 DPR2. Authored-color-contact is modestly better: warmer ceramic and stronger ground contact while preserving highlights. Coarse native edges remain the dominant gap; final artistic acceptance and feeding contact are still pending.
+
+## Isolated sampling experiment
+A subsequent 1.5× comparison keeps the world camera and color/contact settings fixed. Its explicitly named QA-only resource profile permits 20 MiB estimated GPU; production remains 12 MiB. This experiment adds a twelfth source test. Runtime outcome is pending for this sampling change. Repeat, fresh owner, resize roundtrip and retired-context recreation compare the fixed bonito pose.
