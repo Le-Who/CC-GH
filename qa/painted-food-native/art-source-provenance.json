@@ -1,0 +1,16 @@
+{
+  "sourceArtAccepted": false,
+  "runtimeAccepted": false,
+  "files": [
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-food-painted.mjs",
+      "bytes": 17543,
+      "sha256": "0601edb1d58a2f8b804d277b631f22abe974a082e760cbe61d090055b16ec755"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/assets/food-painted-reference/yard-food-painted-reference.glb",
+      "bytes": 324808,
+      "sha256": "122b502fba1bd9e34db0921713bcf9c2e05077fd48472ca52e3dd3204078823f"
+    }
+  ]
+}

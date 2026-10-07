@@ -1,0 +1,51 @@
+name: Painted Yard food native art qualification
+on:
+  push:
+    branches: ['qa/yard-painted-food-preview-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: yard-painted-food-preview-20261007
+  cancel-in-progress: false
+jobs:
+  painted-food-art:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      NODE_ENV: test
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      DEV_AUTH_ENABLED: ''
+      TELEGRAM_BOT_TOKEN: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install frozen test dependencies and browser
+        run: |
+          corepack enable && corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Verify exact painted food lifecycle and source graph
+        run: |
+          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-painted-food-renderer.test.mjs
+          YARD_SOURCE_ROOT="$PWD" YARD_ASSET_ROOT="$PWD" YARD_DEPENDENCY_ROOT="$PWD" YARD_OVERLAY_ROOTS='' YARD_SAVED_VISIT_QA="$PWD/qa/saved-pip-visit" node qa/painted-food-native/check-graph.mjs
+      - name: Capture actual Pip renderer at fixed garden camera
+        env:
+          CI: 'true'
+        run: |
+          YARD_SOURCE_ROOT="$PWD" YARD_ASSET_ROOT="$PWD" YARD_DEPENDENCY_ROOT="$PWD" YARD_OVERLAY_ROOTS='' YARD_SAVED_VISIT_QA="$PWD/qa/saved-pip-visit" YARD_PAINTED_OUTPUT="$RUNNER_TEMP/painted-food-native" node qa/painted-food-native/run-native.mjs
+      - name: Preserve bounded native evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: painted-food-native-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/painted-food-native/
+            qa/painted-food-native/module-graph.json
+          if-no-files-found: warn
+          retention-days: 3
