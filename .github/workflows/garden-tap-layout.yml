@@ -1,0 +1,39 @@
+name: Garden tap and layout qualification
+on:
+  push:
+    branches: ['qa/garden-tap-layout-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: garden-tap-layout-20261007
+  cancel-in-progress: false
+jobs:
+  garden-browser:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      DATABASE_URL: ''
+      REDIS_URL: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Check resources and install locked dependencies
+        run: |
+          df -h . /tmp
+          corepack enable
+          corepack prepare pnpm@10.28.2 --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Real Garden browser diagnostic
+        run: pnpm exec playwright test --config qa/garden-tap-layout/playwright.config.mjs --grep 320x568
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: garden-tap-layout-evidence
+          path: test-results/garden-tap-layout
+          retention-days: 14
