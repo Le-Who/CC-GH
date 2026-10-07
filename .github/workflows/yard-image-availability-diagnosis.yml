@@ -1,0 +1,112 @@
+name: CC-GH failed image availability diagnosis
+on:
+  push:
+    branches: ['qa/yard-image-availability-diagnosis-20261007']
+permissions:
+  contents: read
+concurrency:
+  group: cc-gh-production
+  cancel-in-progress: false
+jobs:
+  diagnose-exact-failed-activation:
+    if: github.event.created == true && github.run_attempt == 1
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Read exact failed activation and fixed image error category
+        uses: appleboy/ssh-action@029f5b4aeeeb58fdfe1410a5d17f967dacf36262
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_PORT || '22' }}
+          command_timeout: 60s
+          script: |
+            timeout --kill-after=5s 45s bash -s -- <<'YARD_READ_ONLY_IMAGE_DIAGNOSIS'
+            #!/usr/bin/env bash
+            # Exact failed activation only. No writes, pull, login, helper, or app mutation.
+            set +x
+            set -euo pipefail
+            exec 2>/dev/null
+            readonly release_root=/opt/game-hub
+            readonly stage_dir=/opt/game-hub/releases/yard-development-a92209dace49d8b2b2b70be495913bb03f34ca82259b627c195a551787e6ba9f
+            readonly record=a92209dace49d8b2b2b70be495913bb03f34ca82259b627c195a551787e6ba9f
+            readonly prior=sha256:3feb1aa00e39358bf7befbece67215483390ee089e913f8088c3aae8f7ebc9ad
+            readonly candidate_commit=9b6b96b4cd1b019d016a741f7300e3172192c3ee
+            readonly candidate_digest=sha256:54ae34c2045a15b6431bc74e946e7db66d8c671ed87990397b77307d4d38c015
+            readonly candidate_image=sha256:fecd7ef08b669ea4bbac9d1460d9538d192e86fb6eb0dca36de7228559f0365a
+            stage=initial_guards
+            completed=false
+            finish() {
+              if [ "$completed" = false ]; then
+                printf '{"format":"cc-gh-yard-image-availability-diagnosis/v1","completed":false,"failedStage":"%s","readOnly":true}\n' "$stage"
+              fi
+            }
+            trap finish EXIT
+            for tool in docker timeout stat grep cat; do command -v "$tool" >/dev/null; done
+            for directory in "$release_root" "$release_root/releases" "$stage_dir"; do
+              test -d "$directory"; test ! -L "$directory"; [ "$(cd -- "$directory" && pwd -P)" = "$directory" ]
+            done
+            safe_file() { test -f "$1" && test ! -L "$1" && [ "$(stat -Lc '%h' -- "$1")" = 1 ]; }
+            for file in transport-status.json deadline-status worker.log; do safe_file "$stage_dir/$file"; done
+            [ "$(stat -Lc '%s' -- "$stage_dir/transport-status.json")" -le 1024 ]
+            [ "$(stat -Lc '%s' -- "$stage_dir/deadline-status")" -le 8 ]
+            [ "$(stat -Lc '%s' -- "$stage_dir/worker.log")" -le 2097152 ]
+            stage=transport_state
+            expected_status="{\"format\":\"cc-gh-yard-activation-transport/v1\",\"workerTerminal\":true,\"stage\":\"image_availability\",\"exitCode\":1,\"helperSucceeded\":false,\"recordSha256\":\"$record\"}"
+            transport_matches=false; deadline_matches=false; marker_absent=true
+            if [ "$(cat -- "$stage_dir/transport-status.json")" = "$expected_status" ]; then transport_matches=true; fi
+            if [ "$(cat -- "$stage_dir/deadline-status")" = 1 ]; then deadline_matches=true; fi
+            if [ -e "$release_root/.yard-development-inflight" ] || [ -L "$release_root/.yard-development-inflight" ]; then marker_absent=false; fi
+            stage=local_docker_identity
+            for option in DOCKER_HOST DOCKER_CONTEXT DOCKER_TLS_VERIFY DOCKER_CERT_PATH DOCKER_CONFIG; do [ -z "${!option:-}" ]; done
+            run_docker() { timeout --foreground --kill-after=1s 5s docker "$@"; }
+            [ "$(run_docker context show)" = default ]
+            [ "$(run_docker context inspect default --format '{{.Endpoints.docker.Host}}')" = unix:///var/run/docker.sock ]
+            app_result="$(run_docker inspect --format '{{eq .Image "sha256:3feb1aa00e39358bf7befbece67215483390ee089e913f8088c3aae8f7ebc9ad"}} {{.State.Running}}' ccgh-app)"
+            [[ "$app_result" =~ ^(true|false)\ (true|false)$ ]]
+            prior_matches="${BASH_REMATCH[1]}"; app_running="${BASH_REMATCH[2]}"
+            stage=candidate_image_identity
+            candidate_present=false; candidate_readable=false; id_matches=false; revision_matches=false; digest_matches=false
+            image_format="{{- \$digest := false -}}{{- range .RepoDigests -}}{{- if eq . \"ghcr.io/le-who/cc-gh@$candidate_digest\" -}}{{- \$digest = true -}}{{- end -}}{{- end -}}{{eq .Id \"$candidate_image\"}} {{eq (index .Config.Labels \"org.opencontainers.image.revision\") \"$candidate_commit\"}} {{\$digest}}"
+            if candidate_result="$(run_docker image inspect "ghcr.io/le-who/cc-gh@$candidate_digest" --format "$image_format" 2>&1)"; then
+              [[ "$candidate_result" =~ ^(true|false)\ (true|false)\ (true|false)$ ]]
+              candidate_present=true; candidate_readable=true
+              id_matches="${BASH_REMATCH[1]}"; revision_matches="${BASH_REMATCH[2]}"; digest_matches="${BASH_REMATCH[3]}"
+            else
+              case "$candidate_result" in *'No such image:'*|*'No such object:'*) candidate_readable=true;; esac
+            fi
+            unset candidate_result
+            stage=private_log_classification
+            pull_error=unclassified
+            match_log() {
+              local result=0
+              LC_ALL=C grep -Eiq -- "$1" "$stage_dir/worker.log" || result=$?
+              [ "$result" -le 1 ] || exit 1
+              return "$result"
+            }
+            if match_log 'unauthorized|authentication required|requested access.*denied|(^|[ :])denied([ :]|$)|status.*(401|403)|[[:space:]](401|403)[[:space:]]'; then pull_error=registry_authorization_denied
+            elif match_log 'manifest unknown|name unknown|manifest.*not found|repository.*does not exist'; then pull_error=registry_image_not_found
+            elif match_log 'no matching manifest|no match for platform'; then pull_error=platform_not_available
+            elif match_log 'no space left on device|disk quota exceeded'; then pull_error=storage_exhausted
+            elif match_log 'x509:|certificate.*(expired|invalid|unknown)|TLS.*certificate'; then pull_error=tls_verification_failed
+            elif match_log 'i/o timeout|TLS handshake timeout|context deadline exceeded|connection timed out|temporary failure|no such host|network is unreachable|connection refused|connection reset'; then pull_error=network_or_registry_failure
+            elif match_log 'Cannot connect to the Docker daemon|permission denied.*docker.sock|permission denied.*Docker daemon'; then pull_error=local_docker_access_failed
+            elif match_log 'invalid reference format|invalid checksum digest|invalid digest'; then pull_error=invalid_image_reference
+            elif match_log 'unexpected.*(500|502|503|504)|status.*(500|502|503|504)'; then pull_error=registry_server_failure
+            fi
+            cause=unclassified
+            if [ "$transport_matches" = false ] || [ "$deadline_matches" = false ]; then cause=unexpected_transport_state
+            elif [ "$marker_absent" = false ] || [ "$prior_matches" = false ] || [ "$app_running" = false ]; then cause=live_state_requires_reconciliation
+            elif [ "$candidate_readable" = false ]; then cause=candidate_inspection_unverified
+            elif [ "$candidate_present" = false ]; then
+              if [ "$pull_error" = unclassified ]; then cause=candidate_absent_unclassified; else cause="$pull_error"; fi
+            elif [ "$id_matches" = false ]; then cause=candidate_image_id_mismatch
+            elif [ "$revision_matches" = false ]; then cause=candidate_revision_mismatch
+            elif [ "$digest_matches" = false ]; then cause=candidate_digest_mismatch
+            else cause=candidate_now_exact_prior_failure_requires_reconciliation
+            fi
+            printf '{"format":"cc-gh-yard-image-availability-diagnosis/v1","completed":true,"readOnly":true,"transportFailureMatches":%s,"deadlineExitMatches":%s,"inflightMarkerAbsent":%s,"priorImageMatches":%s,"appRunning":%s,"candidateInspectionReadable":%s,"candidatePresent":%s,"candidateIdMatches":%s,"candidateRevisionMatches":%s,"candidateDigestMatches":%s,"pullErrorCategory":"%s","cause":"%s"}\n' \
+              "$transport_matches" "$deadline_matches" "$marker_absent" "$prior_matches" "$app_running" "$candidate_readable" "$candidate_present" "$id_matches" "$revision_matches" "$digest_matches" "$pull_error" "$cause"
+            completed=true
+            YARD_READ_ONLY_IMAGE_DIAGNOSIS
