@@ -56,7 +56,7 @@ jobs:
         run: |
           set -o pipefail
           node --test tests/yard-canonical-reconciliation-closed.test.mjs tests/yard-canonical-v3-food-projection.test.mjs | tee test-results/saved-visit/closed.tap
-          node --import ./tests/fixtures/register-admission-test.mjs --test tests/yard-canonical-transaction-guards.test.mjs | tee test-results/saved-visit/guards.tap
+          node --import ./tests/fixtures/register-admission-test.mjs --test --test-concurrency=1 tests/yard-canonical-transaction-guards.test.mjs tests/yard-canonical-notification-liveness.test.mjs | tee test-results/saved-visit/guards.tap
       - name: Genuine worker admission, reload, release and exact outcome
         run: |
           set -o pipefail
@@ -88,7 +88,7 @@ jobs:
           node --import ./qa/saved-pip-visit/register.mjs qa/saved-pip-visit/verify-food-projection.mjs
           node qa/saved-pip-visit/verify-harness.mjs
           node qa/saved-pip-visit/run-native.mjs
-          cp qa/saved-pip-visit/*-provenance.json qa/saved-pip-visit/*qualification.json qa/saved-pip-visit/food-selector-result.json qa/saved-pip-visit/source-verification.json test-results/saved-visit/
+          cp qa/saved-pip-visit/*-provenance.json qa/saved-pip-visit/*qualification.json qa/saved-pip-visit/food-selector-result.json qa/saved-pip-visit/source-verification.json qa/saved-pip-visit/complete-resource-closure.json test-results/saved-visit/
       - name: Preserve exact evidence and failures
         if: always()
         uses: actions/upload-artifact@v4

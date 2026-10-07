@@ -24,6 +24,15 @@ const identity=v=>typeof v==='string'&&v.length>0&&v.length<=160;
 const outcome=(code,extra={})=>({state:'unavailable',prepared:false,ready:false,admission:false,retryable:true,code,...extra});
 const pending=extra=>({state:'pending',prepared:false,ready:false,admission:false,retryable:true,code:'RECONCILIATION_PENDING',...extra});
 const sorted=rows=>clone(rows).sort((a,b)=>compareText(a.slotId,b.slotId));
+const READ_ONLY_RESULT=Symbol('canonical.reconciliation.readOnly');
+function withoutWrite(result,request=null){
+ // The real PostgreSQL manager already owns this no-write abort seam. Its
+ // test-only memory path rethrows; withReconciliationLock handles that form.
+ const error=Error('EXPRESS_RESPONSE_ABORT');error.result={[READ_ONLY_RESULT]:true,result,request};throw error;
+}
+async function withReconciliationLock(ownerId,fn){
+ try{return await withPlayerLock(ownerId,fn);}catch(error){if(error.result?.[READ_ONLY_RESULT])return error.result;throw error;}
+}
 const rowsValid=rows=>Array.isArray(rows)&&rows.length>0&&canonicalVisitPlacementRowsValid(rows);
 
 function inspect(player){
@@ -117,18 +126,10 @@ export function stageCanonicalVisitPreparation(player,{slotId,at}={}){
 export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
  if(typeof onObservation!=='function')throw TypeError('INVALID_OBSERVER');
  const worker=createCanonicalVisitWorker({enabled:CANONICAL_RECONCILIATION_ENABLED});
- const notifications=new Set(),validated=new Map();let closed=false;
- const observe=result=>{try{onObservation(Object.freeze(result));}catch{ /* diagnostic failure cannot change state */ }};
- function register(player){
-  if(closed)return outcome('RECONCILER_CLOSED');
-  if(!CANONICAL_RECONCILIATION_ENABLED)return outcome('RECONCILIATION_DISABLED');
-  const current=currentRequest(player);if(current.code)return current;
-  // afterPlayerCommit still holds the mutex. Return undefined immediately, then
-  // enqueue on the next event-loop turn, using the committed version/snapshot.
-  afterPlayerCommit(player,committed=>{
-   const fresh=currentRequest(committed);if(fresh.code){setImmediate(()=>observe(fresh));return;}
-   const request=clone(fresh.request);
-   setImmediate(()=>{
+ const notifications=new Set(),inflight=new Set(),validated=new Map();let closed=false;
+ const observe=result=>{if(closed)return;try{onObservation(Object.freeze(result));}catch{ /* diagnostic failure cannot change state */ }};
+ function queueRequest(request){
+  setImmediate(()=>{
     if(closed)return;
     const handle=worker.enqueue(request);
     if(handle.completion){
@@ -140,28 +141,43 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
     }else if(handle.prepared)void notify(request.ownerId,handle.key);
     else observe(outcome(handle.code||'WORKER_UNAVAILABLE',{ownerId:request.ownerId,key:handle.key}));
    });
+ }
+ function register(player){
+  if(closed)return outcome('RECONCILER_CLOSED');
+  if(!CANONICAL_RECONCILIATION_ENABLED)return outcome('RECONCILIATION_DISABLED');
+  const current=currentRequest(player);if(current.code)return current;
+  // afterPlayerCommit still holds the mutex. Return undefined immediately, then
+  // enqueue on the next event-loop turn, using the committed version/snapshot.
+  afterPlayerCommit(player,committed=>{
+   const fresh=currentRequest(committed);if(fresh.code){setImmediate(()=>observe(fresh));return;}
+   const request=clone(fresh.request);
+   queueRequest(request);
   });
   return pending({eventId:current.intent?.eventId??current.wrapper?.eventId});
  }
- async function notify(ownerId,key){
+ function track(task){inflight.add(task);task.finally(()=>inflight.delete(task)).catch(()=>{});return task;}
+ function notify(ownerId,key){return track(notifyOnce(ownerId,key));}
+ async function notifyOnce(ownerId,key){
   if(closed)return outcome('RECONCILER_CLOSED');
   if(!CANONICAL_RECONCILIATION_ENABLED)return outcome('RECONCILIATION_DISABLED');
   if(!identity(ownerId)||typeof key!=='string'||!/^[a-f0-9]{64}$/.test(key))return outcome('INVALID_NOTIFICATION');
   const token=ownerId+':'+key;if(notifications.has(token))return pending({key});
   notifications.add(token);
   try{
-   const result=await withPlayerLock(ownerId,player=>{
-    const current=currentRequest(player);if(current.code)return current;
+   const completed=await withReconciliationLock(ownerId,player=>{
+    const current=currentRequest(player);if(current.code)return withoutWrite(current);
     const evidence=worker.lookup(current.request,key);
     if(!evidence.prepared){
-     // Losing OCC attempt, competing request or cold process: only a winning
-     // after-commit hook can requeue. Never await worker work under this mutex.
-     register(player);return pending({ownerId,key:snapshotRequest(current.request,256*1024).key,reason:evidence.code||'CACHE_MISS'});
+     // This intent is already durable. A stale notification must not write a
+     // fresh account version: two processes would invalidate each other forever.
+     // Release the read-only lock, then enqueue the observed committed snapshot.
+     return withoutWrite(pending({ownerId,key:snapshotRequest(current.request,256*1024).key,reason:evidence.code||'CACHE_MISS'}),clone(current.request));
     }
     const record=evidence.artifact.record;
     if(current.request.operation==='restore'){
      const result=completeReplayedCanonicalVisit(player,evidence,{now:Date.now()});
      if(result.state==='active')afterPlayerCommit(player,committed=>{
+      if(closed)return;
       const fresh=currentRequest(committed);
       if(!fresh.code){
        while(validated.size>=8)validated.delete(validated.keys().next().value);
@@ -169,22 +185,24 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
       }
      });
      if(result.state==='completed')afterPlayerCommit(player,()=>{validated.delete(ownerId);});
-     return result;
+     return ['active','completed'].includes(result.state)?result:withoutWrite(result);
     }
     if(record.requiredContainerVersion!==3||record.authoritative!==false||record.economicIntent.committed!==false
      ||record.status!=='prepared-inactive'||digest(record.candidate)!==digest(current.request.input.candidate)
-     ||digest(record.before.rows)!==digest(current.request.input.rows)||digest(record.before.bowl)!==digest(current.request.input.bowl))return outcome('EVIDENCE_STATE_MISMATCH');
+     ||digest(record.before.rows)!==digest(current.request.input.rows)||digest(record.before.bowl)!==digest(current.request.input.bowl))return withoutWrite(outcome('EVIDENCE_STATE_MISMATCH'));
     if(CANONICAL_VISIT_ADMISSION_ENABLED){
      const result=commitPreparedCanonicalVisit(player,evidence,{now:Date.now()});
      // Rehydrate the actually committed record through the worker. No captured
      // preparation result is retained as authority across the admission write.
-     if(result.state==='admitted')register(player);
-     return result;
+     if(result.state==='admitted'){register(player);return result;}
+     return withoutWrite(result);
     }
     // Preparation only. Keep durable intent, exact clock and every economic
     // field unchanged; retained completion artifacts never enter storage.
-    return {state:'prepared-inactive',prepared:true,ready:false,admission:false,ownerId,key,eventId:current.intent.eventId,sourceHash:VISIT_JOB_SOURCE_HASH};
+    return withoutWrite({state:'prepared-inactive',prepared:true,ready:false,admission:false,ownerId,key,eventId:current.intent.eventId,sourceHash:VISIT_JOB_SOURCE_HASH});
    });
+   const result=completed?.[READ_ONLY_RESULT]?completed.result:completed;
+   if(completed?.[READ_ONLY_RESULT]&&completed.request)queueRequest(completed.request);
    observe(result);return result;
   }catch(error){const result=outcome('RECONCILIATION_TRANSACTION_FAILED',{ownerId,key});observe(result);return result;}
   finally{notifications.delete(token);}
@@ -196,11 +214,12 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    if(closed)return outcome('RECONCILER_CLOSED');
    if(!CANONICAL_RECONCILIATION_ENABLED)return outcome('RECONCILIATION_DISABLED');
    if(!identity(ownerId))return outcome('OWNER_REQUIRED');
-   return withPlayerLock(ownerId,player=>register(player));
+   return track(withPlayerLock(ownerId,player=>register(player)));
   },
   /** Read-only qualified presentation. A cache miss is explicitly pending;
    * it must never be interpreted as an empty authoritative reservation set. */
   read(player,{now=Date.now()}={}){
+   if(closed)return outcome('RECONCILER_CLOSED');
    const current=currentRequest(player);if(current.code)return current;
    if(!current.wrapper)return pending({eventId:current.intent.eventId});
    if(integer(now)&&(now>=current.wrapper.leavesAt||player.yard.bowls.some(b=>b.foodId&&integer(b.expiresAt)&&b.expiresAt<=now&&b.expiresAt>player._yardV2.runtime.cursorMs)))return pending({reason:'SOURCE_RECONCILIATION_DUE'});
@@ -229,6 +248,6 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    return runtime;
   },
   stats:()=>worker.stats(),
-  async close(){closed=true;validated.clear();await worker.close();},
+  async close(){closed=true;await worker.close();await Promise.allSettled([...inflight]);validated.clear();},
  });
 }

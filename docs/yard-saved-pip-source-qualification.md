@@ -12,6 +12,7 @@ One canonical prop, one active Pip, one bowl and a source-selected stay below
 results are never rerolled. An unresolved intent survives process loss. Preparation
 runs in the sealed worker after the winning player commit; notification re-enters
 the real lock and checks the fresh account version, exact key, state and stock.
+Stale notifications use the real manager’s read-only abort seam, then requeue the already-durable snapshot outside the lock without bumping another worker’s version. Close drains all notification/recovery work before returning.
 Admission validates a prospective Yard snapshot before assigning its one serving,
 one use, petbook, visit and event receipt together. Replay reconstructs the sealed
 source plan before active presentation or exact departure reward. Food expiry is
