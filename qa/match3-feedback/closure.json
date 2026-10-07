@@ -1,8 +1,8 @@
 [
   {
     "path": ".github/workflows/match3-feedback-qa.yml",
-    "sha256": "17ea11a931496e0e95bc3f48b9bd818cc035b6457dd67f2ace0b106f40754a06",
-    "bytes": 2634
+    "sha256": "36394ac411c5d0b4839aefc764f56a82f79d88fdc2988f2297e9cece0f99b01f",
+    "bytes": 3268
   },
   {
     "path": "playwright.match3-feedback.config.mjs",
@@ -66,8 +66,8 @@
   },
   {
     "path": "tests/e2e/match3-motion.spec.js",
-    "sha256": "ea101dd09730deb786783ded4c7a1926b836714d1bb1436dc8ee486ed3827247",
-    "bytes": 13976
+    "sha256": "28dfb12e293db997a9895bff64e4cb3dc188b613a9f9a654642bc7d2a394c63c",
+    "bytes": 15300
   },
   {
     "path": "tests/match3-controller-recovery.test.js",
@@ -90,5 +90,10 @@
     "sha256": "8e89f143e3617888c581bf99b89f8c83272e9cb7f4d6f1c5626259a840f9cc8e",
     "bytes": 8986,
     "unchanged": true
+  },
+  {
+    "path": "tests/match3-feedback-presentation.test.mjs",
+    "sha256": "ee6f6a213538442f8e73cfc21aaeb3c1a08061f658206cb7f4673626d4a46099",
+    "bytes": 1679
   }
 ]

@@ -99,7 +99,10 @@ for(const [width,height] of viewports) test(`Match3 1x swap invalid cascade and 
   expect(player.match3.currentGame.score).toBe(90);
   await expect(stage.locator('[data-match3-feedback="gain"]')).toContainText('+90');
   await expect(stage.locator('[data-match3-feedback="gain"]')).toContainText(/(?:Chain|Цепь) 2/);
-  await expect(stage.locator('.m3-score')).toContainText('500');
+  const recordMetric=stage.locator('.m3-metric').filter({hasText:/^(?:Record|Рекорд) 500/});
+  await expect(recordMetric).toHaveCount(1);
+  await expect(recordMetric).toHaveAttribute('aria-label',/^(?:Record|Рекорд) 500: 90$/);
+  await expect(recordMetric.locator('strong')).toHaveText('90');
   await seedRestored(page);
   const phases=await page.evaluate(()=>window.__match3MotionPhases);
   expect(phases).toContain('swap');expect(phases.filter(p=>p==='clear').length).toBeGreaterThanOrEqual(2);
@@ -213,4 +216,17 @@ test('Match3 idle life is rare and static option suppresses it',async({page},tes
  await page.waitForTimeout(17000);
  await expect(canvas).toHaveAttribute('data-match3-idle-active','false');
  await attachFrame(page,testInfo,'static-board');
+});
+
+
+for(const [width,height] of [[320,568],[568,320]]) test(`Match3 Russian compact feedback ${width}x${height}`,async({page},testInfo)=>{
+ await page.addInitScript(()=>localStorage.setItem('garden_shelf_language','ru'));
+ const {stage,canvas}=await boot(page,{width,height});
+ await swap(page,canvas,{x:1,y:6},{x:1,y:7},2);await settled(canvas);
+ const record=stage.locator('.m3-metric').filter({hasText:/^Рекорд 500/});
+ await expect(record).toHaveCount(1);await expect(record).toHaveAttribute('aria-label','Рекорд 500: 90');
+ await expect(stage.locator('[data-match3-feedback="gain"]')).toHaveText('+90 очков · Цепь 2');
+ const labels=await stage.locator('.m3-metric>span,[data-match3-feedback="gain"]').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {text:node.textContent,inside:r.left>=0&&r.right<=innerWidth,notClipped:node.scrollWidth<=node.clientWidth+1};}));
+ expect(labels.every(label=>label.inside&&label.notClipped),JSON.stringify(labels)).toBe(true);
+ await attachFrame(page,testInfo,'russian-compact-feedback');
 });
