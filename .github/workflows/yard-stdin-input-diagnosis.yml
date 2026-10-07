@@ -1,0 +1,51 @@
+name: Yard runner-only stdin input diagnosis
+on:
+  push:
+    branches: ['qa/yard-stdin-input-diagnosis-20261007']
+permissions:
+  contents: read
+  packages: read
+jobs:
+  diagnose-input-shape-only:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Classify existing input validation without host access
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT || '22' }}
+          VPS_USERNAME: ${{ secrets.VPS_USERNAME }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+          YARD_GHCR_USER: ${{ github.actor }}
+          YARD_GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +x
+          set -euo pipefail
+          python3 - <<'YARD_DIAG'
+          import os,re,hashlib,json
+          class Blocked(Exception): pass
+          TRANSPORT_SHA256=hashlib.sha256(b'').hexdigest()
+          def validated_inputs(environ, transport):
+              host = environ.get('VPS_HOST', '')
+              port = environ.get('VPS_PORT', '22') or '22'
+              user = environ.get('VPS_USERNAME', '')
+              actor = environ.get('YARD_GHCR_USER', '')
+              token = environ.get('YARD_GHCR_TOKEN', '')
+              key = environ.get('VPS_SSH_KEY', '')
+              if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9.:-]{0,252}', host): raise Blocked('invalid_host')
+              if not re.fullmatch(r'[0-9]{1,5}', port) or not 1 <= int(port) <= 65535: raise Blocked('invalid_port')
+              if not re.fullmatch(r'[A-Za-z_][A-Za-z0-9_-]{0,63}', user): raise Blocked('invalid_user')
+              if not re.fullmatch(r'[A-Za-z0-9][A-Za-z0-9_-]{0,99}(\[bot\])?', actor): raise Blocked('invalid_actor')
+              if not re.fullmatch(r'[A-Za-z0-9_]{20,512}', token): raise Blocked('invalid_token_shape')
+              if not key or len(key) > 32768: raise Blocked('missing_key')
+              if hashlib.sha256(transport).hexdigest() != TRANSPORT_SHA256: raise Blocked('transport_hash_mismatch')
+              return host, port, user, actor, token, key
+          allowed={'invalid_host','invalid_port','invalid_user','invalid_actor','invalid_token_shape','missing_key','transport_hash_mismatch'}
+          for label,env in [('raw',dict(os.environ)),('trimmed_nonsecret',{k:(v.strip() if k in {'VPS_HOST','VPS_PORT','VPS_USERNAME'} else v) for k,v in os.environ.items()})]:
+           try:
+            validated_inputs(env,b'')
+            reason='valid'
+           except Blocked as e:
+            reason=str(e) if str(e) in allowed else 'unknown'
+           print(json.dumps({'format':'yard-stdin-input-diagnosis/v1','normalization':label,'reason':reason,'hostAccessPerformed':False,'tokenTransmitted':False},separators=(',',':')))
+          YARD_DIAG
