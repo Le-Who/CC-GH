@@ -73,7 +73,7 @@ jobs:
       - name: Genuine source food commands, replacement receipts and cold replay
         run: |
           set -o pipefail
-          node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-canonical-food-actions.test.mjs tests/yard-canonical-food-runtime-real.test.mjs | tee test-results/saved-visit/food-runtime.tap
+          node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-canonical-food-actions.test.mjs tests/yard-canonical-food-runtime-real.test.mjs tests/yard-canonical-food-realtime.test.mjs tests/garden-r2-routes.test.mjs | tee test-results/saved-visit/food-runtime.tap
           node --test tests/yard-canonical-saved-food-client.test.mjs tests/yard-canonical-saved-food-outbox.test.mjs tests/hub-account-boundaries.test.mjs tests/yard-real-backend-contract.test.mjs | tee test-results/saved-visit/food-outbox.tap
           node --import ./qa/saved-pip-visit/register.mjs --test tests/yard-painted-food-renderer.test.mjs tests/yard-painted-profile.test.mjs | tee test-results/saved-visit/painted-source.tap
       - name: Real two-process PostgreSQL optimistic-concurrency and restart

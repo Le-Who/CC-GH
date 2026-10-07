@@ -212,8 +212,8 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
        while(validated.size>=8)validated.delete(validated.keys().next().value);
        validated.set(ownerId,{version:committed._version,requestKey:snapshotRequest(fresh.request,256*1024).key,artifact:evidence.artifact,expiresAt:performance.now()+60000});
       }
-     });
-     if(result.state==='completed')afterPlayerCommit(player,()=>{validated.delete(ownerId);});
+     },{beforeSync:true});
+     if(result.state==='completed')afterPlayerCommit(player,()=>{validated.delete(ownerId);},{beforeSync:true});
      return ['active','completed'].includes(result.state)?result:withoutWrite(result);
     }
     if(record.requiredContainerVersion!==3||record.authoritative!==false||record.economicIntent.committed!==false
@@ -274,14 +274,14 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    const cached=validated.get(player.id);
    if(current.wrapper&&cached&&cached.requestKey===snapshotRequest(current.request,256*1024).key&&cached.expiresAt>performance.now()){
     const result=completeReplayedCanonicalVisit(player,{state:'prepared',execution:{sourceHash:VISIT_JOB_SOURCE_HASH},artifact:cached.artifact},{now});
-    if(result.state==='completed'){afterPlayerCommit(player,()=>validated.delete(player.id));return result;}
+    if(result.state==='completed'){afterPlayerCommit(player,()=>validated.delete(player.id),{beforeSync:true});return result;}
     if(result.state==='active'){
      // Expiry can change the semantic fence at commit. Reconstruct it from the
      // winning player, never from the pre-save snapshot.
      afterPlayerCommit(player,committed=>{
       const fresh=currentRequest(committed);if(closed||fresh.code||fresh.wrapper?.visitId!==current.wrapper.visitId||digest(fresh.request.input)!==digest(current.request.input))return;
       validated.set(player.id,{...cached,requestKey:snapshotRequest(fresh.request,256*1024).key});
-     });
+     },{beforeSync:true});
      return result;
     }
     return result;
