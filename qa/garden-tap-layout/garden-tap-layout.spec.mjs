@@ -49,7 +49,7 @@ for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],
    const geometry=await target.evaluate(button=>{
     const spot=button.parentElement,shelf=spot.closest('.gs2-shelf-viewport');
     const read=()=>({card:spot.getBoundingClientRect().height,target:button.getBoundingClientRect().height,shelf:shelf.getBoundingClientRect().height,overflow:getComputedStyle(spot).overflow});
-    const actual=read();spot.style.overflow='visible';const uncontained=read();spot.style.removeProperty('overflow');return {actual,uncontained,restored:read()};
+    const actual=read();button.style.flex='1';const uncontained=read();button.style.removeProperty('flex');return {actual,uncontained,restored:read()};
    });
    await testInfo.attach('landscape-containment',{body:JSON.stringify(geometry),contentType:'application/json'});
    expect(geometry.actual.overflow).toBe('hidden');expect(geometry.actual.card).toBeLessThanOrEqual(geometry.actual.shelf);
@@ -118,11 +118,13 @@ for (const [width,height] of [[320,568],[360,800],[390,844],[414,896],[568,320],
   await target.click();const feedback=page.locator('.gs2-modal-layer>.gs2-tap-feedback');await feedback.waitFor();
   const evidence=await feedback.evaluate(async node=>{
    const canvas=node.parentElement.querySelector('.gs2-live-surface'),rect=node.getBoundingClientRect();
-   node.style.pointerEvents='auto';canvas.style.pointerEvents='auto';const stack=document.elementsFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);node.style.removeProperty('pointer-events');canvas.style.pointerEvents='none';
+   // Dialog focus isolation marks its decorative canvas inert. Lift only hit-testing
+   // isolation for this paint-order probe, then restore it before interaction.
+   const wasInert=canvas.inert;canvas.inert=false;node.style.pointerEvents='auto';canvas.style.pointerEvents='auto';const stack=document.elementsFromPoint(rect.x+rect.width/2,rect.y+rect.height/2);node.style.removeProperty('pointer-events');canvas.style.pointerEvents='none';canvas.inert=wasInert;
    const target=document.querySelector('.gs2-detail-tap').getBoundingClientRect(),scroll=document.querySelector('.gs2-dialog-scroll'),before=scroll.scrollTop;
    scroll.scrollTop=before+40;const after=scroll.scrollTop;
    await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)));
-   return {coin:stack.indexOf(node),canvas:stack.indexOf(canvas),withinTarget:rect.left>=target.left&&rect.right<=target.right&&rect.top>=target.top&&rect.bottom<=target.bottom,before,after,retired:!node.isConnected};
+   return {wasInert,coin:stack.indexOf(node),canvas:stack.indexOf(canvas),withinTarget:rect.left>=target.left&&rect.right<=target.right&&rect.top>=target.top&&rect.bottom<=target.bottom,before,after,retired:!node.isConnected};
   });
   await testInfo.attach('detail-layer-scroll',{body:JSON.stringify(evidence),contentType:'application/json'});
   expect(evidence.coin).toBeGreaterThanOrEqual(0);expect(evidence.canvas).toBeGreaterThan(evidence.coin);expect(evidence.withinTarget).toBe(true);expect(evidence.after).toBeGreaterThan(evidence.before);expect(evidence.retired).toBe(true);

@@ -161,3 +161,6 @@
 .gs2-plant-target:focus-visible{outline-offset:-3px}
 .gs2-metric[data-garden-gold]>strong{display:flex;align-items:center;gap:4px}
 .gs2-metric[data-garden-gold]>strong .gs2-art{width:16px;height:16px}
+/* Short landscape uses the registered compact plant height. Flex growth from
+   percentage-sized art must not push the name and Care outside the scrollport. */
+.gs2-stage[data-gs2-arrangement=side][data-gs2-compact=true] .gs2-plant-target{flex:none}
