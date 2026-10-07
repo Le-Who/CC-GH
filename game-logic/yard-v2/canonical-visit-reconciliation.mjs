@@ -5,6 +5,7 @@
  * Both source gates default off. The separately gated transaction owns the
  * qualified one-visit economic effects; preparation alone never grants them.
  */
+import {applyCanonicalFoodActionAtCursor} from './canonical-food-actions.mjs';
 import {withPlayerLock,afterPlayerCommit} from '../../playerManager.js';
 import {createCanonicalVisitWorker} from './canonical-visit-worker.mjs';
 import {VISIT_JOB_SOURCE_HASH,snapshotRequest,boundedJSON} from './canonical-visit-job-contract.mjs';
@@ -76,7 +77,15 @@ function select(state,slotId,at){
  const {visitor,activity,id,leavesAt,bowl}=selection;
  return {candidate:{visitId:id,visitorId:visitor.id,goodieId:row.goodieId,activityId:activity.id,slotId,arrivedAt:at,leavesAt},bowl:clone(bowl),rows:sorted(runtime.canonicalPlacements)};
 }
-function reservations(state){return digest({visits:state.runtime.visits,canonicalVisits:state.runtime.canonicalVisits??{},activeVisitors:state.yard.activeVisitors});}
+function reservations(state){
+ // Food replacement receipts do not change spatial reservation ownership.
+ // The committed Yard revision still fences food changes, and complete fresh
+ // visit inspection validates their receipt-backed economy on every read.
+ const canonicalVisits=Object.fromEntries(Object.entries(state.runtime.canonicalVisits??{}).map(([id,wrapper])=>{
+  const {lastFoodActionId:_foodId,foodActionSequence:_foodSequence,...reservation}=wrapper;return [id,reservation];
+ }));
+ return digest({visits:state.runtime.visits,canonicalVisits,activeVisitors:state.yard.activeVisitors});
+}
 function currentRequestUnchecked(player){
  const state=inspect(player);if(state.code)return state;
  const active=Object.values(state.runtime.canonicalVisits).filter(v=>v.status==='active');
@@ -235,6 +244,28 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
    if(!CANONICAL_RECONCILIATION_ENABLED)return outcome('RECONCILIATION_DISABLED');
    if(!identity(ownerId))return outcome('OWNER_REQUIRED');
    return track(withPlayerLock(ownerId,player=>register(player)));
+  },
+  /** Food commands reuse source handlers, after the caller's clock catch-up.
+   * Only this owner can select the actual replay artifact for the fresh save. */
+  applyFood(player,action,payload,{now,actionId}={}){
+   const current=currentRequest(player);let cached=null;
+   if(current.code&&current.code!=='NO_UNRESOLVED_VISIT')return {status:409,error:'CANONICAL_ACTION_RECONCILIATION_PENDING'};
+   if(current.wrapper){
+    cached=validated.get(player.id);
+    if(!cached||cached.requestKey!==snapshotRequest(current.request,256*1024).key||cached.expiresAt<=performance.now())return {status:409,error:'CANONICAL_ACTION_RECONCILIATION_PENDING'};
+    const checked=inspectReplayedCanonicalVisit(player,{state:'prepared',execution:{sourceHash:VISIT_JOB_SOURCE_HASH},artifact:cached.artifact},{now});
+    if(!checked.valid)return {status:409,error:checked.code};
+   }
+   const result=applyCanonicalFoodActionAtCursor(player,action,payload,{now,actionId,replayedRecord:cached?.artifact.record});
+   if(result.receipt&&result.yard&&result.runtime){
+    if(cached){
+     const draft={...player,yard:result.yard,_yardV2:{...player._yardV2,runtime:result.runtime}};
+     const checked=inspectReplayedCanonicalVisit(draft,{state:'prepared',execution:{sourceHash:VISIT_JOB_SOURCE_HASH},artifact:cached.artifact},{now});
+     if(!checked.valid)return {status:409,error:checked.code};
+    }
+    player.yard=result.yard;player._yardV2.runtime=result.runtime;
+   }
+   const {yard:_yard,runtime:_runtime,...publicResult}=result;return publicResult;
   },
   /** Normal service tick. Only already replayed exact-key evidence can run
    * synchronous effects; cache misses enqueue after the winning commit. */

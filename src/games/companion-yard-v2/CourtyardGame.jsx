@@ -1,3 +1,4 @@
+import {canonicalSavedFoodReady,canonicalSavedFoodCommandAllowed} from './canonical-saved-food-actions.mjs';
 import {selectCanonicalFoodState} from '../../../game-logic/yard-v2/canonical-food-contract.mjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {CANONICAL_LOCATION,CANONICAL_MAX_PLACEMENTS,CANONICAL_ACTION_NONCE_PREFIX,canonicalCommandScope,canonicalNoncePrefix,canonicalCapability,canonicalPlacements,canonicalItemState,checkCanonicalPlacement,isCanonicalItemIntent} from '../../game-state/canonicalYardItems.mjs';
@@ -78,7 +79,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const itemMode=current.canonicalItems===true,itemMutable=!savedMode&&itemMode&&current.mediaReady&&!!canonicalCapability(snapshot);
   const actionSession=useGameHub(s=>s.accountSession);
   const canonicalFood=canonicalFoodPreview&&itemMode?selectCanonicalFoodState(snapshot):null;
-  const canUseCanonicalFood=(snap=snapshot)=>!!(!savedMode&&canonicalFoodPreview&&itemMode&&current.mediaReady===true&&snap?.player?.id&&canonicalCapability(snap)&&selectCanonicalFoodState(snap).available&&current.canonicalFood?.render?.available===true&&!current.canonicalFood?.reentryRequired&&current.canonicalFood.render.state===selectCanonicalFoodState(snap).state);
+  const canUseCanonicalFood=(snap=snapshot)=>savedMode?canonicalSavedFoodReady(snap,current,pipPreview):!!(canonicalFoodPreview&&itemMode&&current.mediaReady===true&&snap?.player?.id&&canonicalCapability(snap)&&selectCanonicalFoodState(snap).available&&current.canonicalFood?.render?.available===true&&!current.canonicalFood?.reentryRequired&&current.canonicalFood.render.state===selectCanonicalFoodState(snap).state);
   const foodConflict=canonicalFood?.reason==='CANONICAL_FOOD_SOCKET_OCCUPIED';
   const foodReentryRequired=current.canonicalFood?.reentryRequired===true;
   const foodNotice=foodReentryRequired?t('yard.canonical.food.reentry'):foodConflict?t('yard.canonical.food.occupied',{slots:occupiedDecorLabels(canonicalFood.occupiedSlotIds,canonicalPlacements(snapshot),name,t('yard.persistent.unknownItem'))}):canonicalFood&&!canonicalFood.available?t('yard.canonical.food.unavailable'):canonicalFood&&current.canonicalFood?.loading?t('yard.canonical.food.loading'):canonicalFood&&current.canonicalFood?.render?.available!==true?t('yard.canonical.food.unavailable'):'';
@@ -129,8 +130,8 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     if(state.accountSession!==actionSession||state.snapshot?.player?.id!==snapshot?.player?.id)return;
     const actionBusy=state.pendingActions.some(p=>p.action.startsWith('yard.')&&p.status!=='failed');
     const purchase=itemMode&&action==='yard.buyGoodie'&&canBuyGoodie(payload.goodieId,state.snapshot);
-    const foodAction=canUseCanonicalFood(state.snapshot)&&(action==='yard.setFood'&&payload.bowlId==='bowl-1'&&state.snapshot.yardRuntime.supportedBindings?.bowls?.['bowl-1']?.set===true&&state.snapshot.yardRuntime.supportedBindings?.foods?.[payload.foodId]?.set===true&&state.snapshot.yard.foodInventory?.[payload.foodId]>0||action==='yard.buyFood'&&payload.qty===1&&state.snapshot.yardRuntime.supportedBindings?.foods?.[payload.foodId]?.buy===true&&canAffordCatalogCost(YARD_FOODS[payload.foodId]?.cost,state.snapshot.yard.currencies));
-    if(actionBusy || !(canonical?itemMutable&&canonicalCapability(state.snapshot,action):current.mutable||purchase||foodAction))return;
+    const foodAction=savedMode?canonicalSavedFoodCommandAllowed(state.snapshot,current,action,payload,pipPreview):canUseCanonicalFood(state.snapshot)&&(action==='yard.setFood'&&payload.bowlId==='bowl-1'&&state.snapshot.yardRuntime.supportedBindings?.bowls?.['bowl-1']?.set===true&&state.snapshot.yardRuntime.supportedBindings?.foods?.[payload.foodId]?.set===true&&state.snapshot.yard.foodInventory?.[payload.foodId]>0||action==='yard.buyFood'&&payload.qty===1&&state.snapshot.yardRuntime.supportedBindings?.foods?.[payload.foodId]?.buy===true&&canAffordCatalogCost(YARD_FOODS[payload.foodId]?.cost,state.snapshot.yard.currencies));
+    if(actionBusy || !(canonical?itemMutable&&canonicalCapability(state.snapshot,action):savedMode?foodAction:current.mutable||purchase||foodAction))return;
     if(canonical)scene.current?.setCanonicalActionPending(true);
     try{const result=await useGameHub.getState().performReliableAction(action,payload,{clientActionId:`${canonical?canonicalNoncePrefix(state.snapshot):'yard-v2:'}${uuid()}`,durability:'outbox'});
       if(result.error)setError(result.error);else if(result.success&&result.pending)setError('');
@@ -182,7 +183,8 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     scene.current?.setCanonicalItemsEnabled(true);
   };
   const foodBlocked=busy||!(current.mutable||canUseCanonicalFood());
-  const blocked=busy || !current.mutable,itemBlocked=busy||!itemMutable,placementBlocked=isCanonicalItemIntent(ghost)?itemBlocked:blocked;
+  const savedFoodDisabled=(action,payload)=>savedMode&&!canonicalSavedFoodCommandAllowed(snapshot,current,action,payload,pipPreview);
+  const blocked=busy || savedMode || !current.mutable,itemBlocked=busy||!itemMutable,placementBlocked=isCanonicalItemIntent(ghost)?itemBlocked:blocked;
   const bindings=current.runtime?.supportedBindings || {};
   const feedbackCode=error||message||pending.find(item=>item.requiresUserDecision||item.requiresCanonicalReview||item.status==='rollout-paused'&&item.blockedReason==='UNSUPPORTED_YARD_STORAGE_VERSION')?.blockedReason;
   const feedback=feedbackCode==='YARD_PIP_SCENE_FAILED'?t('yard.canonical.displayFailed'):feedbackCode==='YARD_CAMERA_MEDIA_UNAVAILABLE'?t('yard.persistent.error.visualMedia'):feedbackCode==='OUTBOX_STORAGE_UNAVAILABLE'?t('yard.persistent.error.storage'):yardFeedbackText(playerFeedbackText(language,feedbackCode),t);
@@ -246,9 +248,9 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
         {(yard.bowls||[]).map(b=>{const foodId=bowlFood[b.id]||'kibble',ready=bindings.bowls?.[b.id]?.set===true&&(!itemMode||canUseCanonicalFood()&&b.id==='bowl-1');return <Row key={b.id} src={catalogPreview('food',b.foodId && b.servings>0?b.foodId:'empty_bowl')} title={b.id==='bowl-1'?t('yard.persistent.bowl'):t('yard.persistent.secondBowl')} detail={!ready?t('yard.persistent.bowlSavedUnavailable'):b.foodId?t('yard.persistent.servings',{name:name(b.foodId),count:b.servings}):t('yard.persistent.bowlEmpty')}>
           <select className="cy-food-select" aria-label={t('yard.persistent.foodFor',{bowl:b.id==='bowl-1'?t('yard.persistent.bowl'):t('yard.persistent.secondBowl')})} value={foodId} disabled={foodBlocked || !ready} onChange={e=>setBowlFood(v=>({...v,[b.id]:e.target.value}))}>
             {Object.values(YARD_FOODS).map(f=><option key={f.id} value={f.id} disabled={!bindings.foods?.[f.id]?.set}>{name(f.id)} · {yard.foodInventory?.[f.id]||0}</option>)}
-          </select><button data-yard-action="set-food" data-bowl-id={b.id} disabled={foodBlocked || !ready || !bindings.foods?.[foodId]?.set || !(yard.foodInventory?.[foodId]>0)} onClick={()=>act('yard.setFood',{bowlId:b.id,foodId})}>{t('yard.persistent.fill')}</button>
+          </select><button data-yard-action="set-food" data-bowl-id={b.id} disabled={foodBlocked || savedFoodDisabled('yard.setFood',{bowlId:b.id,foodId}) || !ready || !bindings.foods?.[foodId]?.set || !(yard.foodInventory?.[foodId]>0)} onClick={()=>act('yard.setFood',{bowlId:b.id,foodId})}>{t('yard.persistent.fill')}</button>
         </Row>;})}
-        <h3>{t('yard.shop.food')}</h3><div className="cy-catalog-grid">{Object.values(YARD_FOODS).map(f=><Card key={f.id} src={catalogPreview('food',f.id)} title={name(f.id)} detail={t('yard.persistent.stockCost',{count:snapshot?.yard?(yard.foodInventory?.[f.id]||0):'—',cost:cost(f.cost)})+purchaseNote(f.cost,bindings.foods?.[f.id]?.buy)}><button data-yard-action="buy-food" data-food-id={f.id} disabled={foodBlocked || !bindings.foods?.[f.id]?.buy || !affordable(f.cost)} onClick={()=>act('yard.buyFood',{foodId:f.id,qty:1})}>{t('yard.persistent.take')}</button></Card>)}</div>
+        <h3>{t('yard.shop.food')}</h3><div className="cy-catalog-grid">{Object.values(YARD_FOODS).map(f=><Card key={f.id} src={catalogPreview('food',f.id)} title={name(f.id)} detail={t('yard.persistent.stockCost',{count:snapshot?.yard?(yard.foodInventory?.[f.id]||0):'—',cost:cost(f.cost)})+purchaseNote(f.cost,bindings.foods?.[f.id]?.buy)}><button data-yard-action="buy-food" data-food-id={f.id} disabled={foodBlocked || savedFoodDisabled('yard.buyFood',{foodId:f.id,qty:1}) || !bindings.foods?.[f.id]?.buy || !affordable(f.cost)} onClick={()=>act('yard.buyFood',{foodId:f.id,qty:1})}>{t('yard.persistent.take')}</button></Card>)}</div>
       </>}
       {panel==='decor' && <><p className="cy-intro">{t(itemMode?'yard.canonical.note':decorTab==='placed'?'yard.persistent.decorNote':decorTab==='inventory'?'yard.persistent.inventoryNote':'yard.persistent.shopNote',{count:CANONICAL_MAX_PLACEMENTS})}</p>
         {foodConflict&&<p data-canonical-food-conflict="true" style={{overflowWrap:'anywhere'}} role="status">{foodNotice}</p>}

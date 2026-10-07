@@ -1,0 +1,6 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';
+import{admitPipResources,ENCODED_BACKGROUND_CPU_BYTES,LIMITS}from'../src/games/companion-yard-v2/pip-prototype/resources.mjs';
+import{pipRenderProfile}from'../src/games/companion-yard-v2/pip-prototype/render-quality-profile.mjs';
+const rows=JSON.parse(fs.readFileSync(new URL('./yard-painted-profile-fixture.json',import.meta.url)));
+test('named profiles admit exact measured allocations and reject mismatches',()=>{for(const x of rows){const p=x.sampling===1?'garden-reference-1x':'painted-native-1.5-v1',row={...x.row,renderProfile:p,encodedBackgroundCPUBytes:ENCODED_BACKGROUND_CPU_BYTES};assert(admitPipResources(row,{renderProfile:p}));if(x.sampling===1.5){assert.equal(admitPipResources(row),false);assert.equal(admitPipResources({...row,backingWidth:586},{renderProfile:p}),false);assert.equal(admitPipResources({...row,resizeDrawingBufferPeakEstimatedBytes:1},{renderProfile:p}),false);}}});
+test('default budget remains unchanged and arbitrary profiles are forbidden',()=>{assert.equal(LIMITS.estimatedGPU,12*1024*1024);assert.equal(LIMITS.knownCPU,16*1024*1024);assert.equal(LIMITS.rgba,64*1024*1024);assert.throws(()=>pipRenderProfile('custom'),/Unqualified/);assert.equal(pipRenderProfile('painted-native-1.5-v1').estimatedGPU,20*1024*1024);});

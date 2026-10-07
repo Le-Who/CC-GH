@@ -4,6 +4,7 @@
  */
 import {YARD_HOUR_MS,YARD_GOODIES,YARD_VISITORS} from './catalog.mjs';
 import {clone,digest,integer,assertInteger,addCount,randomInt,randomUnit,put,lookup} from './util.mjs';
+import {inspectCanonicalBowlAfterActions} from './canonical-food-actions.mjs';
 import {VISIT_JOB_SOURCE_HASH} from './canonical-visit-job-contract.mjs';
 export const CANONICAL_VISIT_ADMISSION_ENABLED=false;
 export const CANONICAL_VISIT_WRAPPER='yard-authoritative-canonical-visit/v1';
@@ -108,8 +109,8 @@ export function inspectReplayedCanonicalVisit(player,evidence,{now}={}){
   ||!object(runtime.canonicalVisitReceipts)||!object(lookup(runtime.canonicalVisitReceipts,wrapper.eventId))||digest(lookup(runtime.canonicalVisitReceipts,wrapper.eventId))!==digest(receiptFor(wrapper))
   ||digest(wrapper.original)!==digest(originalFor(record))||yard.activeVisitors.length!==1
   ||!Array.isArray(yard.bowls)||yard.bowls.length!==1)return fail('OUTCOME_STATE_REQUIRES_REVIEW');
- const expectedBowl=clone(record.after.bowl);expireAt(expectedBowl,runtime.cursorMs);
- if(digest(yard.bowls[0])!==digest(expectedBowl))return fail('SAVED_ECONOMY_MISMATCH');
+ const food=inspectCanonicalBowlAfterActions({wrapper,record,commandReceipts:runtime.commandReceipts,bowl:yard.bowls[0],cursorMs:runtime.cursorMs});
+ if(!food.valid)return fail(food.code);
  const giftId=wrapper.giftId,prior=lookup(runtime.giftLedger,giftId),pendingGift=yard.pendingGifts.find(g=>g.id===giftId);
  if(prior!==undefined||pendingGift)return fail('OUTCOME_ALREADY_EXISTS_FOR_ACTIVE_VISIT');
  return {valid:true,wrapper,visitor,entry,giftId};

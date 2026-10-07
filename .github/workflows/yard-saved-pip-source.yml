@@ -70,6 +70,12 @@ jobs:
         run: |
           set -o pipefail
           node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-canonical-revision.test.mjs tests/yard-canonical-runtime-real.test.mjs | tee test-results/saved-visit/normal-runtime.tap
+      - name: Genuine source food commands, replacement receipts and cold replay
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-canonical-food-actions.test.mjs tests/yard-canonical-food-runtime-real.test.mjs | tee test-results/saved-visit/food-runtime.tap
+          node --test tests/yard-canonical-saved-food-client.test.mjs tests/yard-canonical-saved-food-outbox.test.mjs tests/hub-account-boundaries.test.mjs tests/yard-real-backend-contract.test.mjs | tee test-results/saved-visit/food-outbox.tap
+          node --import ./qa/saved-pip-visit/register.mjs --test tests/yard-painted-food-renderer.test.mjs tests/yard-painted-profile.test.mjs | tee test-results/saved-visit/painted-source.tap
       - name: Real two-process PostgreSQL optimistic-concurrency and restart
         env:
           DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test
@@ -104,14 +110,25 @@ jobs:
       - name: Native saved Scene entry, resume and renderer replacement
         env:
           VITE_YARD_SAVED_VISITS: 'true'
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
           YARD_SOURCE_ROOT: ${{ github.workspace }}
           YARD_DEPENDENCY_ROOT: ${{ github.workspace }}
           YARD_SCENE_OUTPUT: ${{ github.workspace }}/test-results/saved-visit-scene
         run: node qa/saved-visit-scene/run.mjs
       - name: Ordinary Home to Yard navigation and saved visitor
         env:
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
           QUALIFIED_APP_SNAPSHOT: ${{ github.workspace }}/test-results/normal-runtime/qualified-app-snapshot.json
         run: pnpm exec playwright test --config playwright.yard-saved-visit-app.config.mjs
+      - name: Real backend buy, fill, exact nonce and PostgreSQL readback
+        env:
+          NODE_ENV: test
+          DEV_AUTH_ENABLED: 'true'
+          YARD_SAVED_VISIT_PG: '1'
+          DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test
+          REDIS_URL: ''
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
+        run: pnpm exec playwright test --config playwright.yard-saved-visit-real.config.mjs
       - name: Preserve exact evidence and failures
         if: always()
         uses: actions/upload-artifact@v4

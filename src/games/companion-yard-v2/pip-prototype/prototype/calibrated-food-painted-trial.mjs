@@ -1,0 +1,9 @@
+import{createPaintedFoodPreview,createPaintedFoodResourceOwner,paintedFoodAssetURL,PAINTED_FOOD_DESCRIPTOR}from'./calibrated-food-painted.mjs';
+import{installFoodAppearance}from'./painted-food-appearance.mjs';
+export const canonicalFoodAssetURL=paintedFoodAssetURL;
+export const createCanonicalFoodResourceOwner=options=>createPaintedFoodResourceOwner({...options,resourceProfile:'painted-native-1.5-v1'});
+export async function createCalibratedFood(THREE,options){
+ const owner=await createPaintedFoodPreview(THREE,{...options,descriptor:PAINTED_FOOD_DESCRIPTOR});
+ let appearance;try{appearance=installFoodAppearance(owner.root,{variant:'authored-color-contact'});}catch(error){owner.dispose();throw error;}
+ return{...owner,dispose(){appearance.dispose();owner.dispose();},get diagnostics(){return{...owner.diagnostics,appearance:appearance.diagnostics}}};
+}

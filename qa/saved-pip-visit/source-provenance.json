@@ -358,22 +358,10 @@
       "bytes": 8817
     },
     {
-      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
-      "source": "reviewed bounded actor visibility policy",
-      "sha256": "a87d559d7178660a7b37168f985cbffa04b79abb7f87587e5786d674d1f9cb36",
-      "bytes": 24330
-    },
-    {
       "path": "src/game-state/canonicalYardItems.mjs",
       "source": "reviewed-normal-runtime-integration",
       "sha256": "f73751aaddc162d4b111a64c989e6943356709ccfe84cc67671f3112a3151a5a",
       "bytes": 3287
-    },
-    {
-      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
-      "source": "reviewed-normal-runtime-integration",
-      "sha256": "50cc12b1e4c1278e53e693fef9e2bda13a8a49e5a816c235c6590dee9b973c77",
-      "bytes": 43363
     },
     {
       "path": "src/games/companion-yard-v2/YardReleaseGame.jsx",
@@ -388,28 +376,88 @@
       "bytes": 930
     },
     {
-      "path": "src/games/companion-yard-v2/scene-entry.mjs",
-      "source": "reviewed-normal-runtime-integration",
-      "sha256": "af8b4738985aab9fc5d17bc434fde80d31eeeb73d2c9c3237dd2ed143df54602",
-      "bytes": 541
-    },
-    {
       "path": "src/games/companion-yard-v2/scene-owner.mjs",
       "source": "reviewed-normal-runtime-integration",
       "sha256": "c242a076bcc52e33bcd3c6e9e8962c69af0cc00ab981ed1872d584d59ddbfcf7",
       "bytes": 9130
     },
     {
-      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
-      "source": "reviewed-normal-runtime-integration",
-      "sha256": "7d95811bce20d7482002053f159006a1a2f70835abb12609d4d83c995e77cf20",
-      "bytes": 33027
-    },
-    {
       "path": "src/games/companion-yard-v2/pip-prototype/canonical-saved-visit-client.mjs",
       "source": "reviewed-normal-runtime-integration",
       "sha256": "df9b56d228497154cc63a271b18f48a35cbf1f39ea9ebee7a5dc7386ac7965f2",
       "bytes": 4906
+    },
+    {
+      "path": "src/game-state/canonicalSavedFoodProtocol.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "3508d6c258293962a7b402010904d3aba3893eb5765beff24b211c5a578145aa",
+      "bytes": 3342
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "80a4d7200343cb78fb9b14123c821770c797c51b37e033e62d9858502aa017cf",
+      "bytes": 39372
+    },
+    {
+      "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "339a3fd0d8e06acb4289d0eaa4250dd11b351557492768854584de30a54e275f",
+      "bytes": 43895
+    },
+    {
+      "path": "src/games/companion-yard-v2/canonical-saved-food-actions.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "b9b53f66b779f8afd84575559bbc48aa2af0aa8e5024704829bee887252fb17e",
+      "bytes": 3541
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-entry.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "92f8ddb54cbc43e5a65d97231db73a3fd405370ad3071dda2bb083768fb830b6",
+      "bytes": 771
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/render-quality-profile.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "f31b362e481c86478edf063f54568c3cf0ff94ff2f3285958bc4a2d5e2f0f1c6",
+      "bytes": 712
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/resources.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "e1c8181f003c9a1bfff9b4777a84a2a27d3beeb124339a0302048b295f1219b8",
+      "bytes": 4634
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "d3018af21b45f07123f5cf72ca1a39fad009a15ee329d6463c2c96cc5ae05c00",
+      "bytes": 33254
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-food-painted.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "b0ccd48eeb7424ab3a77b0cc4feaa92532c9daa772a26e45602311d0fb74a68f",
+      "bytes": 17823
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/optional-pip-renderer.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "a1b251de1f2424ca62e696a3f7b6ea670c2be54606c3c5827322bc739cf0f85d",
+      "bytes": 24577
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/painted-food-appearance.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "80a61019be86c775f6c09700712e0cbab5bfae7f05c468b651b2fd2ad7d18689",
+      "bytes": 2728
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/prototype/calibrated-food-painted-trial.mjs",
+      "source": "reviewed-food-and-painted-profile-integration",
+      "sha256": "2262607ca439b57cf1548aba88f90015af1d5d0bc687a9b8baca6e292ea1e895",
+      "bytes": 862
     }
   ]
 }

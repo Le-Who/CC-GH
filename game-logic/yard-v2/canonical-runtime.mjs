@@ -4,7 +4,8 @@ import {createCanonicalVisitReconciler,stageCanonicalVisitPreparation,inspectCan
 import {CANONICAL_VISIT_PRESENTATION_PROTOCOL} from './canonical-visit-placement-contract.mjs';
 import {canonicalFoodCapabilities,selectCanonicalFoodState} from './canonical-food-contract.mjs';
 import {canonicalItemCapabilities} from './canonical-locations.mjs';
-import {YARD_HOUR_MS} from './catalog.mjs';
+import {probeCanonicalFoodAction} from './canonical-food-actions.mjs';
+import {YARD_HOUR_MS,YARD_FOODS} from './catalog.mjs';
 import {clone,integer,digest} from './util.mjs';
 export const CANONICAL_RUNTIME_ENABLED=false;
 let reconciler;
@@ -43,17 +44,29 @@ export function ensureCanonicalPlayerYard(player,{now=Date.now(),simulate=false}
  const at=Math.min(now,r.nextOpportunityAt-1);expire(player,at);r.cursorMs=at;player.yard.lastSimulatedAt=at;
  return {status:200,mutable:false,yard:player.yard};
 }
+function foodPresentation(runtime){
+ if(runtime.status!=='ready'||runtime.error)return runtime;
+ return {...runtime,canonicalFoodActions:{protocol:'yard-canonical-food-actions/v1',enabled:true,actions:['yard.buyFood','yard.setFood']},
+  supportedActions:['yard.buyFood','yard.setFood'],supportedBindings:{goodies:{},foods:Object.fromEntries(Object.keys(YARD_FOODS).map(id=>[id,{buy:true,set:true}])),bowls:{'bowl-1':{set:true}}}};
+}
 export function publicCanonicalPlayerYard(player,{now=Date.now()}={}){
  const base={version:1,storageVersion:3,canonicalVisitProtocol:CANONICAL_VISIT_PRESENTATION_PROTOCOL,serverNow:now,mutable:false,
   visits:[],canonicalVisits:[],reservations:[],placementReadiness:[],supportedActions:[],actionProtocol:'yard-v2:'};
  if(!CANONICAL_RUNTIME_ENABLED||!shape(player,now)||!inspectCanonicalPlayerState(player).valid||player.yard.helper?.unlocked&&player.yard.helper?.autoRefill)return {...base,status:'review-required',error:'CANONICAL_RUNTIME_REQUIRES_REVIEW',canonicalPlacements:[]};
  const common={...base,canonicalPlacements:clone(player._yardV2.runtime.canonicalPlacements),
   foodLocationCapabilities:canonicalFoodCapabilities({canonicalFoodLocationEnabled:true}),itemPlacementCapabilities:canonicalItemCapabilities({canonicalItemPlacementEnabled:false,canonicalFoodLocationEnabled:true})};
- if(active(player))return {...common,...owner().project(player,{now})};
+ if(active(player))return foodPresentation({...common,...owner().project(player,{now})});
  const r=player._yardV2.runtime;
  const due=r.canonicalPending||r.nextOpportunityAt<=now||player.yard.bowls.some(b=>b.foodId&&b.expiresAt<=now);
  const result={...common,status:due?'reconciliation-pending':'ready'};
- result.canonicalFoodState=selectCanonicalFoodState({yard:player.yard,yardRuntime:result});return result;
+ result.canonicalFoodState=selectCanonicalFoodState({yard:player.yard,yardRuntime:result});return foodPresentation(result);
 }
-export function executeCanonicalYardAction(){return failure('CANONICAL_COMMAND_INTEGRATION_PENDING');}
+export function executeCanonicalYardAction(player,action,payload={}, {now=Date.now(),actionId}={}){
+ if(!CANONICAL_RUNTIME_ENABLED)return failure('CANONICAL_RUNTIME_DISABLED');
+ const probe=probeCanonicalFoodAction(player,action,payload,{now,actionId});
+ if(!probe.needsReconciliation)return probe;
+ const advanced=ensureCanonicalPlayerYard(player,{now,simulate:true});
+ if(advanced.status!==200)return advanced;
+ return owner().applyFood(player,action,payload,{now,actionId});
+}
 export async function closeCanonicalRuntime(){if(reconciler){await reconciler.close();reconciler=undefined;}}
