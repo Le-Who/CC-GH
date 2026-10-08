@@ -69,3 +69,13 @@ export function supportedYardBindings(mediaRegistry) {
 }
 // Explicit pure-test binding: never selected from payload, HTTP or a client feature flag.
 export const sourceCatalogActionPolicy=()=>({ok:true});
+
+// Code-owned default; only server configuration or explicit pure-test options
+// may enable the non-economic native checkpoint command. No request field does.
+export const NATIVE_MIKA_CHECKPOINT_ENABLED=false;
+export function nativeMikaCheckpointCapability({nativeMikaCheckpointEnabled=NATIVE_MIKA_CHECKPOINT_ENABLED}={}) {
+  const enabled=nativeMikaCheckpointEnabled===true;
+  return {version:1,enabled,action:'yard.saveNativeMikaCheckpoint',actionNoncePrefix:'yard-v2:',
+    visitAdmission:false,inFlightResume:false,economicEffects:false,
+    ...(!enabled?{blockedReason:'NATIVE_MIKA_CHECKPOINT_DISABLED'}:{})};
+}

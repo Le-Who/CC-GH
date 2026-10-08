@@ -21,6 +21,7 @@ import {useEscapeDismiss} from '../../app/useDismissableLayer.js';
 import {LOCAL_PLACEMENT_ERRORS,ownsPlacement,placementCommand,pendingPlacement,retryablePlacement,recoverPlacement} from './placement-recovery.mjs';
 import {createUiImageReserve} from './ui-image-reserve.mjs';
 import {isCanonicalYardEntryAllowed,PIP_GROUNDING_PREVIEW_RECIPE} from './pip-preview-gate.mjs';
+import {createNativeCheckpointCommand} from './native-checkpoint-command.mjs';
 import {createNativeItemCommand,nativeItemLayoutKey} from './native-item-command.mjs';
 import './courtyard.css';
 import './i18n.js';
@@ -83,6 +84,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const [view,setView]=useState(null),[panel,setPanel]=useState(null),[ghost,setGhost]=useState(null),[error,setError]=useState(''),[menuSelection,setMenuSelection]=useState(null);
   useLayoutEffect(()=>{if(view)scene.current?.commitPresentation?.(view);},[view]);
   const [nativeCommand,setNativeCommand]=useState({phase:'idle'}),nativeController=useRef(null),nativeSelection=useRef({});
+  const [nativeSave,setNativeSave]=useState({phase:'idle',enabled:false}),nativeSaveController=useRef(null);
   useEffect(()=>{
     const controller=createNativeItemCommand({publish:setNativeCommand,readContext:()=>{
       const state=useGameHub.getState(),selected=nativeSelection.current,raw=state.snapshot?.yard?.placedGoodies?.find(item=>item.slotId===selected.slotId);
@@ -90,6 +92,15 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
       return{renderer:scene.current,snapshot:state.snapshot,slotId:raw.slotId,accountId:state.snapshot?.player?.id,accountSession:state.accountSession,ownerId:selected.native?.ownerId,layoutKey:nativeItemLayoutKey(state.snapshot),native:selected.native};
     }});nativeController.current=controller;const unsubscribe=useGameHub.subscribe(()=>controller.sync());
     return()=>{unsubscribe();controller.dispose();if(nativeController.current===controller)nativeController.current=null;};
+  },[]);
+  useEffect(()=>{
+    const controller=createNativeCheckpointCommand({publish:setNativeSave,createNonce:()=>`yard-v2:${uuid()}`,
+      send:(action,payload,options)=>useGameHub.getState().performReliableAction(action,payload,options),
+      readContext:()=>{const state=useGameHub.getState(),native=nativeSelection.current.native;
+        return{renderer:scene.current,snapshot:state.snapshot,accountId:state.snapshot?.player?.id,accountSession:state.accountSession,
+          ownerId:native?.ownerId,native,layoutKey:nativeItemLayoutKey(state.snapshot)};}});
+    nativeSaveController.current=controller;const unsubscribe=useGameHub.subscribe(()=>controller.sync());
+    return()=>{unsubscribe();controller.dispose();if(nativeSaveController.current===controller)nativeSaveController.current=null;};
   },[]);
   const [uiImages]=useState(()=>createUiImageReserve());
   const admitImage=useCallback(src=>{try{if(uiImages.admit([src]))return true;}catch{}setError('YARD_CAMERA_MEDIA_UNAVAILABLE');return false;},[uiImages]);
@@ -222,7 +233,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const savedFoodDisabled=(action,payload)=>savedMode&&!canonicalSavedFoodCommandAllowed(snapshot,current,action,payload,pipPreview);
   const blocked=busy || savedMode || !current.mutable,itemBlocked=busy||!itemMutable,placementBlocked=isCanonicalItemIntent(ghost)?itemBlocked:blocked;
   const bindings=current.runtime?.supportedBindings || {};
-  const feedbackCode=error||message||pending.find(item=>item.requiresUserDecision||item.requiresCanonicalReview||item.status==='rollout-paused'&&item.blockedReason==='UNSUPPORTED_YARD_STORAGE_VERSION')?.blockedReason;
+  const feedbackCode=error||(nativeSave.phase==='unconfirmed'&&message===nativeSave.reason?'':message)||pending.find(item=>item.requiresUserDecision||item.requiresCanonicalReview||item.status==='rollout-paused'&&item.blockedReason==='UNSUPPORTED_YARD_STORAGE_VERSION')?.blockedReason;
   const feedback=feedbackCode==='YARD_PIP_SCENE_FAILED'?t('yard.canonical.displayFailed'):feedbackCode==='YARD_CAMERA_MEDIA_UNAVAILABLE'?t('yard.persistent.error.visualMedia'):feedbackCode==='OUTBOX_STORAGE_UNAVAILABLE'?t('yard.persistent.error.storage'):yardFeedbackText(playerFeedbackText(language,feedbackCode),t);
   const placementState=useGameHub.getState(),placementPending=pendingPlacement(placementState,ghost),placementRetry=storageError&&retryablePlacement(placementState,ghost);
   const previewStatus=t(pipPreview.settled?'yard.pipPreview.inspectionDone':'yard.pipPreview.inspectionActive');
@@ -247,11 +258,12 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   };
   const chosen=selected && itemState(selected);
   nativeSelection.current={slotId:decorTab==='placed'?selected?.raw?.slotId:null,native:nativeAction};
-  useLayoutEffect(()=>{nativeController.current?.sync();nativeController.current?.observe(nativeAction);},[nativeAction,selected?.raw?.slotId,decorTab,snapshot,actionSession]);
+  useLayoutEffect(()=>{nativeController.current?.sync();nativeController.current?.observe(nativeAction);nativeSaveController.current?.sync();void nativeSaveController.current?.observe(nativeAction);},[nativeAction,selected?.raw?.slotId,decorTab,snapshot,actionSession]);
   const nativeOwnFeedback=nativeAction&&nativeCommand.ownerId===nativeAction.ownerId&&(nativeCommand.slotId===selected?.raw?.slotId||nativeCommand.phase==='cancelled');
-  const nativeStatus=nativeOwnFeedback?nativeCommand.phase:nativeAction?.available?(nativeAction.phase==='parked'?'ready':nativeAction.phase==='planning'?'planning':nativeAction.phase==='running'?'moving':'preparing'):nativeAction?.phase==='aborted'||nativeAction?.phase==='disposed'?'cancelled':'unavailable';
-  const nativeStatusKeys=['preparing','ready','planning','moving','arrived','already','refused','cancelled','unavailable'];
-  const nativeBusy=!!nativeAction&&(nativeAction.phase!=='parked'||nativeController.current?.busy());
+  const nativeSaveStatus=nativeSave.enabled&&nativeSave.ownerId===nativeAction?.ownerId&&(nativeSave.phase!=='saved'||nativeSave.actionId===nativeAction.actionsStarted&&(!nativeOwnFeedback||['arrived','already'].includes(nativeCommand.phase)))?({saving:'savingPosition',unconfirmed:'saveUnconfirmed',saved:'positionSaved',blocked:'positionUnavailable'})[nativeSave.phase]:null;
+  const nativeStatus=nativeSaveStatus|| (nativeOwnFeedback?nativeCommand.phase:nativeAction?.available?(nativeAction.phase==='parked'?'ready':nativeAction.phase==='planning'?'planning':nativeAction.phase==='running'?'moving':'preparing'):nativeAction?.phase==='aborted'||nativeAction?.phase==='disposed'?'cancelled':'unavailable');
+  const nativeStatusKeys=['preparing','ready','planning','moving','arrived','already','refused','cancelled','unavailable',...(snapshot?.yardRuntime?.nativeMikaCheckpointCapabilities?.enabled?['savingPosition','saveUnconfirmed','positionSaved','positionUnavailable']:[])];
+  const nativeBusy=!!nativeAction&&(nativeAction.phase!=='parked'||nativeController.current?.busy()||nativeSaveController.current?.busy());
   const requestNativeItem=()=>{if(nativeBusy||!nativeAction?.available)return;void nativeController.current?.request();setPanel(null);};
   const affordable=value=>canAffordCatalogCost(value,yard.currencies);
   const purchaseNote=(value,available)=>!available?t('yard.persistent.unavailableSuffix'):!affordable(value)?` · ${t('yard.persistent.insufficientFunds')}`:'';
@@ -340,9 +352,10 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
       {feedback && <p className="cy-feedback" role="alert">{feedback}</p>}
       </div>
       {panel==='decor' && selected && <footer className="cy-selected-actions"><div><strong>{name(selected.id)}</strong><small>{chosen.detail}{decorTab==='shop'?purchaseNote(YARD_GOODIES[selected.id]?.cost,bindings.goodies?.[selected.id]?.buy):''}{decorTab==='placed' && selected.raw.condition!=='new' && chosen.supported && !affordable(YARD_GOODIES[selected.id]?.fixCost)?` · ${t('yard.persistent.insufficientFunds')}`:''}</small></div>
-      {nativeAction?.admitted&&<div className="cy-native-status cy-native-command-feedback" role="status" aria-live="polite" aria-atomic="true" data-native-command-feedback={nativeOwnFeedback?nativeCommand.phase:'idle'}><span aria-hidden="true" className="cy-native-status-reserve">{nativeStatusKeys.map(key=><span key={key}>{t('yard.native.'+key)}</span>)}</span><span className="cy-native-status-text">{nativeOwnFeedback?t('yard.native.'+nativeCommand.phase):''}</span></div>}
+      {(nativeAction?.admitted||nativeSaveStatus)&&<div className="cy-native-status cy-native-command-feedback" role="status" aria-live="polite" aria-atomic="true" data-native-command-feedback={nativeSaveStatus|| (nativeOwnFeedback?nativeCommand.phase:'idle')}><span aria-hidden="true" className="cy-native-status-reserve">{nativeStatusKeys.map(key=><span key={key}>{t('yard.native.'+key)}</span>)}</span><span className="cy-native-status-text">{nativeSaveStatus?t('yard.native.'+nativeSaveStatus):nativeOwnFeedback?t('yard.native.'+nativeCommand.phase):''}</span></div>}
       <div className="cy-row-actions">
         {decorTab==='placed' && <><button data-yard-action="move" disabled={(itemMode?itemBlocked:blocked) || chosen.reserved || !chosen.supported} onClick={()=>startPlacement(chosen.prop || selected.raw)}>{t('yard.move')}</button><button data-yard-action="pickup" disabled={savedMode ? busy || !canonicalSavedPickupCommandAllowed(snapshot,current,'yard.pickupGoodie',{slotId:selected.raw.slotId,...canonicalCommandScope(snapshot)},pipPreview) : (itemMode?itemBlocked:blocked) || chosen.reserved} onClick={()=>act('yard.pickupGoodie',{slotId:selected.raw.slotId,...(itemMode?canonicalCommandScope(snapshot):{})})}>{t('yard.store')}</button>{selected.raw.condition!=='new' && <button disabled={blocked || chosen.reserved || !chosen.supported || !affordable(YARD_GOODIES[selected.id]?.fixCost)} onClick={()=>act('yard.fixGoodie',{slotId:selected.raw.slotId})}>{t('yard.persistent.repairCost',{cost:cost(YARD_GOODIES[selected.id]?.fixCost)})}</button>}</>}
+        {nativeSave.enabled&&nativeSave.retryable&&nativeSave.ownerId===nativeAction?.ownerId&&<button data-yard-action="native-retry-save" onClick={()=>void nativeSaveController.current?.retry()}>{t('yard.native.retrySave')}</button>}
         {decorTab==='placed'&&nativeAction?.admitted&&selected.id==='yarn_mouse' && <button data-yard-action="native-go-to-item" data-slot-id={selected.raw.slotId} aria-label={t('yard.native.goName',{item:name(selected.id)})} aria-busy={nativeBusy?'true':undefined} disabled={blocked||nativeBusy||!nativeAction.available||!!ghost} onClick={requestNativeItem}>{t('yard.native.go')}</button>}
         {nativeAction&&nativeOwnFeedback&&['planning','moving'].includes(nativeCommand.phase) && <button data-yard-action="native-cancel" onClick={()=>nativeController.current?.cancel('USER_CANCELLED')}>{t('yard.native.cancel')}</button>}
         {decorTab==='placed'&&itemMode && <button data-pip-control="inspect-selected" disabled={itemBlocked||!!ghost||!pipPreview.interaction?.spawned} onClick={()=>{try{if(scene.current?.inspectCanonicalSlot(selected.raw.slotId)){setError('');setPanel(null);}else setError('CANONICAL_INTERACTION_UNAVAILABLE');}catch{setError('CANONICAL_INTERACTION_UNAVAILABLE');}}}>{t('yard.canonical.inspect')}</button>}

@@ -15,6 +15,11 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.native.already": "Already by this item",
     "yard.native.refused": "Cannot reach this item",
     "yard.native.cancelled": "Walk cancelled",
+    "yard.native.savingPosition": "Saving Mika’s position",
+    "yard.native.saveUnconfirmed": "Position save unconfirmed",
+    "yard.native.positionSaved": "Mika’s position saved",
+    "yard.native.positionUnavailable": "Saved position unavailable",
+    "yard.native.retrySave": "Retry save",
 
     "yard.canonical.food.reentry": "The yard layout changed during Pip’s preview. Reopen New Yard to show the bowl safely. Your food and placements are saved.",
     "yard.canonical.food.reentryShort": "Yard layout changed",
@@ -212,6 +217,11 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.native.already": "Уже рядом с предметом",
     "yard.native.refused": "Не добраться до предмета",
     "yard.native.cancelled": "Подход отменён",
+    "yard.native.savingPosition": "Сохраняется позиция Мики",
+    "yard.native.saveUnconfirmed": "Сохранение не подтверждено",
+    "yard.native.positionSaved": "Позиция Мики сохранена",
+    "yard.native.positionUnavailable": "Сохранённая позиция недоступна",
+    "yard.native.retrySave": "Повторить сохранение",
 
     "yard.canonical.food.reentry": "Планировка изменилась во время предпросмотра Пипа. Откройте новый двор заново, чтобы безопасно показать миску. Еда и размещения сохранены.",
     "yard.canonical.food.reentryShort": "Двор изменился",

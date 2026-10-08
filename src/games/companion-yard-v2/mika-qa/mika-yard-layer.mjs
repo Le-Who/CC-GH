@@ -4,6 +4,7 @@ import mask from './meadow-mask.json' with {type:'json'};
 import {createMikaNativePoseDriver} from './mika-native-pose.mjs';
 import {planMikaYardQaCruise,sampleMikaYardQaCruise} from './mika-yard-route.mjs';
 import {bindMikaPersistedItems,planMikaItemArrival,planMikaItemContinuationAsync} from './mika-item-approach.mjs';
+import {createMikaNativeActionRecipe,reconstructMikaNativeSettled,MIKA_NATIVE_SETTLED_SOURCE_HASH} from '../../../../game-logic/yard-v2/mika-native-settled-recipe.mjs';
 import {configureMikaYardCamera} from './mika-yard-camera.mjs';
 let nextActorInstance=0;
 const ASSET='/assets/yard-mika-p2-qa/p2.glb',BYTES=3671320,BINARY_BYTES=3624236,MODEL_CPU_BOUND=BYTES*3;
@@ -35,6 +36,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
  let THREE,model,driver,renderer,lighting,scene,camera,canvas,disposed=false,graphicsRetired=false,phase='loading',reason=null,plan=null,originStamp=null,lastResult=null,layoutStamp=null,account=null,accountObserved=false,allocatedPixels=0,rgbaBytes=0,modelGPUBytes=0;
  const actorInstance=++nextActorInstance;
  let heldCanvas=null,heldKey=null,heldBytes=0,gpuRenders=0,parkedRasterCopies=0,presentedAction=0,presentedTime=0,activeCommandToken=null;
+ let restoredResult=null,checkpointObserved=false,checkpointEnabled=false,checkpointRevision=0,checkpointRecordKey=null,checkpointSavedAction=0,pendingCheckpoint=null;
  let itemCandidate=null,latestSnapshot=null,latestContext=null,actionsStarted=0,actionsCompleted=0,lastActionResult=null,pendingPlanning=null,planningAbort=null,retirementPromise=null,planningMetrics=null;
  continuation=continuation===true&&itemApproach===true;
  const trace=[];let currentTime=0,frames=0,maximumEnvelopeRadius=0,projectionStamp=null,interruption=null;
@@ -74,11 +76,36 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
   lighting=createPipGardenLighting({THREE,scene,renderer,target:new THREE.Vector3(50/8,0,-66/8),recipe:'baseline'});
   canvas.addEventListener('webglcontextlost',onLost);phase='waiting-layout';traceState();
  }catch(error){reason=String(error?.message??error);phase=signal?.aborted||interruption?'aborted':'unavailable';releaseGraphics();traceState();}
+ function checkpointKey(record){return record==null?null:JSON.stringify(record);}
+ function noteCheckpoint(snapshot){
+  if(!continuation)return;
+  const cap=snapshot?.yardRuntime?.nativeMikaCheckpointCapabilities,record=snapshot?.yardRuntime?.nativeMikaCheckpoint;
+  // An absent capability preserves the existing candidate. Once a record or
+  // enabled owner exists, a rollback/unknown projection cannot invent a start.
+  if(!cap?.enabled){
+   if(checkpointEnabled||cap?.hasCheckpoint||record!=null)stop('blocked','NATIVE_CHECKPOINT_UNAVAILABLE');
+   return;
+  }
+  if(cap.version!==1||cap.action!=='yard.saveNativeMikaCheckpoint'||cap.sourceHash!==MIKA_NATIVE_SETTLED_SOURCE_HASH
+   ||!Number.isSafeInteger(cap.priorRevision)||cap.priorRevision<0||!['absent','ready'].includes(cap.status)
+   ||cap.status==='ready'&&(!record||record.revision!==cap.priorRevision||record.accountId!==account)
+   ||cap.status==='absent'&&(record!=null||cap.priorRevision!==0)){
+   stop('blocked',cap.blockedReason||'NATIVE_CHECKPOINT_REQUIRES_REVIEW');return;
+  }
+  const key=checkpointKey(record);
+  if(checkpointObserved&&(cap.priorRevision!==checkpointRevision||key!==checkpointRecordKey)){
+   if(!pendingCheckpoint||record?.actionId!==pendingCheckpoint.nonce||record.revision!==pendingCheckpoint.payload.priorRevision+1
+    ||record.sourceHash!==pendingCheckpoint.payload.sourceHash||record.layoutHash!==pendingCheckpoint.payload.layoutHash){stop('aborted','NATIVE_CHECKPOINT_REPLACED');return;}
+   checkpointSavedAction=pendingCheckpoint.action;pendingCheckpoint=null;
+  }
+  checkpointObserved=true;checkpointEnabled=true;checkpointRevision=cap.priorRevision;checkpointRecordKey=key;
+ }
  function noteSnapshot(snapshot){
   latestSnapshot=snapshot;
   const key=snapshotLayout(snapshot),nextAccount=snapshot?.player?.id??null;
   if(accountObserved&&nextAccount!==account)stop('aborted','ACCOUNT_CHANGED');accountObserved=true;account=nextAccount;
   if(layoutStamp!==null&&layoutStamp!==key)stop('aborted','LAYOUT_CHANGED');layoutStamp=key;
+  if(!graphicsRetired)noteCheckpoint(snapshot);
  }
  const cameraAdmission=projection=>(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}));
  function requestItemArrival(slotId,scope={}){
@@ -87,6 +114,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
   if(phase!=='parked'||pendingPlanning||!lastResult||!latestContext)return immediate('NATIVE_ACTOR_NOT_SETTLED');
   const bound=bindMikaPersistedItems(latestSnapshot,latestContext.view);
   if(!bound.ok||bound.key!==latestContext.bound.key){stop('aborted',bound.reason||'NATIVE_ITEM_BINDING_CHANGED');return immediate(reason);}
+  if(checkpointEnabled&&checkpointSavedAction!==actionsStarted)return immediate('NATIVE_CHECKPOINT_PENDING');
   if(slotId===itemCandidate.target.slotId)return immediate('ALREADY_ARRIVED');
   const controller=planningAbort=new AbortController(),stopped=structuredClone(lastResult.sample),previousReason=reason;
   activeCommandToken=scope?.commandToken??null;
@@ -103,7 +131,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
     const current=bindMikaPersistedItems(latestSnapshot,latestContext?.view);
     if(!current.ok||current.key!==bound.key){stop('aborted',current.reason||'NATIVE_ITEM_BINDING_CHANGED');return refuse(reason);}
     if(!candidate.ok){activeCommandToken=null;phase='parked';reason=previousReason;traceState();return refuse(candidate.reason);}
-    clearHeldFrame();itemCandidate=candidate;plan=candidate.plan;originStamp=null;currentTime=0;phase='running';reason=null;actionsStarted++;traceState();
+    clearHeldFrame();restoredResult=null;itemCandidate=candidate;plan=candidate.plan;originStamp=null;currentTime=0;phase='running';reason=null;actionsStarted++;traceState();
     return lastActionResult={ok:true,action:actionsStarted,targetSlotId:slotId};
    }catch(error){
     if(controller.signal.aborted||disposed||graphicsRetired)return refuse(reason||'NATIVE_ACTION_CANCELLED');
@@ -113,6 +141,20 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
     if(planningAbort===controller)planningAbort=null;if(pendingPlanning===task)pendingPlanning=null;
    }
   })();pendingPlanning=task;return task;
+ }
+ function prepareCheckpoint({ownerId,actionId,clientActionId}={}){
+  if(!checkpointEnabled||disposed||graphicsRetired||ownerId!==actorInstance||actionId!==actionsStarted
+   ||phase!=='parked'||presentedAction!==actionsStarted||presentedTime<plan?.duration||!lastResult||!latestContext)
+   return{ok:false,reason:'NATIVE_CHECKPOINT_NOT_SETTLED'};
+  if(checkpointSavedAction===actionsStarted)return{ok:false,reason:'NATIVE_CHECKPOINT_ALREADY_SAVED'};
+  if(typeof clientActionId!=='string'||!/^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(clientActionId))return{ok:false,reason:'NATIVE_CHECKPOINT_NONCE_REQUIRED'};
+  if(pendingCheckpoint)return pendingCheckpoint.nonce===clientActionId?{ok:true,payload:structuredClone(pendingCheckpoint.payload)}:{ok:false,reason:'NATIVE_CHECKPOINT_PENDING'};
+  const cap=latestSnapshot?.yardRuntime?.nativeMikaCheckpointCapabilities,bound=bindMikaPersistedItems(latestSnapshot,latestContext.view);
+  if(!cap?.enabled||cap.priorRevision!==checkpointRevision||!bound.ok||bound.key!==latestContext.bound.key)return{ok:false,reason:'NATIVE_CHECKPOINT_CONTEXT_CHANGED'};
+  const recipe=createMikaNativeActionRecipe(plan,bound,itemCandidate.target.slotId);
+  if(!recipe.ok)return recipe;
+  const payload={version:1,accountId:account,layoutHash:cap.layoutHash,sourceHash:cap.sourceHash,priorRevision:checkpointRevision,recipeJson:recipe.recipeJson};
+  pendingCheckpoint={nonce:clientActionId,action:actionsStarted,payload};return{ok:true,payload:structuredClone(payload)};
  }
  function frame({view,snapshot,projection,sceneGeometry,stamp,shadow}){
   if(disposed||graphicsRetired)return null;
@@ -126,9 +168,20 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
    latestContext={view,bound,projection};
    if(!plan){
     const options={acceptSweep:cameraAdmission(projection)};
-    if(bound){itemCandidate=planMikaItemArrival(bound,calibration,envelope,options);if(!itemCandidate.ok){stop('blocked',itemCandidate.reason);return null;}plan=itemCandidate.plan;}
-    else plan=planMikaYardQaCruise(layout,calibration,envelope,options);
-    if(!plan.ok){stop('blocked',plan.reason);return null;}phase='running';actionsStarted++;traceState();
+    if(bound&&checkpointEnabled&&checkpointRevision>0){
+     const record=snapshot.yardRuntime.nativeMikaCheckpoint,restored=reconstructMikaNativeSettled(record.checkpointJson,bound);
+     if(!restored.ok){stop('blocked',restored.reason);return null;}
+     if(!cameraAdmission(projection)(restored.body,restored.vertical)){stop('blocked','NATIVE_CHECKPOINT_CAMERA_UNAVAILABLE');return null;}
+     restoredResult={status:'ready',sample:restored.sample,position:restored.position,envelope:restored.envelope};
+     itemCandidate={target:bound.binding.items.find(item=>item.slotId===restored.targetSlotId),bindingKey:bound.key,action:'restored-settled-checkpoint'};
+     if(!itemCandidate.target){stop('blocked','NATIVE_CHECKPOINT_TARGET_UNAVAILABLE');return null;}
+     plan={ok:true,duration:0,start:restored.position,heading:restored.sample.root.heading,sweep:restored.body,candidates:0};
+     phase='parked';reason='CHECKPOINT_RESTORED';actionsStarted++;actionsCompleted++;checkpointSavedAction=actionsStarted;traceState();
+    }else{
+     if(bound){itemCandidate=planMikaItemArrival(bound,calibration,envelope,options);if(!itemCandidate.ok){stop('blocked',itemCandidate.reason);return null;}plan=itemCandidate.plan;}
+     else plan=planMikaYardQaCruise(layout,calibration,envelope,options);
+     if(!plan.ok){stop('blocked',plan.reason);return null;}phase='running';actionsStarted++;traceState();
+    }
    }
    // RAF timestamps and performance.now share the browser monotonic origin.
    // Planning, allocation and the first GPU render precede the first copy;
@@ -138,7 +191,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
     if(continuation){currentTime=plan.duration;phase='parked';reason='ARRIVAL_SETTLED';actionsCompleted++;traceState();}
     else{stop('complete',itemApproach?'FINITE_ITEM_ARRIVAL_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION');return null;}
    }
-   const result=sampleMikaYardQaCruise(plan,layout,currentTime);if(result.status!=='ready'){stop('aborted',result.reason||result.status);return null;}
+   const result=restoredResult??sampleMikaYardQaCruise(plan,layout,currentTime);if(result.status!=='ready'){stop('aborted',result.reason||result.status);return null;}
    const width=Math.ceil(projection.width),height=Math.ceil(projection.height),pixels=width*height;
    if(pixels!==allocatedPixels||canvas.width!==width||canvas.height!==height){
     // Before allocating, include old+new color/depth/swap estimates in the same
@@ -171,5 +224,5 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
    },canvas,get snapshot(){return result;}};
   }catch(error){stop('aborted',String(error.message));return null;}
  }
- return{noteSnapshot,frame,requestItemArrival,commandState:()=>continuation?{ownerId:actorInstance,admitted:presentedAction>0,available:!disposed&&!graphicsRetired,phase,actionsStarted,presentedAction,presentedTime,duration:plan?.duration??0,targetSlotId:itemCandidate?.target?.slotId??null}:null,cancelItemArrival({ownerId,commandToken,reason='NATIVE_COMMAND_CANCELLED'}={}){if(disposed||graphicsRetired||ownerId!==actorInstance||!commandToken||commandToken!==activeCommandToken)return false;stop('aborted',reason);return true;},abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,actorInstance,continuation,actionsStarted,actionsCompleted,planning:planningMetrics?{...planningMetrics,pending:!!pendingPlanning}:null,lastActionResult:lastActionResult?{...lastActionResult}:null,heading:lastResult?.sample?.root?.heading??null,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,itemApproach:itemApproach?{action:itemCandidate?.action??'finite-item-arrival',target:itemCandidate?.target??null,motionPhase:lastResult?.sample?.motionPhase??'approach',rootSpeed:lastResult?.sample?.rootSpeed??null,interactionReady:false,savedVisitReady:false}:null,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,heldFrameRGBABytes:heldBytes,gpuRenders,parkedRasterCopies,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:continuation?'QA only; same-actor finite current-pose actions and static parked pose; no saved visit/interaction/general navigation; layout change retires owner':itemApproach?'QA only; finite item arrival and standing idle; no saved visit/interaction; layout change aborts':'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return retirementPromise;disposed=true;planningAbort?.abort(Error('SCENE_DISPOSED'));document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();retirementPromise=Promise.resolve(pendingPlanning).then(()=>undefined,()=>undefined);return retirementPromise;}};
+ return{noteSnapshot,frame,requestItemArrival,prepareCheckpoint,commandState:()=>continuation?{ownerId:actorInstance,admitted:presentedAction>0,available:!disposed&&!graphicsRetired,phase,actionsStarted,presentedAction,presentedTime,duration:plan?.duration??0,targetSlotId:itemCandidate?.target?.slotId??null,checkpoint:{enabled:checkpointEnabled,revision:checkpointRevision,savedAction:checkpointSavedAction,restored:!!restoredResult,pendingActionId:pendingCheckpoint?.nonce??null}}:null,cancelItemArrival({ownerId,commandToken,reason='NATIVE_COMMAND_CANCELLED'}={}){if(disposed||graphicsRetired||ownerId!==actorInstance||!commandToken||commandToken!==activeCommandToken)return false;stop('aborted',reason);return true;},abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,actorInstance,continuation,actionsStarted,actionsCompleted,checkpoint:{enabled:checkpointEnabled,revision:checkpointRevision,savedAction:checkpointSavedAction,restored:!!restoredResult,pendingActionId:pendingCheckpoint?.nonce??null},planning:planningMetrics?{...planningMetrics,pending:!!pendingPlanning}:null,lastActionResult:lastActionResult?{...lastActionResult}:null,heading:lastResult?.sample?.root?.heading??null,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,itemApproach:itemApproach?{action:itemCandidate?.action??'finite-item-arrival',target:itemCandidate?.target??null,motionPhase:lastResult?.sample?.motionPhase??'approach',rootSpeed:lastResult?.sample?.rootSpeed??null,interactionReady:false,savedVisitReady:false}:null,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,heldFrameRGBABytes:heldBytes,gpuRenders,parkedRasterCopies,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:continuation?'QA only; same-actor finite current-pose actions and static parked pose; no saved visit/interaction/general navigation; layout change retires owner':itemApproach?'QA only; finite item arrival and standing idle; no saved visit/interaction; layout change aborts':'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return retirementPromise;disposed=true;planningAbort?.abort(Error('SCENE_DISPOSED'));document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();retirementPromise=Promise.resolve(pendingPlanning).then(()=>undefined,()=>undefined);return retirementPromise;}};
 }
