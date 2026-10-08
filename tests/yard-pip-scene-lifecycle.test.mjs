@@ -1,6 +1,6 @@
 /** Control-flow test with explicit DOM/image substitutes. Not a browser or pixel
  * test; real rendering is covered only by the separate authorized CI harness. */
-import sharp from 'sharp';
+import {LEGACY_M2_BACKGROUND} from '../src/games/companion-yard-v2/legacy-m2-background.mjs';
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 import {createCourtyardScene} from '../src/games/companion-yard-v2/scene.mjs';
 import {createProjection} from '../src/games/companion-yard-v2/projection.mjs';
@@ -8,6 +8,7 @@ import {ACTOR_PROFILES} from '../game-logic/yard-v2/actor-profiles.mjs';
 import fixture from '../recovery-tools/yard-canonical-pip-qa/fixture.json' with {type:'json'};
 import mika from '../public/assets/yard-mika/runtime-media.json' with {type:'json'};
 import pip from '../public/assets/yard-pip/runtime-media.json' with {type:'json'};
+import mikaStills from '../public/assets/yard-mika/still-layer-contract.json' with {type:'json'};
 
 test('shared scene keeps coherent backing pixels and pointer coordinates during a delayed resize, then disposes pages',async t=>{
  const keys=['location','document','devicePixelRatio','ResizeObserver','Image','fetch','createImageBitmap','requestAnimationFrame','cancelAnimationFrame'];
@@ -16,16 +17,19 @@ test('shared scene keeps coherent backing pixels and pointer coordinates during 
  const include=(clips,base)=>{for(const c of clips)for(const p of c.pages)dimensions.set(base+p.src,{width:p.width,height:p.height});};
  include([...Object.values(mika.clips),...Object.values(mika.walk.facings),...Object.values(mika.turns)],'/assets/yard-mika/');
  include([...Object.values(pip.clips),...Object.values(pip.walk.facings),...Object.values(pip.turns)],'/assets/yard-pip/');
- const backgroundPath='/assets/yard-mika/background.webp';
- const background=await sharp(await readFile(new URL('../public'+backgroundPath,import.meta.url))).metadata();
- assert.ok(background.width>0&&background.height>0);
- dimensions.set(backgroundPath,{width:background.width,height:background.height});
+ for(const [id,meta] of Object.entries(mikaStills))dimensions.set('/assets/yard-mika/'+id+'.webp',{width:meta.canvas[0],height:meta.canvas[1]});
+ for(const meta of Object.values(pip.stills))dimensions.set('/assets/yard-pip/'+meta.src,{width:meta.canvas[0],height:meta.canvas[1]});
+ const backgroundPath=LEGACY_M2_BACKGROUND.url;
+ const backgroundBytes=await readFile(new URL('../public'+backgroundPath,import.meta.url));
+ dimensions.set(backgroundPath,{width:LEGACY_M2_BACKGROUND.canvas[0],height:LEGACY_M2_BACKGROUND.canvas[1]});
  Object.assign(globalThis,{location:{origin:'https://qa.invalid'},document:{hidden:false},devicePixelRatio:1,
   ResizeObserver:class{constructor(cb){observer=cb;}observe(){}disconnect(){}},Image:class{width=256;height=224;set src(value){this.url=value;queueMicrotask(()=>this.onload());}},
   fetch:async value=>{const u=new URL(value,'https://qa.invalid');assert.equal(u.origin,'https://qa.invalid');requests.push(u.pathname);
    if(block&&u.pathname.endsWith('/pip-snack-combined-r1-p28.webp')){blocked=true;await gate;}
    if(u.pathname.endsWith('.json'))return{ok:true,json:async()=>JSON.parse(await readFile(new URL('../public'+u.pathname,import.meta.url),'utf8'))};
-   assert.ok(dimensions.has(u.pathname),u.pathname);return{ok:true,blob:async()=>({path:u.pathname,size:10})};},
+   assert.ok(dimensions.has(u.pathname),u.pathname);
+   if(u.pathname===backgroundPath){const blob=new Blob([backgroundBytes],{type:'image/webp'});Object.defineProperty(blob,'path',{value:u.pathname});return{ok:true,blob:async()=>blob};}
+   return{ok:true,blob:async()=>({path:u.pathname,size:10})};},
   createImageBitmap:async b=>({...dimensions.get(b.path),close:()=>closed.push(b.path)}),
   requestAnimationFrame:cb=>{const id=++frame;raf.set(id,cb);return id;},cancelAnimationFrame:id=>raf.delete(id)});
  let rect={left:0,top:0,width:320,height:432},clears=0;const context={setTransform(){},clearRect(){clears++;},save(){},restore(){},translate(){},scale(){},createRadialGradient(){return{addColorStop(){}};},fillRect(){},drawImage(){}};
