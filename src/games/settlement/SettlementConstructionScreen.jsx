@@ -2,7 +2,7 @@ import { useSettlementText } from './useSettlementText.js';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA, getSettlementPlacementSlotLayout } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
 import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, useSettlementStore } from './useSettlementStore.js';
-import { AssetIcon, CONSTRUCTION_ITEMS_BY_ID_UI, CONSTRUCTION_SLOTS_BY_ID_UI, ResourceIcon, constructionItemAsset, formatNumber, frameStyle } from './settlementViewShared.jsx';
+import { AssetIcon, HudFrame, CONSTRUCTION_ITEMS_BY_ID_UI, CONSTRUCTION_SLOTS_BY_ID_UI, ResourceIcon, constructionItemAsset, formatNumber, frameStyle } from './settlementViewShared.jsx';
 
 const CONSTRUCTION_CATEGORY_ICONS = {
   production: ICONS.goods,
@@ -72,11 +72,11 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
               ? UI_ASSETS.constructionCardIdle
               : UI_ASSETS.constructionCardLocked;
           return (
-            <button
+            <HudFrame as="button"
               key={item.id}
               type="button"
               className={`construction-card construction-card-v2 ${affordable ? 'available' : 'locked'} ${selected ? 'selected' : ''}`.trim()}
-              style={frameStyle(cardFrame)}
+              frame={cardFrame}
               onClick={() => onSelectItem(item.id)}
               aria-pressed={selected}
             >
@@ -92,7 +92,7 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
                   </b>
                 ))}
               </div>
-            </button>
+            </HudFrame>
           );
         })}
       </div>
@@ -116,3 +116,4 @@ function ConstructionScreen({ resources, categoryId, page, selectedId, selectedS
 export default ConstructionScreen;
 
 export { ConstructionScreen };
+

@@ -1,8 +1,10 @@
+import { SettlementFrameArt } from './SettlementFrameArt.jsx';
+import { SETTLEMENT_CARD_MATERIAL } from './settlementIllustratedMaterials.js';
 import { useEffect, useRef, useState } from 'react';
 import { useAppI18n } from '../../app/i18n.jsx';
 import { HudEditableRegion } from '../../app/hud-layout/HudRegion.jsx';
 import { useHudLayout } from '../../app/hud-layout/HudLayoutContext.jsx';
-import { ICONS, UI_ASSETS } from './assetRegistry.js';
+import { ICONS, UI_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
 import { useSettlementStore, canPay, productionFrom } from './useSettlementStore.js';
 import { PRODUCTION_MS, MAX_READY_BATCHES, DEVELOPMENTS, residentOrder, batchYield, addCycleIncome } from './settlementCycle.js';
 
@@ -40,6 +42,8 @@ export default function SettlementPlayPanel() {
   }, [cycle.collected, c.collected]);
   const order = residentOrder(cycle);
   const milestone = DEVELOPMENTS[cycle.development];
+  const illustratedBuildingId = tab === 'orders' ? 'market-green' : tab === 'growth' ? (milestone?.buildingId ?? 'hearth-hall') : 'common-garden';
+  const illustratedBuilding = trimmedAsset(buildingAsset(illustratedBuildingId, state.levels[illustratedBuildingId] ?? 1));
   const yieldValues = batchYield(productionFrom(state.levels, state.constructedBuildings), cycle.development);
   const withBatch = addCycleIncome(state.resources, yieldValues, state.inventoryCaps);
   const full = Object.keys(yieldValues).every(key => withBatch[key] === state.resources[key]);
@@ -53,12 +57,14 @@ export default function SettlementPlayPanel() {
   };
   if (state.rightPanelOpen) return null;
 
-  return <HudEditableRegion id="settlementCompactDetail" as="section" applyLayout={false} className="settlement-compact-detail settlement-play-panel" style={{ backgroundImage: `url(${UI_ASSETS.smallPanel})`, ...(besideMap ? { left: 'auto', right: 10, transform: 'none' } : {}) }} aria-label={language === 'ru' ? 'Жизнь поселения' : 'Village life'} data-cycle-development={cycle.development}>
+  return <HudEditableRegion id="settlementCompactDetail" as="section" applyLayout={false} className="settlement-compact-detail settlement-play-panel settlement-illustrated-life settlement-illustrated-frame" style={{ backgroundImage: `url(${UI_ASSETS.smallPanel})`, ...(besideMap ? { left: 'auto', right: 10, transform: 'none' } : {}) }} aria-label={language === 'ru' ? 'Жизнь поселения' : 'Village life'} data-cycle-development={cycle.development}>
+    <SettlementFrameArt material={SETTLEMENT_CARD_MATERIAL} />
     <nav className="settlement-cycle-tabs" aria-label={language === 'ru' ? 'Дела поселения' : 'Village tasks'}>
       {['production', 'orders', 'growth'].map(id => <button key={id} type="button" aria-pressed={tab === id} onClick={() => { setTab(id); setFeedback(''); }} data-testid={`settlement-tab-${id}`}>{c[id]}</button>)}
       <button className="settlement-compact-detail-open" type="button" aria-label={c.details} onClick={() => state.selectBuilding(state.selectedBuildingId)}>{c.details}</button>
     </nav>
     <div className="settlement-cycle-body" data-save-ready={state.persistenceReady}>
+      <img className="settlement-cycle-illustration" src={illustratedBuilding} alt="" draggable={false} />
       {tab === 'production' ? <>
         <div className="settlement-cycle-copy"><strong>{c.ready}: {cycle.ready}/{MAX_READY_BATCHES}</strong><span>{full ? c.full : cycle.ready === MAX_READY_BATCHES ? `${c.stock} · ${c.collect}` : `${c.next}: ${seconds}s`}</span><ResourceChips values={yieldValues} language={language} /></div>
         <button type="button" className="settlement-cycle-action" disabled={!state.persistenceReady || pending || !cycle.ready || full} onClick={() => act(state.collect, c.collected)} data-testid="settlement-collect">{c.collect}</button>
@@ -73,3 +79,4 @@ export default function SettlementPlayPanel() {
     <div className="settlement-cycle-feedback" role="status" aria-live="polite">{state.persistenceError ? language === 'ru' ? 'Не удалось сохранить. Повторите действие.' : 'Could not save. Try again.' : feedback || (tab === 'orders' && !canPay(state.resources, order.cost) ? c.missing : '')}</div>
   </HudEditableRegion>;
 }
+

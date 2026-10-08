@@ -1,0 +1,102 @@
+/* Source-art composition only. The real control remains the parent element. */
+.settlement-game-root .settlement-illustrated-frame {
+  isolation: isolate;
+  background-image: none !important;
+  background-color: transparent !important;
+}
+.settlement-game-root .settlement-illustrated-frame:not(.hud-region) {
+  position: relative;
+}
+.settlement-game-root .settlement-frame-art {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+.settlement-game-root .settlement-frame-art-piece {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+  background-repeat: no-repeat;
+}
+
+/* Native artwork has parchment ink, independent of old dark card gradients. */
+.settlement-game-root .settlement-illustrated-life.settlement-illustrated-frame {
+  border-image-source: none;
+}
+.settlement-game-root .right-panel .settlement-illustrated-frame {
+  border-image-source: none;
+  color: #332719;
+  text-shadow: none;
+}
+.settlement-game-root .right-panel .settlement-illustrated-frame :is(strong, p, em, .card-copy, .world-expedition-copy-v2, .research-detail-copy, .research-detail-effects) {
+  color: #332719 !important;
+  text-shadow: none;
+}
+.settlement-game-root .right-panel .settlement-illustrated-frame .building-stat-row {
+  background-image: none !important;
+  color: #332719;
+  border-bottom: 1px solid #815f3933;
+}
+.settlement-game-root .right-panel .settlement-illustrated-frame .world-expedition-rewards-v2 {
+  color: #4c3520;
+}
+.settlement-game-root .right-panel .settlement-illustrated-frame.selected {
+  outline: 2px solid #dfae47;
+  outline-offset: -2px;
+}
+.settlement-game-root .right-panel .settlement-illustrated-frame.locked {
+  filter: saturate(.4);
+}
+.settlement-game-root .world-expedition-thumb-v2 {
+  aspect-ratio: 4 / 3;
+  height: auto !important;
+  background: transparent !important;
+}
+.settlement-game-root .world-expedition-thumb-v2 img { display:block; width:100%; height:auto; }
+.settlement-game-root .world-map-visual-v2 {
+  aspect-ratio: 2 / 1 !important;
+  min-height: 0 !important;
+}
+.settlement-game-root .world-map-base-v2 { object-fit: contain; }
+.settlement-game-root .world-compass { object-fit: contain; }
+/* Actual integrated screenshots exposed these light-on-parchment labels. */
+.settlement-game-root .right-panel .settlement-illustrated-frame .construction-card-name,
+.settlement-game-root .right-panel .settlement-illustrated-frame .inventory-selected-values-v2 b,
+.settlement-game-root .right-panel .settlement-illustrated-frame .research-detail-effects :is(span, b),
+.settlement-game-root .right-panel-fancy .settlement-goal-disclosure,
+.settlement-game-root .right-panel-fancy .world-expedition-heading-v2,
+.settlement-game-root .settlement-illustrated-life .settlement-compact-detail-open {
+  color: #332719 !important;
+  text-shadow: none;
+}
+.settlement-game-root .right-panel .settlement-illustrated-frame :is(
+  .goals-summary-copy > span,
+  .goal-card-copy > span,
+  .daily-task-copy > span,
+  .inventory-selected-copy-v2 > span,
+  .inventory-selected-values-v2 > span,
+  .council-recommendation-copy > span,
+  .council-stage-copy > span,
+  .council-section-head,
+  .building-card-title,
+  .daily-task-reward > span
+),
+.settlement-game-root .right-panel button.settlement-illustrated-frame > span {
+  color: #59432d !important;
+  text-shadow: none;
+}
+/* Retained dark reward chips and action surfaces keep their own light ink. */
+.settlement-game-root .right-panel .settlement-illustrated-frame .reward-badge :is(strong, span),
+.settlement-game-root .right-panel .settlement-illustrated-frame .world-expedition-rewards-v2 b,
+.settlement-game-root .right-panel .settlement-illustrated-frame .world-expedition-rewards-v2 b span,
+.settlement-game-root .right-panel .settlement-illustrated-frame button:not(.settlement-illustrated-frame) :is(strong, span, b) {
+  color: #fff0bd !important;
+}
+.settlement-game-root .left-dock .dock-button,
+.settlement-game-root .bottom-nav .bottom-dock-button {
+  background-size: contain !important;
+  background-position: center !important;
+}

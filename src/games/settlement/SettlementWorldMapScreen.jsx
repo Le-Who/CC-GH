@@ -1,3 +1,6 @@
+import { useRef, useState } from 'react';
+import { getStage, useSettlementStore, worldExpeditionUnlocked } from './useSettlementStore.js';
+import { selectAndStartExpedition } from './settlementExpeditionActions.js';
 import { useSettlementText } from './useSettlementText.js';
 import { BUILDINGS, CONSTRUCTION_PANEL_DATA, COUNCIL_PANEL_DATA, GOAL_PANEL_DATA, INVENTORY_PANEL_DATA, PROPS, RESEARCH_PANEL_DATA, RESOURCES, TOP_HUD_RESOURCE_IDS, SETTLEMENT_PROFILE, VILLAGERS, WORKERS, WORLD_MAP_PANEL_DATA, getSettlementPlacementSlotLayout } from './gameData.js';
 import { ICONS, MAP_ASSETS, UI_ASSETS, VFX_ASSETS, buildingAsset, trimmedAsset } from './assetRegistry.js';
@@ -44,6 +47,13 @@ const WORLD_DIFFICULTY_FRAMES = {
 
 function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFilterChange, onSelectExpedition, onStartExpedition }) {
   const t = useSettlementText();
+  const resources = useSettlementStore((state) => state.resources);
+  const levels = useSettlementStore((state) => state.levels);
+  const persistenceReady = useSettlementStore((state) => state.persistenceReady);
+  const stage = getStage(resources, levels);
+  const sending = useRef(false);
+  const [pending, setPending] = useState(false);
+  const [sendFailed, setSendFailed] = useState(false);
   const normalizedFilterId = WORLD_MAP_PANEL_DATA.filters.some((filter) => filter.id === filterId) ? filterId : WORLD_MAP_PANEL_DATA.filters[0]?.id;
   const visibleExpeditions = normalizedFilterId === 'all'
     ? WORLD_MAP_PANEL_DATA.expeditions
@@ -54,15 +64,26 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
   const activeId = activeExpedition?.expeditionId ?? null;
 
   const handleCardKeyDown = (event, expeditionId) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
+    if (event.target !== event.currentTarget || sending.current || (event.key !== 'Enter' && event.key !== ' ')) return;
     event.preventDefault();
     onSelectExpedition(expeditionId);
   };
 
-  const startExpedition = (event, expeditionId) => {
+  const startExpedition = async (event, expeditionId) => {
     event.stopPropagation();
-    onSelectExpedition(expeditionId);
-    onStartExpedition();
+    if (sending.current || !persistenceReady) return;
+    sending.current = true;
+    setPending(true);
+    setSendFailed(false);
+    try {
+      const started = await selectAndStartExpedition(expeditionId, onSelectExpedition, onStartExpedition);
+      setSendFailed(started === false);
+    } catch {
+      setSendFailed(true);
+    } finally {
+      sending.current = false;
+      setPending(false);
+    }
   };
 
   return (
@@ -70,11 +91,11 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
       <div className="world-map-scroll-v2">
         <HudFrame className="world-map-card world-map-card-v2" frame={UI_ASSETS.worldMapParchmentFrame}>
           <div className="world-map-visual world-map-visual-v2" aria-label={t("Карта архипелага")}>
-            <img className="world-map-base-v2" src={UI_ASSETS.worldMapBase} alt="" draggable={false} />
-            <img className="world-compass" src={UI_ASSETS.worldMapCompass} alt="" draggable={false} />
+            <img className="world-map-base-v2" src={UI_ASSETS.worldMapBase} width={1024} height={512} decoding="async" alt="" draggable={false} />
+            <img className="world-compass" src={UI_ASSETS.worldMapCompass} width={192} height={192} decoding="async" alt="" draggable={false} />
             {WORLD_MAP_PANEL_DATA.mapMarkers.map((marker) => {
               const expedition = WORLD_MAP_PANEL_DATA.expeditions.find((item) => item.id === marker.expeditionId);
-              const locked = expedition?.unlocked === false;
+              const locked = !worldExpeditionUnlocked(expedition, stage);
               const selected = marker.expeditionId === selectedExpedition?.id;
               const icon = locked ? WORLD_MAP_ICON_SOURCES.locked : WORLD_MAP_ICON_SOURCES[expedition?.icon] ?? ICONS.world;
               const markerFrame = locked
@@ -91,7 +112,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                   className={`world-map-marker ${marker.tone} ${selected ? 'selected' : ''} ${locked ? 'locked' : ''}`.trim()}
                   style={{ ...frameStyle(markerFrame), left: `${marker.x}%`, top: `${marker.y}%` }}
                   aria-label={t(`${expedition?.title ?? 'Маршрут'}${locked ? ', закрыто' : ''}`)}
-                  onClick={() => onSelectExpedition(marker.expeditionId)}
+                  onClick={() => { if (!sending.current) onSelectExpedition(marker.expeditionId); }}
                 >
                   <AssetIcon src={icon} alt="" size={22} />
                 </button>
@@ -109,7 +130,8 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
               aria-selected={filter.id === normalizedFilterId}
               className={`world-filter-button-v2 ${filter.id === normalizedFilterId ? 'active' : ''}`}
               style={frameStyle(filter.id === normalizedFilterId ? UI_ASSETS.worldMapFilterActive : UI_ASSETS.worldMapFilterIdle)}
-              onClick={() => onFilterChange(filter.id)}
+              disabled={pending}
+              onClick={() => { if (!sending.current) onFilterChange(filter.id); }}
               aria-label={t(filter.label)}
             >
               <AssetIcon src={WORLD_MAP_ICON_SOURCES[filter.icon] ?? ICONS.world} alt="" size={23} />
@@ -118,12 +140,13 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
           ))}
         </div>
 
+        <p className="world-action-feedback" role="status" aria-live="polite">{sendFailed ? t("Не удалось отправить экспедицию. Проверьте маршрут и повторите попытку.") : ''}</p>
         <div className="world-expedition-heading-v2">{t("Доступные экспедиции")}</div>
 
         <div className="world-expedition-list-v2">
           {visibleExpeditions.map((expedition) => {
             const selected = expedition.id === selectedExpedition?.id;
-            const locked = expedition.unlocked === false;
+            const locked = !worldExpeditionUnlocked(expedition, stage);
             const active = activeId === expedition.id;
             const busy = Boolean(activeId && !active);
             const remainingMs = active ? Math.max(0, activeExpedition.completesAt - Date.now()) : expedition.durationMs;
@@ -143,11 +166,11 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                 frame={cardFrame}
                 role="button"
                 tabIndex={0}
-                onClick={() => onSelectExpedition(expedition.id)}
+                onClick={() => { if (!sending.current) onSelectExpedition(expedition.id); }}
                 onKeyDown={(event) => handleCardKeyDown(event, expedition.id)}
               >
-                <div className="world-expedition-thumb-v2" style={frameStyle(thumb)}>
-                  <AssetIcon src={WORLD_MAP_ICON_SOURCES[expedition.icon] ?? ICONS.world} alt="" size={36} />
+                <div className="world-expedition-thumb-v2">
+                  <img src={thumb} alt="" width={128} height={96} loading="lazy" decoding="async" draggable={false} />
                 </div>
                 <div className="world-expedition-copy-v2">
                   <div className="world-expedition-title-row-v2">
@@ -156,7 +179,7 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                   </div>
                   <p>{t(expedition.description)}</p>
                   {locked ? (
-                    <em>{t(expedition.requiredLabel ?? 'Маршрут закрыт')}</em>
+                    <em>{t(expedition.unlocked === false ? 'Маршрут пока недоступен' : expedition.requiredLabel ?? 'Маршрут закрыт')}</em>
                   ) : (
                     <div className="world-expedition-rewards-v2" aria-label={t("Награды")}>
                       <span>{t("Награды:")}</span>
@@ -175,9 +198,9 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
                   <button
                     type="button"
                     className="world-expedition-action-v2"
-                    disabled={busy || active}
+                    disabled={busy || active || pending || !persistenceReady}
                     onClick={(event) => startExpedition(event, expedition.id)}
-                    style={frameStyle((busy || active) ? UI_ASSETS.worldSendButtonDisabled : UI_ASSETS.worldSendButtonIdle)}
+                    style={frameStyle((busy || active || pending || !persistenceReady) ? UI_ASSETS.worldSendButtonDisabled : UI_ASSETS.worldSendButtonIdle)}
                   >
                     <span>{t(active ? 'В пути' : 'Отправить экспедицию')}</span>
                     <b>⌛ {t(formatClockDuration(remainingMs))}</b>
@@ -195,3 +218,4 @@ function WorldMapScreen({ filterId, selectedExpeditionId, activeExpedition, onFi
 export default WorldMapScreen;
 
 export { WorldMapScreen };
+

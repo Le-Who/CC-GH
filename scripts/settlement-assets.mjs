@@ -2,6 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
 import sharp from "sharp";
+import { createHash } from "node:crypto";
+import { isApprovedOpaqueLandscape } from "./lib/settlement-natural-raster-policy.mjs";
 
 import {
   BUILDING_ASSETS,
@@ -60,7 +62,7 @@ async function fileExists(file) {
 
 async function readRawImage(file) {
   const input = await fs.readFile(file);
-  return readRawBuffer(input);
+  return { ...await readRawBuffer(input), sha256: createHash("sha256").update(input).digest("hex") };
 }
 
 async function readRawBuffer(input) {
@@ -259,7 +261,9 @@ async function scanWebps(files, { requireTightBounds = false } = {}) {
 
   for (const file of files.sort()) {
     const raw = await readRawImage(file);
-    const naturalOpaqueColor = naturalColorOpaqueWebps.has(path.basename(file)) && !hasTransparentPixels(raw.data);
+    const relativeAsset = path.relative(settlementDir, file).replaceAll(path.sep, "/");
+    const naturalOpaqueColor = (naturalColorOpaqueWebps.has(path.basename(file)) && !hasTransparentPixels(raw.data))
+      || isApprovedOpaqueLandscape(relativeAsset, raw.sha256, hasTransparentPixels(raw.data));
     const leakCount = naturalOpaqueColor ? 0 : countChromaLeaks(raw.data);
 
     const bounds = alphaBounds(raw.data, raw.width, raw.height);

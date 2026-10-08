@@ -94,14 +94,7 @@ function InventoryScreen({ resources, inventoryCaps, selectedResourceId, onFocus
       </div>
 
       <div className="inventory-section-head inventory-section-head-v2 inventory-special-head-v2">{t("Изделия и особые предметы")}</div>
-      <div className="inventory-item-grid inventory-item-grid-v2">
-        {INVENTORY_PANEL_DATA.specialItems.map((item) => (
-          <HudFrame key={item.id} className="inventory-item-card inventory-item-card-v2" frame={UI_ASSETS.inventoryItemCard}>
-            <AssetIcon src={SPECIAL_ITEM_ICON_SOURCES[item.icon] ?? ICONS.gift} alt="" size={30} />
-            <strong style={frameStyle(UI_ASSETS.inventoryItemCountBadge)}>{t(item.amount)}</strong>
-          </HudFrame>
-        ))}
-      </div>
+      <p className="settlement-goal-disclosure">{t("Учёт особых предметов пока не подключён. Здесь показаны только реальные ресурсы склада.")}</p>
 
       <button className="inventory-action-button inventory-action-button-v2" type="button" onClick={() => onBoostCap(selectedResource.id)} disabled={selectedAtMax} style={frameStyle(selectedAtMax ? UI_ASSETS.inventoryManageButtonDisabled : UI_ASSETS.inventoryManageButtonIdle)}>
         <AssetIcon src={ICONS.inventory} alt="" size={18} />

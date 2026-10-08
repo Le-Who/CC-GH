@@ -232,6 +232,16 @@ test.describe("mobile UI viewport matrix", () => {
         await expectVisibleButtonsReachable(page, ".yard-bottom-dock button");
         await expectNoHorizontalScroll(page);
 
+        await selectHomeGame(page, 'settlement');
+        await expect(page.locator('.settlement-game-root .settlement-canvas')).toBeVisible({ timeout: 30000 });
+        await expectNoHorizontalScroll(page);
+        await expectVisibleButtonsReachable(page, '.settlement-home-button, .settlement-game-root .bottom-nav button');
+        await expectControlPainted(page, page.locator('.settlement-home-button'), testInfo, 'Settlement Home');
+        await page.screenshot({ path: testInfo.outputPath('settlement-shared-mobile-matrix.png'), fullPage: false });
+        await openHome(page);
+        await expect(page.getByTestId('home-catalogue')).toBeVisible();
+        await page.getByRole('button', { name: 'Close Home', exact: true }).click();
+        await expect(page.locator('.settlement-game-root .settlement-canvas')).toBeVisible();
         expect(pageErrors).toEqual([]);
       } finally {
         await context.close();

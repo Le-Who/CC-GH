@@ -56,13 +56,9 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
   const remainingMs = selectedActive ? Math.max(0, activeResearch.completesAt - Date.now()) : selectedNode?.durationMs ?? 0;
   const selectedProgress = selectedActive
     ? Math.max(0, Math.min(100, ((activeResearch.durationMs - remainingMs) / Math.max(1, activeResearch.durationMs)) * 100))
-    : selectedNode?.progress
-      ? Math.max(0, Math.min(100, (selectedNode.progress.current / Math.max(1, selectedNode.progress.max)) * 100))
-      : selectedStatus === 'complete' || selectedStatus === 'done'
-        ? 100
-        : 0;
+    : selectedStatus === 'complete' || selectedStatus === 'done' ? 100 : 0;
   const selectedCost = selectedNode?.cost ?? {};
-  const actionDisabled = !selectedNode || selectedStatus === 'locked' || selectedStatus === 'complete' || selectedStatus === 'done' || Boolean(activeResearch && !selectedActive) || !canPay(resources, selectedCost);
+  const actionDisabled = !selectedNode || selectedStatus === 'locked' || selectedStatus === 'complete' || selectedStatus === 'done' || Boolean(activeResearch) || !canPay(resources, selectedCost);
   const actionLabel = selectedStatus === 'locked'
     ? 'Недоступно'
     : selectedStatus === 'complete' || selectedStatus === 'done'
@@ -99,16 +95,18 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
           const state = getResearchNodeStatus(node, researchLevels, activeResearch);
           const level = researchLevels?.[node.id] ?? node.level ?? 0;
           const isSelected = node.id === selectedNode?.id;
-          const progress = node.progress;
-          const progressPct = progress ? Math.max(0, Math.min(100, (progress.current / Math.max(1, progress.max)) * 100)) : 0;
+          const nodeResearch = activeResearch?.nodeId === node.id ? activeResearch : null;
+          const nodeRemainingMs = nodeResearch ? Math.max(0, nodeResearch.completesAt - Date.now()) : 0;
+          const progressPct = nodeResearch ? Math.max(0, Math.min(100, ((nodeResearch.durationMs - nodeRemainingMs) / Math.max(1, nodeResearch.durationMs)) * 100)) : 0;
           const nodeIcon = RESEARCH_ICON_SOURCES[node.icon] ?? ICONS.research;
           const nodeFrame = isSelected ? UI_ASSETS.researchNodeSelected : (RESEARCH_NODE_FRAMES[state] ?? UI_ASSETS.researchNodeAvailable);
           return (
-            <button
+            <HudFrame as="button"
               key={node.id}
               type="button"
               className={`research-tech-node ${state} ${isSelected ? 'selected' : ''} ${node.connectors?.right ? 'connect-right' : ''} ${node.connectors?.down ? 'connect-down' : ''}`.trim()}
-              style={{ ...frameStyle(nodeFrame), gridColumn: node.position.col, gridRow: node.position.row }}
+              frame={nodeFrame}
+              style={{ gridColumn: node.position.col, gridRow: node.position.row }}
               onClick={() => onSelectNode(node.id)}
               aria-pressed={isSelected}
             >
@@ -121,15 +119,14 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
                 <div className="research-lock-badge" style={frameStyle(UI_ASSETS.researchLockBadge)} aria-hidden="true"><i /></div>
               ) : state === 'complete' || state === 'done' ? (
                 <div className="research-check-badge" style={frameStyle(UI_ASSETS.researchCheckBadge)} aria-hidden="true">✓</div>
-              ) : progress ? (
+              ) : nodeResearch ? (
                 <div className="research-node-progress" style={frameStyle(UI_ASSETS.researchNodeProgressFrame)}>
                   <div style={{ ...frameStyle(UI_ASSETS.researchNodeProgressFill), width: `${progressPct}%` }} />
-                  <b>{t(progress.current)}/{t(progress.max)}</b>
-                  <ResourceIcon type={progress.type} size={11} />
+                  <b>{t(formatClockDuration(nodeRemainingMs))}</b>
                 </div>
               ) : null}
               {state === 'locked' ? <em>{t(node.requiredLabel ?? 'Требования не выполнены')}</em> : null}
-            </button>
+            </HudFrame>
           );
         })}
       </div>
@@ -138,11 +135,14 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
         <HudFrame className="research-detail-card-v2" frame={UI_ASSETS.researchDetailCard}>
           <div className="research-detail-copy">
             <strong>{t(selectedNode.title)}</strong>
-            <p>{t(selectedNode.description)}</p>
+            <p>{t("Изучение повышает уровень технологии. Зависимые исследования проверяют этот уровень.")}</p>
           </div>
           <div className="research-detail-effects">
             <span>{t("Уровень ")}{t(selectedLevel)} → {t(Math.min(selectedNode.maxLevel, selectedLevel + 1))}</span>
-            {selectedNode.benefits.slice(0, 2).map((benefit) => <b key={benefit}>{t(benefit)}</b>)}
+            {selectedStatus !== 'complete' && selectedStatus !== 'done' ? (
+              <b>{t("Престиж за завершение (до лимита)")}: +{t(12 + (selectedActive ? activeResearch.toLevel : Math.min(selectedNode.maxLevel ?? selectedLevel + 1, selectedLevel + 1)) * 4)}</b>
+            ) : null}
+            <span>{t("Производственные и складские бонусы пока не подключены.")}</span>
           </div>
         </HudFrame>
       ) : null}
@@ -168,3 +168,4 @@ function ResearchTreeScreen({ resources, researchCategoryId, selectedResearchId,
 export default ResearchTreeScreen;
 
 export { ResearchTreeScreen };
+

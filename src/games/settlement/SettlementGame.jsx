@@ -14,6 +14,8 @@ import { canPay, getResearchNodeStatus, getStage, productionFrom, upgradeCost, u
 import { AssetIcon, CONSTRUCTION_ITEMS_BY_ID_UI, CONSTRUCTION_SLOTS_BY_ID_UI, ProgressBar, ResourceIcon, constructionItemAsset, formatDurationMs, formatNumber, frameStyle } from './settlementViewShared.jsx';
 import { lazy, Suspense } from 'react';
 import './settlement.css';
+import './settlementIllustratedKit.css';
+import './settlementFrameArt.css';
 const SceneCanvas=lazy(()=>import('./SettlementSceneCanvas.jsx'));
 const OverviewPanel=lazy(()=>import('./SettlementOverviewPanel.jsx'));
 const BuildingPanel=lazy(()=>import('./SettlementBuildingPanel.jsx'));
@@ -33,10 +35,8 @@ const PANEL_TABS = [
 ];
 
 const EVENT_CARDS = [
-  { id: 'event', label: 'Событие', sub: '3д 12ч', icon: ICONS.event },
-  { id: 'gift', label: 'Подарок', sub: 'готов', icon: ICONS.gift },
-  { id: 'starter', label: 'Набор', sub: '1д 6ч', icon: ICONS.starterPack },
-  { id: 'mail', label: 'Почта', sub: '3', icon: ICONS.mail }
+  { id: 'mail', label: 'Вести', icon: ICONS.mail },
+  { id: 'store', label: 'Магазин пока недоступен', icon: ICONS.store }
 ];
 
 const CATEGORY_LABELS = {
@@ -382,6 +382,9 @@ function LeftDock({ activePanel, setPanel }) {
   const regions = resolvedLayout?.regions ?? {};
   const rightPanelOpen = useSettlementStore(s => s.rightPanelOpen);
   const compact = regions.settlementCompactDetail;
+  const claimed = useSettlementStore((s) => s.claimedGoalRewardIds);
+  const noticeCount = useSettlementStore((s) => s.notices.length);
+  const readyGoals = GOAL_PANEL_DATA.dailyTasks.filter((task) => task.progress.current >= task.progress.max && !claimed.includes(task.id)).length;
   // Bound the scrollable menu by the same registered surfaces as the map.
   const bottom = !rightPanelOpen && compact?.alignment !== 'right'
     ? (compact?.offset ?? 0) + (compact?.thickness ?? 0) + 8
@@ -393,8 +396,8 @@ function LeftDock({ activePanel, setPanel }) {
   };
   return (
     <HudEditableRegion id="settlementLeftDock" as="aside" applyLayout={false} className="left-dock" style={dockStyle}>
-      <DockButton active={activePanel === 'goals'} icon={ICONS.quest} label={t("Цели")} badge="3" onClick={() => setPanel('goals')} iconSize={28} hideLabel pulse />
-      <DockButton active={activePanel === 'inbox'} icon={ICONS.inbox} label={t("Вести")} badge="2" onClick={() => setPanel('inbox')} iconSize={28} hideLabel />
+      <DockButton active={activePanel === 'goals'} icon={ICONS.quest} label={t("Цели")} badge={readyGoals} onClick={() => setPanel('goals')} iconSize={28} hideLabel pulse={readyGoals > 0} />
+      <DockButton active={activePanel === 'inbox'} icon={ICONS.inbox} label={t("Вести")} badge={noticeCount} onClick={() => setPanel('inbox')} iconSize={28} hideLabel />
       <DockButton active={activePanel === 'council'} icon={ICONS.research} label={t("Совет")} onClick={() => setPanel('council')} iconSize={28} hideLabel />
       <DockButton active={activePanel === 'map'} icon={ICONS.map} label={t("Карта")} onClick={() => setPanel('map')} iconSize={28} hideLabel />
       <DockButton active={activePanel === 'rank'} icon={ICONS.rank} label={t("Ранг")} onClick={() => setPanel('rank')} iconSize={28} hideLabel />
@@ -405,6 +408,8 @@ function LeftDock({ activePanel, setPanel }) {
 function BottomNav({ activePanel, setPanel, collect }) {
   const t = useSettlementText();
   const ready = useSettlementStore((s) => s.settlementCycle.ready);
+  const claimed = useSettlementStore((s) => s.claimedGoalRewardIds);
+  const readyGoals = GOAL_PANEL_DATA.dailyTasks.filter((task) => task.progress.current >= task.progress.max && !claimed.includes(task.id)).length;
   const buildFamilyActive = activePanel === 'construction' || activePanel === 'build';
   const showGoalsSlot = activePanel === 'goals';
   return (
@@ -426,7 +431,7 @@ function BottomNav({ activePanel, setPanel, collect }) {
       <DockButton active={activePanel === 'research'} icon={ICONS.research} label={t("Исследования")} shortLabel={t("Наука")} onClick={() => setPanel('research')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel />
       <DockButton active={activePanel === 'world'} icon={ICONS.world} label={t("Карта мира")} shortLabel={t("Карта")} onClick={() => setPanel('world')} className="bottom-dock-button" variant="bottom" iconSize={30} hideLabel frameOverride={activePanel === 'world' ? UI_ASSETS.bottomWorldButtonActive : UI_ASSETS.bottomWorldButton} />
       {showGoalsSlot ? (
-        <DockButton active icon={ICONS.rank} label={t("Цели")} onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge="3" hideLabel frameOverride={UI_ASSETS.bottomGoalsButtonActive} />
+        <DockButton active icon={ICONS.rank} label={t("Цели")} onClick={() => setPanel('goals')} className="bottom-dock-button goals-dock-button" variant="bottom" iconSize={30} badge={readyGoals} hideLabel frameOverride={UI_ASSETS.bottomGoalsButtonActive} />
       ) : (
         <HudEditableRegion id="settlementCollectAsset" as="button" className="collect-button tooltip-control" onClick={collect} disabled={!ready} aria-label={t("Собрать")} data-tooltip={t("Собрать")} type="button" style={frameStyle(UI_ASSETS.collectButtonActive)}>
           <AssetIcon src={ICONS.starterPack} alt="" size={24} />
@@ -803,13 +808,12 @@ function RightPromoRail({ setPanel }) {
           key={card.id}
           type="button"
           className="promo-button tooltip-control"
-          data-tooltip={t(`${card.label}: ${card.sub}`)}
+          data-tooltip={t(card.label)}
           aria-label={t(card.label)}
           onClick={() => setPanel(card.id === 'mail' ? 'inbox' : 'store')}
           style={frameStyle(UI_ASSETS.iconButton)}
         >
           <AssetIcon src={card.icon} alt="" size={28} />
-          <span>{t(card.sub)}</span>
         </button>
       ))}
     </aside>
@@ -944,3 +948,4 @@ export default function SettlementGame() {
     </HudRegion>
   );
 }
+

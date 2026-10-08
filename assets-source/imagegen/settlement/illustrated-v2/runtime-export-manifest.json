@@ -1,0 +1,238 @@
+{
+  "artwork_type": "technical runtime derivatives of immutable OpenAI imagegen sources",
+  "total_bytes": 369470,
+  "assets": [
+    {
+      "name": "compact-parchment-card",
+      "source": "compact-parchment-card.source.png",
+      "source_sha256": "29dd4acfed208740dcad0364c1fef285b126e85111df7553268cda9a823723e7",
+      "source_dimensions": [
+        2172,
+        724
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/compact-parchment-card.webp",
+      "runtime_sha256": "7a4b720c1d42152e364f339c18bd44c791e4c585f457f0b3a2abaf34fda589b0",
+      "runtime_dimensions": [
+        1086,
+        362
+      ],
+      "bytes": 31742,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_34137c72f4548191b03cc9de6dc57431"
+    },
+    {
+      "name": "navigation-tile",
+      "source": "navigation-tile.source.png",
+      "source_sha256": "0e575fc4990e504b37327998310ce72a92ee170aea6eca82ea0d51b8079bfb38",
+      "source_dimensions": [
+        1254,
+        1254
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/navigation-tile.webp",
+      "runtime_sha256": "7df20cae20da8755ae2636edca18bc07cc6a63d229d4c90dc51dd2b1552c1aab",
+      "runtime_dimensions": [
+        384,
+        384
+      ],
+      "bytes": 30308,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_1664c2032ce08191bac068580a3fe187"
+    },
+    {
+      "name": "world-map-compass",
+      "source": "world-map-compass.source.png",
+      "source_sha256": "50187bbc2af9e77d8b0550e16c91afb30d607fa7abc3cb4f7fc0f946590dea6e",
+      "source_dimensions": [
+        1254,
+        1254
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/world-map-compass.webp",
+      "runtime_sha256": "f3d89e907e131ba85162cbfabf3711fafdfda939842334ecbc5ea4bb6c4a144e",
+      "runtime_dimensions": [
+        192,
+        192
+      ],
+      "bytes": 13528,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_9f81efe6a9208191889c4d6b0d4ad8f5"
+    },
+    {
+      "name": "world-map-archipelago-base",
+      "source": "world-map-archipelago-base.source.png",
+      "source_sha256": "a6797c384e6dca1fd670e001bc75c8165893e02a0fb28175afab859126aa3930",
+      "source_dimensions": [
+        1774,
+        887
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/world-map-archipelago-base.webp",
+      "runtime_sha256": "fa35cc9cfd9ecf82ca3c4f255347e8ce5c1abf61c29a859c71fdc6763dca14ad",
+      "runtime_dimensions": [
+        1024,
+        512
+      ],
+      "bytes": 196774,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_fe2b15a3345481918d9729606397fca0"
+    },
+    {
+      "name": "expedition-thumb-ancient-forest",
+      "source": "expedition-thumb-ancient-forest.source.png",
+      "source_sha256": "97dd9eedca8e41832edcb242bec78f4c8428313daac4b5a1a8932e355fca01e8",
+      "source_dimensions": [
+        1448,
+        1086
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/expedition-thumb-ancient-forest.webp",
+      "runtime_sha256": "8af8e391318d0bf67899e259c896bed16fdab0a3a27a89da19afe7a0affb43d3",
+      "runtime_dimensions": [
+        256,
+        192
+      ],
+      "bytes": 25654,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_71a2fd4e074881919b3c314f40c3c45d"
+    },
+    {
+      "name": "expedition-thumb-drowned-ruins",
+      "source": "expedition-thumb-drowned-ruins.source.png",
+      "source_sha256": "834466f7d3d46669cd6d83a058eddc5ff30bea62096aebd33508549899b46301",
+      "source_dimensions": [
+        1448,
+        1086
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/expedition-thumb-drowned-ruins.webp",
+      "runtime_sha256": "b0804dbe4ec5c26433f6ee1beaba35335841bf419b835593130d0999dd8e1a95",
+      "runtime_dimensions": [
+        256,
+        192
+      ],
+      "bytes": 25296,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_36cfb41432088191a99a81afa76a324f"
+    },
+    {
+      "name": "expedition-thumb-volcanic-mountains",
+      "source": "expedition-thumb-volcanic-mountains.source.png",
+      "source_sha256": "c303bbe5d76fcb83171604c60b35b005a11ac86122cc8a4ee1a07d56fece2363",
+      "source_dimensions": [
+        1448,
+        1086
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/expedition-thumb-volcanic-mountains.webp",
+      "runtime_sha256": "bf9f9652f3e8eb26e1695dfc94b1ff3958535f1ff9efff09c9c12dbf474689aa",
+      "runtime_dimensions": [
+        256,
+        192
+      ],
+      "bytes": 21372,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_e9fd9767cfec8191bab2a4f7f2e565cb"
+    },
+    {
+      "name": "expedition-thumb-ice-wastes",
+      "source": "expedition-thumb-ice-wastes.source.png",
+      "source_sha256": "b57346265536e2462c4ddbdf25d8d9fb3b386838ade7574a36fe77ad9dcbe06b",
+      "source_dimensions": [
+        1448,
+        1086
+      ],
+      "runtime": "public/games/settlement/ui/illustrated-v2/expedition-thumb-ice-wastes.webp",
+      "runtime_sha256": "9d6fb49239ab3cf45843cc3127be88ed3af1be05e4888279c362a0c3c6276266",
+      "runtime_dimensions": [
+        256,
+        192
+      ],
+      "bytes": 24796,
+      "recipe": {
+        "operation": "Technical delivery derivative only; no crop/repaint/layout edits",
+        "resampling": "Pillow Image.Resampling.LANCZOS",
+        "encoder": "WebP",
+        "quality": 88,
+        "method": 6,
+        "exact": true,
+        "pillow_version": "12.3.0",
+        "webp_version": "1.6.0"
+      },
+      "source_unchanged": true,
+      "alpha_matches_resampled_source_exactly": true,
+      "source_library_file_id": "libfile_58133b32d2488191bb8adc66b6409f2e"
+    }
+  ]
+}
