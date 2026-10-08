@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
 import {startSwFixture} from './helpers/swFixture.mjs';
 import {selectHomeGame} from './helpers/home.js';
+import {readBloxLayout} from './helpers/blox-v2.js';
 import {applyActionWithReceipt} from '../../routes/player.js';
 
 const SHA='2249774f8ced124451d3c46a8a69bc06a9889c7d9cc31c836a6dd868fd96f084';
@@ -133,13 +134,33 @@ test('Mika normal Yard: editor entry retires cruise without committing placement
 
 test('Mika normal Yard: actual game navigation disposes the QA owner',async({page},info)=>{
  test.skip(off,'Enabled QA build case');test.setTimeout(60000);const c=await setup(page);let failure;
+ const destination={events:[],ready:null,fixtureAlive:true};
+ const failed=request=>destination.events.push({kind:'requestfailed',path:new URL(request.url()).pathname,error:request.failure()?.errorText});
+ const consoleError=message=>{if(message.type()==='error')destination.events.push({kind:'console',text:message.text()});};
+ page.on('requestfailed',failed);page.on('console',consoleError);
  try{
   await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page);await page.evaluate(()=>{window.__mikaRetiredReader=window.__yardMikaQa.snapshot;});
   await page.locator('.cy-home').click();await expect(page.getByTestId('home-catalogue')).toBeVisible();
   await selectHomeGame(page,'blox');await expect.poll(()=>page.evaluate(()=>window.__yardMikaQa===undefined)).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__mikaRetiredReader().lastRetired?.qaMika?.phase)).toBe('disposed');const old=await page.evaluate(()=>window.__mikaRetiredReader().lastRetired);retired(old.qaMika);assert.equal(old.disposed,true);unchanged(c);
   await info.attach('normal-yard-retired-owner.json',{body:Buffer.from(JSON.stringify(old,null,2)),contentType:'application/json'});
- }catch(e){failure=e;throw e;}finally{await finish(page,info,c,failure);}
+  // Keep the real fixture server alive until the destination has rendered its
+  // board and actual pieces. An immersive shell alone is not game readiness.
+  const layout=await readBloxLayout(page);
+  const shell=page.locator('[data-game-shell="blox"]');
+  if(await shell.getAttribute('data-bx-phase')==='menu')await shell.locator('.bx-dialog').getByRole('button',{name:'Start',exact:true}).click();
+  await expect(shell).toHaveAttribute('data-bx-phase','playing');
+  await expect(shell.locator('.bx-keyboard-slot:not(:disabled)')).toHaveCount(3);
+  await expect(shell.locator('.bx-runtime-status[role="alert"]')).toHaveCount(0);
+  destination.ready={layout,phase:await shell.getAttribute('data-bx-phase'),usableTrayPieces:await shell.locator('.bx-keyboard-slot:not(:disabled)').count(),runtimeErrors:await shell.locator('.bx-runtime-status[role="alert"]').count(),fixtureAlive:true};
+  unchanged(c);await page.screenshot({path:info.outputPath('blox-ready-before-fixture-close.png')});
+ }catch(e){failure=e;throw e;}finally{
+  let attachmentFailure;
+  try{await info.attach('blox-destination-before-teardown.json',{body:Buffer.from(JSON.stringify(destination,null,2)),contentType:'application/json'});}
+  catch(error){attachmentFailure=error;}
+  await finish(page,info,c,failure||attachmentFailure,failure?'blox-destination-failure-before-fixture-close.png':undefined);
+  if(!failure&&attachmentFailure)throw attachmentFailure;
+ }
 });
 
 test('Mika normal Yard: off-build never requests the QA actor',async({page},info)=>{

@@ -1,4 +1,4 @@
-name: Mika normal Yard navigation follow-up
+name: Mika Yard to Blox readiness diagnosis
 on:
   push:
     branches: ['qa/mika-normal-yard-20261008']
@@ -41,7 +41,7 @@ jobs:
           const prior='8f9c22e67efe2423dd1a53d07a8a4bdaa4c04622';
           const changed=execFileSync('git',['diff','--name-only',prior,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
           assert.deepEqual(changed,['.github/workflows/mika-normal-yard-qa.yml','tests/e2e/yard-mika-normal-qa.spec.js']);
-          fs.writeFileSync('test-results/mika-normal/follow-up-scope.json',JSON.stringify({prior,priorRun:37745097843,priorArtifact:11535811230,priorArtifactSha256:'7cef6a6005ca102564d1f9a13eac11afb94dbd08918d3d0c69b0ec7ab14b201d',priorPassed:{source:33,off:1,compact:1,matrix:6,editing:1},priorShippingBudget:{passed:false,sourceReport:'run37745097843/build-budget.json',failures:[{id:'games.max-chunk.raw',actual:77363,budget:75000},{id:'public-assets.total.raw',actual:281260834,budget:277287267},{id:'public-assets.other-non-family.raw',actual:77453635,budget:73470314}]},priorFailure:'Generic Home helper did not recognize current Courtyard back control; navigation did not begin',changed,productUnchanged:true,currentScope:'one actual UI navigation/disposal case',activation:false},null,2));
+          fs.writeFileSync('test-results/mika-normal/follow-up-scope.json',JSON.stringify({prior,priorRun:37745097843,priorArtifact:11535811230,priorArtifactSha256:'7cef6a6005ca102564d1f9a13eac11afb94dbd08918d3d0c69b0ec7ab14b201d',priorPassed:{source:33,off:1,compact:1,matrix:6,editing:1},priorShippingBudget:{passed:false,sourceReport:'run37745097843/build-budget.json',failures:[{id:'games.max-chunk.raw',actual:77363,budget:75000},{id:'public-assets.total.raw',actual:281260834,budget:277287267},{id:'public-assets.other-non-family.raw',actual:77453635,budget:73470314}]},priorFailure:'Generic Home helper did not recognize current Courtyard back control; navigation did not begin',changed,productUnchanged:true,currentScope:'one actual UI navigation/disposal plus Blox board-readiness case; preserve fixture until board ready',activation:false},null,2));
           JS
       - name: Install existing locked dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
@@ -57,7 +57,7 @@ jobs:
           node scripts/mika-normal-qa-preflight.mjs on > test-results/mika-normal/on-build-graph.json
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Actual Courtyard Home to Blox navigation
+      - name: Actual Courtyard Home to rendered Blox board
         run: MIKA_QA_PHASE=navigation pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'actual game navigation'
       - name: Preserve original follow-up evidence
         if: always()
