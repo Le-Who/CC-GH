@@ -1,0 +1,14 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {execFileSync} from 'node:child_process';
+const base='ec815065f6adb7c36d81f97b41d47ad16e614b07';
+const allowed=new Set(['src/games/garden-shelf/lib/GardenR2Provider.tsx','src/games/garden-shelf/lib/gardenCommandArbiter.js','src/games/companion-yard-v2/CourtyardGame.jsx','src/game-state/yardPlacementFeedback.mjs']);
+const paths=execFileSync('git',['diff','--name-only',base,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean);
+const product=paths.filter(p=>!p.startsWith('tests/')&&!p.startsWith('scripts/')&&!p.startsWith('.github/workflows/')&&!/^playwright\..*\.mjs$/.test(p));
+assert.deepEqual(new Set(product),allowed,'exactly four approved product paths');
+for(const path of ['package.json','pnpm-lock.yaml','routes/player.js','playerManager.js','game-logic/yard-v2/release-policy.mjs','src/games/companion-yard-v2/YardReleaseGame.jsx'])assert(readFileSync(path).equals(execFileSync('git',['show',base+':'+path])),path+' must be exact live baseline');
+const courtyard=readFileSync('src/games/companion-yard-v2/CourtyardGame.jsx','utf8');
+assert(!/canonical-saved-|canonicalSaved|savedMode/.test(courtyard),'no unreleased saved-v3 integration');
+for(const key of ['VITE_YARD_PIP_PREVIEW','VITE_YARD_SAVED_VISITS','VITE_YARD_PAINTED_FOOD_TRIAL'])assert.equal(process.env[key],'false',key);
+const workflow=readFileSync('.github/workflows/live-interaction-feedback.yml','utf8');assert(workflow.includes('contents: read'));assert(!/packages: write|ssh-action|build-push-action|docker\/login-action/.test(workflow));
+console.log(JSON.stringify({base,commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productPaths:product,previewAndSavedFlags:'false',backendSchemaAssetsAndDependencies:'unchanged',deployment:false},null,2));

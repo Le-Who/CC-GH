@@ -4,6 +4,7 @@ import { GameContext } from './GardenContext';
 import { GardenI18nProvider, useGardenI18n } from './i18n';
 import { HudRegion } from '../../../app/hud-layout/index.js';
 import { getGardenTransactionCoordinator } from './gardenTransactions.js';
+import { createGardenCommandArbiter } from './gardenCommandArbiter.js';
 import { getGardenR2Coordinator, requiresGardenReload, isGardenR2Retryable } from './gardenR2Transactions.js';
 import { prepareGardenR2Adoption } from './gardenR2Adoption.js';
 import { gardenR2ViewState, r2IncomePerSecond } from './gardenR2View.js';
@@ -20,6 +21,10 @@ export default function GardenR2Provider({ accountId }: { accountId: string }) {
     payload => useGameHub.getState().performAction('garden.r2.reconcile', payload, { silent: true, feedback: false }),
     current, () => useGameHub.getState().snapshot?.serverTime
   ), [accountId, current]);
+  const commandArbiter = useMemo(() => createGardenCommandArbiter({
+    isCurrent: () => mounted.current && current(),
+    canDrain: () => !!coordinator && !coordinator.inspect().pending,
+  }), [coordinator, current]);
   const legacy = useMemo(() => getGardenTransactionCoordinator(accountId,
     (action, payload, options) => useGameHub.getState().performReliableAction(action, payload, { ...options, silent: true, feedback: false }),
     pending => useGameHub.getState().performAction('garden.reconcileIntent', pending, { silent: true, feedback: false }),
@@ -54,9 +59,9 @@ export default function GardenR2Provider({ accountId }: { accountId: string }) {
   recoverRef.current = recover;
   useEffect(() => {
     mounted.current = true; void recover();
-    return () => { mounted.current = false; if (recovery.current) clearTimeout(recovery.current); };
-  }, [recover]);
-  const command = useCallback(async (name: string, input = {}) => {
+    return () => { mounted.current = false; commandArbiter.cancel(); if (recovery.current) clearTimeout(recovery.current); };
+  }, [recover, commandArbiter]);
+  const command = useCallback((name: string, input = {}) => commandArbiter.run(name, async () => {
     if (!ready || busy.current || !coordinator || !current() || requiresGardenReload(error)) return false;
     const currentView = useGameHub.getState().snapshot?.gardenR2;
     if (!currentView) return false;
@@ -73,8 +78,9 @@ export default function GardenR2Provider({ accountId }: { accountId: string }) {
       catch { setReady(false); }
       return false;
     }
-    setError(''); return result?.receiptConfirmed === true;
-  }, [ready, coordinator, current, error]);
+    // Recovering a different durable intent is not acknowledgement of this command.
+    setError(''); return result?.receiptConfirmed === true && !result?.recoveredIntent;
+  }), [ready, coordinator, current, error, commandArbiter]);
   useEffect(() => {
     if (!ready) return;
     const ping = () => { if (!document.hidden) void command('heartbeat'); };
@@ -107,3 +113,4 @@ function BlockedContent() {
   return <HudRegion id="gardenRoot" applyLayout={false} className="gs2-stage"><div className="gs2-r2-card" role="alert"><p>{t('r2.reloadRequired')}</p><button type="button" className="gs2-button" onClick={() => window.location.reload()}>{t('r2.reload')}</button></div></HudRegion>;
 }
 export function GardenR2Blocked() { return <GardenI18nProvider><BlockedContent /></GardenI18nProvider>; }
+

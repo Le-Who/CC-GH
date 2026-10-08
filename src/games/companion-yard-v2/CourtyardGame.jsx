@@ -1,3 +1,4 @@
+import {selectPendingPlacementVisuals} from "../../game-state/yardPlacementFeedback.mjs";
 import {selectCanonicalFoodState} from '../../../game-logic/yard-v2/canonical-food-contract.mjs';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {CANONICAL_LOCATION,CANONICAL_MAX_PLACEMENTS,CANONICAL_ACTION_NONCE_PREFIX,canonicalCommandScope,canonicalNoncePrefix,canonicalCapability,canonicalPlacements,canonicalItemState,checkCanonicalPlacement,isCanonicalItemIntent} from '../../game-state/canonicalYardItems.mjs';
@@ -44,6 +45,16 @@ function Row({title,detail,src,children}) { return <div className="cy-row">{src 
 function Card({title,detail,src,photo,children}) { return <article className="cy-card"><Preview src={src} photo={photo}/><strong>{title}</strong><small>{detail}</small>{children && <div className="cy-card-actions">{children}</div>}</article>; }
 function Empty({src,children}) { return <div className="cy-empty"><Preview src={src}/><p>{children}</p></div>; }
 
+// Reuse the existing ghost renderer without promoting an intent to game state.
+function pendingScenePlacement(state,{canonical=false}={}) {
+  const snapshot=state.snapshot,scope=canonical?canonicalCommandScope(snapshot):null;
+  if(canonical&&!scope)return null;
+  const placements=canonical?canonicalPlacements(snapshot):snapshot?.yard?.placedGoodies||[];
+  return selectPendingPlacementVisuals({accountId:snapshot?.player?.id,placements,pendingActions:state.pendingActions,
+    accepts:item=>canonical?isCanonicalItemIntent(item.payload,item.clientActionId)&&Object.entries(scope).every(([k,v])=>item.payload[k]===v):!isCanonicalItemIntent(item.payload,item.clientActionId),
+  })[0]||null;
+}
+
 export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototype=false,allowCanonicalFoodPreview=false,pipGroundingRecipe='baseline'}={}) {
   const {language,t}=useAppI18n();
   // Build permission only makes the lazy owner available. Its initial mode is
@@ -75,6 +86,8 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const current=view || {...courtyardPresentation(snapshot,snapshot?.yardRuntime?.serverNow||0,clips),mutable:false,mediaReady:false};
   const canonicalState=canonicalItemState(snapshot);
   const itemMode=current.canonicalItems===true,itemMutable=itemMode&&current.mediaReady&&!!canonicalCapability(snapshot);
+  const placementMode=useRef({canonical:itemMode});
+  placementMode.current={canonical:itemMode};
   const actionSession=useGameHub(s=>s.accountSession);
   const canonicalFood=canonicalFoodPreview&&itemMode?selectCanonicalFoodState(snapshot):null;
   const canUseCanonicalFood=(snap=snapshot)=>!!(canonicalFoodPreview&&itemMode&&current.mediaReady===true&&snap?.player?.id&&canonicalCapability(snap)&&selectCanonicalFoodState(snap).available&&current.canonicalFood?.render?.available===true&&!current.canonicalFood?.reentryRequired&&current.canonicalFood.render.state===selectCanonicalFoodState(snap).state);
@@ -92,7 +105,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const navigationArt=id=>id==='decor'&&itemMode?catalogPreview('goodie','leaf_pot'):YARD_UI_ART[id];
   const closePanel=useCallback(()=>setPanel(null),[]);
   useEscapeDismiss(!!panel,closePanel);
-  const cancel=useCallback((accepted=false)=>{if(accepted!==true&&pendingPlacement(useGameHub.getState(),ghostRef.current))return;if(drag.current!=null&&canvas.current?.hasPointerCapture?.(drag.current))canvas.current.releasePointerCapture(drag.current);drag.current=null;scene.current?.endPointer();ghostRef.current=null;setGhost(null);scene.current?.setGhost(null);},[]);
+  const cancel=useCallback((accepted=false)=>{if(accepted!==true&&pendingPlacement(useGameHub.getState(),ghostRef.current))return;if(drag.current!=null&&canvas.current?.hasPointerCapture?.(drag.current))canvas.current.releasePointerCapture(drag.current);drag.current=null;scene.current?.endPointer();ghostRef.current=null;setGhost(null);scene.current?.setGhost(pendingScenePlacement(useGameHub.getState(),placementMode.current));},[]);
   useEffect(()=>{
     useGameHub.getState().setActiveGameShell({id:'room',openPanel:!!panel,closePanel});
     return ()=>{const s=useGameHub.getState();if(s.activeGameShell?.id==='room')s.setActiveGameShell(null);};
@@ -110,7 +123,11 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     return()=>{if(window.__yardPipIntegration===diagnostics)delete window.__yardPipIntegration;};
   },[optionalSceneAllowed]);
   useEffect(()=>{scene.current?.update(snapshot,{accountSession:actionSession});if(ghostRef.current){const g=ghostRef.current;if(!ownsPlacement(useGameHub.getState(),g)){cancel(true);return;}const result=validatePlacement(snapshot,g);const next={...g,valid:result.ok,placementError:result.errors?.[0]?.code};ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);}},[snapshot,actionSession]);
-  useEffect(()=>{scene.current?.setCanonicalActionPending(hasCanonicalIntent(useGameHub.getState()));},[pending,snapshot]);
+  useEffect(()=>{
+    const state=useGameHub.getState();
+    scene.current?.setCanonicalActionPending(hasCanonicalIntent(state));
+    if(!ghostRef.current)scene.current?.setGhost(pendingScenePlacement(state,placementMode.current));
+  },[pending,snapshot,itemMode,current.mediaReady]);
   useEffect(()=>{
     const g=ghostRef.current,state=useGameHub.getState();
     if(g){

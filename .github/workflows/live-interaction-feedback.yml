@@ -1,0 +1,69 @@
+name: Exact live interaction feedback qualification
+on:
+  push:
+    branches: ['qa/live-interaction-feedback-20261008']
+permissions:
+  contents: read
+concurrency:
+  group: live-interaction-feedback-20261008
+  cancel-in-progress: false
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      VITE_YARD_PIP_PREVIEW: 'false'
+      VITE_YARD_SAVED_VISITS: 'false'
+      VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify exact live base and four-file release boundary
+        run: |
+          mkdir -p test-results/live-interaction
+          git fetch --no-tags --depth=1 origin ec815065f6adb7c36d81f97b41d47ad16e614b07
+          node scripts/live-interaction-preflight.mjs > test-results/live-interaction/boundary.json
+      - name: Install existing locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Focused source and fixture checks
+        run: |
+          set -o pipefail
+          node --test tests/garden-heartbeat-priority.test.mjs tests/garden-command-arbiter.test.mjs tests/garden-command-journal.test.mjs tests/yard-live-placement-feedback.test.mjs tests/sw-fixture-json-loader.test.mjs | tee test-results/live-interaction/source.log
+      - name: Collect all exact normal-release browser cases
+        run: pnpm exec playwright test --config playwright.live-interaction.config.mjs yard-live-placement-feedback.spec.js garden-live-heartbeat.spec.js --list > test-results/live-interaction/collection.log
+      - name: Normal release build with preview and saved modes off
+        id: build
+        env:
+          NODE_ENV: production
+        run: |
+          set -o pipefail
+          pnpm run build | tee test-results/live-interaction/build.log
+      - name: Install official Chromium
+        id: browser
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Compact normal-route placement diagnostic
+        id: compact
+        run: LIVE_INTERACTION_PHASE=compact pnpm exec playwright test --config playwright.live-interaction.config.mjs yard-live-placement-feedback.spec.js --grep 'diagnostic compact'
+      - name: Garden explicit action behind heartbeat
+        if: always() && steps.build.outcome == 'success' && steps.browser.outcome == 'success'
+        run: LIVE_INTERACTION_PHASE=garden pnpm exec playwright test --config playwright.live-interaction.config.mjs garden-live-heartbeat.spec.js
+      - name: Final placement viewport matrix
+        if: always() && steps.compact.outcome == 'success'
+        run: LIVE_INTERACTION_PHASE=matrix pnpm exec playwright test --config playwright.live-interaction.config.mjs yard-live-placement-feedback.spec.js --grep 'acceptance'
+      - name: Preserve exact success and failure evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: live-interaction-${{ github.sha }}
+          path: test-results/
+          retention-days: 7
+          if-no-files-found: error
