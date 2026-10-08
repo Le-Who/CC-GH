@@ -4,3 +4,6 @@ export const MIKA_ITEM_FOOTPRINTS = Object.freeze({
   yarn_mouse: Object.freeze({width: 8.8, height: 3.2}),
   sun_cushion: Object.freeze({width: 22.4, height: 19.2}),
 });
+
+// The source placement validator reserves its default clearance around this entry.
+export const MIKA_SCENE_ENTRY = Object.freeze({x:90,y:68});

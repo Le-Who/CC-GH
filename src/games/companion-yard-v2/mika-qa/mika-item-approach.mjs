@@ -4,7 +4,7 @@ import {MIKA_ITEM_FOOTPRINTS} from '../../../../game-logic/yard-v2/mika-item-geo
 import {foodVesselExclusion} from '../../../../game-logic/yard-v2/food-media.mjs';
 import {canonical, deepFreeze} from '../../../../game-logic/yard-v2/util.mjs';
 import mask from './meadow-mask.json' with {type: 'json'};
-import {planMikaYardQaCruise, planMikaYardQaArrival} from './mika-yard-route.mjs';
+import {planMikaYardQaCruise, planMikaYardQaArrival, planMikaYardQaContinuation, planMikaYardQaContinuationAsync} from './mika-yard-route.mjs';
 
 const fail = reason => ({ok: false, reason});
 const text = value => typeof value === 'string' && value.length > 0 && value.length <= 128;
@@ -77,9 +77,9 @@ export function planMikaItemApproach(bound, calibration, envelope, options = {})
 export function planMikaItemArrival(bound, calibration, envelope, options = {}) {
   return planItemPassage(bound, calibration, envelope, options, true);
 }
-function planItemPassage(bound, calibration, envelope, {acceptSweep = () => true} = {}, withArrival) {
+function planItemPassage(bound, calibration, envelope, {acceptSweep = () => true, targetSlotId = null} = {}, withArrival) {
   if (!bound?.ok || !bound.binding?.items?.length) return fail('NATIVE_ITEM_TARGET_UNAVAILABLE');
-  for (const target of bound.binding.items) {
+  for (const target of bound.binding.items.filter(item => targetSlotId === null || item.slotId === targetSlotId)) {
     // At most 64 nearby start candidates, translated with the current item.
     // The original native sweep, mask and obstacle checks still decide safety.
     const candidateStarts = [36, 42, 48, 54].flatMap(radius => Array.from({length: 16}, (_, index) => {
@@ -98,4 +98,27 @@ function planItemPassage(bound, calibration, envelope, {acceptSweep = () => true
       action: withArrival ? 'finite-item-arrival' : 'finite-item-approach', durationSeconds: plan.duration, interactionReady: false};
   }
   return fail('NO_CLEAR_NATIVE_ITEM_APPROACH');
+}
+
+/** Exact selected slot, current stopped pose. Obstacles retain ALL items,
+ * including the previous target; a missing/blocked target never substitutes. */
+export function planMikaItemContinuation(bound,calibration,envelope,stoppedSample,targetSlotId,options={}){
+ return planItemContinuation(bound,calibration,envelope,stoppedSample,targetSlotId,options,false);
+}
+export async function planMikaItemContinuationAsync(bound,calibration,envelope,stoppedSample,targetSlotId,options={}){
+ return planItemContinuation(bound,calibration,envelope,stoppedSample,targetSlotId,options,true);
+}
+function planItemContinuation(bound,calibration,envelope,stoppedSample,targetSlotId,{acceptSweep=()=>true,...asyncOptions}={},incremental){
+ if(!bound?.ok||!text(targetSlotId))return fail('NATIVE_ITEM_TARGET_UNAVAILABLE');
+ const target=structuredClone(bound.binding.items.find(item=>item.slotId===targetSlotId&&item.goodieId==='yarn_mouse')),bindingKey=bound.key;
+ if(!target)return fail('NATIVE_ITEM_TARGET_UNAVAILABLE');
+ const facesTarget=({start,end,heading})=>{const dx=target.x-end.x,dy=target.y-end.y,distance=Math.hypot(dx,dy);return distance>0&&Math.hypot(target.x-start.x,target.y-start.y)-distance>=10&&(Math.cos(heading)*dx+Math.sin(heading)*dy)/distance>=Math.cos(Math.PI/6);};
+ const planned=(incremental?planMikaYardQaContinuationAsync:planMikaYardQaContinuation)(bound.binding.layout,calibration,envelope,stoppedSample,{acceptSweep,...asyncOptions,acceptEndpoint:facesTarget,
+  acceptCandidate({start,end,heading,endBody}){
+   const dx=target.x-end.x,dy=target.y-end.y,distance=Math.hypot(dx,dy),gap=bodyGap(endBody,target.box);
+   return gap>0&&gap<=8&&distance>0&&Math.hypot(target.x-start.x,target.y-start.y)-distance>=10
+    &&(Math.cos(heading)*dx+Math.sin(heading)*dy)/distance>=Math.cos(Math.PI/6);
+  }});
+ const finish=plan=>plan.ok?{ok:true,plan,target,bindingKey,action:'finite-current-pose-arrival',durationSeconds:plan.duration,interactionReady:false}:plan;
+ return incremental?planned.then(finish):finish(planned);
 }

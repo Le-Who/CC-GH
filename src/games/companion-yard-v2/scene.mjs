@@ -30,7 +30,7 @@ const stillIds = [...new Set(['sun-cushion-clean','yarn-mouse-clean','yarn-mouse
 async function json(path,signal){const r=await fetch(path,{signal});if(!r.ok)throw Error(`Media ${r.status}: ${path}`);return r.json();}
 
 /** One disposable canvas owner. Server snapshots are read-only; RAF never writes a save or reward. */
-export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner,loadQaLayer=null,qaItemApproach=false,qaSessionEpoch=()=>0}={}) {
+export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner,loadQaLayer=null,qaItemApproach=false,qaContinuation=false,qaSessionEpoch=()=>0}={}) {
   const ctx=canvas.getContext('2d'),abort=new AbortController(),timing=new FrameTelemetry();
   const familyMode=Object.values(FAMILY_ACTOR_REFERENCES).some(ref=>resolveActorProfile(ref,actorProfiles));
   const atlasPolicy=familyMode?FAMILY_ATLAS_POLICY:[MIKA_ACTOR_REFERENCE,MOCHI_ACTOR_REFERENCE,PEBBLE_ACTOR_REFERENCE,PIP_ACTOR_REFERENCE]
@@ -41,8 +41,9 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
   const uiBytes=()=>Math.max(uiLifetimeFloor,uiReserve.bytes);
   const renderCatalog=Object.freeze({kind:'legacy-m2',sourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa'});
   let qaLayer=null,qaRgbaBytes=0,qaFailure=null,qaInterruption=loadQaLayer&&document.hidden?'VISIBILITY_INTERRUPTED':null;
+  let qaPendingView=null,qaPresentationCommitted=!loadQaLayer;
   const qaStartEpoch=loadQaLayer?qaSessionEpoch():0;
-  const interruptQa=reason=>{if(loadQaLayer){qaInterruption??=reason;qaLayer?.abort(qaInterruption);}};
+  const interruptQa=reason=>{if(loadQaLayer){qaInterruption??=reason;qaPendingView=null;qaLayer?.abort(qaInterruption);}};
   const checkQaSession=()=>{if(loadQaLayer&&qaSessionEpoch()!==qaStartEpoch)qaInterruption??='SESSION_CHANGED';};
   const onQaVisibility=()=>{if(document.hidden)interruptQa('VISIBILITY_INTERRUPTED');};
   if(loadQaLayer)document.addEventListener('visibilitychange',onQaVisibility);
@@ -90,7 +91,7 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
       const bowl=projection.project(food.anchor);shadow(bowl,ppu*.43,ppu*.16,.25);sprite(food.stillId,bowl);
     }
     const layers=[];
-    const qa=qaLayer?.frame({view:v,snapshot,projection,sceneGeometry,stamp,shadow});if(qa)layers.push({y:qa.y,draw:()=>qa.draw(ctx)});
+    const qa=qaPresentationCommitted?qaLayer?.frame({view:v,snapshot,projection,sceneGeometry,stamp,shadow}):null;if(qa)layers.push({y:qa.y,draw:()=>qa.draw(ctx)});
     for(const pet of v.pets){const pose=poseFor(pet),base=pet.phase==='active-clip'?pet.clipOrigin:pet.position,units=actorEntryForPet(pet,actorEntries).profile.unitsPerWorld;
       const contact=actorEntryForPet(pet,actorEntries).groundShadow||{radiusX:.19,radiusY:.065,opacity:.22};
       const origin=pet.phase==='active-clip'?(pose.clip.originWorld||[0,0,0]):[0,0,0];
@@ -125,10 +126,10 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
       // pages while waiting would re-request images that the new working set is
       // deliberately replacing, causing eviction/decode churn with two actors.
       if(view&&!missing&&applyResize()){draw(view,stamp);timing.presented(view.pets.map(p=>{const q=poseFor(p);return{visitId:p.visitId,mediaId:q.mediaId,actorProfile:p.actorProfile,index:q.index,position:p.position||p.clipOrigin};}),at);budgetSample('presented');}
-      if(stamp-lastStatusAt>250){onView({...next,mediaReady:true,renderCatalog,renderRevision:'legacy-m2/6b80c9a2'});lastStatusAt=stamp;}
+      if(stamp-lastStatusAt>250){const published={...next,mediaReady:true,renderCatalog,renderRevision:'legacy-m2/6b80c9a2'};if(loadQaLayer&&!qaPresentationCommitted)qaPendingView=published;onView(published);lastStatusAt=stamp;}
       if(atlas.error)throw atlas.error;
     }
-  }catch(e){ready=false;if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);return;}raf=requestAnimationFrame(tick);}
+  }catch(e){ready=false;interruptQa('SCENE_FAILED');if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);return;}raf=requestAnimationFrame(tick);}
   async function loadStill(id,meta,url){
     if(disposed)return;
     const absolute=new URL(url,location.origin);if(meta.assetRevision)absolute.searchParams.set('yard-media',meta.assetRevision);const key=absolute.href;
@@ -187,7 +188,7 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
         const module=await loadQaLayer();checkQaSession();
         if(disposed)return;
         if(!qaInterruption){
-          qaLayer=await module.createMikaYardQaLayer({itemApproach:qaItemApproach,signal:abort.signal,cameraDirection:CAMERA_DIRECTION,
+          qaLayer=await module.createMikaYardQaLayer({itemApproach:qaItemApproach,continuation:qaContinuation,signal:abort.signal,cameraDirection:CAMERA_DIRECTION,
             reserveRGBA:bytes=>{if(bytes===0){qaRgbaBytes=0;return true;}if(disposed||!Number.isFinite(bytes)||bytes<0||!atlas.reserveExternal(outside()-qaRgbaBytes+bytes))return false;qaRgbaBytes=bytes;budgetSample('qa-surface');return true;}});
           checkQaSession();if(qaInterruption)qaLayer.abort(qaInterruption);
           if(disposed){qaLayer.dispose();return;}
@@ -195,11 +196,17 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
       }catch(error){qaFailure=String(error.message);}
     }
     if(disposed)return;resize();ready=true;raf=requestAnimationFrame(tick);
-  })().catch(e=>{ready=false;if(!disposed){if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);}});
-  return {ready:readyPromise,update,setGhost(value){ghost=value;if(value)interruptQa('ITEM_EDITING');},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
+  })().catch(e=>{ready=false;interruptQa('SCENE_FAILED');if(!disposed){if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);}});
+  return {ready:readyPromise,update,commitPresentation(value){
+    // React acknowledges this exact ready view after its status has committed.
+    // Measure now; the next frame admits native geometry in the actual canvas.
+    if(loadQaLayer&&!qaInterruption&&qaSessionEpoch()!==qaStartEpoch)interruptQa('SESSION_CHANGED');
+    if(disposed||!ready||qaFailure||qaInterruption||document.hidden||!loadQaLayer||qaPresentationCommitted||value!==qaPendingView)return false;
+    qaPendingView=null;qaPresentationCommitted=true;resize();return true;
+  },requestMikaItemArrival(slotId){checkQaSession();if(disposed||!ready||qaInterruption)return{ok:false,reason:qaInterruption||'NATIVE_ACTION_UNAVAILABLE'};return qaLayer?.requestItemArrival?.(slotId)??{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'};},setGhost(value){ghost=value;if(value)interruptQa('ITEM_EDITING');},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
     offsetPoint(position,delta){return projection?offsetWorldPoint(projection,position,delta):null;},
     hit(event){if(!view||!projection)return null;const r=canvas.getBoundingClientRect(),point={x:event.clientX-r.left,y:event.clientY-r.top};return view.props.filter(p=>p.supported).map(prop=>{const q=projection.project(prop.transform);return{prop,p:{x:q.x*r.width/projection.width,y:q.y*r.height/projection.height}};}).filter(v=>Math.hypot(v.p.x-point.x,v.p.y-point.y)<28).sort((a,b)=>Math.hypot(a.p.x-point.x,a.p.y-point.y)-Math.hypot(b.p.x-point.x,b.p.y-point.y))[0]?.prop;},
     diagnostics(){return{disposed,ready,qaMika:qaLayer?.diagnostics()??(qaInterruption?{phase:'aborted',reason:qaInterruption}:qaFailure?{phase:'unavailable',reason:qaFailure}:null),qaRgbaBytes,legacySourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa',renderRevision:'legacy-m2/6b80c9a2',mediaBlocked:!ready,uiReserve,uiLifetimeFloor,backgroundComposition:'original cover52%50% in owned Canvas2D',presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...(familyMode?{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}}:{}),view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
-    dispose(){if(retirement)return retirement;const pending=[readyPromise,...atlas.pending.values()];disposed=true;ready=false;abort.abort();cancelAnimationFrame(raf);observer.disconnect();if(loadQaLayer)document.removeEventListener('visibilitychange',onQaVisibility);qaLayer?.dispose();atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;backgroundDecodedBytes=0;images.clear();uiImages.setAdmissionCheck(()=>false);retirement=Promise.allSettled(pending);return retirement;}
+    dispose(){if(retirement)return retirement;const pending=[readyPromise,...atlas.pending.values()];disposed=true;ready=false;qaPendingView=null;abort.abort();cancelAnimationFrame(raf);observer.disconnect();if(loadQaLayer)document.removeEventListener('visibilitychange',onQaVisibility);pending.push(Promise.resolve(qaLayer?.dispose()));atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;backgroundDecodedBytes=0;images.clear();uiImages.setAdmissionCheck(()=>false);retirement=Promise.allSettled(pending);return retirement;}
   };
 }

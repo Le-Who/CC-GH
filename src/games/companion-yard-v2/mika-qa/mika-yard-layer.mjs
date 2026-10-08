@@ -3,8 +3,9 @@ import envelope from './mika-p2-skin-envelope.json' with {type:'json'};
 import mask from './meadow-mask.json' with {type:'json'};
 import {createMikaNativePoseDriver} from './mika-native-pose.mjs';
 import {planMikaYardQaCruise,sampleMikaYardQaCruise} from './mika-yard-route.mjs';
-import {bindMikaPersistedItems,planMikaItemArrival} from './mika-item-approach.mjs';
+import {bindMikaPersistedItems,planMikaItemArrival,planMikaItemContinuationAsync} from './mika-item-approach.mjs';
 import {configureMikaYardCamera} from './mika-yard-camera.mjs';
+let nextActorInstance=0;
 const ASSET='/assets/yard-mika-p2-qa/p2.glb',BYTES=3671320,BINARY_BYTES=3624236,MODEL_CPU_BOUND=BYTES*3;
 const defaultDependencies=()=>Promise.all([import('../pip-prototype/vendor/three/build/three.module.js'),import('../pip-prototype/vendor/three/addons/loaders/GLTFLoader.js'),import('../pip-prototype/grounding-recipe.mjs')]);
 const snapshotLayout=value=>JSON.stringify([value?.yard?.remodel,(value?.yard?.placedGoodies??[]).map(p=>[p.slotId,p.goodieId,p.x,p.y,p.rotationZ??0,p.condition]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))),value?.yardRuntime?.display?.placements??[],(value?.yard?.bowls??[]).map(b=>b.id)]);
@@ -29,19 +30,26 @@ export function mikaQaLayout(view,sceneGeometry){
 /** One disposable QA draw layer; the existing Courtyard RAF owns all frames.
  * No account commands, visit records, saved identities, timers or second RAF.
  */
-export async function createMikaYardQaLayer({itemApproach=false,signal,cameraDirection,reserveRGBA,fetchImpl=fetch,loadDependencies=defaultDependencies,canvasFactory=()=>document.createElement('canvas'),rendererFactory=null,presentationNow=()=>performance.now()}={}){
+export async function createMikaYardQaLayer({itemApproach=false,continuation=false,signal,yieldPlanning,cameraDirection,reserveRGBA,fetchImpl=fetch,loadDependencies=defaultDependencies,canvasFactory=()=>document.createElement('canvas'),parkedCanvasFactory=()=>document.createElement('canvas'),rendererFactory=null,presentationNow=()=>performance.now()}={}){
  if(typeof reserveRGBA!=='function')throw Error('QA_RESOURCE_OWNER_REQUIRED');
  let THREE,model,driver,renderer,lighting,scene,camera,canvas,disposed=false,graphicsRetired=false,phase='loading',reason=null,plan=null,originStamp=null,lastResult=null,layoutStamp=null,account=null,accountObserved=false,allocatedPixels=0,rgbaBytes=0,modelGPUBytes=0;
- let itemCandidate=null;
+ const actorInstance=++nextActorInstance;
+ let heldCanvas=null,heldKey=null,heldBytes=0,gpuRenders=0,parkedRasterCopies=0;
+ let itemCandidate=null,latestSnapshot=null,latestContext=null,actionsStarted=0,actionsCompleted=0,lastActionResult=null,pendingPlanning=null,planningAbort=null,retirementPromise=null,planningMetrics=null;
+ continuation=continuation===true&&itemApproach===true;
  const trace=[];let currentTime=0,frames=0,maximumEnvelopeRadius=0,projectionStamp=null,interruption=null;
  function traceState(){trace.push({phase,reason,time:currentTime,frames});if(trace.length>12)trace.shift();}
+ function clearHeldFrame(reaccount=true){
+  if(heldCanvas){heldCanvas.width=0;heldCanvas.height=0;heldCanvas=null;}heldKey=null;
+  if(heldBytes){rgbaBytes-=heldBytes;heldBytes=0;if(reaccount&&!graphicsRetired)reserveRGBA(rgbaBytes);}
+ }
  function releaseGraphics(){
-  if(graphicsRetired)return;graphicsRetired=true;driver?.dispose();lighting?.dispose();
+  if(graphicsRetired)return;graphicsRetired=true;clearHeldFrame(false);driver?.dispose();lighting?.dispose();
   const geometries=new Set(),materials=new Set(),skeletons=new Set();model?.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);if(o.skeleton)skeletons.add(o.skeleton);});
   canvas?.removeEventListener('webglcontextlost',onLost);for(const value of [...skeletons,...geometries,...materials])value.dispose();renderer?.dispose();renderer?.forceContextLoss();if(canvas){canvas.width=0;canvas.height=0;}
   reserveRGBA(0);rgbaBytes=0;model=null;driver=null;renderer=null;lighting=null;scene=null;camera=null;canvas=null;
  }
- function stop(next,why){if(disposed||graphicsRetired)return;phase=next;reason=why;traceState();releaseGraphics();}
+ function stop(next,why){if(disposed||graphicsRetired)return;planningAbort?.abort(Error(why));phase=next;reason=why;traceState();releaseGraphics();}
  const onHidden=()=>{if(!graphicsRetired&&document.hidden){interruption??='VISIBILITY_INTERRUPTED';if(phase!=='loading')stop('aborted',interruption);}};
  const onLost=event=>{event.preventDefault();stop('aborted','WEBGL_CONTEXT_LOST');};
  const checkLoading=()=>{signal?.throwIfAborted();if(interruption)throw Error(interruption);};
@@ -67,9 +75,43 @@ export async function createMikaYardQaLayer({itemApproach=false,signal,cameraDir
   canvas.addEventListener('webglcontextlost',onLost);phase='waiting-layout';traceState();
  }catch(error){reason=String(error?.message??error);phase=signal?.aborted||interruption?'aborted':'unavailable';releaseGraphics();traceState();}
  function noteSnapshot(snapshot){
+  latestSnapshot=snapshot;
   const key=snapshotLayout(snapshot),nextAccount=snapshot?.player?.id??null;
   if(accountObserved&&nextAccount!==account)stop('aborted','ACCOUNT_CHANGED');accountObserved=true;account=nextAccount;
   if(layoutStamp!==null&&layoutStamp!==key)stop('aborted','LAYOUT_CHANGED');layoutStamp=key;
+ }
+ const cameraAdmission=projection=>(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}));
+ function requestItemArrival(slotId){
+  const refuse=reason=>lastActionResult={ok:false,reason},immediate=reason=>Promise.resolve(refuse(reason));
+  if(!continuation||disposed||graphicsRetired)return immediate('NATIVE_ACTION_UNAVAILABLE');
+  if(phase!=='parked'||pendingPlanning||!lastResult||!latestContext)return immediate('NATIVE_ACTOR_NOT_SETTLED');
+  const bound=bindMikaPersistedItems(latestSnapshot,latestContext.view);
+  if(!bound.ok||bound.key!==latestContext.bound.key){stop('aborted',bound.reason||'NATIVE_ITEM_BINDING_CHANGED');return immediate(reason);}
+  if(slotId===itemCandidate.target.slotId)return immediate('ALREADY_ARRIVED');
+  const controller=planningAbort=new AbortController(),stopped=structuredClone(lastResult.sample),previousReason=reason;
+  const started=performance.now();planningMetrics={slices:0,batches:0,maxBatchMs:0,maxSliceMs:0,cpuMs:0,wallMs:null,cancelled:false};
+  phase='planning';reason='NATIVE_PATH_PLANNING';traceState();
+  let task;
+  task=(async()=>{
+   try{
+    const candidate=await planMikaItemContinuationAsync(bound,calibration,envelope,stopped,slotId,{acceptSweep:cameraAdmission(latestContext.projection),signal:controller.signal,
+     ...(yieldPlanning?{yieldTask:yieldPlanning}:{}),onBatch:ms=>{planningMetrics.batches++;planningMetrics.maxBatchMs=Math.max(planningMetrics.maxBatchMs,ms);},onSlice:(ms,stage)=>{planningMetrics.slices++;planningMetrics.cpuMs+=ms;if(ms>planningMetrics.maxSliceMs){planningMetrics.maxSliceMs=ms;planningMetrics.maxSliceStage=stage;}}});
+    // The parked actor kept drawing during yields. Every owner/layout/session
+    // interruption retires this request; an old answer cannot revive its model.
+    if(controller.signal.aborted||disposed||graphicsRetired||phase!=='planning'||planningAbort!==controller)return refuse(reason||'NATIVE_ACTION_CANCELLED');
+    const current=bindMikaPersistedItems(latestSnapshot,latestContext?.view);
+    if(!current.ok||current.key!==bound.key){stop('aborted',current.reason||'NATIVE_ITEM_BINDING_CHANGED');return refuse(reason);}
+    if(!candidate.ok){phase='parked';reason=previousReason;traceState();return refuse(candidate.reason);}
+    clearHeldFrame();itemCandidate=candidate;plan=candidate.plan;originStamp=null;currentTime=0;phase='running';reason=null;actionsStarted++;traceState();
+    return lastActionResult={ok:true,action:actionsStarted,targetSlotId:slotId};
+   }catch(error){
+    if(controller.signal.aborted||disposed||graphicsRetired)return refuse(reason||'NATIVE_ACTION_CANCELLED');
+    phase='parked';reason=previousReason;traceState();return refuse(String(error.message));
+   }finally{
+    planningMetrics.wallMs=performance.now()-started;planningMetrics.cancelled=controller.signal.aborted;
+    if(planningAbort===controller)planningAbort=null;if(pendingPlanning===task)pendingPlanning=null;
+   }
+  })();pendingPlanning=task;return task;
  }
  function frame({view,snapshot,projection,sceneGeometry,stamp,shadow}){
   if(disposed||graphicsRetired)return null;
@@ -78,39 +120,55 @@ export async function createMikaYardQaLayer({itemApproach=false,signal,cameraDir
    const bound=itemApproach?bindMikaPersistedItems(snapshot,view):null;
    if(bound&&!bound.ok){stop('blocked',bound.reason);return null;}
    if(itemCandidate&&itemCandidate.bindingKey!==bound.key){stop('aborted','NATIVE_ITEM_BINDING_CHANGED');return null;}
-   const layout=bound?bound.binding.layout:mikaQaLayout(view,sceneGeometry),nextProjection=JSON.stringify([projection.width,projection.height,projection.ppu]);
+   const layout=bound?bound.binding.layout:mikaQaLayout(view,sceneGeometry),nextProjection=JSON.stringify([projection.width,projection.height,projection.ppu,globalThis.devicePixelRatio??1,cameraDirection,...[{x:0,y:0,z:0},{x:8,y:0,z:0},{x:0,y:8,z:0},{x:0,y:0,z:1}].map(point=>projection.project(point))]);
    if(projectionStamp!==null&&projectionStamp!==nextProjection){stop('aborted','VIEWPORT_CHANGED');return null;}projectionStamp=nextProjection;
+   latestContext={view,bound,projection};
    if(!plan){
-    const options={acceptSweep:(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}))};
+    const options={acceptSweep:cameraAdmission(projection)};
     if(bound){itemCandidate=planMikaItemArrival(bound,calibration,envelope,options);if(!itemCandidate.ok){stop('blocked',itemCandidate.reason);return null;}plan=itemCandidate.plan;}
     else plan=planMikaYardQaCruise(layout,calibration,envelope,options);
-    if(!plan.ok){stop('blocked',plan.reason);return null;}phase='running';traceState();
+    if(!plan.ok){stop('blocked',plan.reason);return null;}phase='running';actionsStarted++;traceState();
    }
    // RAF timestamps and performance.now share the browser monotonic origin.
    // Planning, allocation and the first GPU render precede the first copy;
    // they must not consume the finite authored cruise. Undrawn poses stay at0.
-   currentTime=originStamp===null?0:Math.max(0,(stamp-originStamp)/1000);
-   if(currentTime>plan.duration){stop('complete',itemApproach?'FINITE_ITEM_ARRIVAL_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION');return null;}
+   currentTime=(phase==='parked'||phase==='planning')?plan.duration:originStamp===null?0:Math.max(0,(stamp-originStamp)/1000);
+   if(currentTime>plan.duration){
+    if(continuation){currentTime=plan.duration;phase='parked';reason='ARRIVAL_SETTLED';actionsCompleted++;traceState();}
+    else{stop('complete',itemApproach?'FINITE_ITEM_ARRIVAL_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION');return null;}
+   }
    const result=sampleMikaYardQaCruise(plan,layout,currentTime);if(result.status!=='ready'){stop('aborted',result.reason||result.status);return null;}
    const width=Math.ceil(projection.width),height=Math.ceil(projection.height),pixels=width*height;
    if(pixels!==allocatedPixels||canvas.width!==width||canvas.height!==height){
     // Before allocating, include old+new color/depth/swap estimates in the same
     // normal scene image/surface ledger. No DPR2 extra QA surface is retained.
+    clearHeldFrame();
     if(reserveRGBA(rgbaBytes+pixels*16)!==true){stop('blocked','QA_SURFACE_BUDGET');return null;}
     renderer.setSize(width,height,false);allocatedPixels=pixels;rgbaBytes=pixels*16;reserveRGBA(rgbaBytes);
    }
    configureMikaYardCamera(THREE,camera,projection,cameraDirection);driver.apply(result.sample);
+   const park=continuation&&(phase==='parked'||phase==='planning');
+   const rasterKey=park?JSON.stringify([projectionStamp,lighting?.diagnostics??null,result.sample.root,result.sample.boneMatrices]):null;
+   if(heldCanvas&&heldKey!==rasterKey)clearHeldFrame();
    maximumEnvelopeRadius=Math.max(maximumEnvelopeRadius,result.envelope.radius);lastResult=result;
    return {y:projection.project(result.position).y,draw:ctx=>{
     if(graphicsRetired)return;
     try{const ppu=projection.ppu;shadow(projection.project(result.position),ppu*.55,ppu*.16,.12);
      for(const foot of Object.values(result.sample.contacts))if(foot.contact)shadow(projection.project({x:foot.paw[0]*8,y:foot.paw[1]*8}),ppu*.13,ppu*.045,.2*foot.load);
-     renderer.render(scene,camera);ctx.drawImage(canvas,0,0,projection.width,projection.height);
+     if(park&&heldCanvas&&heldKey===rasterKey){ctx.drawImage(heldCanvas,0,0,projection.width,projection.height);parkedRasterCopies++;}
+     else{
+      renderer.render(scene,camera);gpuRenders++;ctx.drawImage(canvas,0,0,projection.width,projection.height);
+      if(park){
+       const bytes=width*height*4;if(reserveRGBA(rgbaBytes+bytes)!==true){stop('blocked','QA_PARKED_SURFACE_BUDGET');return;}
+       heldBytes=bytes;rgbaBytes+=bytes;heldCanvas=parkedCanvasFactory();heldCanvas.width=width;heldCanvas.height=height;
+       const copy=heldCanvas.getContext('2d');if(!copy)throw Error('QA_PARKED_SURFACE_UNAVAILABLE');copy.drawImage(canvas,0,0);heldKey=rasterKey;
+      }
+     }
      if(originStamp===null)originStamp=presentationNow();
      frames++;
     }catch(error){stop('aborted',String(error.message));}
    },canvas,get snapshot(){return result;}};
   }catch(error){stop('aborted',String(error.message));return null;}
  }
- return{noteSnapshot,frame,abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,itemApproach:itemApproach?{action:'finite-item-arrival',target:itemCandidate?.target??null,motionPhase:lastResult?.sample?.motionPhase??'approach',rootSpeed:lastResult?.sample?.rootSpeed??null,interactionReady:false,savedVisitReady:false}:null,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:itemApproach?'QA only; finite item arrival and standing idle; no saved visit/interaction; layout change aborts':'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return;disposed=true;document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();}};
+ return{noteSnapshot,frame,requestItemArrival,abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,actorInstance,continuation,actionsStarted,actionsCompleted,planning:planningMetrics?{...planningMetrics,pending:!!pendingPlanning}:null,lastActionResult:lastActionResult?{...lastActionResult}:null,heading:lastResult?.sample?.root?.heading??null,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,itemApproach:itemApproach?{action:itemCandidate?.action??'finite-item-arrival',target:itemCandidate?.target??null,motionPhase:lastResult?.sample?.motionPhase??'approach',rootSpeed:lastResult?.sample?.rootSpeed??null,interactionReady:false,savedVisitReady:false}:null,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,heldFrameRGBABytes:heldBytes,gpuRenders,parkedRasterCopies,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:continuation?'QA only; same-actor finite current-pose actions and static parked pose; no saved visit/interaction/general navigation; layout change retires owner':itemApproach?'QA only; finite item arrival and standing idle; no saved visit/interaction; layout change aborts':'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return retirementPromise;disposed=true;planningAbort?.abort(Error('SCENE_DISPOSED'));document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();retirementPromise=Promise.resolve(pendingPlanning).then(()=>undefined,()=>undefined);return retirementPromise;}};
 }

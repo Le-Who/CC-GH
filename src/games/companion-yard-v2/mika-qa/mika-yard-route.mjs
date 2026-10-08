@@ -1,6 +1,8 @@
 import {createMikaLocomotionRoute,sampleMikaLocomotion} from './mika-locomotion.mjs';
 import {boundMikaPose} from './mika-envelope.mjs';
 import {prepareMikaArrival} from './mika-arrival.mjs';
+import {prepareMikaDepartureSteps} from './mika-departure.mjs';
+import {prepareMikaTurnAway} from './mika-turn-away.mjs';
 const EPS=1e-8,U=8,DURATION=4;
 const internals=new WeakMap(),templates=new WeakMap();
 const canonical=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canonical).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';
@@ -99,6 +101,103 @@ function planMikaYardQaPassage(layout,calibration,envelope,{acceptSweep=()=>true
   internals.set(plan,{layoutKey,calibration:structuredClone(calibration),envelope:structuredClone(envelope),route,sampleAt:withArrival?t=>placeSample(template.sampleAt(t),heading,start):null,aborted:false});return plan;
  }
  return {ok:false,reason:'NO_CLEAR_QA_CRUISE',candidates};
+}
+// A shorter passage retains the same linear speed; only the bounded turn
+// interval ends earlier so the existing arrival receives a straight lead-in.
+function continuationRoot(turn,duration){
+ if(duration===4)return relativeRoot(turn);
+ const smooth=x=>{x=Math.max(0,Math.min(1,x));return x*x*x*(x*(x*6-15)+10);};
+ const begins=duration===2?.25:.4,ends=duration-.6,heading=t=>turn*smooth((t-begins)/(ends-begins));
+ const points=[{x:0,y:0}];
+ for(let i=1;i<=6000;i++){const a=heading((i-1)*.001),b=heading(i*.001),p=points.at(-1);points.push({x:p.x+.74*.0005*(Math.cos(a)+Math.cos(b)),y:p.y+.74*.0005*(Math.sin(a)+Math.sin(b))});}
+ return t=>{if(t<0)return{position:[.74*t,0,0],heading:0};if(t>6)throw Error('QA_ROUTE_HISTORY_EXHAUSTED');const i=Math.min(5999,Math.floor(t*1000)),u=Math.max(0,Math.min(1,t*1000-i)),a=points[i],b=points[i+1];return{position:[a.x+(b.x-a.x)*u,a.y+(b.y-a.y)*u,0],heading:heading(t)};};
+}
+function rebaseContactTime(sample,offset,time){
+ return{...sample,time,contacts:Object.fromEntries(Object.entries(sample.contacts).map(([id,foot])=>[id,{...foot,
+  ...Object.fromEntries(['swingStart','swingEnd','nextSwingStart'].map(key=>[key,Number.isFinite(foot[key])?foot[key]+offset:foot[key]]))}]))};
+}
+/** Finite forward continuation from an actual settled pose. No start or heading
+ * search is permitted: refusal preserves the caller's current actor unchanged.
+ * A separately qualified stepped quarter-turn may redirect departure; there
+ * is no general navigation or arbitrary-time emergency stop.
+ */
+export function planMikaYardQaContinuation(layout,calibration,envelope,stoppedSample,options={}){
+ const job=iterateMikaContinuation(layout,calibration,envelope,stoppedSample,options);let step;
+ do{step=job.next();}while(!step.done);return step.value;
+}
+const planningTask=signal=>new Promise((resolve,reject)=>{
+ if(signal?.aborted){reject(signal.reason);return;}
+ const aborted=()=>{clearTimeout(timer);signal.removeEventListener('abort',aborted);reject(signal.reason);};
+ const timer=setTimeout(()=>{signal?.removeEventListener('abort',aborted);resolve();},0);
+ signal?.addEventListener('abort',aborted,{once:true});
+});
+/** Same candidate iterator as the synchronous geometry oracle. Yield actual
+ * tasks so normal Yard rendering and cancellation can run between small batches.
+ */
+export async function planMikaYardQaContinuationAsync(layout,calibration,envelope,stoppedSample,{signal,yieldTask=planningTask,onSlice=()=>{},onBatch=()=>{},...options}={}){
+ const job=iterateMikaContinuation(layout,calibration,envelope,stoppedSample,options);
+ try{for(;;){
+  const batchStart=performance.now();let steps=0;
+  for(;;){signal?.throwIfAborted();const start=performance.now(),step=job.next();steps++;onSlice(performance.now()-start,step.value?.stage??'result');
+   if(step.done){onBatch(performance.now()-batchStart,steps);return step.value;}
+   // A single immutable preparation step can exceed this scheduling budget.
+   // Preserve that measured tail rather than claiming a hard wall-clock cap.
+   if(performance.now()-batchStart>=8){onBatch(performance.now()-batchStart,steps);break;}
+  }
+  await yieldTask(signal);
+ }}finally{job.return();}
+}
+function* iterateMikaContinuation(layout,calibration,envelope,stoppedSample,{acceptSweep=()=>true,acceptCandidate=()=>true,acceptEndpoint=()=>true}={}){
+ calibration=structuredClone(calibration);envelope=structuredClone(envelope);
+ if(!validLayout(layout))return{ok:false,reason:'UNSUPPORTED_QA_LAYOUT'};
+ const initial=structuredClone(stoppedSample),position=initial?.root?.position,initialHeading=initial?.root?.heading;
+ if(!Array.isArray(position)||position.length!==3||!position.every(Number.isFinite)||!Number.isFinite(initialHeading))return{ok:false,reason:'UNQUALIFIED_MIKA_STOPPED_POSE'};
+ const frozen=structuredClone(layout),start={x:position[0]*U,y:position[1]*U},departureSeconds=2;
+ let candidates=0;const rootProfiles=new Map();
+ for(const turnAway of [0,-Math.PI/2,Math.PI/2])for(const cruiseSeconds of [2,3,4])for(const turn of [-Math.PI/12,Math.PI/12]){
+  yield {stage:'candidate-start'}; // Refused candidates yield as well.
+  let pivot;try{pivot=turnAway?prepareMikaTurnAway(calibration,initial,turnAway):null;}catch(error){return{ok:false,reason:String(error.message)};}
+  const pivotSeconds=pivot?.durationSeconds??0,duration=pivotSeconds+departureSeconds+cruiseSeconds+2,launchPose=pivot?pivot.sample(pivotSeconds):initial,heading=launchPose.root.heading;
+  candidates++;const profileKey=turn+':'+cruiseSeconds;
+  if(!rootProfiles.has(profileKey))rootProfiles.set(profileKey,continuationRoot(turn,cruiseSeconds));
+  const relative=rootProfiles.get(profileKey),offset=calibration.gait.referenceSpeed*(departureSeconds-.9/2);
+  // Earlier straight history belongs only to the untouched constant-speed
+  // scheduler. The displayed departure has its own contact/acceleration owner.
+  const rootAt=t=>{const r=t<0?{position:[calibration.gait.referenceSpeed*t,0,0],heading:0}:relative(t);
+   const p=transform({x:offset+r.position[0],y:r.position[1]},heading,1,{x:position[0],y:position[1]});return{position:[p.x,p.y,0],heading:heading+r.heading};};
+  const endCruise=rootAt(cruiseSeconds),arrivalTravel=calibration.gait.referenceSpeed*.9/2;
+  const estimatedEnd={x:U*(endCruise.position[0]+arrivalTravel*Math.cos(endCruise.heading)),y:U*(endCruise.position[1]+arrivalTravel*Math.sin(endCruise.heading))};
+  // Necessary heading/progress predicates only. Full final-body and swept
+  // geometry still decide admission after contact preparation.
+  if(acceptEndpoint({start:{...start},end:estimatedEnd,heading:endCruise.heading})!==true)continue;
+  let sampleAt;
+  yield {stage:'root-profile'};
+  try{
+   const cruise=createMikaLocomotionRoute(rootAt,calibration,{historyStart:-4,historyEnd:6,activeStart:-2,activeEnd:cruiseSeconds+.5,mirrorPhase:turn>0});
+   yield {stage:'route-table'};
+   const sampleCruise=t=>sampleMikaLocomotion(cruise,calibration,t),departure=yield* prepareMikaDepartureSteps(calibration,launchPose,sampleCruise);
+   yield {stage:'departure-contacts'};
+   const arrival=prepareMikaArrival(calibration,t=>rebaseContactTime(sampleCruise(t+cruiseSeconds-4),4-cruiseSeconds,t));
+   yield {stage:'arrival-contacts'};
+   sampleAt=t=>pivot&&t<=pivotSeconds?pivot.sample(t):t<=pivotSeconds+departureSeconds?departure.sample(t-pivotSeconds):t<=pivotSeconds+departureSeconds+cruiseSeconds?sampleCruise(t-pivotSeconds-departureSeconds):arrival.sample(Math.max(4,Math.min(6,t-pivotSeconds-departureSeconds-cruiseSeconds+4)));
+  }catch(error){return{ok:false,reason:String(error.message)};}
+  const terminal=sampleAt(duration),end={x:terminal.root.position[0]*U,y:terminal.root.position[1]*U};
+  // Reject the wrong destination before the expensive full skin sweep. This
+  // only narrows candidates; collision/camera admission is still mandatory.
+  if(acceptCandidate({start:{...start},end,cruiseSeconds,pivotSeconds,heading:terminal.root.heading,endBody:hull(worldCorners(terminal,envelope,U))})!==true)continue;
+  let points=[],minZ=0,maxZ=0;
+  for(let i=0;i<=duration*40;i++){
+   const sample=sampleAt(i/40),box=boundMikaPose(sample,envelope);minZ=Math.min(minZ,box.min[2]);maxZ=Math.max(maxZ,box.max[2]);
+   points.push(...worldCorners(sample,envelope,U));if(i%10===0)points=hull(points);
+   if(i%4===3)yield {stage:'skin-envelope'}; // Four exact poses per task.
+  }
+  const sweep=hull(hull(points).flatMap(p=>[-.08*U,.08*U].flatMap(x=>[-.08*U,.08*U].map(y=>({x:p.x+x,y:p.y+y}))))),vertical={min:minZ-.08,max:maxZ+.08};
+  if(!polygonWithinMask(sweep,frozen.maskRows)||frozen.obstacles.some(box=>polygonHitsBox(sweep,box)))continue;
+  if(acceptSweep(sweep,vertical)!==true)continue;
+  const plan=Object.freeze({ok:true,format:'mika-normal-yard-current-pose/v1',unitsPerSource:U,duration,departureSeconds,pivotSeconds,cruiseSeconds,start:Object.freeze(start),heading:initialHeading,cruiseHeading:heading,turnAwayRadians:turnAway,turnRadians:turn,sweep:Object.freeze(sweep.map(Object.freeze)),candidates,scope:'finite current-pose stepped turn-away/departure/cruise/arrival; no general navigation, saved visit or interaction'});
+  internals.set(plan,{layoutKey:canonical(frozen),calibration:structuredClone(calibration),envelope:structuredClone(envelope),sampleAt,aborted:false});return plan;
+ }
+ return{ok:false,reason:'NO_CLEAR_MIKA_CONTINUATION',candidates};
 }
 export function sampleMikaYardQaCruise(plan,layout,time){
  const state=internals.get(plan);if(!state)return {status:'aborted',reason:'UNPREPARED_QA_CRUISE'};

@@ -3,7 +3,7 @@ import {selectPendingPlacementVisuals} from "../../game-state/yardPlacementFeedb
 import {canonicalSavedInventoryCommandAllowed} from './canonical-saved-inventory-actions.mjs';
 import {canonicalSavedFoodReady,canonicalSavedFoodCommandAllowed} from './canonical-saved-food-actions.mjs';
 import {selectCanonicalFoodState} from '../../../game-logic/yard-v2/canonical-food-contract.mjs';
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {CANONICAL_LOCATION,CANONICAL_MAX_PLACEMENTS,CANONICAL_ACTION_NONCE_PREFIX,canonicalCommandScope,canonicalNoncePrefix,canonicalCapability,canonicalPlacements,canonicalItemState,checkCanonicalPlacement,isCanonicalItemIntent} from '../../game-state/canonicalYardItems.mjs';
 import { useGameHub } from '../../game-state/useGameHub.js';
 import { HudRegion } from '../../app/hud-layout/index.js';
@@ -80,6 +80,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const [pipPreview,setPipPreview]=useState({enabled:false,phase:"off",settled:false});
   const canvas=useRef(null),scene=useRef(null),latest=useRef(snapshot),dialog=useRef(null),drag=useRef(null),ghostRef=useRef(null);
   const [view,setView]=useState(null),[panel,setPanel]=useState(null),[ghost,setGhost]=useState(null),[error,setError]=useState(''),[menuSelection,setMenuSelection]=useState(null);
+  useLayoutEffect(()=>{if(view)scene.current?.commitPresentation?.(view);},[view]);
   const [uiImages]=useState(()=>createUiImageReserve());
   const admitImage=useCallback(src=>{try{if(uiImages.admit([src]))return true;}catch{}setError('YARD_CAMERA_MEDIA_UNAVAILABLE');return false;},[uiImages]);
   const [companionName,setCompanionName]=useState('');
