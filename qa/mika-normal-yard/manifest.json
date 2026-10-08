@@ -1,0 +1,116 @@
+{
+  "base": "1a66a9df3d177d1b8308bab223ad6f647a76f98a",
+  "currentLiveReference": "56b9062955d60c76bf9430c898d3cec1231ca524",
+  "scope": "Isolated full-Yard QA branch. Finite four-second Mika P2 cruise in normal camera/current props; no production release or saved identity substitution. Current live lineage is separate and must be reconciled before eventual release.",
+  "activation": false,
+  "sourceCheckpoint": {
+    "libraryFileId": "libfile_88d531f1286881918c5b924a6d9e03be",
+    "manifestSha256": "8b88512be2165aade03418b33daa1307cbf3e45e2d8aac708dd71d1b47d3092f",
+    "repositoryPathTests": 21
+  },
+  "publicAssetAlwaysCopiedBytes": 3671320,
+  "files": [
+    {
+      "path": "public/assets/yard-mika-p2-qa/p2.glb",
+      "bytes": 3671320,
+      "sha256": "2249774f8ced124451d3c46a8a69bc06a9889c7d9cc31c836a6dd868fd96f084"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/meadow-mask.json",
+      "bytes": 2619,
+      "sha256": "16ede4fd610218357f3b63e8711ec1b611141a1a2b62a30e4a597b6d7a11cba3"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-envelope.mjs",
+      "bytes": 1706,
+      "sha256": "50cd74bbb1ffcae7cc113762ee89a3dcfe3da66ed971ea4889600fef8ade1253"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-locomotion.mjs",
+      "bytes": 14440,
+      "sha256": "55b22f0b13bc18cd8f775896869be25e397a2f77e36b8262a3d87ee04bf96867"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-native-pose.mjs",
+      "bytes": 3557,
+      "sha256": "90420bd4dc92addab685e5b18fc5c08eefedf988f3c9c462645c5b3c34f0f2ae"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-p2-calibration.json",
+      "bytes": 22211,
+      "sha256": "be0046e0f326d0c8ae991486770304b40b514d922e384b8feb7874a40c007eb5"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-p2-skin-envelope.json",
+      "bytes": 5374,
+      "sha256": "65de2e59a2727d74d002d81f2ac59a4ef259e5b09b19db77efc585e5187a38fa"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-yard-camera.mjs",
+      "bytes": 982,
+      "sha256": "1b6c244fe9081f9cd3afcbd53314b3891157cff229cbb4959bb8e40b8cf04d90"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-yard-layer.mjs",
+      "bytes": 10714,
+      "sha256": "f86498855f829f626e3228e70fbdfa812dd72f3a2ce4ca2b07a5bd73822c2db7"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-yard-route.mjs",
+      "bytes": 7250,
+      "sha256": "ac4e0c913fc9b3c7a8f68fbadaaad521f2b0619d3341f0c3bb415750fce79f91"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene-entry.mjs",
+      "bytes": 1724,
+      "sha256": "2a3c604fad430a7b20c02480d9905af27ffb1b42137619775757ea91ba49d0fd"
+    },
+    {
+      "path": "src/games/companion-yard-v2/scene.mjs",
+      "bytes": 23603,
+      "sha256": "f620acb05e7d659e232a27f4ab2dcbc35c0f801afff7092ec43c206fa308fc42"
+    },
+    {
+      "path": "tests/yard-mika-qa-async-layer.test.mjs",
+      "bytes": 3516,
+      "sha256": "ef7e34f8ba712e8323dd17cb60b71d5522d86b8e77dee2cbdcb6a870b7cd3190"
+    },
+    {
+      "path": "tests/yard-mika-qa-async-scene.test.mjs",
+      "bytes": 7745,
+      "sha256": "79e7cb8d10686ebeaa65899f35e4872f067a96c116e62827a0a77c43f045c103"
+    },
+    {
+      "path": "tests/yard-mika-qa-camera.test.mjs",
+      "bytes": 989,
+      "sha256": "80709d677142955df529d39b30593b42501fb165fec9091eeb7b12130f032d33"
+    },
+    {
+      "path": "tests/yard-mika-qa-entry.test.mjs",
+      "bytes": 3069,
+      "sha256": "7a73cdcfae0a2c675b6d67f8e20f5805e09a08bcc134c0d5c4f52346286e1abc"
+    },
+    {
+      "path": "tests/yard-mika-qa-envelope.test.mjs",
+      "bytes": 2190,
+      "sha256": "2f17e1871c8df93faedac8008536ade21e3601c13384b84d031a1ba7aeb57bbd"
+    },
+    {
+      "path": "tests/yard-mika-qa-layer.test.mjs",
+      "bytes": 3140,
+      "sha256": "b9bb1ab069eb77a1b81e90d55751faca1b94acf98cf9de0196dfa432e74687dd"
+    },
+    {
+      "path": "tests/yard-mika-qa-route.test.mjs",
+      "bytes": 2382,
+      "sha256": "f299ddb4afdb213dc52c2af8dbbb441571641ce81c3ac5fb9143e5c54cd53b13"
+    }
+  ],
+  "qaPaths": [
+    ".github/workflows/mika-normal-yard-qa.yml",
+    "playwright.mika-normal-qa.config.mjs",
+    "scripts/mika-normal-qa-preflight.mjs",
+    "tests/e2e/yard-mika-normal-qa.spec.js",
+    "qa/mika-normal-yard/manifest.json"
+  ]
+}

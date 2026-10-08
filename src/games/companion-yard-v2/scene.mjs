@@ -4,7 +4,7 @@ import{offsetWorldPoint}from'./scene-layout.mjs';
 import{LEGACY_M2_BACKGROUND,drawLegacyBackground}from'./legacy-m2-background.mjs';
 import { AtlasCache, atlasPageFor } from './atlas.mjs';
 import { CANONICAL_ATLAS_POLICY,CURRENT_FOUR_ATLAS_POLICY,FAMILY_ATLAS_POLICY } from './atlas-policy.mjs';
-import { createProjection, footprintPolygon } from './projection.mjs';
+import { createProjection, footprintPolygon, CAMERA_DIRECTION } from './projection.mjs';
 import { selectPetPose } from './pose-selection.mjs';
 import { FrameTelemetry } from './telemetry.mjs';
 import { PresentationClock } from './presentation-clock.mjs';
@@ -30,7 +30,7 @@ const stillIds = [...new Set(['sun-cushion-clean','yarn-mouse-clean','yarn-mouse
 async function json(path,signal){const r=await fetch(path,{signal});if(!r.ok)throw Error(`Media ${r.status}: ${path}`);return r.json();}
 
 /** One disposable canvas owner. Server snapshots are read-only; RAF never writes a save or reward. */
-export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner}={}) {
+export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner,loadQaLayer=null,qaSessionEpoch=()=>0}={}) {
   const ctx=canvas.getContext('2d'),abort=new AbortController(),timing=new FrameTelemetry();
   const familyMode=Object.values(FAMILY_ACTOR_REFERENCES).some(ref=>resolveActorProfile(ref,actorProfiles));
   const atlasPolicy=familyMode?FAMILY_ATLAS_POLICY:[MIKA_ACTOR_REFERENCE,MOCHI_ACTOR_REFERENCE,PEBBLE_ACTOR_REFERENCE,PIP_ACTOR_REFERENCE]
@@ -40,9 +40,15 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
   const uiLifetimeFloor=Math.max(19138304,uiImageLifetimeLedger().bytes);
   const uiBytes=()=>Math.max(uiLifetimeFloor,uiReserve.bytes);
   const renderCatalog=Object.freeze({kind:'legacy-m2',sourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa'});
+  let qaLayer=null,qaRgbaBytes=0,qaFailure=null,qaInterruption=loadQaLayer&&document.hidden?'VISIBILITY_INTERRUPTED':null;
+  const qaStartEpoch=loadQaLayer?qaSessionEpoch():0;
+  const interruptQa=reason=>{if(loadQaLayer){qaInterruption??=reason;qaLayer?.abort(qaInterruption);}};
+  const checkQaSession=()=>{if(loadQaLayer&&qaSessionEpoch()!==qaStartEpoch)qaInterruption??='SESSION_CHANGED';};
+  const onQaVisibility=()=>{if(document.hidden)interruptQa('VISIBILITY_INTERRUPTED');};
+  if(loadQaLayer)document.addEventListener('visibilitychange',onQaVisibility);
   let staticDecodedBytes=0,staticPendingBytes=0,backgroundDecodedBytes=0,globalPeakBytes=0,staticDecodes=0,maxGlobalDecodes=0;
-  const outside=()=>staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+canvas.width*canvas.height*4+canvasPendingBytes;
-  function budgetSample(reason){const row={reason,atlasRetainedBytes:atlas.decodedBytes,atlasPendingBytes:atlas.reservedBytes,stillRetainedBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,activeDecodes:atlas.active+staticDecodes};row.totalBytes=atlas.decodedBytes+atlas.reservedBytes+outside();globalPeakBytes=Math.max(globalPeakBytes,row.totalBytes);maxGlobalDecodes=Math.max(maxGlobalDecodes,row.activeDecodes);if(row.totalBytes>atlasPolicy.maxDecodedBytes||row.activeDecodes>1)throw Error('Global decoded-image budget exceeded');globalTrace.push(row);if(globalTrace.length>240)globalTrace.shift();}
+  const outside=()=>staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+canvas.width*canvas.height*4+canvasPendingBytes+qaRgbaBytes;
+  function budgetSample(reason){const row={reason,atlasRetainedBytes:atlas.decodedBytes,atlasPendingBytes:atlas.reservedBytes,stillRetainedBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,qaRgbaBytes,activeDecodes:atlas.active+staticDecodes};row.totalBytes=atlas.decodedBytes+atlas.reservedBytes+outside();globalPeakBytes=Math.max(globalPeakBytes,row.totalBytes);maxGlobalDecodes=Math.max(maxGlobalDecodes,row.activeDecodes);if(row.totalBytes>atlasPolicy.maxDecodedBytes||row.activeDecodes>1)throw Error('Global decoded-image budget exceeded');globalTrace.push(row);if(globalTrace.length>240)globalTrace.shift();}
   const atlas=new AtlasCache(new URL(ROOT,location.origin),atlasPolicy.maxPages,
     {...atlasPolicy,externalBytes:outside,onEvent:e=>{timing.atlas(e);budgetSample(e.type);}});
   const clock=new PresentationClock(now);
@@ -51,10 +57,10 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
   const images=new Map();
   const poseFor=pet=>{const actor=actorEntryForPet(pet,actorEntries);return selectPetPose(actor.manifest,pet,{actorProfile:actor.profile});};
   function time(){return clock.read();}
-  function update(value){if(!value)return;snapshot=value;clock.update(value?.yardRuntime?.serverNow||value?.serverTime||Date.now());if(!ready)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});}
+  function update(value){if(!value)return;snapshot=value;checkQaSession();if(qaInterruption)qaLayer?.abort(qaInterruption);qaLayer?.noteSnapshot(value);clock.update(value?.yardRuntime?.serverNow||value?.serverTime||Date.now());if(!ready)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});}
   function applyResize(){if(!pendingSize)return true;const {width,height,dpr}=pendingSize;
     const w=Math.max(1,Math.round(width*dpr)),h=Math.max(1,Math.round(height*dpr));
-    {const external=staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+canvas.width*canvas.height*4+(canvas.width!==w||canvas.height!==h?w*h*4:0);
+    {const external=staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+qaRgbaBytes+canvas.width*canvas.height*4+(canvas.width!==w||canvas.height!==h?w*h*4:0);
       const demand=[...atlas.pinned].reduce((n,key)=>n+(atlas.entries.get(key)?.bytes??atlas.jobs.get(key)?.expectedBytes??0),0);
       if(external+demand>atlasPolicy.maxDecodedBytes){
         // Keep the existing coherent backing and projection, explicitly reject
@@ -78,12 +84,13 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
   function shadow(p,rx,ry,opacity=.2){ctx.save();ctx.translate(p.x,p.y);ctx.scale(rx,ry);const g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(39,54,27,${opacity})`);g.addColorStop(1,'rgba(39,54,27,0)');ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();}
   function sprite(id,p,alpha=1){const im=images.get(id),meta=stills[id];if(!im||!meta)return;const scale=projection.ppu/meta.worldPixelScale;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,p.x-meta.pivotPx[0]*scale,p.y-meta.pivotPx[1]*scale,im.width*scale,im.height*scale);ctx.restore();}
   const fade=pet=>pet.phase==='approach'||pet.phase==='depart'?edgeOpacity(pet.route.points,pet.phase,pet.groundDistance):1;
-  function draw(v){
+  function draw(v,stamp){
     const {width,height,ppu}=projection;ctx.clearRect(0,0,width,height);drawLegacyBackground(ctx,images.get('legacy-background'),width,height);
     for(const food of foodBowlPresentation(v.bowls)){
       const bowl=projection.project(food.anchor);shadow(bowl,ppu*.43,ppu*.16,.25);sprite(food.stillId,bowl);
     }
     const layers=[];
+    const qa=qaLayer?.frame({view:v,snapshot,projection,sceneGeometry,stamp,shadow});if(qa)layers.push({y:qa.y,draw:()=>qa.draw(ctx)});
     for(const pet of v.pets){const pose=poseFor(pet),base=pet.phase==='active-clip'?pet.clipOrigin:pet.position,units=actorEntryForPet(pet,actorEntries).profile.unitsPerWorld;
       const contact=actorEntryForPet(pet,actorEntries).groundShadow||{radiusX:.19,radiusY:.065,opacity:.22};
       const origin=pet.phase==='active-clip'?(pose.clip.originWorld||[0,0,0]):[0,0,0];
@@ -117,7 +124,7 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
       // The canvas already contains the last coherent image. Re-drawing its old
       // pages while waiting would re-request images that the new working set is
       // deliberately replacing, causing eviction/decode churn with two actors.
-      if(view&&!missing&&applyResize()){draw(view);timing.presented(view.pets.map(p=>{const q=poseFor(p);return{visitId:p.visitId,mediaId:q.mediaId,actorProfile:p.actorProfile,index:q.index,position:p.position||p.clipOrigin};}),at);budgetSample('presented');}
+      if(view&&!missing&&applyResize()){draw(view,stamp);timing.presented(view.pets.map(p=>{const q=poseFor(p);return{visitId:p.visitId,mediaId:q.mediaId,actorProfile:p.actorProfile,index:q.index,position:p.position||p.clipOrigin};}),at);budgetSample('presented');}
       if(stamp-lastStatusAt>250){onView({...next,mediaReady:true,renderCatalog,renderRevision:'legacy-m2/6b80c9a2'});lastStatusAt=stamp;}
       if(atlas.error)throw atlas.error;
     }
@@ -174,12 +181,25 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     }
     propBindings=Object.assign({},...Object.values(actorEntries).map(e=>e.propBindings||{}));
     sceneGeometry={...MIKA_SCENE,footprints:{...MIKA_SCENE.footprints,...Object.fromEntries(Object.entries(propBindings).map(([id,p])=>[id,p.footprint]))}};
+    if(disposed)return;
+    if(loadQaLayer&&!qaInterruption){
+      try{
+        const module=await loadQaLayer();checkQaSession();
+        if(disposed)return;
+        if(!qaInterruption){
+          qaLayer=await module.createMikaYardQaLayer({signal:abort.signal,cameraDirection:CAMERA_DIRECTION,
+            reserveRGBA:bytes=>{if(bytes===0){qaRgbaBytes=0;return true;}if(disposed||!Number.isFinite(bytes)||bytes<0||!atlas.reserveExternal(outside()-qaRgbaBytes+bytes))return false;qaRgbaBytes=bytes;budgetSample('qa-surface');return true;}});
+          checkQaSession();if(qaInterruption)qaLayer.abort(qaInterruption);
+          if(disposed){qaLayer.dispose();return;}
+        }
+      }catch(error){qaFailure=String(error.message);}
+    }
     if(disposed)return;resize();ready=true;raf=requestAnimationFrame(tick);
   })().catch(e=>{ready=false;if(!disposed){if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);}});
-  return {ready:readyPromise,update,setGhost(value){ghost=value;},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
+  return {ready:readyPromise,update,setGhost(value){ghost=value;if(value)interruptQa('ITEM_EDITING');},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
     offsetPoint(position,delta){return projection?offsetWorldPoint(projection,position,delta):null;},
     hit(event){if(!view||!projection)return null;const r=canvas.getBoundingClientRect(),point={x:event.clientX-r.left,y:event.clientY-r.top};return view.props.filter(p=>p.supported).map(prop=>{const q=projection.project(prop.transform);return{prop,p:{x:q.x*r.width/projection.width,y:q.y*r.height/projection.height}};}).filter(v=>Math.hypot(v.p.x-point.x,v.p.y-point.y)<28).sort((a,b)=>Math.hypot(a.p.x-point.x,a.p.y-point.y)-Math.hypot(b.p.x-point.x,b.p.y-point.y))[0]?.prop;},
-    diagnostics(){return{disposed,ready,legacySourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa',renderRevision:'legacy-m2/6b80c9a2',mediaBlocked:!ready,uiReserve,uiLifetimeFloor,backgroundComposition:'original cover52%50% in owned Canvas2D',presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...(familyMode?{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}}:{}),view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
-    dispose(){if(retirement)return retirement;const pending=[readyPromise,...atlas.pending.values()];disposed=true;ready=false;abort.abort();cancelAnimationFrame(raf);observer.disconnect();atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;backgroundDecodedBytes=0;images.clear();uiImages.setAdmissionCheck(()=>false);retirement=Promise.allSettled(pending);return retirement;}
+    diagnostics(){return{disposed,ready,qaMika:qaLayer?.diagnostics()??(qaInterruption?{phase:'aborted',reason:qaInterruption}:qaFailure?{phase:'unavailable',reason:qaFailure}:null),qaRgbaBytes,legacySourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa',renderRevision:'legacy-m2/6b80c9a2',mediaBlocked:!ready,uiReserve,uiLifetimeFloor,backgroundComposition:'original cover52%50% in owned Canvas2D',presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...(familyMode?{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}}:{}),view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
+    dispose(){if(retirement)return retirement;const pending=[readyPromise,...atlas.pending.values()];disposed=true;ready=false;abort.abort();cancelAnimationFrame(raf);observer.disconnect();document.removeEventListener('visibilitychange',onQaVisibility);qaLayer?.dispose();atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;backgroundDecodedBytes=0;images.clear();uiImages.setAdmissionCheck(()=>false);retirement=Promise.allSettled(pending);return retirement;}
   };
 }
