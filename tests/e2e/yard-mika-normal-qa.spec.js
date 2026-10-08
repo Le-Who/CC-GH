@@ -105,7 +105,7 @@ async function evidence(page,info,context,error){
  const proof=await page.evaluate(()=>window.__mikaPixelProof??null).catch(()=>null);
  for(const [i,c]of (proof?.captures??[]).entries()){if(c.normalPNG)await info.attach(`normal-yard-${i}-${c.time.toFixed(3)}s.png`,{body:Buffer.from(c.normalPNG,'base64'),contentType:'image/png'});if(c.actorPNG)await info.attach(`actual-actor-alpha-${i}.png`,{body:Buffer.from(c.actorPNG,'base64'),contentType:'image/png'});delete c.normalPNG;delete c.actorPNG;}
  if(proof?.recording){await info.attach(proof.instrumentedPixels?'normal-yard-instrumented-pixel-proof.webm':'normal-yard-clean-1x-canvas.webm',{body:Buffer.from(proof.recording,'base64'),contentType:'video/webm'});delete proof.recording;}
- await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:arrival?'8aab52a32e6eb6bf3bdd8083dd9ec3d4691823db':'1a66a9df3d177d1b8308bab223ad6f647a76f98a',durationSeconds:expectedDuration,mode:arrival?'finite-item-arrival':itemApproach?'finite-item-approach':'finite-qa-cruise',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:arrival?'Source-action current-item placement, actual normal camera and six-second approach/contact-aware arrival/standing idle. Clean recording uses lightweight draw observation; pixel probes are instrumented. No saved visit, interaction, general navigation or performance acceptance.':'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
+ await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:arrival?'8aab52a32e6eb6bf3bdd8083dd9ec3d4691823db':'1a66a9df3d177d1b8308bab223ad6f647a76f98a',durationSeconds:expectedDuration,mode:arrival?'finite-item-arrival':itemApproach?'finite-item-approach':'finite-qa-cruise',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:arrival?'Source-action current-item placement, actual normal camera and six-second approach/contact-aware arrival/standing idle. Clean recording uses lightweight draw observation; pixel probes are instrumented. No saved visit, interaction, general navigation or performance acceptance.':'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,arrivalDelivery:context.arrivalDelivery??null,sceneDeliveries:await page.evaluate(()=>window.__mikaArrivalDeliveries??null).catch(()=>null),assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
 }
 
 async function finish(page,info,context,failure,screenshot){
@@ -257,17 +257,43 @@ for(const language of ['en','ru'])test(`Mika normal Yard: navigation labels and 
 test('Mika normal Yard: current target relocation during arrival retires the native owner',async({page},info)=>{
  test.skip(off||!arrival,'Explicit arrival candidate only');test.setTimeout(60000);const c=await setup(page);let failure;
  try{
+  await page.addInitScript(installPixelProbe,{capturePixels:false});
   await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page);
+  await expect.poll(()=>c.fixture.realtimeConnections()).toBeGreaterThan(0);
+  // Observe actual scene delivery, separately from the source HTTP receipt.
+  await page.evaluate(()=>{
+   const deliveries=window.__mikaArrivalDeliveries=[];let previous='',frames=0;
+   function observe(){
+    const scene=window.__yardMikaQa?.snapshot()?.scene,d=scene?.qaMika,item=scene?.view?.yard?.placedGoodies?.find(row=>row.slotId==='qa-mouse');
+    const signature=JSON.stringify([d?.phase,d?.reason,item?.x,item?.y]);
+    if(signature!==previous){previous=signature;deliveries.push({wall:performance.now(),epoch:Date.now(),time:d?.time,phase:d?.phase,reason:d?.reason,item:item?{x:item.x,y:item.y}:null,serverNow:scene?.view?.runtime?.serverNow});}
+    if(++frames<1200&&deliveries.length<20)requestAnimationFrame(observe);
+   }observe();
+  });
   await expect.poll(async()=>{const d=await qa(page);return d?.phase==='running'&&d.time>=4.05;},{timeout:15000,intervals:[20,30]}).toBe(true);
+  c.arrivalDelivery={trigger:{epoch:Date.now(),qa:await qa(page)},previousSeq:c.fixture.player('account-a')._syncSeq||0};
+  assert(c.arrivalDelivery.trigger.qa.time<4.9,'Move must start during arrival, before idle');
   const payload={slotId:'qa-mouse',x:70,y:70};
   const response=await fetch(c.fixture.origin+'/api/player/mutate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'tma fixture-a'},body:JSON.stringify({action:'yard.moveGoodie',payload,clientActionId:'yard-v2:mika-arrival-relocate'})});
   const body=await response.json();c.receipts.push({action:'yard.moveGoodie',payload,status:response.status,body});
+  c.arrivalDelivery.receipt={epoch:Date.now(),qa:await qa(page)};
   assert.equal(response.status,200);assert.equal(body.error,undefined);assert(body.snapshot);
-  c.fixture.emitPlayerSync(body.snapshot);
+  const current=c.fixture.player('account-a'),snapshot=body.snapshot;
+  assert.equal(snapshot.player.id,current.id);assert.equal(snapshot.player.syncSeq,c.arrivalDelivery.previousSeq+1);assert.equal(current._syncSeq,snapshot.player.syncSeq);
+  // playerManager emits an account-scoped realtime projection, not an HTTP
+  // snapshot. realtimeClient intentionally drops payloads without accountId.
+  const realtimePayload={accountId:current.id,serverTime:snapshot.serverTime,syncSeq:current._syncSeq,
+   gardenR2:snapshot.gardenR2,resources:current.resources,harvested:current.farm.harvested,plots:current.farm.plots,
+   merge:current.merge,garden:current.garden,yard:snapshot.yard,yardRuntime:snapshot.yardRuntime,pet:current.pet,achievements:current.achievements};
+  c.arrivalDelivery.emission={epoch:Date.now(),accountId:realtimePayload.accountId,syncSeq:realtimePayload.syncSeq,serverTime:realtimePayload.serverTime};
+  c.fixture.emitPlayerSync(realtimePayload);
   await expect.poll(async()=>(await qa(page))?.reason,{timeout:5000}).toBe('LAYOUT_CHANGED');
-  const d=await qa(page);assert.equal(d.phase,'aborted');retired(d);
-  const current=c.fixture.player('account-a').yard;assert.equal(current.placedGoodies[0].x,70);assert.equal(current.placedGoodies[0].y,70);
-  assert.deepEqual(current.goodieInventory,c.initial.goodieInventory);assert.deepEqual(current.currencies,c.initial.currencies);
+  const d=await qa(page);assert.equal(d.phase,'aborted');assert(d.time>=4.05&&d.time<6,'Changed layout must retire the active arrival before completion');retired(d);
+  await expect.poll(()=>page.evaluate(()=>window.__mikaArrivalDeliveries.some(row=>row.item?.x===70&&row.item?.y===70&&row.phase==='aborted'&&row.reason==='LAYOUT_CHANGED'&&row.time<6))).toBe(true);
+  c.arrivalDelivery.retired={epoch:Date.now(),qa:d};
+  assert.equal(current.yard.placedGoodies[0].x,70);assert.equal(current.yard.placedGoodies[0].y,70);
+  assert.deepEqual(current.yard.goodieInventory,c.initial.goodieInventory);assert.deepEqual(current.yard.currencies,c.initial.currencies);
   assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
+  await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
  }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'arrival-relocation-failure.png':undefined);}
 });

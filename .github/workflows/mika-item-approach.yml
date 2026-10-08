@@ -38,12 +38,10 @@ jobs:
         run: |
           mkdir -p test-results/mika-normal
           node --test --test-concurrency=1 tests/yard-mika-arrival.test.mjs tests/yard-mika-item-arrival.test.mjs tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-renderer-chunk.test.mjs > test-results/mika-normal/source-tests.log
-      - name: Collect exact bounded six-second browser cases
+      - name: Collect only the corrected arrival relocation case
         run: |
-          MIKA_QA_PHASE=collection-arrival pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --project portrait390 --project landscape844 --grep 'real pixels|current persisted item' --list > test-results/mika-normal/collection-arrival.log
-          test "$(grep -c 'current persisted item at' test-results/mika-normal/collection-arrival.log)" -eq 6
           MIKA_QA_PHASE=collection-cancel pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'target relocation during arrival' --list > test-results/mika-normal/collection-cancel.log
-          grep -F 'target relocation during arrival' test-results/mika-normal/collection-cancel.log
+          test "$(grep -c 'target relocation during arrival' test-results/mika-normal/collection-cancel.log)" -eq 1
       - name: Build explicit arrival candidate, never deployment
         env:
           NODE_ENV: production
@@ -53,14 +51,10 @@ jobs:
           tar -czf test-results/mika-normal/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/assets/*.js
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Compact six-second approach-to-standing diagnostic
-        run: MIKA_QA_PHASE=arrival-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'real pixels'
-      - name: Same three current placements in the normal cameras
-        run: MIKA_QA_PHASE=arrival-matrix pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --project portrait390 --project landscape844 --grep 'real pixels|current persisted item'
-      - name: Actual clean six-second recording and arrival relocation
-        run: |
-          MIKA_QA_PHASE=arrival-clean pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'clean 1x'
-          MIKA_QA_PHASE=arrival-cancel pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'target relocation during arrival'
+      # The unchanged product's 11 positive browser cases remain attributed to
+      # 29870d30 / run 37815852644. Only the invalid realtime fixture is rerun.
+      - name: Correct account-scoped realtime delivery cancels active arrival
+        run: MIKA_QA_PHASE=arrival-cancel-recheck pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'target relocation during arrival'
       - name: Preserve original bounded arrival evidence
         if: always()
         uses: actions/upload-artifact@v4
