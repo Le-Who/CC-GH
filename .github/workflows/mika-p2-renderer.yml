@@ -1,0 +1,61 @@
+name: Mika P2 pinned Three renderer qualification
+on:
+  push:
+    branches: ['qa/mika-p2-renderer-20261008']
+permissions:
+  contents: read
+concurrency:
+  group: mika-p2-renderer-20261008
+  cancel-in-progress: false
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      CI: 'true'
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify pinned fixture, runner and Three closure
+        run: |
+          mkdir -p test-results-mika-p2
+          git rev-parse HEAD > test-results-mika-p2/source-commit.txt
+          node scripts/prepare-mika-p2-qa.mjs > test-results-mika-p2/preflight.json
+      - name: Install existing locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Verify exactly three viewport cases
+        run: |
+          set -o pipefail
+          pnpm exec playwright test --config playwright.mika-p2.config.mjs --list | tee test-results-mika-p2/collection.txt
+          grep -F 'Total: 3 tests in 1 file' test-results-mika-p2/collection.txt
+      - name: Install official Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Compact-phone harness qualification
+        run: pnpm exec playwright test --config playwright.mika-p2.config.mjs --grep '320x568 DPR1'
+      - name: Preserve compact diagnostic
+        if: always()
+        run: test ! -d test-results-mika-p2 || cp -a test-results-mika-p2 test-results-mika-p2-compact
+      - name: Complete three viewport acceptance matrix
+        run: pnpm exec playwright test --config playwright.mika-p2.config.mjs
+      - name: Preserve exact source identity
+        if: always()
+        run: |
+          mkdir -p test-results-mika-p2
+          git rev-parse HEAD > test-results-mika-p2/source-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mika-p2-renderer-${{ github.sha }}
+          path: |
+            test-results-mika-p2/
+            test-results-mika-p2-compact/
+          retention-days: 7
+          if-no-files-found: error

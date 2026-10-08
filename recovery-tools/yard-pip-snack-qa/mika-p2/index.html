@@ -1,0 +1,7 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="data:,">
+<title>Mika P2 renderer diagnostic</title>
+<style>html,body{margin:0;background:#e2e7da;color:#253326;font:15px system-ui}body{display:flex;flex-direction:column;height:100svh;overflow:hidden}header{padding:8px 12px}h1{font-size:17px;margin:0 0 4px}p{margin:3px 0;font-size:12px}main{min-height:160px;flex:1;position:relative}canvas{display:block;width:100%;height:100%}nav{display:flex;gap:8px;padding:8px;flex-wrap:wrap}button,select{min-width:70px;min-height:44px;font:inherit}output{padding:0 12px 8px;font-size:12px}</style>
+<header><h1>Mika P2 · normal Three renderer</h1><p>Diagnostic only. Accepted gait; mirrored/entry and browser appearance remain separate checks.</p></header>
+<main><canvas aria-label="Mika model diagnostic"></canvas></main>
+<nav><button id="play">Play</button><button id="pause">Pause</button><button id="restart">Restart</button><select id="variant" aria-label="Motion variant"><option value="p2">Accepted P2 bend</option><option value="mirror">Opposite bend</option><option value="entry">Walk to attentive idle</option></select></nav><output role="status">Loading pinned source…</output>
+<script type="importmap">{"imports":{"three":"./vendor/three/build/three.module.js"}}</script><script type="module" src="./preview.mjs"></script></html>
