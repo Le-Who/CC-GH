@@ -52,8 +52,8 @@
     },
     {
       "path": "src/games/companion-yard-v2/mika-qa/mika-yard-layer.mjs",
-      "bytes": 10714,
-      "sha256": "f86498855f829f626e3228e70fbdfa812dd72f3a2ce4ca2b07a5bd73822c2db7"
+      "bytes": 11052,
+      "sha256": "b9ac2935e09a20d551578d076038c3cc218c4e48cb16052a52f04a79b1c0b3ca"
     },
     {
       "path": "src/games/companion-yard-v2/mika-qa/mika-yard-route.mjs",
@@ -97,8 +97,8 @@
     },
     {
       "path": "tests/yard-mika-qa-layer.test.mjs",
-      "bytes": 3140,
-      "sha256": "b9bb1ab069eb77a1b81e90d55751faca1b94acf98cf9de0196dfa432e74687dd"
+      "bytes": 6336,
+      "sha256": "8b0c062430789de3e8508b5d7aac021912f8024bd5029ecaa04f6443e93f1793"
     },
     {
       "path": "tests/yard-mika-qa-route.test.mjs",
@@ -121,6 +121,24 @@
       "reason": "Default-off disposal must remove the QA visibility listener only when its matching registration gate was enabled",
       "failedRun": 37740381119,
       "localRegression": "actual inherited default-off lifecycle1/1 and Mika21/21"
+    },
+    {
+      "path": "src/games/companion-yard-v2/mika-qa/mika-yard-layer.mjs",
+      "previousSha256": "f86498855f829f626e3228e70fbdfa812dd72f3a2ce4ca2b07a5bd73822c2db7",
+      "sha256": "b9ac2935e09a20d551578d076038c3cc218c4e48cb16052a52f04a79b1c0b3ca",
+      "reason": "Start finite cruise epoch only after the first successful native-to-normal canvas presentation",
+      "sourceFixLibrary": "libfile_fff8371be5bc8191aaf0904d35872d2a",
+      "failedRun": 37742989790,
+      "localRegression": "independent22/22; original delayed-presentation regression red"
+    },
+    {
+      "path": "tests/yard-mika-qa-layer.test.mjs",
+      "previousSha256": "b9bb1ab069eb77a1b81e90d55751faca1b94acf98cf9de0196dfa432e74687dd",
+      "sha256": "8b0c062430789de3e8508b5d7aac021912f8024bd5029ecaa04f6443e93f1793",
+      "reason": "Start finite cruise epoch only after the first successful native-to-normal canvas presentation",
+      "sourceFixLibrary": "libfile_fff8371be5bc8191aaf0904d35872d2a",
+      "failedRun": 37742989790,
+      "localRegression": "independent22/22; original delayed-presentation regression red"
     }
   ]
 }

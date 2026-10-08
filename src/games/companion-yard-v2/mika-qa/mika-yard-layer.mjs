@@ -28,7 +28,7 @@ export function mikaQaLayout(view,sceneGeometry){
 /** One disposable QA draw layer; the existing Courtyard RAF owns all frames.
  * No account commands, visit records, saved identities, timers or second RAF.
  */
-export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,fetchImpl=fetch,loadDependencies=defaultDependencies,canvasFactory=()=>document.createElement('canvas'),rendererFactory=null}={}){
+export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,fetchImpl=fetch,loadDependencies=defaultDependencies,canvasFactory=()=>document.createElement('canvas'),rendererFactory=null,presentationNow=()=>performance.now()}={}){
  if(typeof reserveRGBA!=='function')throw Error('QA_RESOURCE_OWNER_REQUIRED');
  let THREE,model,driver,renderer,lighting,scene,camera,canvas,disposed=false,graphicsRetired=false,phase='loading',reason=null,plan=null,originStamp=null,lastResult=null,layoutStamp=null,account=null,accountObserved=false,allocatedPixels=0,rgbaBytes=0,modelGPUBytes=0;
  const trace=[];let currentTime=0,frames=0,maximumEnvelopeRadius=0,projectionStamp=null,interruption=null;
@@ -75,8 +75,11 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
    noteSnapshot(snapshot);if(graphicsRetired)return null;
    const layout=mikaQaLayout(view,sceneGeometry),nextProjection=JSON.stringify([projection.width,projection.height,projection.ppu]);
    if(projectionStamp!==null&&projectionStamp!==nextProjection){stop('aborted','VIEWPORT_CHANGED');return null;}projectionStamp=nextProjection;
-   if(!plan){plan=planMikaYardQaCruise(layout,calibration,envelope,{acceptSweep:(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}))});if(!plan.ok){stop('blocked',plan.reason);return null;}originStamp=stamp;phase='running';traceState();}
-   currentTime=Math.max(0,(stamp-originStamp)/1000);
+   if(!plan){plan=planMikaYardQaCruise(layout,calibration,envelope,{acceptSweep:(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}))});if(!plan.ok){stop('blocked',plan.reason);return null;}phase='running';traceState();}
+   // RAF timestamps and performance.now share the browser monotonic origin.
+   // Planning, allocation and the first GPU render precede the first copy;
+   // they must not consume the finite authored cruise. Undrawn poses stay at0.
+   currentTime=originStamp===null?0:Math.max(0,(stamp-originStamp)/1000);
    if(currentTime>plan.duration){stop('complete','FINITE_CRUISE_ENDED_NO_TRANSITION');return null;}
    const result=sampleMikaYardQaCruise(plan,layout,currentTime);if(result.status!=='ready'){stop('aborted',result.reason||result.status);return null;}
    const width=Math.ceil(projection.width),height=Math.ceil(projection.height),pixels=width*height;
@@ -92,7 +95,9 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
     if(graphicsRetired)return;
     try{const ppu=projection.ppu;shadow(projection.project(result.position),ppu*.55,ppu*.16,.12);
      for(const foot of Object.values(result.sample.contacts))if(foot.contact)shadow(projection.project({x:foot.paw[0]*8,y:foot.paw[1]*8}),ppu*.13,ppu*.045,.2*foot.load);
-     renderer.render(scene,camera);ctx.drawImage(canvas,0,0,projection.width,projection.height);frames++;
+     renderer.render(scene,camera);ctx.drawImage(canvas,0,0,projection.width,projection.height);
+     if(originStamp===null)originStamp=presentationNow();
+     frames++;
     }catch(error){stop('aborted',String(error.message));}
    },canvas,get snapshot(){return result;}};
   }catch(error){stop('aborted',String(error.message));return null;}
