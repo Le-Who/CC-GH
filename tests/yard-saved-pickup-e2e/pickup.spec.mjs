@@ -8,15 +8,16 @@ import {promisify} from 'node:util';
 import {randomUUID} from 'node:crypto';
 import {selectHomeGame} from '../e2e/helpers/home.js';
 import {CANONICAL_FOOD_LOCATION,CANONICAL_FOOD_NONCE_PREFIX} from '../../game-logic/yard-v2/canonical-food-protocol.mjs';
-const run=promisify(execFile),OUT=path.resolve('test-results/saved-pickup-browser');
-test('actual UI released pickup keeps its journal until delayed winning HTTP settles',async({browser},info)=>{
+const run=promisify(execFile),BASE_OUT=path.resolve('test-results/saved-pickup-browser');
+for(const [width,height] of [[320,568],[390,844],[844,390]])test(`actual UI released pickup keeps visible status and journal until HTTP settles (${width}x${height})`,async({browser},info)=>{
+ const OUT=path.join(BASE_OUT,`${width}x${height}`);
  await fs.mkdir(OUT,{recursive:true});
  const externalId='saved-pip-real-'+randomUUID().replaceAll('-',''),metadataFile=path.join(OUT,'account.json'),commandFile=path.join(OUT,'command.json');
  const env={...process.env,NODE_ENV:'test',DEV_AUTH_ENABLED:'true',YARD_SAVED_VISIT_PG:'1',REDIS_URL:'',NODE_OPTIONS:''};
  const seed=await run(process.execPath,['--import','./tests/fixtures/register-real-backend-runtime.mjs','scripts/yard-real-backend-seed.mjs','--released','--base-url',info.project.use.baseURL,'--external-id',externalId,'--output',metadataFile],{env,timeout:90000,maxBuffer:1024*1024});
  await fs.writeFile(path.join(OUT,'seed.log'),seed.stdout+'\n'+seed.stderr);
  const metadata=JSON.parse(await fs.readFile(metadataFile,'utf8')),initial=JSON.parse(await fs.readFile(metadataFile+'.snapshot.json','utf8'));
- const context=await browser.newContext({viewport:{width:390,height:844},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
+ const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.on('pageerror',error=>errors.push(String(error)));
  const read=()=>page.evaluate(()=>window.__yardPipIntegration?.snapshot());
  const ready=async empty=>expect.poll(async()=>{const d=await read();return d?.mode==='canonical-saved-visits'&&d.scene?.ready===true&&d.scene.lastFrame?.visitId===metadata.candidate.visitId&&d.scene.lastFrame?.visibility==='both'&&d.scene.canonicalRecords?.length===(empty?0:1);},{timeout:30000}).toBe(true);
@@ -50,12 +51,18 @@ test('actual UI released pickup keeps its journal until delayed winning HTTP set
   const commandFields=item=>({accountId:item.accountId,action:item.action,payload:item.payload,clientActionId:item.clientActionId});
   const held=await journal();assert.deepEqual(commandFields(held.items[0]),commandFields(command));
   await expect(pickup).toBeDisabled();await expect(page.locator('.cy-status')).toContainText(/saving/i);
+  const inDialog=page.locator('.cy-dialog [data-saved-pickup-pending]');
+  await expect(inDialog).toBeVisible();await expect(inDialog).toContainText(/saving/i);
+  const statusBox=await inDialog.boundingBox(),dialogBox=await page.locator('.cy-dialog').boundingBox();
+  assert.ok(statusBox&&dialogBox&&statusBox.x>=Math.max(0,dialogBox.x)&&statusBox.y>=Math.max(0,dialogBox.y)&&statusBox.x+statusBox.width<=Math.min(width,dialogBox.x+dialogBox.width)&&statusBox.y+statusBox.height<=Math.min(height,dialogBox.y+dialogBox.height),'visible status fits viewport and dialog');
+
   await ready(false);await page.screenshot({path:path.join(OUT,'pending-before-server.png'),scale:'device'});
   send();await expect.poll(()=>body?.success,{timeout:30000}).toBe(true);
   assert.deepEqual(commandFields((await journal()).items[0]),commandFields(command),'winning HTTP held: exact durable command remains until acknowledgement');
+  await expect(inDialog).toBeVisible();await expect(inDialog).toContainText(/saving/i);
   await page.screenshot({path:path.join(OUT,'pending-winning-http.png'),scale:'device'});
   await fs.writeFile(commandFile,JSON.stringify(command,null,2)+'\n');
-  deliver();await expect.poll(async()=> (await journal())?.items?.length).toBe(0);
+  deliver();await expect.poll(async()=> (await journal())?.items?.length).toBe(0);await expect(inDialog).toHaveCount(0);
   assert.equal(response.status(),200,JSON.stringify(body));assert.equal(body.success,true);assert.equal(body.snapshot.yardRuntime.status,'ready');
   assert.deepEqual(body.snapshot.yardRuntime.canonicalPlacements,[]);assert.equal(body.snapshot.yardRuntime.canonicalVisits[0].visitId,metadata.candidate.visitId);
   assert.equal(body.snapshot.yardRuntime.canonicalVisits[0].plan.leavesAt,metadata.candidate.leavesAt);

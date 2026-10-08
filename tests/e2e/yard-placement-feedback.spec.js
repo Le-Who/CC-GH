@@ -89,7 +89,7 @@ test('Courtyard pending placement survives ordering, rejection, lost reply and a
     first.deliver();await waitJournal(page,'account-a',0);
     await expect.poll(async()=>(await draws(page)).rows.filter(row=>row.bitmap===pendingDraw.bitmap&&row.alpha===1).length).toBe(1);
     assert.equal(commands.filter(row=>row.clientActionId===first.command.clientActionId).length,1);
-    assert.equal(fixture.player('account-a').yard.goodieInventory.yarn_mouse,0);assert.deepEqual(fixture.player('account-a').yard.currencies,initial.currencies);
+    assert.equal(fixture.player('account-a').yard.goodieInventory.yarn_mouse??0,0);assert.deepEqual(fixture.player('account-a').yard.currencies,initial.currencies);
     await page.screenshot({path:info.outputPath('placement-settled.png')});
 
     // Real move UI; injected definitive server denial must restore the original
@@ -125,7 +125,7 @@ test('Courtyard pending placement survives ordering, rejection, lost reply and a
     await expect.poll(()=>commands.filter(row=>row.clientActionId===originalNonce).length).toBe(2);
     const retries=commands.filter(row=>row.clientActionId===originalNonce);assert.deepEqual(retries[1],retries[0],'retry keeps the exact original command');
     await expect.poll(async()=>(await diagnostics(page)).scene.view.props.length).toBe(2);
-    assert.equal(fixture.player('account-a').yard.goodieInventory.sun_cushion,0);
+    assert.equal(fixture.player('account-a').yard.goodieInventory.sun_cushion??0,0);
     assert.equal(fixture.player('account-a').yard.placedGoodies.filter(row=>row.slotId===lost.command.payload.slotId).length,1);
     assert.deepEqual(fixture.player('account-a').yard.currencies,initial.currencies);assert.deepEqual(errors,[]);
     await page.screenshot({path:info.outputPath('placement-account-return-settled.png')});

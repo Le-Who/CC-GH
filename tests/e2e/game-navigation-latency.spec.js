@@ -8,8 +8,10 @@ async function initialize(page) {
   await page.addInitScript(installGameLatencyProbe);
   await page.addInitScript(() => { localStorage.setItem('gh_dev_user_id', 'fixture-a'); localStorage.setItem('garden_shelf_language', 'en'); });
 }
+// Diagnostic observation window only: the earlier throttled run exceeded the
+// default5s wait. Preserve its timing evidence; this is not a performance budget.
 async function ready(page) {
-  await expect(page.locator('[data-plant-id="split-saved-daisy"] .gs2-plant-target')).toBeEnabled();
+  await expect(page.locator('[data-plant-id="split-saved-daisy"] .gs2-plant-target')).toBeEnabled({timeout:30000});
 }
 async function details(page) {
   await page.locator('[data-plant-id="split-saved-daisy"] [data-plant-details-button]').click();

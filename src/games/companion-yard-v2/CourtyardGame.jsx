@@ -91,6 +91,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const current=view || {...courtyardPresentation(snapshot,snapshot?.yardRuntime?.serverNow||0,clips),mutable:false,mediaReady:false};
   const canonicalState=canonicalItemState(snapshot);
   const savedMode=current.canonicalSavedVisits===true,savedPending=savedMode&&snapshot?.yardRuntime?.status==='reconciliation-pending';
+  const pendingSavedPickup=savedMode&&pending.some(item=>item.accountId===snapshot?.player?.id&&item.action==='yard.pickupGoodie'&&item.status!=='failed');
   const itemMode=current.canonicalItems===true,itemMutable=!savedMode&&itemMode&&current.mediaReady&&!!canonicalCapability(snapshot);
   const placementMode=useRef({canonical:itemMode,saved:savedMode});
   placementMode.current={canonical:itemMode,saved:savedMode};
@@ -260,7 +261,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
       {[['food',t('yard.nav.food'),current.bowls.some(b=>b.servings>0)?t('yard.persistent.bowlFull'):t('yard.persistent.addFood')],['decor',t('yard.persistent.decor'),t('yard.persistent.placedCount',{count:placedItems.length})],['guests',t('yard.persistent.guests'),current.pendingGifts.length?t('yard.persistent.giftCount',{count:current.pendingGifts.length}):t('yard.persistent.memories')]].map(([id,title,detail])=><button key={id} data-nav-item={id} aria-pressed={menuSelection===id} aria-expanded={panel===id} onClick={()=>{setMenuSelection(id);setPanel(id);}} aria-label={`${title}. ${detail}`}><UiImage src={navigationArt(id)} data-nav-art={id} alt=""/><strong>{id==='decor'?t('yard.persistent.decorShort'):title}</strong></button>)}
     </HudRegion>
     <dialog ref={dialog} className="cy-dialog" aria-labelledby="cy-dialog-title" onCancel={closePanel} onClose={closePanel}>
-      <header><UiImage src={navigationArt(panel) || undefined} alt=""/><h2 id="cy-dialog-title">{{food:t('yard.nav.food'),decor:t('yard.persistent.decor'),guests:t('yard.persistent.guests')}[panel]}</h2><button aria-label={t('yard.persistent.closePanel')} onClick={closePanel}><Icon name="close"/></button></header>
+      <header><UiImage src={navigationArt(panel) || undefined} alt=""/><h2 id="cy-dialog-title">{{food:t('yard.nav.food'),decor:t('yard.persistent.decor'),guests:t('yard.persistent.guests')}[panel]}{panel==='decor'&&pendingSavedPickup&&<small data-saved-pickup-pending="true" role="status" aria-live="polite"> · {t('yard.persistent.saving')}</small>}</h2><button aria-label={t('yard.persistent.closePanel')} onClick={closePanel}><Icon name="close"/></button></header>
       {panel==='decor' && <div className="cy-tabs" aria-label={t('yard.persistent.itemCategories')}>{[['placed',t('yard.persistent.inYard')],['inventory',t('yard.persistent.stocks')],['shop',t('yard.nav.shop')]].map(([id,label])=><button data-decor-tab={id} key={id} aria-pressed={decorTab===id} onClick={()=>{setDecorTab(id);setSelectedDecor(null);}}>{label}</button>)}</div>}
       {panel==='guests' && <div className="cy-tabs cy-guest-tabs" aria-label={t('yard.persistent.guestCategories')}>{[['visits',t('yard.persistent.guests')],['album',t('yard.screen.album')],['helper',t('yard.persistent.helper')]].map(([id,label])=><button key={id} aria-pressed={guestTab===id} onClick={()=>setGuestTab(id)}>{label}</button>)}</div>}
       <div className="cy-panel">
