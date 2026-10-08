@@ -101,6 +101,10 @@ async function finish(page,info,context,failure,screenshot){
  let first=failure;
  try{await evidence(page,info,context,failure);if(screenshot)await page.screenshot({path:info.outputPath(screenshot)});}
  catch(error){first??=error;await info.attach('evidence-collection-error.txt',{body:Buffer.from(String(error.stack||error)),contentType:'text/plain'}).catch(()=>{});}
+ // Retire the browser's owned HTTP/WebSocket clients before Socket.IO waits
+ // for the fixture HTTP server to close. Evidence above is already persisted.
+ try{await page.close();}
+ catch(error){first??=error;await info.attach('page-cleanup-error.txt',{body:Buffer.from(String(error.stack||error)),contentType:'text/plain'}).catch(()=>{});}
  try{await context.fixture.close();}
  catch(error){first??=error;await info.attach('fixture-cleanup-error.txt',{body:Buffer.from(String(error.stack||error)),contentType:'text/plain'}).catch(()=>{});}
  if(!failure&&first)throw first;
