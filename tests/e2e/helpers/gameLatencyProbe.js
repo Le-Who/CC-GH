@@ -29,7 +29,7 @@ export function installGameLatencyProbe() {
     for (const e of entries) resources.push({path: pathOf(e.name), initiatorType: e.initiatorType,
       startTime: e.startTime, requestStart: e.requestStart, responseStart: e.responseStart,
       responseEnd: e.responseEnd, duration: e.duration, encodedBytes: e.encodedBodySize,
-      transferBytes: e.transferSize, workerStart: e.workerStart, deliveryType: e.deliveryType || ''});
+      transferBytes: e.transferSize, workerStart: e.workerStart, nextHopProtocol: e.nextHopProtocol || '', deliveryType: e.deliveryType || ''});
   };
   const resourceObserver = new PerformanceObserver(list => appendResources(list.getEntries()));
   resourceObserver.observe({type: 'resource', buffered: true}); observers.push(resourceObserver);
@@ -55,7 +55,7 @@ export function installGameLatencyProbe() {
     appendResources(resourceObserver.takeRecords()); observeDom();
     const navigation = performance.getEntriesByType('navigation')[0];
     return {events: [...events], resources: [...resources], longTasks: [...longTasks],
-      navigation: navigation ? {startTime: navigation.startTime, responseStart: navigation.responseStart, responseEnd: navigation.responseEnd, domContentLoadedEventEnd: navigation.domContentLoadedEventEnd} : null,
+      navigation: navigation ? {nextHopProtocol: navigation.nextHopProtocol || '', startTime: navigation.startTime, responseStart: navigation.responseStart, responseEnd: navigation.responseEnd, domContentLoadedEventEnd: navigation.domContentLoadedEventEnd} : null,
       connection: {saveData: navigator.connection?.saveData ?? null, effectiveType: navigator.connection?.effectiveType ?? null},
       visibility: document.visibilityState};
   }};

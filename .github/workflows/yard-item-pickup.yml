@@ -32,21 +32,10 @@ jobs:
           git rev-parse HEAD > test-results/item-pickup/source-commit.txt
       - name: Install existing locked dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Exact fixture JSON bundle preflight
-        run: |
-          set -o pipefail
-          node --test tests/sw-fixture-json-loader.test.mjs | tee test-results/item-pickup/fixture-json.log
-      - name: Build the exact integrated client
-        env:
-          NODE_ENV: production
-          VITE_YARD_PIP_PREVIEW: 'true'
-          VITE_YARD_SAVED_VISITS: 'true'
-          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
-        run: pnpm run build
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Throttled cold and warm navigation observation only
-        run: pnpm exec playwright test --config playwright.game-feedback.config.mjs game-navigation-latency.spec.js --grep 'mobile throttle'
+      - name: Read-only verified public static protocol
+        run: pnpm exec playwright test --config playwright.game-feedback.config.mjs public-game-protocol.spec.js
       - name: Preserve success and failure evidence
         if: always()
         uses: actions/upload-artifact@v4
