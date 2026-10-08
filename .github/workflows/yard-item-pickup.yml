@@ -39,7 +39,7 @@ jobs:
         run: |
           mkdir -p test-results/item-pickup
           git fetch --no-tags --depth=1 origin ec815065f6adb7c36d81f97b41d47ad16e614b07
-          node scripts/yard-saved-pip-preflight.mjs
+          node scripts/yard-item-pickup-preflight.mjs
           grep -F 'export const CANONICAL_SAVED_ITEM_ACTIONS_ENABLED=false;' game-logic/yard-v2/canonical-saved-item-actions.mjs
           git rev-parse HEAD > test-results/item-pickup/source-commit.txt
       - name: Install existing locked dependencies
@@ -56,6 +56,11 @@ jobs:
         run: |
           set -o pipefail
           node --import ./tests/fixtures/register-runtime-test.mjs --import ./tests/fixtures/register-item-action-test.mjs --test --test-concurrency=1 tests/yard-saved-pickup-action.test.mjs tests/yard-saved-pickup-replica.test.mjs | tee test-results/item-pickup/commands.log
+      - name: Winning HTTP projection and neighboring route regressions
+        run: |
+          set -o pipefail
+          node --import ./tests/fixtures/register-runtime-test.mjs --import ./tests/fixtures/register-item-action-test.mjs --test tests/yard-saved-pickup-http.test.mjs | tee test-results/item-pickup/http.log
+          node --test --test-concurrency=1 tests/garden-r2-routes.test.mjs tests/garden-accounting-routes.test.js | tee test-results/item-pickup/neighbor-routes.log
       - name: Actual two-process PostgreSQL CAS and cold restart
         env:
           DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test

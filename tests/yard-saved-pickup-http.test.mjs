@@ -1,0 +1,44 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import express from 'express';
+import {setTimeout as delay} from 'node:timers/promises';
+import playerRoutes from '../routes/player.js';
+import {withPlayerLock} from '../playerManager.js';
+import {getIO} from '../socketManager.js';
+import {fixture,row} from './fixtures/canonical-reconciliation-fixture.mjs';
+import {ensureCanonicalPlayerYard,publicCanonicalPlayerYard,closeCanonicalRuntime} from '../game-logic/yard-v2/canonical-runtime.mjs';
+import {CANONICAL_FOOD_LOCATION,CANONICAL_FOOD_NONCE_PREFIX} from '../game-logic/yard-v2/canonical-food-protocol.mjs';
+
+test('real HTTP pickup serializes winning Yard projection without realtime and preserves replay/failure ordering',async t=>{
+ const owner='pickup-http-owner',oldNow=Date.now;let now=1001;Date.now=()=>now;
+ assert.equal(getIO(),null,'no realtime connection supplies this response');
+ const app=express();app.use(express.json());app.use(playerRoutes((req,res,next)=>next(),()=>({userId:owner})));
+ app.use((error,req,res,next)=>res.status(500).json({error:String(error.stack)}));
+ const server=app.listen(0,'127.0.0.1');await new Promise(resolve=>server.once('listening',resolve));
+ t.after(async()=>{server.closeAllConnections();await new Promise(resolve=>server.close(resolve));await closeCanonicalRuntime();Date.now=oldNow;});
+ const base='http://127.0.0.1:'+server.address().port;
+ const post=async body=>{const response=await fetch(base+'/api/player/mutate',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});return {status:response.status,body:await response.json()};};
+ const get=async()=>{const response=await fetch(base+'/api/player/snapshot');assert.equal(response.status,200);return response.json();};
+ await withPlayerLock(owner,p=>fixture(p));
+ let view;const end=performance.now()+45000;
+ while(performance.now()<end){await withPlayerLock(owner,p=>{ensureCanonicalPlayerYard(p,{now,simulate:true});view=publicCanonicalPlayerYard(p,{now});});if(view.status==='ready'&&view.canonicalVisits?.length)break;await delay(20);}
+ assert.equal(view.status,'ready');const plan=view.canonicalVisits[0].plan;now=plan.releaseAt;
+ const before=await get(),command={accountId:owner,action:'yard.pickupGoodie',clientActionId:CANONICAL_FOOD_NONCE_PREFIX+'http-pickup',payload:{...CANONICAL_FOOD_LOCATION,slotId:row.slotId}};
+ const first=await post(command);assert.equal(first.status,200,JSON.stringify(first.body));assert.equal(first.body.success,true);
+ const snapshot=first.body.snapshot;assert.equal(snapshot.yardRuntime.status,'ready');assert.deepEqual(snapshot.yardRuntime.canonicalPlacements,[]);
+ assert.deepEqual(snapshot.yardRuntime.canonicalVisits[0].plan,plan);assert.equal(snapshot.player.id,owner);
+ assert.ok(snapshot.player.syncSeq>before.player.syncSeq);assert.equal(snapshot.serverTime,snapshot.yardRuntime.serverNow);
+ for(const key of ['resources','farm','pet','merge','garden','gardenR2'])assert.deepEqual(snapshot[key],before[key],key);
+ const immutable=JSON.stringify(first.body);
+ const replay=await post(command);assert.equal(replay.status,200);assert.equal(replay.body.duplicate,true);
+ assert.equal(replay.body.snapshot.yardRuntime.status,'ready');assert.deepEqual(replay.body.snapshot.yard.goodieInventory,snapshot.yard.goodieInventory);
+ assert.ok(replay.body.snapshot.player.syncSeq>snapshot.player.syncSeq);
+ const conflict=await post({...command,payload:{...command.payload,slotId:'canonical:foreign'}});
+ assert.equal(conflict.status,409);assert.equal(conflict.body.snapshot,undefined);
+ const foreign=await post({...command,accountId:'another-owner'});assert.equal(foreign.status,409);assert.equal(foreign.body.error,'ACCOUNT_CHANGED');assert.equal(foreign.body.snapshot,undefined);
+ const failure=await post({accountId:owner,action:'garden.r2',clientActionId:'garden-r2:invalid',payload:{}});
+ assert.ok(failure.status>=400&&failure.status<500,JSON.stringify(failure));assert.equal(failure.body.snapshot.yardRuntime.status,'ready');
+ const latest=await get();assert.ok(latest.player.syncSeq>replay.body.snapshot.player.syncSeq);
+ assert.deepEqual(latest.yard.goodieInventory,snapshot.yard.goodieInventory);assert.deepEqual(latest.yardRuntime.canonicalPlacements,[]);
+ assert.equal(JSON.stringify(first.body),immutable,'later commits cannot rewrite an earlier serialized response');
+});

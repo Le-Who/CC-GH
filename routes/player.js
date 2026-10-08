@@ -1382,6 +1382,14 @@ function stampCommittedSnapshot(p, snapshot) {
   afterPlayerCommit(p, committed => {
     snapshot.player.syncSeq = committed._syncSeq;
     snapshot.serverTime = Date.now();
+    // Saved Yard proof is rekeyed by the winning beforeSync hook. Its HTTP
+    // projection must observe that same commit, not the pre-commit cache miss.
+    // Reproject only this owner's v3 runtime; other games and saves stay intact.
+    if (committed?._yardV2?.version === 3 && snapshot.player.id === committed.id
+      && snapshot.yardRuntime?.storageVersion === 3) {
+      const { yardRuntime } = releasedYardSnapshot(committed, { now: snapshot.serverTime });
+      if (yardRuntime?.storageVersion === 3) snapshot.yardRuntime = yardRuntime;
+    }
   });
   return snapshot;
 }
