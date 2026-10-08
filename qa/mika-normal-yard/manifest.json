@@ -67,8 +67,8 @@
     },
     {
       "path": "src/games/companion-yard-v2/scene.mjs",
-      "bytes": 23603,
-      "sha256": "f620acb05e7d659e232a27f4ab2dcbc35c0f801afff7092ec43c206fa308fc42"
+      "bytes": 23618,
+      "sha256": "f5d7801fb5df0fe14d53a40551e9fc117ea9d094eb49eacd56d3dfe7a7cb8dfd"
     },
     {
       "path": "tests/yard-mika-qa-async-layer.test.mjs",
@@ -112,5 +112,15 @@
     "scripts/mika-normal-qa-preflight.mjs",
     "tests/e2e/yard-mika-normal-qa.spec.js",
     "qa/mika-normal-yard/manifest.json"
+  ],
+  "integrationAmendments": [
+    {
+      "path": "src/games/companion-yard-v2/scene.mjs",
+      "sourceCheckpointSha256": "f620acb05e7d659e232a27f4ab2dcbc35c0f801afff7092ec43c206fa308fc42",
+      "sha256": "f5d7801fb5df0fe14d53a40551e9fc117ea9d094eb49eacd56d3dfe7a7cb8dfd",
+      "reason": "Default-off disposal must remove the QA visibility listener only when its matching registration gate was enabled",
+      "failedRun": 37740381119,
+      "localRegression": "actual inherited default-off lifecycle1/1 and Mika21/21"
+    }
   ]
 }
