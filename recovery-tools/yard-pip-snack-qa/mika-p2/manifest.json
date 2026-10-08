@@ -1,0 +1,82 @@
+{
+  "format": "mika-p2-browser-fixture/v1",
+  "sourceRepositoryBaseline": "96923d99778b9a0c35e39db43e60a049198f13ce",
+  "productionActivated": false,
+  "browserExecutedLocally": false,
+  "assets": [
+    {
+      "file": "models/entry.glb",
+      "bytes": 3714392,
+      "sha256": "45bbe7eba0805963569e88c243baf009c171621272c207003df28e510d1f6c89"
+    },
+    {
+      "file": "models/mirror.glb",
+      "bytes": 3671332,
+      "sha256": "e40918fbb85172be2035e3d08086fe7c6455af5cbbbf0f1c2205a5723673040e"
+    },
+    {
+      "file": "models/p2.glb",
+      "bytes": 3671320,
+      "sha256": "2249774f8ced124451d3c46a8a69bc06a9889c7d9cc31c836a6dd868fd96f084"
+    }
+  ],
+  "fixtureFiles": [
+    {
+      "file": "index.html",
+      "bytes": 1428,
+      "sha256": "3c986bfaaf19e14ea4f75ccfe85e4d1bac553bab8397a5e5ef7c726f17881294"
+    },
+    {
+      "file": "preview.mjs",
+      "bytes": 7553,
+      "sha256": "fe71165fc1983e8b88b0230837ecfc6e7a667ebcfc22ee7c7566440e148c9423"
+    },
+    {
+      "file": "expected.json",
+      "bytes": 160175,
+      "sha256": "fe39e3c552bd8445cbf1373e0ce0e0da029f767f80611df1897d7cfae511ac17"
+    }
+  ],
+  "vendorPins": [
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/LICENSE.txt",
+      "bytes": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.core.js",
+      "bytes": 1458113,
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.module.js",
+      "bytes": 662772,
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/loaders/GLTFLoader.js",
+      "bytes": 117570,
+      "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/BufferGeometryUtils.js",
+      "bytes": 37712,
+      "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/SkeletonUtils.js",
+      "bytes": 11535,
+      "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f"
+    }
+  ],
+  "existingRunnerPins": [
+    {
+      "path": "scripts/yard-pip-ci-server.mjs",
+      "sha256": "c8cddb5abc964e3bf1f58a1df182457141738577c1d09794866b413d84c97869"
+    },
+    {
+      "path": "playwright.pip.config.js",
+      "sha256": "9f90ccda1b2e5dcd46d5274acad359b83f924c54353356a1255be260dae32a13"
+    }
+  ]
+}
