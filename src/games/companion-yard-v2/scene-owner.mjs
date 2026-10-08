@@ -10,7 +10,7 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
  const savedVisitClock=clockFor(options.now??defaultMonotonicNow);
  const savedSnapshot=()=>canonicalSavedVisitsAllowed&&snapshot?.yardRuntime?.storageVersion===3&&snapshot?.yardRuntime?.canonicalVisitProtocol==='yard-canonical-authoritative/v1';
  const selectedMode=()=>canonicalSavedVisits?'canonical-saved-visits':canonicalItems?'canonical-items':'pip-prototype';
- let failureDetail=null,ownerAccount=null,ownerSession=null,ownerObserved=false;
+ let commandGeneration=0,failureDetail=null,ownerAccount=null,ownerSession=null,ownerObserved=false;
  const state=extra=>{if(extra?.error)lastFailure=extra.error;onPrototypeState({allowed:prototypeAllowed,enabled:desired,mode:currentMode,error:lastFailure,...extra});};
  function fail(error,context){
   failureDetail={mode:currentMode,name:String(error?.name||'Error'),message:String(error?.message||error).slice(0,1024),stack:String(error?.stack||'').slice(0,4096),context:context??null};
@@ -29,7 +29,7 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
  }
  function guarded(token){return{...options,ownerKey:token,canonicalItems,canonicalSavedVisits,savedVisitClock,groundingRecipe:canonicalSavedVisits?PIP_GROUNDING_PREVIEW_RECIPE:options.groundingRecipe,canonicalFoodPreview:canonicalSavedVisits||options.canonicalFoodPreview,canonicalActionPending,directHost,uiImageOwner,onRestartRequired:()=>{if(token===epoch&&!disposed&&desired)switchMode(true,selectedMode());},onView:value=>{if(token===epoch&&!disposed&&!suspended){view=value;onView(value);}},onError:error=>{if(token===epoch&&!disposed)onError(error);},onPrototypeState:value=>{if(token===epoch&&!disposed)state(value);},onFailure:(error,context)=>{if(token===epoch&&!disposed)fail(error,context);}};}
  function blocked(error){if(!disposed){state({phase:'failed',error:error.message});onError(error);}return false;}
- function retire(){const old=active;active=null;if(!old)return retirementBarrier;let finished;try{finished=old.dispose();}catch(error){finished=Promise.reject(error);}uiImageOwner?.setAdmissionCheck(()=>false);const done=Promise.resolve(finished).then(()=>{retirements++;try{lastRetired=old.diagnostics?.()??null;}catch(error){lastRetired={diagnosticsError:error.message};}canvas.width=0;canvas.height=0;});retirementBarrier=Promise.all([retirementBarrier,done]).then(()=>{});retirementBarrier.catch(()=>{});return retirementBarrier;}
+ function retire(){commandGeneration++;const old=active;active=null;if(!old)return retirementBarrier;let finished;try{finished=old.dispose();}catch(error){finished=Promise.reject(error);}uiImageOwner?.setAdmissionCheck(()=>false);const done=Promise.resolve(finished).then(()=>{retirements++;try{lastRetired=old.diagnostics?.()??null;}catch(error){lastRetired={diagnosticsError:error.message};}canvas.width=0;canvas.height=0;});retirementBarrier=Promise.all([retirementBarrier,done]).then(()=>{});retirementBarrier.catch(()=>{});return retirementBarrier;}
  function switchMode(enabled,mode='pip-prototype',{accountExit=false}={}){
   if(disposed)return Promise.resolve(false);
   if(!enabled&&(savedSnapshot()||canonicalSavedVisits)&&!accountExit)return Promise.resolve(false);
@@ -52,7 +52,7 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
  tail=retirementBarrier.then(()=>{if(disposed||suspended||epoch!==initialEpoch)return;active=createLegacy(canvas,guarded(initialEpoch));if(snapshot)active.update(snapshot);}).catch(blocked);
  return{update(value,{accountSession=null}={}){
    const account=value?.player?.id??null,changed=ownerObserved&&(account!==ownerAccount||accountSession!==ownerSession);
-   ownerObserved=true;ownerAccount=account;ownerSession=accountSession;snapshot=value;
+   if(changed)commandGeneration++;ownerObserved=true;ownerAccount=account;ownerSession=accountSession;snapshot=value;
    const serverNow=value?.yardRuntime?.serverNow;if(savedSnapshot()&&Number.isSafeInteger(serverNow)&&serverNow>=0)savedVisitClock.update(serverNow);
    if(savedSnapshot()&&(!canonicalSavedVisits||!active&&!suspended&&!lastFailure&&currentMode!=='transition')){switchMode(true,'canonical-saved-visits');return;}
    // Retire the entire optional renderer before A→B or A→B→A can reuse an
@@ -63,7 +63,13 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
   },setGhost(value){if(value&&isCanonicalItemIntent(value)&&currentMode!=='canonical-items')return false;active?.setGhost(value);return true;},point:event=>active?.point(event)??null,hit:event=>active?.hit(event)??null,offsetPoint:(p,d)=>active?.offsetPoint(p,d)??null,
   setCanonicalActionPending:value=>{canonicalActionPending=!!value;active?.setCanonicalActionPending?.(value);},
   commitPresentation:value=>!disposed&&!suspended&&currentMode==='legacy'&&value===view?active?.commitPresentation?.(value)??false:false,
-  requestMikaItemArrival:slotId=>!disposed&&!suspended&&currentMode==='legacy'?active?.requestMikaItemArrival?.(slotId)??{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'}:{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'},
+  async requestMikaItemArrival(slotId,scope){
+   if(disposed||suspended||currentMode!=='legacy'||!active||scope&&(scope.accountId!==ownerAccount||scope.accountSession!==ownerSession))return{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'};
+   const child=active,generation=commandGeneration;const result=await child.requestMikaItemArrival?.(slotId,scope);
+   if(disposed||suspended||active!==child||commandGeneration!==generation||currentMode!=='legacy')return{ok:false,reason:'NATIVE_ACTION_CANCELLED'};
+   return result??{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'};
+  },
+  cancelMikaItemArrival:scope=>!disposed&&!suspended&&currentMode==='legacy'?active?.cancelMikaItemArrival?.(scope)??false:false,
   inspectCanonicalSlot:slotId=>active?.inspectCanonicalSlot?.(slotId),
   selectCanonicalSlot:slotId=>active?.selectCanonicalSlot?.(slotId),
   beginPointer:()=>active?.beginPointer?.(),endPointer:()=>active?.endPointer?.(),

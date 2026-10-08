@@ -153,3 +153,11 @@
  .cy-app[data-canonical-items="true"] .cy-catalog-choice>strong{grid-area:name;min-height:0;padding-right:22px;align-self:end;justify-content:flex-start}
  .cy-app[data-canonical-items="true"] .cy-catalog-choice>small{grid-area:detail;padding-right:22px;align-self:start}
 }
+
+/* All localized native phases reserve one common status footprint before the
+   first actor draw, so feedback changes cannot resize its admitted camera. */
+.cy-native-status,.cy-native-status-reserve{display:grid;min-width:0}
+.cy-native-status>span,.cy-native-status-reserve>span{grid-area:1/1}
+.cy-native-status-reserve{visibility:hidden;pointer-events:none}
+
+.cy-native-command-feedback{font-size:14px;line-height:1.25}

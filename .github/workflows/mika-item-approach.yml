@@ -1,11 +1,11 @@
-name: Mika current-pose candidate
+name: Mika selected-item candidate
 on:
   push:
-    branches: ['qa/native-mika-current-pose-20261008']
+    branches: ['qa/native-mika-selected-item-20261008']
 permissions:
   contents: read
 concurrency:
-  group: native-mika-current-pose-20261008
+  group: native-mika-selected-item-20261008
   cancel-in-progress: false
 jobs:
   qualify:
@@ -27,6 +27,7 @@ jobs:
       MIKA_QA_EXPECT_ARRIVAL: 'true'
       VITE_YARD_MIKA_CONTINUATION_QA: 'true'
       MIKA_QA_EXPECT_CONTINUATION: 'true'
+      MIKA_QA_EXPECT_SELECTED_UI: 'true'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -36,18 +37,16 @@ jobs:
           node-version: '24'
       - name: Install locked existing dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Check current-pose contacts, complete admission and unchanged cruise/Pip contracts
+      - name: Check selected-item lifecycle and default/saved owner guards
         run: |
           mkdir -p test-results/mika-normal
-          node --test --test-concurrency=1 tests/yard-mika-departure.test.mjs tests/yard-mika-turn-away.test.mjs tests/yard-mika-current-pose.test.mjs tests/yard-mika-arrival.test.mjs tests/yard-mika-item-arrival.test.mjs tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-renderer-chunk.test.mjs > test-results/mika-normal/source-tests.log
-      - name: Collect failed compact startup and source rejection cases
+          node --test --test-concurrency=1 tests/yard-native-item-command.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-async-scene.test.mjs > test-results/mika-normal/source-tests.log
+      - name: Collect visible modal feedback rechecks
         run: |
-          MIKA_QA_PHASE=collection-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'actual two-item arrival to 87,54' --list > test-results/mika-normal/collection-compact.log
-          test "$(grep -c 'actual two-item arrival to 87,54' test-results/mika-normal/collection-compact.log)" -eq 1
-          MIKA_QA_PHASE=collection-rejection pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'source entry rejection' --list > test-results/mika-normal/collection-rejection.log
-          test "$(grep -c 'source entry rejection' test-results/mika-normal/collection-rejection.log)" -eq 1
-          MIKA_QA_PHASE=collection-clean MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'clean two-item recording to 87,54' --list > test-results/mika-normal/collection-clean.log
-          test "$(grep -c 'clean two-item recording to 87,54' test-results/mika-normal/collection-clean.log)" -eq 1
+          MIKA_QA_PHASE=collection-ru pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika selected item UI: ru actual footer' --list > test-results/mika-normal/collection-ru.log
+          test "$(grep -c 'Mika selected item UI: ru actual footer' test-results/mika-normal/collection-ru.log)" -eq 1
+          MIKA_QA_PHASE=collection-cancel pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'Mika selected item UI: (selection|cancel) cancels' --list > test-results/mika-normal/collection-cancel.log
+          test "$(grep -c 'cancels the current command' test-results/mika-normal/collection-cancel.log)" -eq 2
       - name: Build explicit current-pose candidate, never deployment
         env:
           NODE_ENV: production
@@ -58,19 +57,18 @@ jobs:
       - name: Install official Chromium
         id: browser
         run: pnpm exec playwright install --with-deps chromium
-      - name: Compact committed-layout entry and exact cache pixels
-        run: MIKA_QA_PHASE=startup-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'actual two-item arrival to 87,54'
-      - name: Rejected placement preserves all data except exact source clock advance
+      - name: Russian footer busy, arrival and visible refusal feedback
+        run: |
+          MIKA_QA_PHASE=modal-ru pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika selected item UI: ru actual footer'
+      - name: Visible selection and explicit cancellation feedback
         if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
-        run: MIKA_QA_PHASE=startup-rejection pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'source entry rejection'
-      - name: Clean compact recording after actual layout commitment
-        if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
-        run: MIKA_QA_PHASE=startup-clean MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'clean two-item recording to 87,54'
+        run: |
+          MIKA_QA_PHASE=modal-cancel pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'Mika selected item UI: (selection|cancel) cancels'
       - name: Preserve original bounded current-pose evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mika-current-pose-${{ github.sha }}
+          name: mika-selected-item-${{ github.sha }}
           path: test-results/mika-normal/
           retention-days: 7
           if-no-files-found: error

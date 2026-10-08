@@ -155,3 +155,30 @@ test('parked-raster budget refusal allocates no hidden surface and retires all n
   const d=layer.diagnostics();assert.equal(d.phase,'blocked');assert.equal(d.reason,'QA_PARKED_SURFACE_BUDGET');assert.equal(heldAllocations,0);assert.equal(reserved,0);assert.equal(d.resources.heldFrameRGBABytes,0);assert.equal(d.resources.retainedModelGPUBytes,0);
  }finally{await layer?.dispose();globalThis.document=oldDocument;}
 });
+
+test('native command arrival waits for successful terminal drawing and rejects a failed parked render',async()=>{
+ const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});let layer,fail=false;
+ try{
+  const bytes=readFileSync(new URL('../public/assets/yard-mika-p2-qa/p2.glb',import.meta.url)),canvas=Object.assign(new EventTarget(),{width:1,height:1});
+  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,parkedCanvasFactory,cameraDirection:CAMERA_DIRECTION,presentationNow:()=>1000,reserveRGBA:()=>true,canvasFactory:()=>canvas,
+   fetchImpl:async()=>({ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}),loadDependencies:async()=>[THREE,{GLTFLoader},{createPipGardenLighting:()=>({dispose(){}})}],rendererFactory:()=>({shadowMap:{},setPixelRatio(){},setClearColor(){},setSize(w,h){canvas.width=w;canvas.height=h;},render(){if(fail)throw Error('TERMINAL_DRAW_FAILED');},dispose(){},forceContextLoss(){}})});
+  const{snapshot,view}=mikaItemFixture([{slotId:'first',goodieId:'yarn_mouse',x:60,y:45,condition:'new'}]),args={snapshot,view,projection:createProjection(308,346),sceneGeometry:{},shadow:()=>{}};
+  layer.frame({...args,stamp:1000}).draw({drawImage(){}});const terminal=layer.frame({...args,stamp:7010});assert.equal(layer.commandState().phase,'parked');assert.equal(layer.commandState().presentedTime,0,'A sampled terminal pose is not a presented arrival');
+  fail=true;terminal.draw({drawImage(){}});assert.equal(layer.commandState().available,false);assert.equal(layer.commandState().phase,'aborted');assert.equal(layer.commandState().presentedTime,0);assert.equal(layer.diagnostics().resources.rgbaBytes,0);
+ }finally{await layer?.dispose();globalThis.document=oldDocument;}
+});
+
+test('native cancellation uses exact command ownership even when admission advances the action before the caller resumes',async()=>{
+ const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});let layer;
+ try{
+  const bytes=readFileSync(new URL('../public/assets/yard-mika-p2-qa/p2.glb',import.meta.url)),canvas=Object.assign(new EventTarget(),{width:1,height:1});
+  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,parkedCanvasFactory,cameraDirection:CAMERA_DIRECTION,presentationNow:()=>1000,reserveRGBA:()=>true,canvasFactory:()=>canvas,
+   fetchImpl:async()=>({ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}),loadDependencies:async()=>[THREE,{GLTFLoader},{createPipGardenLighting:()=>({dispose(){}})}],rendererFactory:()=>({shadowMap:{},setPixelRatio(){},setClearColor(){},setSize(w,h){canvas.width=w;canvas.height=h;},render(){},dispose(){},forceContextLoss(){}})});
+  const{snapshot,view}=mikaItemFixture([{slotId:'first',goodieId:'yarn_mouse',x:60,y:45,condition:'new'},{slotId:'second',goodieId:'yarn_mouse',x:87,y:54,condition:'new'}]),args={snapshot,view,projection:createProjection(308,346),sceneGeometry:{},shadow:()=>{}};
+  layer.frame({...args,stamp:1000}).draw({drawImage(){}});layer.frame({...args,stamp:7010}).draw({drawImage(){}});const ownerId=layer.commandState().ownerId,commandToken={};
+  assert.equal((await layer.requestItemArrival('second',{commandToken})).ok,true);assert.equal(layer.commandState().actionsStarted,2);
+  assert.equal(layer.cancelItemArrival({ownerId,commandToken:{},actionId:2}),false,'Another request cannot cancel this actor');
+  assert.equal(layer.cancelItemArrival({ownerId,commandToken,actionId:1,reason:'SELECTION_CHANGED'}),true,'Exact request identity cancels even before the caller learns action2');
+  assert.equal(layer.commandState().available,false);assert.equal(layer.diagnostics().reason,'SELECTION_CHANGED');assert.equal(layer.diagnostics().resources.rgbaBytes,0);
+ }finally{await layer?.dispose();globalThis.document=oldDocument;}
+});
