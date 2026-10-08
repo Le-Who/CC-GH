@@ -1,0 +1,64 @@
+name: Mika budget measurement (not shipping qualification)
+on:
+  push:
+    branches: ['qa/mika-budget-remedy-20261008']
+permissions:
+  contents: read
+concurrency:
+  group: mika-budget-remedy-20261008
+  cancel-in-progress: false
+jobs:
+  measure:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      BASE: 99e2aa0a101687a19126cb2b623619548ba4b555
+      VITE_YARD_PIP_PREVIEW: 'true'
+      VITE_YARD_SAVED_VISITS: 'false'
+      VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
+      NODE_ENV: test
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Save source receipt and harness
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/mika-budget"
+          git diff "$BASE" HEAD --binary > "$RUNNER_TEMP/mika-budget/source.patch"
+          git rev-parse HEAD > "$RUNNER_TEMP/mika-budget/candidate-sha.txt"
+          cp scripts/mika-budget-measure.mjs "$RUNNER_TEMP/mika-budget-measure.mjs"
+          git ls-tree -r HEAD > "$RUNNER_TEMP/mika-budget/repository-tree.txt"
+          git grep -I -n -E 'yard-ui/previews|preview-manifest|yard-pip/|pip-left180|pip-left90|pip-snack-combined-r1' -- ':!scripts/mika-budget-measure.mjs' > "$RUNNER_TEMP/mika-budget/asset-reference-audit.txt" || test "$?" = 1
+          node --test tests/yard-pip-projection-chunk.test.mjs | tee "$RUNNER_TEMP/mika-budget/source-tests.log"
+          git diff --exit-code "$BASE" HEAD -- pnpm-lock.yaml package.json scripts/perf-build-guard.mjs scripts/yard-ui-media-budget.mjs scripts/yard-ui-media-budget.json
+      - name: Install existing locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Measure exact baseline then candidate with Mika OFF and ON
+        env:
+          NODE_ENV: production
+        run: |
+          set -euo pipefail
+          CANDIDATE=$(cat "$RUNNER_TEMP/mika-budget/candidate-sha.txt")
+          for kind in baseline candidate; do
+            if [ "$kind" = baseline ]; then git checkout --detach "$BASE"; else git checkout --detach "$CANDIDATE"; fi
+            for mode in off on; do
+              OUT="$RUNNER_TEMP/mika-budget/$kind-$mode"
+              mkdir -p "$OUT"
+              if [ "$mode" = on ]; then export VITE_YARD_MIKA_QA=true; else export VITE_YARD_MIKA_QA=false; fi
+              pnpm run build 2>&1 | tee "$OUT/build.log"
+              node "$RUNNER_TEMP/mika-budget-measure.mjs" "$OUT" "$kind" "$mode"
+            done
+          done
+      - name: Preserve measurements including genuine budget failures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mika-budget-measurement-${{ github.sha }}
+          path: ${{ runner.temp }}/mika-budget/
+          retention-days: 7
+          if-no-files-found: error

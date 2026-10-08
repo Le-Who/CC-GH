@@ -1,5 +1,5 @@
 import{RENDER_UNITS_TO_CANONICAL,CANONICAL_PER_SCENE_UNIT}from'./world-scale.mjs';
-import{GARDEN_RASTER}from'./resources.mjs';
+import{GARDEN_RASTER}from'./garden-raster.mjs';
 /** Separate inactive canonical domain. Never accepts or converts saved M2 XY. */
 export const CLEAN_STAGE_MIN=Object.freeze({width:280,height:192});
 export const supportsCleanViewport=(width,height)=>Number.isFinite(width)&&Number.isFinite(height)&&width>=CLEAN_STAGE_MIN.width&&height>=CLEAN_STAGE_MIN.height;

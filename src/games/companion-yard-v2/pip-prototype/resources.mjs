@@ -1,10 +1,11 @@
 import{pipRenderProfile,DEFAULT_RENDER_PROFILE}from'./render-quality-profile.mjs';
 import{PIP_CONTACT_SHADOW}from'./prototype/pip-contact-shadow.mjs';
+import{GARDEN_RASTER}from'./garden-raster.mjs';
+export{GARDEN_RASTER}from'./garden-raster.mjs';
 /** Explicit known allocations. These caps are not browser RSS or total GPU RAM. */
 // One reference-density raster covers the complete calibrated garden, including
 // the final fractional artwork row. CSS scales/crops it together with the art.
 // This replaces the historical 192px following tile, not the total owner caps.
-export const GARDEN_RASTER=Object.freeze({width:390,height:648,pixels:390*648});
 export const LIMITS=Object.freeze({rgba:64*1024*1024,knownCPU:16*1024*1024,estimatedGPU:12*1024*1024,backing:GARDEN_RASTER});
 // Pip + authored T2 GLBs, parsed binaries, view copies, and both contact owners.
 export const MODEL_CPU_GLB_BYTES=4093160;

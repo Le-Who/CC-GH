@@ -51,6 +51,10 @@ export function yardRendererChunk(id, root) {
   // Receipt validation needs only this small pure hash implementation at boot.
   // Keep it shared without making the whole lazy Yard runtime an eager import.
   if (source === 'game-logic/yard-v2/sha256.mjs') return 'yard-wire-hash';
+  // Pure camera/raster math stays lazy executable game code, never data/vendor.
+  // Its leaf raster import avoids a projection -> scene resource-owner cycle.
+  if (['projection.mjs', 'garden-raster.mjs'].some(name =>
+    source === `src/games/companion-yard-v2/pip-prototype/${name}`)) return 'yard-pip-projection';
   if (YARD_CANONICAL_MOTION_MODULES.has(source)) return 'yard-canonical-motion';
   if (['ui-image-inventory.json', 'ui-image-reserve.mjs', 'decoded-capacity.mjs', 'runtime-cells.mjs']
     .some(name => source === `src/games/companion-yard-v2/${name}`)) return 'yard-scene-resources';
