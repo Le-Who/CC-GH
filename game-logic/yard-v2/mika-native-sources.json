@@ -1,0 +1,54 @@
+{
+  "format": "native-mika-sources/v1",
+  "baseCommit": "0acaf4e522629e762cf8b399504740406bde0a38",
+  "sources": [
+    {
+      "role": "model",
+      "path": "public/assets/yard-mika-p2-qa/p2.glb",
+      "bytes": 3671320,
+      "sha256": "2249774f8ced124451d3c46a8a69bc06a9889c7d9cc31c836a6dd868fd96f084"
+    },
+    {
+      "role": "calibration",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-p2-calibration.json",
+      "bytes": 22211,
+      "sha256": "be0046e0f326d0c8ae991486770304b40b514d922e384b8feb7874a40c007eb5"
+    },
+    {
+      "role": "skinEnvelope",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-p2-skin-envelope.json",
+      "bytes": 5374,
+      "sha256": "65de2e59a2727d74d002d81f2ac59a4ef259e5b09b19db77efc585e5187a38fa"
+    },
+    {
+      "role": "envelope",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-envelope.mjs",
+      "bytes": 1706,
+      "sha256": "50cd74bbb1ffcae7cc113762ee89a3dcfe3da66ed971ea4889600fef8ade1253"
+    },
+    {
+      "role": "locomotion",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-locomotion.mjs",
+      "bytes": 14440,
+      "sha256": "55b22f0b13bc18cd8f775896869be25e397a2f77e36b8262a3d87ee04bf96867"
+    },
+    {
+      "role": "nativePose",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-native-pose.mjs",
+      "bytes": 3557,
+      "sha256": "90420bd4dc92addab685e5b18fc5c08eefedf988f3c9c462645c5b3c34f0f2ae"
+    },
+    {
+      "role": "geometry",
+      "path": "src/games/companion-yard-v2/mika-qa/meadow-mask.json",
+      "bytes": 2619,
+      "sha256": "16ede4fd610218357f3b63e8711ec1b611141a1a2b62a30e4a597b6d7a11cba3"
+    },
+    {
+      "role": "cruise",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-yard-route.mjs",
+      "bytes": 7250,
+      "sha256": "ac4e0c913fc9b3c7a8f68fbadaaad521f2b0619d3341f0c3bb415750fce79f91"
+    }
+  ]
+}
