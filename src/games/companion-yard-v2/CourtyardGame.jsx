@@ -234,6 +234,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const interactionStatusKey=({planning:'planning',approaching:'approaching',inspecting:'inspecting',recovering:'recovering',settled:'settled','no-path':'noPath','entry-blocked':'entryBlocked','blocked-occupancy':'occupied',unavailable:'unavailable',cancelled:'cancelled'})[interactionPhase];
   const interactionStatus=interactionStatusKey?t(`yard.canonical.interaction.${interactionStatusKey}`):'';
   const canonicalImportant=itemMode&&(foodNotice||interactionIssue||interactionPhase==='planning'||canonicalPending||feedback||busy||!canonicalState.available||ghost&&!ghost.valid);
+  const nativeAction=!savedMode&&!itemMode&&current.nativeAction?.accountId===snapshot?.player?.id?current.nativeAction:null;
   const placedItems=itemMode?canonicalPlacements(snapshot):(yard.placedGoodies||[]);
   const decorRows=(decorTab==='placed'?placedItems.map((raw,index)=>({key:raw.slotId,id:raw.goodieId,raw,number:index+1})):decorTab==='inventory'?Object.entries(yard.goodieInventory||{}).filter(([,n])=>n>0).map(([id,count])=>({key:id,id,count})):SUPPORTED_PROPS.map(id=>({key:id,id}))).filter(item=>!itemMode||item.id==='leaf_pot');
   const selected=decorRows.find(item=>item.key===selectedDecor)||decorRows[0];
@@ -241,11 +242,10 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     const supported=itemMode?item.id==='leaf_pot':SUPPORTED_PROPS.includes(item.id),raw=item.raw;
     const prop=raw && current.props.find(p=>p.slotId===raw.slotId);
     const reserved=!itemMode && raw && current.runtime?.visits?.some(v=>v.slotId===raw.slotId && v.reserved);
-    const detail=decorTab==='shop'?cost(YARD_GOODIES[item.id].cost):decorTab==='inventory'?t('yard.persistent.stock',{count:item.count})+(supported?'':` · ${t('yard.persistent.savedUnsupported')}`):!supported?t('yard.persistent.savedScenePending'):reserved?t('yard.persistent.occupied'):prop?.readiness?.status==='reposition-needed'?t('yard.persistent.safeApproach'):raw.condition!=='new'?t('yard.persistent.repairNeeded'):prop?t('yard.persistent.inYard'):t('yard.persistent.chooseSpot');
+    const detail=decorTab==='shop'?cost(YARD_GOODIES[item.id].cost):decorTab==='inventory'?t('yard.persistent.stock',{count:item.count})+(supported?'':` · ${t('yard.persistent.savedUnsupported')}`):!supported?t('yard.persistent.savedScenePending'):reserved?t('yard.persistent.occupied'):prop?.readiness?.status==='reposition-needed'?t(nativeAction?.admitted&&nativeAction.available&&raw.goodieId==='yarn_mouse'&&raw.condition==='new'?'yard.persistent.inYard':'yard.persistent.safeApproach'):raw.condition!=='new'?t('yard.persistent.repairNeeded'):prop?t('yard.persistent.inYard'):t('yard.persistent.chooseSpot');
     return {supported,prop,reserved,detail};
   };
   const chosen=selected && itemState(selected);
-  const nativeAction=!savedMode&&!itemMode&&current.nativeAction?.accountId===snapshot?.player?.id?current.nativeAction:null;
   nativeSelection.current={slotId:decorTab==='placed'?selected?.raw?.slotId:null,native:nativeAction};
   useLayoutEffect(()=>{nativeController.current?.sync();nativeController.current?.observe(nativeAction);},[nativeAction,selected?.raw?.slotId,decorTab,snapshot,actionSession]);
   const nativeOwnFeedback=nativeAction&&nativeCommand.ownerId===nativeAction.ownerId&&(nativeCommand.slotId===selected?.raw?.slotId||nativeCommand.phase==='cancelled');

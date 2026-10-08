@@ -377,7 +377,7 @@ test('Mika current-pose continuation: source entry rejection at88,65 remains unp
 });
 
 
-const nativeUiLabels={en:{go:'Go to item',ready:'Ready to walk',already:'Already by this item',arrived:'By the item',refused:'Cannot reach this item',cancelled:'Walk cancelled'},ru:{go:'К предмету',ready:'Готов к подходу',already:'Уже рядом с предметом',arrived:'Рядом с предметом',refused:'Не добраться до предмета',cancelled:'Подход отменён'}};
+const nativeUiLabels={en:{go:'Go to item',inYard:'In the yard',ready:'Ready to walk',already:'Already by this item',arrived:'By the item',refused:'Cannot reach this item',cancelled:'Walk cancelled'},ru:{go:'К предмету',inYard:'Во дворе',ready:'Готов к подходу',already:'Уже рядом с предметом',arrived:'Рядом с предметом',refused:'Не добраться до предмета',cancelled:'Подход отменён'}};
 async function openNativeItems(page,slot){
  await page.locator('[data-nav-item="decor"]').click();await expect(page.locator('.cy-dialog')).toBeVisible();
  if(slot)await page.locator(`.cy-catalog-choice[data-slot-id="${slot}"]`).click();
@@ -391,9 +391,10 @@ for(const language of ['en','ru'])test(`Mika selected item UI: ${language} actua
   await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});
   await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000}).toBe('parked');const first=await qa(page),surface=await page.locator('.cy-scene').boundingBox(),label=nativeUiLabels[language];
   let go=await openNativeItems(page);await expect(go).toHaveAttribute('data-slot-id','qa-mouse');await expect(go).toHaveText(label.go);await expect(go).toBeEnabled();
-  assert((await go.getAttribute('aria-label')).includes(label.go));await go.click();await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.locator('[data-native-status="already"] .cy-native-status-text')).toHaveText(label.already);
+  assert((await go.getAttribute('aria-label')).includes(label.go));if(language==='ru'){await go.focus();await expect(go).toBeFocused();await page.screenshot({path:info.outputPath('native-selected-ru-keyboard-focus.png')});await go.press('Enter');}else await go.click();await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.locator('[data-native-status="already"] .cy-native-status-text')).toHaveText(label.already);await expect(page.locator('[data-nav-item="decor"]')).toBeFocused();
   assert.equal((await qa(page)).actionsStarted,1);assert.deepEqual((await qa(page)).position,first.position);
   go=await openNativeItems(page,'qa-mouse-next');await expect(go).toBeEnabled();await expect(go).toHaveAttribute('data-slot-id','qa-mouse-next');
+  const itemName=await page.locator('.cy-selected-actions strong').innerText();assert((await go.getAttribute('aria-label')).includes(itemName));await expect(page.locator('.cy-selected-actions small')).toHaveText(label.inYard);
   const button=await go.boundingBox();assert(button.width>=44&&button.height>=44);await page.screenshot({path:info.outputPath(`native-selected-${language}-footer.png`)});
   const requestedAt=Date.now();await go.click();await expect(page.locator('.cy-dialog')).not.toBeVisible();
   await expect.poll(async()=>(await qa(page))?.actionsStarted,{timeout:10000}).toBe(2);const admitted=await qa(page);assert.equal(admitted.actorInstance,first.actorInstance);assert.deepEqual(admitted.plan.start,first.position);assert.equal(admitted.itemApproach.target.slotId,'qa-mouse-next');
