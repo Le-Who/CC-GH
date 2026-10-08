@@ -140,7 +140,7 @@ export function sampleMikaLocomotion(route,calibration,time) {
   if(!bound)throw Error('UNPREPARED_MIKA_ROUTE');
   if(JSON.stringify(calibration)!==bound.signature)throw Error('MIKA_ROUTE_CALIBRATION_MISMATCH');
   calibration=bound.calibration;
-  const g=calibration.gait,B=calibration.bones,root=route.rootAt(time),yaw=root.heading,ph=route.phaseAt(time),feet={};
+  const g=calibration.gait,root=route.rootAt(time),ph=route.phaseAt(time),feet={};
   const swapped={foreNear:'foreFar',foreFar:'foreNear',hindNear:'hindFar',hindFar:'hindNear'};
   const target=(f,t)=>{const r=route.rootAt(t);return add(r.position,point(rz(r.heading),calibration.neutralPaws[f]));};
   for(const f of calibration.phaseOrder) {
@@ -156,7 +156,17 @@ export function sampleMikaLocomotion(route,calibration,time) {
     feet[f]={paw,yaw:pawYaw,curl,contact,load,stage:contact?'support':'swing',surface:'ground',terrainZ:0,stanceId:`${f}:${k}`,swingStart:a,swingEnd:b,nextSwingStart:next};
   }
   const lead=route.rootAt(time+g.leadAheadSeconds).heading-route.rootAt(time-g.leadBehindSeconds).heading;
-  const roll=lead*g.rollPerLead,lower=g.lower,bones=Object.fromEntries(Object.entries(B).map(([n,b])=>[n,multiply(rz(yaw),b.matrix)])),trans={};
+  return solveMikaLocomotionPose(calibration,{root,time,phase:ph,contacts:feet,lead});
+}
+
+/** Shared P2 body/IK evaluation for already scheduled flat-ground contacts.
+ * This does not select a route, cadence or root speed. Each call builds fresh
+ * absolute matrices; it never blends or accumulates a prior model transform.
+ */
+export function solveMikaLocomotionPose(calibration,{root,time,phase:ph,contacts,lead=0,lower=calibration.gait.lower,headPitch=0}) {
+  validateCalibration(calibration);
+  const g=calibration.gait,B=calibration.bones,yaw=root.heading,feet=Object.fromEntries(Object.entries(contacts).map(([name,foot])=>[name,{...foot}]));
+  const roll=lead*g.rollPerLead,bones=Object.fromEntries(Object.entries(B).map(([n,b])=>[n,multiply(rz(yaw),b.matrix)])),trans={};
   const put=(n,p,r)=>{bones[n]=at(multiply(r,B[n].matrix),p);trans[n]=multiply(bones[n],inverse(B[n].matrix));};
   const totalLoad=Math.max(1e-9,Object.values(feet).reduce((s,f)=>s+f.load,0));
   const supportSide=Object.values(feet).reduce((s,f)=>s+point(rz(-yaw),sub(f.paw,root.position))[1]*f.load,0)/totalLoad;
@@ -165,7 +175,7 @@ export function sampleMikaLocomotion(route,calibration,time) {
   for(const [n,ang,pitch,r] of [['pelvis',yaw-lead*.20,-.08*lower,roll*.6],['lumbar',yaw+lead*.33,.10*lower,roll*.8],['chest',yaw+lead*.70,.28*lower,roll],['neck',yaw+lead*.83,.40*lower,roll*.4]]) {
     const R=rot(ang,pitch,r);put(n,p,R);p=add(p,point(R,sub(B[n].tail,B[n].head)));
   }
-  put('head',p,rot(yaw+lead,.65*lower,roll*.3));
+  put('head',p,rot(yaw+lead,headPitch+.65*lower,roll*.3));
   const reachFailures=[];
   for(const f of calibration.phaseOrder) {
     const leg=calibration.limbs[f],foot=feet[f],hip=point(trans[calibration.hipBindings[f].anchor],leg.hip),pr=rot(foot.yaw,foot.curl,0);

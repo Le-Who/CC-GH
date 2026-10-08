@@ -4,7 +4,7 @@ import {MIKA_ITEM_FOOTPRINTS} from '../../../../game-logic/yard-v2/mika-item-geo
 import {foodVesselExclusion} from '../../../../game-logic/yard-v2/food-media.mjs';
 import {canonical, deepFreeze} from '../../../../game-logic/yard-v2/util.mjs';
 import mask from './meadow-mask.json' with {type: 'json'};
-import {planMikaYardQaCruise} from './mika-yard-route.mjs';
+import {planMikaYardQaCruise, planMikaYardQaArrival} from './mika-yard-route.mjs';
 
 const fail = reason => ({ok: false, reason});
 const text = value => typeof value === 'string' && value.length > 0 && value.length <= 128;
@@ -71,7 +71,13 @@ function bodyGap(body, box) {
 /** End near, outside and facing a real item. The whole native body must clear
  * all source-owned obstacles. Exhaustion blocks instead of changing the route
  * or falling back to a decorative cruise. No stop/interaction clip is implied. */
-export function planMikaItemApproach(bound, calibration, envelope, {acceptSweep = () => true} = {}) {
+export function planMikaItemApproach(bound, calibration, envelope, options = {}) {
+  return planItemPassage(bound, calibration, envelope, options, false);
+}
+export function planMikaItemArrival(bound, calibration, envelope, options = {}) {
+  return planItemPassage(bound, calibration, envelope, options, true);
+}
+function planItemPassage(bound, calibration, envelope, {acceptSweep = () => true} = {}, withArrival) {
   if (!bound?.ok || !bound.binding?.items?.length) return fail('NATIVE_ITEM_TARGET_UNAVAILABLE');
   for (const target of bound.binding.items) {
     // At most 64 nearby start candidates, translated with the current item.
@@ -80,7 +86,7 @@ export function planMikaItemApproach(bound, calibration, envelope, {acceptSweep 
       const angle = index * Math.PI / 8;
       return {x: target.x + radius * Math.cos(angle), y: target.y + radius * Math.sin(angle)};
     })).filter(finitePoint);
-    const plan = planMikaYardQaCruise(bound.binding.layout, calibration, envelope, {acceptSweep, candidateStarts,
+    const plan = (withArrival ? planMikaYardQaArrival : planMikaYardQaCruise)(bound.binding.layout, calibration, envelope, {acceptSweep, candidateStarts,
       acceptCandidate({start, end, heading, endBody}) {
         const dx = target.x - end.x, dy = target.y - end.y, distance = Math.hypot(dx, dy);
         const gap = bodyGap(endBody, target.box);
@@ -89,7 +95,7 @@ export function planMikaItemApproach(bound, calibration, envelope, {acceptSweep 
           && (Math.cos(heading) * dx + Math.sin(heading) * dy) / distance >= Math.cos(Math.PI / 6);
       }});
     if (plan.ok) return {ok: true, plan, target, bindingKey: bound.key,
-      action: 'finite-item-approach', durationSeconds: 4, interactionReady: false};
+      action: withArrival ? 'finite-item-arrival' : 'finite-item-approach', durationSeconds: plan.duration, interactionReady: false};
   }
   return fail('NO_CLEAR_NATIVE_ITEM_APPROACH');
 }

@@ -1,4 +1,4 @@
-/** QA-only finite P2 cruise in the actual normal Courtyard app.
+/** QA-only finite P2 cruise or item arrival in the actual normal Courtyard app.
  * Source-backed ephemeral fixture seeding precedes navigation. No browser Yard
  * command is allowed. Runtime camera, props, gait, clock and actor state are
  * never patched. Async loading races are covered by source tests, not this spec.
@@ -16,18 +16,20 @@ const expected=process.env.MIKA_QA_EXPECT_ENABLED;
 if(!['true','false'].includes(expected))throw Error('Set MIKA_QA_EXPECT_ENABLED=true or false for the separately built app');
 const off=expected==='false';
 const itemApproach=process.env.MIKA_QA_EXPECT_ITEM_APPROACH==='true';
-const completedReason=itemApproach?'FINITE_ITEM_APPROACH_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION';
+const arrival=process.env.MIKA_QA_EXPECT_ARRIVAL==='true',expectedDuration=arrival?6:4;
+const captureTargets=arrival?[.2,3.9,4.25,4.9,5.8]:[.2,2,3.6];
+const completedReason=arrival?'FINITE_ITEM_ARRIVAL_ENDED_NO_INTERACTION':itemApproach?'FINITE_ITEM_APPROACH_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION';
 test.use({serviceWorkers:'block'}); // viewport/DPR come exclusively from projects.
 const read=page=>page.evaluate(()=>window.__yardMikaQa?.snapshot());
 const qa=async page=>(await read(page))?.scene?.qaMika;
 
 // Instrumentation only: observe actual WebGL->normal Canvas2D copies. Capture
-// the full actor alpha raster at three frames, then the finished normal canvas
+// the full actor alpha raster at the requested phase landmarks, then the finished normal canvas
 // after that same RAF call stack. No getContext/pixel/render behavior is changed.
-function installPixelProbe({capturePixels=true}={}){
+function installPixelProbe({capturePixels=true,captureTargets=[.2,2,3.6]}={}){
  const webgl=new WeakSet(),get=HTMLCanvasElement.prototype.getContext,draw=CanvasRenderingContext2D.prototype.drawImage;
  const proof={instrumentedPixels:capturePixels,captures:[],errors:[],first:null,last:null,copies:0,recording:null,recordingDone:false,states:[]};
- let recorder,stream,chunks=[],pending=false;const targets=[.2,2,3.6];
+ let recorder,stream,chunks=[],pending=false;const targets=captureTargets;
  const png=canvas=>canvas.toDataURL('image/png').split(',')[1];
  HTMLCanvasElement.prototype.getContext=function(type,...args){const value=get.call(this,type,...args);if(value&&/^(webgl|webgl2|experimental-webgl)$/.test(type))webgl.add(this);return value;};
  CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
@@ -84,8 +86,18 @@ async function readyRunning(page,{itemPosition=[64,54]}={}){
  await expect.poll(async()=>{const d=await qa(page);if(d&&['blocked','unavailable','aborted','complete'].includes(d.phase))throw Error('Cruise never observed running: '+JSON.stringify(d));return d?.phase==='running'&&d.frames>0;},{timeout:30000,intervals:[25,50,100]}).toBe(true);
  const d=await qa(page);assert.equal(d.normalCamera,true);assert.equal(d.diagnosticCameraFit,false);assert.equal(d.rootOwner,'navigation');assert.equal(d.assetSha256,SHA);assert.equal(d.bones,22);
  const view=(await read(page)).scene.view;assert.equal(view.props.length,itemApproach?1:2);
- if(itemApproach){assert.equal(d.itemApproach.action,'finite-item-approach');assert.equal(d.itemApproach.target.slotId,'qa-mouse');assert.equal(d.itemApproach.target.x,itemPosition[0]);assert.equal(d.itemApproach.target.y,itemPosition[1]);assert.equal(d.itemApproach.interactionReady,false);assert.equal(d.itemApproach.savedVisitReady,false);}
+ if(itemApproach){assert.equal(d.itemApproach.action,arrival?'finite-item-arrival':'finite-item-approach');assert.equal(d.itemApproach.target.slotId,'qa-mouse');assert.equal(d.itemApproach.target.x,itemPosition[0]);assert.equal(d.itemApproach.target.y,itemPosition[1]);assert.equal(d.itemApproach.interactionReady,false);assert.equal(d.itemApproach.savedVisitReady,false);}
  return d;
+}
+function arrivalEvidence(proof){
+ if(!arrival)return;
+ const settling=proof.captures.find(c=>c.time>=4.25&&c.time<4.9),idle=proof.captures.at(-1);
+ assert(settling,'A real deceleration frame is required');
+ assert.equal(settling.state.itemApproach.motionPhase,'arrival');
+ assert(settling.state.itemApproach.rootSpeed>0&&settling.state.itemApproach.rootSpeed<.74);
+ assert.equal(idle.state.itemApproach.motionPhase,'standing-idle');assert.equal(idle.state.itemApproach.rootSpeed,0);
+ const stopped=proof.captures.find(c=>c.time>=4.9);
+ assert(Math.hypot(stopped.state.position.x-idle.state.position.x,stopped.state.position.y-idle.state.position.y)<1e-8);
 }
 function unchanged(context){assert.deepEqual(context.commands,[],'No browser Yard commands');assert.deepEqual(context.fixture.player('account-a').yard,context.initial,'No Yard mutation after source-backed fixture setup');assert.deepEqual(context.errors,[]);}
 function retired(d){assert.equal(d.resources.graphicsRetired,true);assert.equal(d.resources.rgbaBytes,0);assert.equal(d.resources.retainedModelCPUUpperBound,0);assert.equal(d.resources.retainedModelGPUBytes,0);}
@@ -93,7 +105,7 @@ async function evidence(page,info,context,error){
  const proof=await page.evaluate(()=>window.__mikaPixelProof??null).catch(()=>null);
  for(const [i,c]of (proof?.captures??[]).entries()){if(c.normalPNG)await info.attach(`normal-yard-${i}-${c.time.toFixed(3)}s.png`,{body:Buffer.from(c.normalPNG,'base64'),contentType:'image/png'});if(c.actorPNG)await info.attach(`actual-actor-alpha-${i}.png`,{body:Buffer.from(c.actorPNG,'base64'),contentType:'image/png'});delete c.normalPNG;delete c.actorPNG;}
  if(proof?.recording){await info.attach(proof.instrumentedPixels?'normal-yard-instrumented-pixel-proof.webm':'normal-yard-clean-1x-canvas.webm',{body:Buffer.from(proof.recording,'base64'),contentType:'video/webm'});delete proof.recording;}
- await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:'1a66a9df3d177d1b8308bab223ad6f647a76f98a',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
+ await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:arrival?'8aab52a32e6eb6bf3bdd8083dd9ec3d4691823db':'1a66a9df3d177d1b8308bab223ad6f647a76f98a',durationSeconds:expectedDuration,mode:arrival?'finite-item-arrival':itemApproach?'finite-item-approach':'finite-qa-cruise',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:arrival?'Source-action current-item placement, actual normal camera and six-second approach/contact-aware arrival/standing idle. Clean recording uses lightweight draw observation; pixel probes are instrumented. No saved visit, interaction, general navigation or performance acceptance.':'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
 }
 
 async function finish(page,info,context,failure,screenshot){
@@ -110,26 +122,26 @@ async function finish(page,info,context,failure,screenshot){
  if(!failure&&first)throw first;
 }
 
-test('Mika normal Yard: four-second seeded cruise, real pixels and retirement',async({page},info)=>{
+test(`Mika normal Yard: ${arrival?'six-second item arrival':'four-second seeded cruise'}, real pixels and retirement`,async({page},info)=>{
  test.skip(off,'Enabled QA build case');test.setTimeout(60000);const c=await setup(page);let failure;
  try{
-  await page.addInitScript(installPixelProbe);await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page);
+  await page.addInitScript(installPixelProbe,{captureTargets});await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page);
   await expect.poll(async()=>(await qa(page))?.phase,{timeout:20000,intervals:[50,100]}).toBe('complete');
   await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
-  const d=await qa(page),p=await page.evaluate(()=>window.__mikaPixelProof);assert.equal(d.reason,completedReason);assert(d.time>=4&&d.time<5);assert(d.frames>=12);retired(d);assert.deepEqual(p.errors,[]);assert.equal(p.captures.length,3);assert(p.copies>=12);assert(p.stopWall-p.first.wall>=3500);assert(p.recording.length>1000);
+  const d=await qa(page),p=await page.evaluate(()=>window.__mikaPixelProof);assert.equal(d.reason,completedReason);assert(d.time>=expectedDuration&&d.time<expectedDuration+1);assert(d.frames>=12);retired(d);assert.deepEqual(p.errors,[]);assert.equal(p.captures.length,captureTargets.length);arrivalEvidence(p);assert(p.copies>=12);assert(p.stopWall-p.first.wall>=expectedDuration*1000-500);assert(p.recording.length>1000);
   for(const capture of p.captures){assert(capture.time>=capture.target&&capture.time<capture.target+.35,'Capture must correspond to its named real-time interval');const b=capture.actorAlpha;assert(b.count>100,'Actual rendered actor pixels required');assert(b.minX>0&&b.minY>0&&b.maxX<b.width-1&&b.maxY<b.height-1,'Complete visible alpha bounds stay within frame');}
-  const first=p.captures[0].actorAlpha.centroid,last=p.captures[2].actorAlpha.centroid;assert(Math.hypot(last.x-first.x,last.y-first.y)>5,'Actual actor raster centroid must travel more than five CSS pixels on DPR1 QA surface');assert.notDeepEqual(p.captures[0].state.position,p.captures[2].state.position);assert.equal(c.assetRequests.length,1);assert.equal(c.assetResponses.length,1);const bytes=await c.assetResponses[0].body();assert.equal(bytes.length,ENCODED);assert.equal(createHash('sha256').update(bytes).digest('hex'),SHA);
+  const first=p.captures[0].actorAlpha.centroid,last=p.captures.at(-1).actorAlpha.centroid;assert(Math.hypot(last.x-first.x,last.y-first.y)>5,'Actual actor raster centroid must travel more than five CSS pixels on DPR1 QA surface');assert.notDeepEqual(p.captures[0].state.position,p.captures.at(-1).state.position);assert.equal(c.assetRequests.length,1);assert.equal(c.assetResponses.length,1);const bytes=await c.assetResponses[0].body();assert.equal(bytes.length,ENCODED);assert.equal(createHash('sha256').update(bytes).digest('hex'),SHA);
   assert.equal(d.resources.encodedGLBBytes,ENCODED);assert.equal(d.resources.modelCPUUpperBound,11013960);assert.equal(d.resources.modelGPUBytes,3538220);unchanged(c);
  }catch(e){failure=e;throw e;}finally{await finish(page,info,c,failure,failure?'normal-yard-failure.png':'normal-yard-complete.png');}
 });
 
-test('Mika normal Yard: four-second seeded cruise clean 1x recording',async({page},info)=>{
+test(`Mika normal Yard: ${arrival?'six-second item arrival':'four-second seeded cruise'} clean 1x recording`,async({page},info)=>{
  test.skip(off,'Enabled QA build case');test.setTimeout(60000);const c=await setup(page);let failure;
  try{
   await page.addInitScript(installPixelProbe,{capturePixels:false});await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page);
   await expect.poll(async()=>(await qa(page))?.phase,{timeout:20000,intervals:[50,100]}).toBe('complete');
   await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
-  const d=await qa(page),p=await page.evaluate(()=>window.__mikaPixelProof);assert.equal(d.reason,completedReason);assert(d.time>=4&&d.time<5);assert(d.frames>=12);retired(d);assert.deepEqual(p.errors,[]);assert.equal(p.captures.length,0);assert.equal(p.instrumentedPixels,false);assert(p.stopWall-p.first.wall>=3500);assert(p.recording.length>1000);unchanged(c);
+  const d=await qa(page),p=await page.evaluate(()=>window.__mikaPixelProof);assert.equal(d.reason,completedReason);assert(d.time>=expectedDuration&&d.time<expectedDuration+1);assert(d.frames>=12);retired(d);assert.deepEqual(p.errors,[]);assert.equal(p.captures.length,0);assert.equal(p.instrumentedPixels,false);assert(p.stopWall-p.first.wall>=expectedDuration*1000-500);assert(p.recording.length>1000);unchanged(c);
  }catch(e){failure=e;throw e;}finally{await finish(page,info,c,failure);}
 });
 
@@ -161,19 +173,19 @@ test('Mika normal Yard: off-build never requests the QA actor',async({page},info
 
 
 
-for(const itemPosition of [[70,70],[60,45]])test(`Mika normal Yard: current persisted item at ${itemPosition.join(',')} drives native approach`,async({page},info)=>{
+for(const itemPosition of [[70,70],[60,45]])test(`Mika normal Yard: current persisted item at ${itemPosition.join(',')} drives native ${arrival?'arrival':'approach'}`, async({page},info)=>{
  test.skip(off||!itemApproach,'Explicit finite-item candidate only');test.setTimeout(60000);
  const c=await setup(page,{itemPosition});let failure;
  try{
-  await page.addInitScript(installPixelProbe);await page.goto(c.fixture.origin+'/?tab=room');
+  await page.addInitScript(installPixelProbe,{captureTargets});await page.goto(c.fixture.origin+'/?tab=room');
   await readyRunning(page,{itemPosition});
   await expect.poll(async()=>(await qa(page))?.phase,{timeout:20000,intervals:[50,100]}).toBe('complete');
   await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
   const d=await qa(page),p=await page.evaluate(()=>window.__mikaPixelProof);
   assert.equal(d.reason,completedReason);assert.equal(d.itemApproach.target.x,itemPosition[0]);assert.equal(d.itemApproach.target.y,itemPosition[1]);
-  assert.equal(d.itemApproach.interactionReady,false);assert.equal(p.captures.length,3);assert.deepEqual(p.errors,[]);
+  assert.equal(d.itemApproach.interactionReady,false);assert.equal(p.captures.length,captureTargets.length);arrivalEvidence(p);assert.deepEqual(p.errors,[]);
   for(const capture of p.captures){const b=capture.actorAlpha;assert(b.count>100);assert(b.minX>0&&b.minY>0&&b.maxX<b.width-1&&b.maxY<b.height-1);}
-  assert.notDeepEqual(p.captures[0].state.position,p.captures[2].state.position);retired(d);unchanged(c);
+  assert.notDeepEqual(p.captures[0].state.position,p.captures.at(-1).state.position);retired(d);unchanged(c);
  }catch(e){failure=e;throw e;}finally{await finish(page,info,c,failure,failure?'item-approach-failure.png':undefined);}
 });
 
@@ -239,4 +251,23 @@ for(const language of ['en','ru'])test(`Mika normal Yard: navigation labels and 
   await page.screenshot({path:info.outputPath(`nav-${language}-keyboard-focus.png`)});
   unchanged(c);
  }catch(e){failure=e;throw e;}finally{await finish(page,info,c,failure,failure?`nav-${language}-failure.png`:undefined);}
+});
+
+
+test('Mika normal Yard: current target relocation during arrival retires the native owner',async({page},info)=>{
+ test.skip(off||!arrival,'Explicit arrival candidate only');test.setTimeout(60000);const c=await setup(page);let failure;
+ try{
+  await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page);
+  await expect.poll(async()=>{const d=await qa(page);return d?.phase==='running'&&d.time>=4.05;},{timeout:15000,intervals:[20,30]}).toBe(true);
+  const payload={slotId:'qa-mouse',x:70,y:70};
+  const response=await fetch(c.fixture.origin+'/api/player/mutate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'tma fixture-a'},body:JSON.stringify({action:'yard.moveGoodie',payload,clientActionId:'yard-v2:mika-arrival-relocate'})});
+  const body=await response.json();c.receipts.push({action:'yard.moveGoodie',payload,status:response.status,body});
+  assert.equal(response.status,200);assert.equal(body.error,undefined);assert(body.snapshot);
+  c.fixture.emitPlayerSync(body.snapshot);
+  await expect.poll(async()=>(await qa(page))?.reason,{timeout:5000}).toBe('LAYOUT_CHANGED');
+  const d=await qa(page);assert.equal(d.phase,'aborted');retired(d);
+  const current=c.fixture.player('account-a').yard;assert.equal(current.placedGoodies[0].x,70);assert.equal(current.placedGoodies[0].y,70);
+  assert.deepEqual(current.goodieInventory,c.initial.goodieInventory);assert.deepEqual(current.currencies,c.initial.currencies);
+  assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
+ }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'arrival-relocation-failure.png':undefined);}
 });
