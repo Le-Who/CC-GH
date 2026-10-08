@@ -40,10 +40,14 @@ jobs:
         run: |
           mkdir -p test-results/mika-normal
           node --test --test-concurrency=1 tests/yard-mika-departure.test.mjs tests/yard-mika-turn-away.test.mjs tests/yard-mika-current-pose.test.mjs tests/yard-mika-arrival.test.mjs tests/yard-mika-item-arrival.test.mjs tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-renderer-chunk.test.mjs > test-results/mika-normal/source-tests.log
-      - name: Collect compact clean latency diagnostic
+      - name: Collect affected cache, camera, framing and cancellation cases
         run: |
-          MIKA_QA_PHASE=collection-clean MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'clean two-item recording to 88,62' --list > test-results/mika-normal/collection-clean.log
-          test "$(grep -c 'clean two-item recording to 88,62' test-results/mika-normal/collection-clean.log)" -eq 1
+          MIKA_QA_PHASE=collection-framed pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --project portrait390 --project landscape844 --grep 'actual two-item arrival to 87,54' --list > test-results/mika-normal/collection-framed.log
+          test "$(grep -c 'actual two-item arrival to 87,54' test-results/mika-normal/collection-framed.log)" -eq 3
+          MIKA_QA_PHASE=collection-interrupted pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'actual two-item arrival to 87,57|moving the selected item during turn|source entry rejection' --list > test-results/mika-normal/collection-interrupted.log
+          test "$(grep -c 'Mika current-pose continuation:' test-results/mika-normal/collection-interrupted.log)" -eq 3
+          MIKA_QA_PHASE=collection-clean MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'clean two-item recording to 87,54' --list > test-results/mika-normal/collection-clean.log
+          test "$(grep -c 'clean two-item recording to 87,54' test-results/mika-normal/collection-clean.log)" -eq 1
       - name: Build explicit current-pose candidate, never deployment
         env:
           NODE_ENV: production
@@ -52,10 +56,16 @@ jobs:
           pnpm run build | tee test-results/mika-normal/build.log
           tar -czf test-results/mika-normal/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/assets/*.js
       - name: Install official Chromium
+        id: browser
         run: pnpm exec playwright install --with-deps chromium
-      # Inspect actual request/RAF/cache evidence before expanding this rerun.
-      - name: Compact clean same-actor latency and lifetime diagnostic
-        run: MIKA_QA_PHASE=current-pose-clean-compact MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'clean two-item recording to 88,62'
+      - name: Three normal cameras with exact cached composite and framed target
+        run: MIKA_QA_PHASE=current-pose-framed pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --project portrait390 --project landscape844 --grep 'actual two-item arrival to 87,54'
+      - name: Alternate target, source refusal and in-turn cancellation
+        if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
+        run: MIKA_QA_PHASE=current-pose-interrupted pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'actual two-item arrival to 87,57|moving the selected item during turn|source entry rejection'
+      - name: Clean framed two-leg recording with phase-specific RAF aggregates
+        if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
+        run: MIKA_QA_PHASE=current-pose-clean-framed MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'clean two-item recording to 87,54'
       - name: Preserve original bounded current-pose evidence
         if: always()
         uses: actions/upload-artifact@v4

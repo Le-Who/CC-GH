@@ -9,6 +9,7 @@ import {createHash} from 'node:crypto';
 import {startSwFixture} from './helpers/swFixture.mjs';
 import {selectHomeGame} from './helpers/home.js';
 import {applyActionWithReceipt} from '../../routes/player.js';
+import {createProjection} from '../../src/games/companion-yard-v2/projection.mjs';
 
 const SHA='2249774f8ced124451d3c46a8a69bc06a9889c7d9cc31c836a6dd868fd96f084';
 const ASSET='/assets/yard-mika-p2-qa/p2.glb',ENCODED=3671320;
@@ -30,8 +31,8 @@ const requestNativeAction=(page,slot)=>page.evaluate(async slot=>{const start=pe
 // after that same RAF call stack. No getContext/pixel/render behavior is changed.
 function installPixelProbe({capturePixels=true,captureTargets=[.2,2,3.6],captureSteps=null,completeActions=0}={}){
  const webgl=new WeakSet(),get=HTMLCanvasElement.prototype.getContext,draw=CanvasRenderingContext2D.prototype.drawImage;
- const proof={instrumentedPixels:capturePixels,captures:[],errors:[],first:null,last:null,copies:0,recording:null,recordingDone:false,states:[],raf:{samples:0,maxGapMs:0,worst:null,gapsOver100ms:[]}};
- let recorder,stream,chunks=[],pending=false,lastRaf=null;const targets=captureTargets;
+ const proof={instrumentedPixels:capturePixels,captures:[],errors:[],first:null,last:null,copies:0,recording:null,recordingDone:false,states:[],raf:{samples:0,maxGapMs:0,worst:null,gapsOver100ms:[],byPhase:{}}};
+ let recorder,stream,chunks=[],pending=false,lastRaf=null,lastPhase=null;const targets=captureTargets;
  const png=canvas=>canvas.toDataURL('image/png').split(',')[1];
  HTMLCanvasElement.prototype.getContext=function(type,...args){const value=get.call(this,type,...args);if(value&&/^(webgl|webgl2|experimental-webgl)$/.test(type))webgl.add(this);return value;};
  CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
@@ -61,7 +62,7 @@ function installPixelProbe({capturePixels=true,captureTargets=[.2,2,3.6],capture
    }
   }catch(e){proof.errors.push(String(e));}return result;
  };
- function observe(stamp){const state=window.__yardMikaQa?.snapshot()?.scene?.qaMika;if(proof.first&&!proof.stopWall&&lastRaf!==null&&lastRaf>=proof.first.wall){const gap=stamp-lastRaf,row={start:lastRaf,end:stamp,gapMs:gap,phase:state?.phase,action:state?.actionsStarted};proof.raf.samples++;if(gap>proof.raf.maxGapMs){proof.raf.maxGapMs=gap;proof.raf.worst=row;}if(gap>100&&proof.raf.gapsOver100ms.length<40)proof.raf.gapsOver100ms.push(row);}lastRaf=stamp;if(state&&proof.states.at(-1)?.phase!==state.phase)proof.states.push({phase:state.phase,time:state.time,reason:state.reason});if(recorder?.state==='recording'&&(completeActions?(!['running','parked','planning'].includes(state?.phase)||state.actionsCompleted>=completeActions):state?.phase!=='running')){proof.stopWall=performance.now();recorder.stop();}requestAnimationFrame(observe);}
+ function observe(stamp){const state=window.__yardMikaQa?.snapshot()?.scene?.qaMika;if(proof.first&&!proof.stopWall&&lastRaf!==null&&lastRaf>=proof.first.wall){const gap=stamp-lastRaf,row={start:lastRaf,end:stamp,gapMs:gap,phase:state?.phase,action:state?.actionsStarted};proof.raf.samples++;const key=lastPhase===state?.phase?state?.phase:lastPhase+'->'+state?.phase,aggregate=proof.raf.byPhase[key]??={samples:0,maxGapMs:0,worst:null};aggregate.samples++;if(gap>aggregate.maxGapMs){aggregate.maxGapMs=gap;aggregate.worst=row;}if(gap>proof.raf.maxGapMs){proof.raf.maxGapMs=gap;proof.raf.worst=row;}if(gap>100&&proof.raf.gapsOver100ms.length<40)proof.raf.gapsOver100ms.push(row);}lastRaf=stamp;lastPhase=state?.phase??null;if(state&&proof.states.at(-1)?.phase!==state.phase)proof.states.push({phase:state.phase,time:state.time,reason:state.reason});if(recorder?.state==='recording'&&(completeActions?(!['running','parked','planning'].includes(state?.phase)||state.actionsCompleted>=completeActions):state?.phase!=='running')){proof.stopWall=performance.now();recorder.stop();}requestAnimationFrame(observe);}
  requestAnimationFrame(observe);window.__mikaPixelProof=proof;
 }
 async function setup(page,{itemPosition=[64,54],language='en',additionalItems=[],info=null}={}){
@@ -306,7 +307,7 @@ test('Mika normal Yard: current target relocation during arrival retires the nat
 
 
 const continuationCaptureSteps=[{action:1,time:.2},{action:1,time:5.8},{action:1,time:6},{action:2,time:2},{action:2,time:5.35},{action:2,time:6.4},{action:2,time:7.4},{action:2,time:9.4},{action:2,time:11.2}];
-for(const nextPosition of [[88,62],[87,57]])test(`Mika current-pose continuation: ${continuationClean?'clean two-item recording':'actual two-item arrival'} to ${nextPosition.join(',')}`,async({page},info)=>{
+for(const nextPosition of [[88,62],[87,57],[87,54]])test(`Mika current-pose continuation: ${continuationClean?'clean two-item recording':'actual two-item arrival'} to ${nextPosition.join(',')}`,async({page},info)=>{
  test.skip(off||!continuation,'Explicit current-pose candidate only');test.setTimeout(90000);
  const c=await setup(page,{itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',...nextPosition]],info});let failure;
  try{
@@ -323,6 +324,7 @@ for(const nextPosition of [[88,62],[87,57]])test(`Mika current-pose continuation
   const unchangedPose=await qa(page);assert.deepEqual(unchangedPose.position,parked.position);assert.equal(unchangedPose.heading,parked.heading);assert.equal(unchangedPose.time,parked.time);assert.equal(unchangedPose.actorInstance,parked.actorInstance);
   c.nativeActions.push(await invoke('qa-mouse-next'));assert.equal(c.nativeActions.at(-1).ok,true);
   const started=await qa(page);assert.equal(started.actionsStarted,2);assert.equal(started.actorInstance,parked.actorInstance);assert.deepEqual(started.plan.start,parked.position);assert.equal(started.plan.heading,parked.heading);assert.equal(started.itemApproach.target.x,nextPosition[0]);assert.equal(started.itemApproach.target.y,nextPosition[1]);
+  const normalProjection=(await read(page)).scene.projection,p=createProjection(normalProjection.width,normalProjection.height),box=started.itemApproach.target.box,corners=[{x:box.x,y:box.y},{x:box.x+box.width,y:box.y},{x:box.x,y:box.y+box.height},{x:box.x+box.width,y:box.y+box.height}].map(point=>p.project(point));const framing={target:nextPosition,viewport:normalProjection,corners,fullFootprintInside:corners.every(q=>q.x>=3&&q.x<=p.width-3&&q.y>=3&&q.y<=p.height-3)};await info.attach('target-framing.json',{body:Buffer.from(JSON.stringify(framing,null,2)),contentType:'application/json'});if(nextPosition[0]===87&&nextPosition[1]===54)assert.equal(framing.fullFootprintInside,true,'The demonstrated target footprint must fit the actual normal camera');
   c.nativeActions.push(await invoke('qa-mouse-next'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ACTOR_NOT_SETTLED');
   await expect.poll(async()=>(await qa(page))?.actionsCompleted,{timeout:25000,intervals:[40,80]}).toBe(2);
   await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
