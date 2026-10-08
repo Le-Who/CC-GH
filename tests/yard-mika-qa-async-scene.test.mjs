@@ -116,3 +116,19 @@ test('scene render failure retires pending native admission before a late view a
   h.failDraw();h.tick(1300);assert.deepEqual(errors,['BACKGROUND_DRAW_FAILED']);assert.deepEqual(aborted,['SCENE_FAILED']);assert.equal(scene.commitPresentation(pending),false);assert.equal(scene.diagnostics().ready,false);
  }finally{await scene?.dispose();h.restore();}
 });
+
+for(const change of ['account-roundtrip','session','retirement'])test(`native async admission cannot escape owner ${change}`,async()=>{
+ const oldWindow=globalThis.window;globalThis.window=new EventTarget();let owner;const gate=deferred(),session={},calls=[];
+ try{
+  const body=readFileSync(new URL('../src/games/companion-yard-v2/scene-owner.mjs',import.meta.url),'utf8').replace(/^import[^\n]*\n/gm,'').replace('export function','function');
+  const make=new Function('PIP_GROUNDING_PREVIEW_RECIPE','PresentationClock','isCanonicalItemIntent',body+';return createSceneOwner;')('baseline',class{update(){}read(){return 0;}},()=>false);
+  owner=make({width:308,height:346,style:{}},{directHost:{style:{}},createLegacy:()=>({ready:Promise.resolve(),update(){},requestMikaItemArrival:(slot,scope)=>{calls.push({slot,scope});return gate.promise;},dispose(){},diagnostics:()=>({})})});
+  owner.update({player:{id:'a'}},{accountSession:session});await owner.ready;
+  assert.equal((await owner.requestMikaItemArrival('second',{ownerId:1,accountId:'a',accountSession:{}})).ok,false);assert.equal(calls.length,0);
+  const request=owner.requestMikaItemArrival('second',{ownerId:1,accountId:'a',accountSession:session});
+  if(change==='account-roundtrip'){owner.update({player:{id:'b'}},{accountSession:session});owner.update({player:{id:'a'}},{accountSession:session});}
+  if(change==='session')owner.update({player:{id:'a'}},{accountSession:{}});
+  if(change==='retirement')await owner.setPrototypeEnabled(false);
+  gate.resolve({ok:true,action:2});assert.deepEqual(await request,{ok:false,reason:'NATIVE_ACTION_CANCELLED'});
+ }finally{gate.resolve({ok:false});await owner?.dispose();if(oldWindow===undefined)delete globalThis.window;else globalThis.window=oldWindow;}
+});

@@ -3,6 +3,19 @@ import "../companion-yard/i18n.js";
 
 export const PERSISTENT_YARD_TRANSLATIONS = {
   en: {
+    "yard.native.go": "Go to item",
+    "yard.native.goName": "Go to item: {item}",
+    "yard.native.cancel": "Cancel walk",
+    "yard.native.preparing": "Getting ready",
+    "yard.native.ready": "Ready to walk",
+    "yard.native.unavailable": "Walk unavailable",
+    "yard.native.planning": "Finding a path",
+    "yard.native.moving": "Moving to the item",
+    "yard.native.arrived": "By the item",
+    "yard.native.already": "Already by this item",
+    "yard.native.refused": "Cannot reach this item",
+    "yard.native.cancelled": "Walk cancelled",
+
     "yard.canonical.food.reentry": "The yard layout changed during Pip’s preview. Reopen New Yard to show the bowl safely. Your food and placements are saved.",
     "yard.canonical.food.reentryShort": "Yard layout changed",
     "yard.canonical.food.reenter": "Reopen Yard",
@@ -187,6 +200,19 @@ export const PERSISTENT_YARD_TRANSLATIONS = {
     "yard.persistent.error.letter": "Today’s letter has already been opened.",
   },
   ru: {
+    "yard.native.go": "К предмету",
+    "yard.native.goName": "К предмету: {item}",
+    "yard.native.cancel": "Отменить подход",
+    "yard.native.preparing": "Подготовка",
+    "yard.native.ready": "Готов к подходу",
+    "yard.native.unavailable": "Подход недоступен",
+    "yard.native.planning": "Ищет путь",
+    "yard.native.moving": "Идёт к предмету",
+    "yard.native.arrived": "Рядом с предметом",
+    "yard.native.already": "Уже рядом с предметом",
+    "yard.native.refused": "Не добраться до предмета",
+    "yard.native.cancelled": "Подход отменён",
+
     "yard.canonical.food.reentry": "Планировка изменилась во время предпросмотра Пипа. Откройте новый двор заново, чтобы безопасно показать миску. Еда и размещения сохранены.",
     "yard.canonical.food.reentryShort": "Двор изменился",
     "yard.canonical.food.reenter": "Открыть заново",

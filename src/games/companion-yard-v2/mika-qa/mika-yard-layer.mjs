@@ -34,7 +34,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
  if(typeof reserveRGBA!=='function')throw Error('QA_RESOURCE_OWNER_REQUIRED');
  let THREE,model,driver,renderer,lighting,scene,camera,canvas,disposed=false,graphicsRetired=false,phase='loading',reason=null,plan=null,originStamp=null,lastResult=null,layoutStamp=null,account=null,accountObserved=false,allocatedPixels=0,rgbaBytes=0,modelGPUBytes=0;
  const actorInstance=++nextActorInstance;
- let heldCanvas=null,heldKey=null,heldBytes=0,gpuRenders=0,parkedRasterCopies=0;
+ let heldCanvas=null,heldKey=null,heldBytes=0,gpuRenders=0,parkedRasterCopies=0,presentedAction=0,presentedTime=0,activeCommandToken=null;
  let itemCandidate=null,latestSnapshot=null,latestContext=null,actionsStarted=0,actionsCompleted=0,lastActionResult=null,pendingPlanning=null,planningAbort=null,retirementPromise=null,planningMetrics=null;
  continuation=continuation===true&&itemApproach===true;
  const trace=[];let currentTime=0,frames=0,maximumEnvelopeRadius=0,projectionStamp=null,interruption=null;
@@ -44,7 +44,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
   if(heldBytes){rgbaBytes-=heldBytes;heldBytes=0;if(reaccount&&!graphicsRetired)reserveRGBA(rgbaBytes);}
  }
  function releaseGraphics(){
-  if(graphicsRetired)return;graphicsRetired=true;clearHeldFrame(false);driver?.dispose();lighting?.dispose();
+  if(graphicsRetired)return;graphicsRetired=true;activeCommandToken=null;clearHeldFrame(false);driver?.dispose();lighting?.dispose();
   const geometries=new Set(),materials=new Set(),skeletons=new Set();model?.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)for(const m of Array.isArray(o.material)?o.material:[o.material])materials.add(m);if(o.skeleton)skeletons.add(o.skeleton);});
   canvas?.removeEventListener('webglcontextlost',onLost);for(const value of [...skeletons,...geometries,...materials])value.dispose();renderer?.dispose();renderer?.forceContextLoss();if(canvas){canvas.width=0;canvas.height=0;}
   reserveRGBA(0);rgbaBytes=0;model=null;driver=null;renderer=null;lighting=null;scene=null;camera=null;canvas=null;
@@ -81,7 +81,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
   if(layoutStamp!==null&&layoutStamp!==key)stop('aborted','LAYOUT_CHANGED');layoutStamp=key;
  }
  const cameraAdmission=projection=>(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}));
- function requestItemArrival(slotId){
+ function requestItemArrival(slotId,scope={}){
   const refuse=reason=>lastActionResult={ok:false,reason},immediate=reason=>Promise.resolve(refuse(reason));
   if(!continuation||disposed||graphicsRetired)return immediate('NATIVE_ACTION_UNAVAILABLE');
   if(phase!=='parked'||pendingPlanning||!lastResult||!latestContext)return immediate('NATIVE_ACTOR_NOT_SETTLED');
@@ -89,6 +89,7 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
   if(!bound.ok||bound.key!==latestContext.bound.key){stop('aborted',bound.reason||'NATIVE_ITEM_BINDING_CHANGED');return immediate(reason);}
   if(slotId===itemCandidate.target.slotId)return immediate('ALREADY_ARRIVED');
   const controller=planningAbort=new AbortController(),stopped=structuredClone(lastResult.sample),previousReason=reason;
+  activeCommandToken=scope?.commandToken??null;
   const started=performance.now();planningMetrics={slices:0,batches:0,maxBatchMs:0,maxSliceMs:0,cpuMs:0,wallMs:null,cancelled:false};
   phase='planning';reason='NATIVE_PATH_PLANNING';traceState();
   let task;
@@ -101,12 +102,12 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
     if(controller.signal.aborted||disposed||graphicsRetired||phase!=='planning'||planningAbort!==controller)return refuse(reason||'NATIVE_ACTION_CANCELLED');
     const current=bindMikaPersistedItems(latestSnapshot,latestContext?.view);
     if(!current.ok||current.key!==bound.key){stop('aborted',current.reason||'NATIVE_ITEM_BINDING_CHANGED');return refuse(reason);}
-    if(!candidate.ok){phase='parked';reason=previousReason;traceState();return refuse(candidate.reason);}
+    if(!candidate.ok){activeCommandToken=null;phase='parked';reason=previousReason;traceState();return refuse(candidate.reason);}
     clearHeldFrame();itemCandidate=candidate;plan=candidate.plan;originStamp=null;currentTime=0;phase='running';reason=null;actionsStarted++;traceState();
     return lastActionResult={ok:true,action:actionsStarted,targetSlotId:slotId};
    }catch(error){
     if(controller.signal.aborted||disposed||graphicsRetired)return refuse(reason||'NATIVE_ACTION_CANCELLED');
-    phase='parked';reason=previousReason;traceState();return refuse(String(error.message));
+    activeCommandToken=null;phase='parked';reason=previousReason;traceState();return refuse(String(error.message));
    }finally{
     planningMetrics.wallMs=performance.now()-started;planningMetrics.cancelled=controller.signal.aborted;
     if(planningAbort===controller)planningAbort=null;if(pendingPlanning===task)pendingPlanning=null;
@@ -165,10 +166,10 @@ export async function createMikaYardQaLayer({itemApproach=false,continuation=fal
       }
      }
      if(originStamp===null)originStamp=presentationNow();
-     frames++;
+     frames++;presentedAction=actionsStarted;presentedTime=currentTime;
     }catch(error){stop('aborted',String(error.message));}
    },canvas,get snapshot(){return result;}};
   }catch(error){stop('aborted',String(error.message));return null;}
  }
- return{noteSnapshot,frame,requestItemArrival,abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,actorInstance,continuation,actionsStarted,actionsCompleted,planning:planningMetrics?{...planningMetrics,pending:!!pendingPlanning}:null,lastActionResult:lastActionResult?{...lastActionResult}:null,heading:lastResult?.sample?.root?.heading??null,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,itemApproach:itemApproach?{action:itemCandidate?.action??'finite-item-arrival',target:itemCandidate?.target??null,motionPhase:lastResult?.sample?.motionPhase??'approach',rootSpeed:lastResult?.sample?.rootSpeed??null,interactionReady:false,savedVisitReady:false}:null,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,heldFrameRGBABytes:heldBytes,gpuRenders,parkedRasterCopies,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:continuation?'QA only; same-actor finite current-pose actions and static parked pose; no saved visit/interaction/general navigation; layout change retires owner':itemApproach?'QA only; finite item arrival and standing idle; no saved visit/interaction; layout change aborts':'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return retirementPromise;disposed=true;planningAbort?.abort(Error('SCENE_DISPOSED'));document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();retirementPromise=Promise.resolve(pendingPlanning).then(()=>undefined,()=>undefined);return retirementPromise;}};
+ return{noteSnapshot,frame,requestItemArrival,commandState:()=>continuation?{ownerId:actorInstance,admitted:presentedAction>0,available:!disposed&&!graphicsRetired,phase,actionsStarted,presentedAction,presentedTime,duration:plan?.duration??0,targetSlotId:itemCandidate?.target?.slotId??null}:null,cancelItemArrival({ownerId,commandToken,reason='NATIVE_COMMAND_CANCELLED'}={}){if(disposed||graphicsRetired||ownerId!==actorInstance||!commandToken||commandToken!==activeCommandToken)return false;stop('aborted',reason);return true;},abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,actorInstance,continuation,actionsStarted,actionsCompleted,planning:planningMetrics?{...planningMetrics,pending:!!pendingPlanning}:null,lastActionResult:lastActionResult?{...lastActionResult}:null,heading:lastResult?.sample?.root?.heading??null,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,itemApproach:itemApproach?{action:itemCandidate?.action??'finite-item-arrival',target:itemCandidate?.target??null,motionPhase:lastResult?.sample?.motionPhase??'approach',rootSpeed:lastResult?.sample?.rootSpeed??null,interactionReady:false,savedVisitReady:false}:null,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,heldFrameRGBABytes:heldBytes,gpuRenders,parkedRasterCopies,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:continuation?'QA only; same-actor finite current-pose actions and static parked pose; no saved visit/interaction/general navigation; layout change retires owner':itemApproach?'QA only; finite item arrival and standing idle; no saved visit/interaction; layout change aborts':'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return retirementPromise;disposed=true;planningAbort?.abort(Error('SCENE_DISPOSED'));document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();retirementPromise=Promise.resolve(pendingPlanning).then(()=>undefined,()=>undefined);return retirementPromise;}};
 }

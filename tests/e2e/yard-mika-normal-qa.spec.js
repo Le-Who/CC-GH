@@ -18,6 +18,7 @@ if(!['true','false'].includes(expected))throw Error('Set MIKA_QA_EXPECT_ENABLED=
 const off=expected==='false';
 const itemApproach=process.env.MIKA_QA_EXPECT_ITEM_APPROACH==='true';
 const arrival=process.env.MIKA_QA_EXPECT_ARRIVAL==='true',expectedDuration=arrival?6:4;
+const selectedUi=process.env.MIKA_QA_EXPECT_SELECTED_UI==='true';
 const continuation=process.env.MIKA_QA_EXPECT_CONTINUATION==='true',continuationClean=process.env.MIKA_QA_CLEAN_CONTINUATION==='true';
 const captureTargets=arrival?[.2,3.9,4.25,4.9,5.8]:[.2,2,3.6];
 const completedReason=arrival?'FINITE_ITEM_ARRIVAL_ENDED_NO_INTERACTION':itemApproach?'FINITE_ITEM_APPROACH_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION';
@@ -112,7 +113,7 @@ async function evidence(page,info,context,error){
  const proof=await page.evaluate(()=>window.__mikaPixelProof??null).catch(()=>null);
  for(const [i,c]of (proof?.captures??[]).entries()){if(c.normalPNG)await info.attach(`normal-yard-${i}-${c.time.toFixed(3)}s.png`,{body:Buffer.from(c.normalPNG,'base64'),contentType:'image/png'});if(c.actorPNG)await info.attach(`actual-actor-alpha-${i}.png`,{body:Buffer.from(c.actorPNG,'base64'),contentType:'image/png'});delete c.normalPNG;delete c.actorPNG;}
  if(proof?.recording){await info.attach(proof.instrumentedPixels?'normal-yard-instrumented-pixel-proof.webm':'normal-yard-clean-1x-canvas.webm',{body:Buffer.from(proof.recording,'base64'),contentType:'video/webm'});delete proof.recording;}
- await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:continuation?'a4f00e639e1482c659c69ba11111916639609eb1':arrival?'8aab52a32e6eb6bf3bdd8083dd9ec3d4691823db':'1a66a9df3d177d1b8308bab223ad6f647a76f98a',durationSeconds:continuation?null:expectedDuration,initialDurationSeconds:expectedDuration,continuation,mode:continuation?'finite-current-pose-actions':arrival?'finite-item-arrival':itemApproach?'finite-item-approach':'finite-qa-cruise',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:continuation?'Two finite same-actor actions in the normal Yard scene. Source-bought second item; exact current stopped-pose handoff, stepped turn-away, constant-speed distance selection, arrival and explicit cleanup. No UI/saved admission, interaction, reward or general navigation.':arrival?'Source-action current-item placement, actual normal camera and six-second approach/contact-aware arrival/standing idle. Clean recording uses lightweight draw observation; pixel probes are instrumented. No saved visit, interaction, general navigation or performance acceptance.':'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,nativeActions:context.nativeActions??null,arrivalDelivery:context.arrivalDelivery??null,sceneDeliveries:await page.evaluate(()=>window.__mikaArrivalDeliveries??null).catch(()=>null),assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
+ await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:selectedUi?'7601d901e7248d6019ecd185c3e30c1b191c5a1b':continuation?'a4f00e639e1482c659c69ba11111916639609eb1':arrival?'8aab52a32e6eb6bf3bdd8083dd9ec3d4691823db':'1a66a9df3d177d1b8308bab223ad6f647a76f98a',durationSeconds:continuation?null:expectedDuration,initialDurationSeconds:expectedDuration,continuation,mode:selectedUi?'selected-persisted-item-command':continuation?'finite-current-pose-actions':arrival?'finite-item-arrival':itemApproach?'finite-item-approach':'finite-qa-cruise',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:selectedUi?'Actual normal placed-item footer drives the existing current-pose native owner. RU/EN feedback, busy/refusal/cancellation, no saved-native admission or reward. UI clicks invoke the internal scene API; no global action surrogate.':continuation?'Two finite same-actor actions in the normal Yard scene. Source-bought second item; exact current stopped-pose handoff, stepped turn-away, constant-speed distance selection, arrival and explicit cleanup. No UI/saved admission, interaction, reward or general navigation.':arrival?'Source-action current-item placement, actual normal camera and six-second approach/contact-aware arrival/standing idle. Clean recording uses lightweight draw observation; pixel probes are instrumented. No saved visit, interaction, general navigation or performance acceptance.':'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,nativeActions:context.nativeActions??null,selectedItemUi:context.uiCommandEvidence??null,arrivalDelivery:context.arrivalDelivery??null,sceneDeliveries:await page.evaluate(()=>window.__mikaArrivalDeliveries??null).catch(()=>null),assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
 }
 
 async function finish(page,info,context,failure,screenshot){
@@ -373,4 +374,54 @@ test('Mika current-pose continuation: source entry rejection at88,65 remains unp
   c.nativeActions=[await requestNativeAction(page,'qa-mouse-next')];assert.equal(c.nativeActions[0].ok,false);assert.equal(c.nativeActions[0].reason,'NATIVE_ITEM_TARGET_UNAVAILABLE');const after=await qa(page);assert.deepEqual(after.position,parked.position);assert.equal(after.actorInstance,parked.actorInstance);assert.equal(after.actionsStarted,1);unchanged(c);
   await page.screenshot({path:info.outputPath('source-entry-declined.png')});
  }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'source-entry-negative-failure.png':undefined);}
+});
+
+
+const nativeUiLabels={en:{go:'Go to item',ready:'Ready to walk',already:'Already by this item',arrived:'By the item',refused:'Cannot reach this item',cancelled:'Walk cancelled'},ru:{go:'К предмету',ready:'Готов к подходу',already:'Уже рядом с предметом',arrived:'Рядом с предметом',refused:'Не добраться до предмета',cancelled:'Подход отменён'}};
+async function openNativeItems(page,slot){
+ await page.locator('[data-nav-item="decor"]').click();await expect(page.locator('.cy-dialog')).toBeVisible();
+ if(slot)await page.locator(`.cy-catalog-choice[data-slot-id="${slot}"]`).click();
+ return page.locator('[data-yard-action="native-go-to-item"]');
+}
+for(const language of ['en','ru'])test(`Mika selected item UI: ${language} actual footer, arrival and current-pose refusal`,async({page},info)=>{
+ test.skip(!selectedUi||!continuation,'Explicit selected-item candidate only');test.setTimeout(90000);
+ const c=await setup(page,{language,itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',87,54]],info});let failure;
+ try{
+  await page.addInitScript(installPixelProbe,{capturePixels:false,completeActions:2});
+  await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});
+  await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000}).toBe('parked');const first=await qa(page),surface=await page.locator('.cy-scene').boundingBox(),label=nativeUiLabels[language];
+  let go=await openNativeItems(page);await expect(go).toHaveAttribute('data-slot-id','qa-mouse');await expect(go).toHaveText(label.go);await expect(go).toBeEnabled();
+  assert((await go.getAttribute('aria-label')).includes(label.go));await go.click();await expect(page.locator('.cy-dialog')).not.toBeVisible();await expect(page.locator('[data-native-status="already"] .cy-native-status-text')).toHaveText(label.already);
+  assert.equal((await qa(page)).actionsStarted,1);assert.deepEqual((await qa(page)).position,first.position);
+  go=await openNativeItems(page,'qa-mouse-next');await expect(go).toBeEnabled();await expect(go).toHaveAttribute('data-slot-id','qa-mouse-next');
+  const button=await go.boundingBox();assert(button.width>=44&&button.height>=44);await page.screenshot({path:info.outputPath(`native-selected-${language}-footer.png`)});
+  const requestedAt=Date.now();await go.click();await expect(page.locator('.cy-dialog')).not.toBeVisible();
+  await expect.poll(async()=>(await qa(page))?.actionsStarted,{timeout:10000}).toBe(2);const admitted=await qa(page);assert.equal(admitted.actorInstance,first.actorInstance);assert.deepEqual(admitted.plan.start,first.position);assert.equal(admitted.itemApproach.target.slotId,'qa-mouse-next');
+  go=await openNativeItems(page);await expect(go).toBeDisabled();await expect(go).toHaveAttribute('aria-busy','true');await expect(page.locator('[data-yard-action="native-cancel"]')).toBeVisible();
+  await page.screenshot({path:info.outputPath(`native-selected-${language}-busy.png`)});await page.locator('.cy-dialog header button').click();
+  await expect.poll(async()=>(await qa(page))?.actionsCompleted,{timeout:25000}).toBe(2);await expect(page.locator('[data-native-status="arrived"] .cy-native-status-text')).toHaveText(label.arrived);const terminal=await qa(page);assert.equal(terminal.actorInstance,first.actorInstance);assert.equal(terminal.itemApproach.rootSpeed,0);assert.notDeepEqual(terminal.position,first.position);
+  const afterSurface=await page.locator('.cy-scene').boundingBox();assert.equal(afterSurface.width,surface.width);assert.equal(afterSurface.height,surface.height,'Native feedback must keep the admitted canvas size stable');
+  await page.screenshot({path:info.outputPath(`native-selected-${language}-arrived.png`)});
+  go=await openNativeItems(page,'qa-mouse');await expect(go).toBeEnabled();await go.click();await expect(page.locator('[data-native-status="refused"] .cy-native-status-text')).toHaveText(label.refused);
+  const refused=await qa(page);assert.equal(refused.phase,'parked');assert.equal(refused.actionsStarted,2);assert.equal(refused.actorInstance,first.actorInstance);assert.deepEqual(refused.position,terminal.position);assert.equal(refused.heading,terminal.heading);
+  c.uiCommandEvidence={language,entry:'normal placed-item footer',defaultSlot:'qa-mouse',selectedSlot:'qa-mouse-next',requestedAt,first,admitted,terminal,refused,surface,afterSurface};unchanged(c);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
+  await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
+  await page.evaluate(()=>{window.__mikaRetiredReader=window.__yardMikaQa.snapshot;});await page.locator('.cy-home').click();await expect(page.getByTestId('home-catalogue')).toBeVisible();await selectHomeGame(page,'blox');
+  await expect.poll(()=>page.evaluate(()=>window.__mikaRetiredReader().lastRetired?.qaMika?.phase)).toBe('disposed');retired(await page.evaluate(()=>window.__mikaRetiredReader().lastRetired.qaMika));unchanged(c);
+ }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'native-selected-ui-failure.png':undefined);}
+});
+for(const interruption of ['selection','cancel','editing'])test(`Mika selected item UI: ${interruption} cancels the current command`,async({page},info)=>{
+ test.skip(!selectedUi||!continuation,'Explicit selected-item candidate only');test.setTimeout(60000);
+ const c=await setup(page,{language:'ru',itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',87,54]],info});let failure;
+ try{
+  await page.addInitScript(installPixelProbe,{capturePixels:false,completeActions:2});await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000}).toBe('parked');const parked=await qa(page);
+  await(await openNativeItems(page,'qa-mouse-next')).click();await expect.poll(async()=>{const d=await qa(page);return d?.actionsStarted===2&&d.phase==='running'&&d.time>=1;},{timeout:10000}).toBe(true);
+  await openNativeItems(page);const before=await qa(page);
+  if(interruption==='selection')await page.locator('.cy-catalog-choice[data-slot-id="qa-mouse"]').click();
+  if(interruption==='cancel')await page.locator('[data-yard-action="native-cancel"]').click();
+  if(interruption==='editing')await page.locator('[data-yard-action="move"]').click();
+  await expect.poll(async()=>(await qa(page))?.phase).toBe('aborted');const cancelled=await qa(page);assert.equal(cancelled.actorInstance,parked.actorInstance);assert.equal(cancelled.actionsStarted,2);assert.deepEqual(cancelled.position,parked.position);assert(cancelled.time<5.35);retired(cancelled);
+  if(interruption==='editing'){await expect(page.locator('.cy-placement')).toBeVisible();assert.equal(cancelled.reason,'ITEM_EDITING');}else await expect(page.locator('[data-native-status="cancelled"] .cy-native-status-text')).toHaveText(nativeUiLabels.ru.cancelled);await page.screenshot({path:info.outputPath(`native-selected-${interruption}-cancelled.png`)});
+  c.uiCommandEvidence={interruption,parked,before,cancelled};unchanged(c);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
+ }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'native-selected-cancel-failure.png':undefined);}
 });
