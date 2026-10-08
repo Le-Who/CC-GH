@@ -258,7 +258,22 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     </HudRegion>}
     {ghost && <HudRegion id="yardPlacementControls" applyLayout={false} className="cy-placement"><strong>{name(ghost.goodieId)}</strong><div><button data-yard-action="cancel-placement" onClick={cancel} disabled={!!placementPending||submittingPlacement}>{t('yard.persistent.cancel')}</button>{placementRetry?<button data-yard-action="retry-placement" onClick={retryPlacement} disabled={!ghost.valid||(isCanonicalItemIntent(ghost)?!itemMutable:!current.mutable)||submittingPlacement}>{t('yard.persistent.retrySaving')}</button>:<button data-yard-action="commit-placement" onClick={confirm} disabled={!ghost.valid||placementBlocked||submittingPlacement||!ownsPlacement(placementState,ghost)}>{t('yard.place')}</button>}</div></HudRegion>}
     <HudRegion id="yardBottomDock" as="nav" className="cy-actions" applyLayout={false} aria-label={t('yard.persistent.actions')}>
-      {[['food',t('yard.nav.food'),current.bowls.some(b=>b.servings>0)?t('yard.persistent.bowlFull'):t('yard.persistent.addFood')],['decor',t('yard.persistent.decor'),t('yard.persistent.placedCount',{count:placedItems.length})],['guests',t('yard.persistent.guests'),current.pendingGifts.length?t('yard.persistent.giftCount',{count:current.pendingGifts.length}):t('yard.persistent.memories')]].map(([id,title,detail])=><button key={id} data-nav-item={id} aria-pressed={menuSelection===id} aria-expanded={panel===id} onClick={()=>{setMenuSelection(id);setPanel(id);}} aria-label={`${title}. ${detail}`}><UiImage src={navigationArt(id)} data-nav-art={id} alt=""/><strong>{id==='decor'?t('yard.persistent.decorShort'):title}</strong></button>)}
+      {[
+        ['food',t('yard.nav.food'),current.bowls.some(b=>b.servings>0)?t('yard.persistent.bowlFull'):t('yard.persistent.addFood')],
+        ['decor',t('yard.persistent.decor'),t('yard.persistent.placedCount',{count:placedItems.length})],
+        ['guests',t('yard.persistent.guests'),current.pendingGifts.length?t('yard.persistent.giftCount',{count:current.pendingGifts.length}):t('yard.persistent.memories')],
+      ].map(([id,title,detail])=>{
+        const label=id==='decor'?t('yard.persistent.decorShort'):title;
+        // Include the short visible label for voice control without dropping
+        // the fuller localized title or the current inventory/gift detail.
+        const accessibleName=`${label===title?'':`${label}. `}${title}. ${detail}`;
+        return <button key={id} type="button" data-nav-item={id}
+          aria-pressed={menuSelection===id} aria-expanded={panel===id}
+          onClick={()=>{setMenuSelection(id);setPanel(id);}} aria-label={accessibleName}>
+          <UiImage src={navigationArt(id)} data-nav-art={id} alt=""/>
+          <strong>{label}</strong>
+        </button>;
+      })}
     </HudRegion>
     <dialog ref={dialog} className="cy-dialog" aria-labelledby="cy-dialog-title" onCancel={closePanel} onClose={closePanel}>
       <header><UiImage src={navigationArt(panel) || undefined} alt=""/><h2 id="cy-dialog-title">{{food:t('yard.nav.food'),decor:t('yard.persistent.decor'),guests:t('yard.persistent.guests')}[panel]}{panel==='decor'&&pendingSavedPickup&&<small data-saved-pickup-pending="true" role="status" aria-live="polite"> · {t('yard.persistent.saving')}</small>}</h2><button aria-label={t('yard.persistent.closePanel')} onClick={closePanel}><Icon name="close"/></button></header>
