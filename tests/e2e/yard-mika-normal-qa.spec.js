@@ -64,7 +64,7 @@ function installPixelProbe({capturePixels=true,captureTargets=[.2,2,3.6],capture
  function observe(stamp){const state=window.__yardMikaQa?.snapshot()?.scene?.qaMika;if(proof.first&&!proof.stopWall&&lastRaf!==null&&lastRaf>=proof.first.wall){const gap=stamp-lastRaf,row={start:lastRaf,end:stamp,gapMs:gap,phase:state?.phase,action:state?.actionsStarted};proof.raf.samples++;if(gap>proof.raf.maxGapMs){proof.raf.maxGapMs=gap;proof.raf.worst=row;}if(gap>100&&proof.raf.gapsOver100ms.length<40)proof.raf.gapsOver100ms.push(row);}lastRaf=stamp;if(state&&proof.states.at(-1)?.phase!==state.phase)proof.states.push({phase:state.phase,time:state.time,reason:state.reason});if(recorder?.state==='recording'&&(completeActions?(!['running','parked','planning'].includes(state?.phase)||state.actionsCompleted>=completeActions):state?.phase!=='running')){proof.stopWall=performance.now();recorder.stop();}requestAnimationFrame(observe);}
  requestAnimationFrame(observe);window.__mikaPixelProof=proof;
 }
-async function setup(page,{itemPosition=[64,54],language='en',additionalItems=[]}={}){
+async function setup(page,{itemPosition=[64,54],language='en',additionalItems=[],info=null}={}){
  const fixture=await startSwFixture({gameActions:true,gardenMode:'r2'}),receipts=[],errors=[],commands=[],assetResponses=[],assetRequests=[],loadErrors=[],failedResources=[];
  try{
   // Existing source actions, ephemeral account only. Do not edit placement arrays.
@@ -85,7 +85,7 @@ async function setup(page,{itemPosition=[64,54],language='en',additionalItems=[]
   await page.addInitScript(()=>{window.__mikaNormalCanvasDraws=0;const original=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(...args){const result=original.apply(this,args);if(this.canvas.matches?.('.cy-scene canvas'))window.__mikaNormalCanvasDraws++;return result;};});
   await page.addInitScript(language=>{localStorage.setItem('gh_dev_user_id','fixture-a');localStorage.setItem('garden_shelf_language',language);},language);
   return{fixture,receipts,initial,errors,commands,assetResponses,assetRequests,loadErrors,failedResources};
- }catch(e){try{await fixture.close();}catch(cleanup){e.fixtureCleanupError=String(cleanup.stack||cleanup);}e.seedReceipts=receipts;throw e;}
+ }catch(e){if(info)await info.attach('source-setup-receipts.json',{body:Buffer.from(JSON.stringify(receipts,null,2)),contentType:'application/json'}).catch(()=>{});try{await fixture.close();}catch(cleanup){e.fixtureCleanupError=String(cleanup.stack||cleanup);}e.seedReceipts=receipts;throw e;}
 }
 async function readyRunning(page,{itemPosition=[64,54],propCount=itemApproach?1:2}={}){
  await expect(page.locator('.cy-app')).toBeVisible({timeout:30000});
@@ -305,10 +305,10 @@ test('Mika normal Yard: current target relocation during arrival retires the nat
 });
 
 
-const continuationCaptureSteps=[{action:1,time:.2},{action:1,time:5.8},{action:2,time:2},{action:2,time:5.35},{action:2,time:6.4},{action:2,time:7.4},{action:2,time:9.4},{action:2,time:11.2}];
-for(const nextPosition of [[88,62],[88,65],[87,57]])test(`Mika current-pose continuation: ${continuationClean?'clean two-item recording':'actual two-item arrival'} to ${nextPosition.join(',')}`,async({page},info)=>{
+const continuationCaptureSteps=[{action:1,time:.2},{action:1,time:5.8},{action:1,time:6},{action:2,time:2},{action:2,time:5.35},{action:2,time:6.4},{action:2,time:7.4},{action:2,time:9.4},{action:2,time:11.2}];
+for(const nextPosition of [[88,62],[87,57]])test(`Mika current-pose continuation: ${continuationClean?'clean two-item recording':'actual two-item arrival'} to ${nextPosition.join(',')}`,async({page},info)=>{
  test.skip(off||!continuation,'Explicit current-pose candidate only');test.setTimeout(90000);
- const c=await setup(page,{itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',...nextPosition]]});let failure;
+ const c=await setup(page,{itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',...nextPosition]],info});let failure;
  try{
   await page.addInitScript(installPixelProbe,{capturePixels:!continuationClean,captureSteps:continuationCaptureSteps,completeActions:2});
   await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});
@@ -316,6 +316,8 @@ for(const nextPosition of [[88,62],[88,65],[87,57]])test(`Mika current-pose cont
   c.nativeActions=[];c.nativeActions.push(await invoke('qa-mouse-next'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ACTOR_NOT_SETTLED');
   await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000,intervals:[30,50]}).toBe('parked');
   const parked=await qa(page);assert.equal(parked.actionsCompleted,1);assert.equal(parked.resources.graphicsRetired,false);
+  await expect.poll(async()=>(await qa(page))?.resources?.parkedRasterCopies).toBeGreaterThan(1);
+  if(!continuationClean){await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.captures.some(row=>row.action===1&&row.target===6))).toBe(true);const equal=await page.evaluate(()=>window.__mikaPixelProof.captures.find(row=>row.action===1&&row.target===6).normalPNG===document.querySelector('.cy-scene canvas').toDataURL('image/png').split(',')[1]);assert.equal(equal,true,'Cached parked composite must equal its original native-render pixels');}
   c.nativeActions.push(await invoke('missing'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ITEM_TARGET_UNAVAILABLE');
   c.nativeActions.push(await invoke('qa-mouse'));assert.equal(c.nativeActions.at(-1).reason,'ALREADY_ARRIVED');
   const unchangedPose=await qa(page);assert.deepEqual(unchangedPose.position,parked.position);assert.equal(unchangedPose.heading,parked.heading);assert.equal(unchangedPose.time,parked.time);assert.equal(unchangedPose.actorInstance,parked.actorInstance);
@@ -337,7 +339,7 @@ for(const nextPosition of [[88,62],[88,65],[87,57]])test(`Mika current-pose cont
 
 test('Mika current-pose continuation: moving the selected item during turn cancels without pose reset',async({page},info)=>{
  test.skip(off||!continuation,'Explicit current-pose candidate only');test.setTimeout(90000);
- const c=await setup(page,{itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',88,62]]});let failure;
+ const c=await setup(page,{itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',88,62]],info});let failure;
  try{
   await page.addInitScript(installPixelProbe,{capturePixels:false,completeActions:2});await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});
   await expect.poll(()=>c.fixture.realtimeConnections()).toBeGreaterThan(0);
@@ -354,4 +356,19 @@ test('Mika current-pose continuation: moving the selected item during turn cance
   c.nativeActions.push(await requestNativeAction(page,'qa-mouse-next'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ACTION_UNAVAILABLE');assert.equal(c.assetRequests.length,1);assert.deepEqual(current.yard.goodieInventory,c.initial.goodieInventory);assert.deepEqual(current.yard.currencies,c.initial.currencies);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
   await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
  }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'current-pose-cancel-failure.png':undefined);}
+});
+
+
+test('Mika current-pose continuation: source entry rejection at88,65 remains unplaced and unavailable',async({page},info)=>{
+ test.skip(off||!continuation,'Explicit current-pose candidate only');test.setTimeout(60000);const c=await setup(page,{itemPosition:[60,45],info});let failure;
+ try{
+  const player=c.fixture.player('account-a'),purchase=await applyActionWithReceipt(player,'yard.buyGoodie',{goodieId:'yarn_mouse'},{clientActionId:'yard-v2:mika-entry-buy',gardenR2Enabled:true});
+  c.receipts.push({action:'yard.buyGoodie',status:purchase.status,body:purchase.body});assert.equal(purchase.status,200);assert.equal(purchase.body.error,undefined);c.initial=structuredClone(player.yard);
+  const payload={goodieId:'yarn_mouse',slotId:'qa-mouse-next',x:88,y:65},result=await applyActionWithReceipt(player,'yard.placeGoodie',payload,{clientActionId:'yard-v2:mika-entry-invalid',gardenR2Enabled:true});
+  c.receipts.push({action:'yard.placeGoodie',payload,status:result.status,body:result.body});await info.attach('source-entry-rejection.json',{body:Buffer.from(JSON.stringify(c.receipts,null,2)),contentType:'application/json'});
+  assert.equal(result.status,400);assert(JSON.stringify(result.body).includes('EXCLUSION_COLLISION'));assert.deepEqual(player.yard,c.initial);
+  await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45]});await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000}).toBe('parked');const parked=await qa(page);
+  c.nativeActions=[await requestNativeAction(page,'qa-mouse-next')];assert.equal(c.nativeActions[0].ok,false);assert.equal(c.nativeActions[0].reason,'NATIVE_ITEM_TARGET_UNAVAILABLE');const after=await qa(page);assert.deepEqual(after.position,parked.position);assert.equal(after.actorInstance,parked.actorInstance);assert.equal(after.actionsStarted,1);unchanged(c);
+  await page.screenshot({path:info.outputPath('source-entry-declined.png')});
+ }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'source-entry-negative-failure.png':undefined);}
 });

@@ -112,7 +112,8 @@ function planItemContinuation(bound,calibration,envelope,stoppedSample,targetSlo
  if(!bound?.ok||!text(targetSlotId))return fail('NATIVE_ITEM_TARGET_UNAVAILABLE');
  const target=structuredClone(bound.binding.items.find(item=>item.slotId===targetSlotId&&item.goodieId==='yarn_mouse')),bindingKey=bound.key;
  if(!target)return fail('NATIVE_ITEM_TARGET_UNAVAILABLE');
- const planned=(incremental?planMikaYardQaContinuationAsync:planMikaYardQaContinuation)(bound.binding.layout,calibration,envelope,stoppedSample,{acceptSweep,...asyncOptions,
+ const facesTarget=({start,end,heading})=>{const dx=target.x-end.x,dy=target.y-end.y,distance=Math.hypot(dx,dy);return distance>0&&Math.hypot(target.x-start.x,target.y-start.y)-distance>=10&&(Math.cos(heading)*dx+Math.sin(heading)*dy)/distance>=Math.cos(Math.PI/6);};
+ const planned=(incremental?planMikaYardQaContinuationAsync:planMikaYardQaContinuation)(bound.binding.layout,calibration,envelope,stoppedSample,{acceptSweep,...asyncOptions,acceptEndpoint:facesTarget,
   acceptCandidate({start,end,heading,endBody}){
    const dx=target.x-end.x,dy=target.y-end.y,distance=Math.hypot(dx,dy),gap=bodyGap(endBody,target.box);
    return gap>0&&gap<=8&&distance>0&&Math.hypot(target.x-start.x,target.y-start.y)-distance>=10

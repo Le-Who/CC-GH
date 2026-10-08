@@ -3,6 +3,7 @@ import{createMikaYardQaLayer}from'../src/games/companion-yard-v2/mika-qa/mika-ya
 import{createProjection,CAMERA_DIRECTION}from'../src/games/companion-yard-v2/projection.mjs';
 import {mikaItemFixture} from './fixtures/mika-item-input.mjs';
 const vendor=new URL('../src/games/companion-yard-v2/pip-prototype/vendor/three/',import.meta.url);registerHooks({resolve(s,c,n){return n(s==='three'?new URL('build/three.module.js',vendor).href:s,c);}});
+const parkedCanvasFactory=()=>({width:0,height:0,getContext:()=>({drawImage(){}})});
 const THREE=await import('three'),{GLTFLoader}=await import(new URL('addons/loaders/GLTFLoader.js',vendor));
 for(const [width,height] of [[320,420],[390,650],[844,252]])test(`persisted-item native approach uses the normal camera ${width}x${height} and cancels current target changes`,async()=>{
  const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});let layer;
@@ -68,7 +69,7 @@ test('continued owner reuses one actual model across both actions, refuses in pl
  const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});let layer,releasePlanner;
  try{
   const bytes=readFileSync(new URL('../public/assets/yard-mika-p2-qa/p2.glb',import.meta.url)),canvas=Object.assign(new EventTarget(),{width:1,height:1});let fetches=0,now=1000,modelState,holdPlanning=false;
-  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,yieldPlanning:()=>new Promise(resolve=>{if(holdPlanning)releasePlanner=resolve;else setTimeout(resolve,0);}),cameraDirection:CAMERA_DIRECTION,presentationNow:()=>now,reserveRGBA:()=>true,canvasFactory:()=>canvas,
+  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,parkedCanvasFactory,yieldPlanning:()=>new Promise(resolve=>{if(holdPlanning)releasePlanner=resolve;else setTimeout(resolve,0);}),cameraDirection:CAMERA_DIRECTION,presentationNow:()=>now,reserveRGBA:()=>true,canvasFactory:()=>canvas,
    fetchImpl:async()=>{fetches++;return{ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)};},
    loadDependencies:async()=>[THREE,{GLTFLoader},{createPipGardenLighting:()=>({dispose(){}})}],
    rendererFactory:()=>({shadowMap:{},setPixelRatio(){},setClearColor(){},setSize(w,h){canvas.width=w;canvas.height=h;},
@@ -102,7 +103,7 @@ test('same-layout runtime revocation during yielded planning cannot acknowledge 
  const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});let layer,release;
  try{
   const bytes=readFileSync(new URL('../public/assets/yard-mika-p2-qa/p2.glb',import.meta.url)),canvas=Object.assign(new EventTarget(),{width:1,height:1});let firstYield=true;
-  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,cameraDirection:CAMERA_DIRECTION,presentationNow:()=>1000,reserveRGBA:()=>true,canvasFactory:()=>canvas,
+  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,parkedCanvasFactory,cameraDirection:CAMERA_DIRECTION,presentationNow:()=>1000,reserveRGBA:()=>true,canvasFactory:()=>canvas,
    yieldPlanning:()=>firstYield?(firstYield=false,new Promise(resolve=>release=resolve)):Promise.resolve(),
    fetchImpl:async()=>({ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}),
    loadDependencies:async()=>[THREE,{GLTFLoader},{createPipGardenLighting:()=>({dispose(){}})}],
@@ -117,4 +118,40 @@ test('same-layout runtime revocation during yielded planning cannot acknowledge 
   const d=layer.diagnostics();assert.equal(d.phase,'aborted');assert.equal(d.actionsStarted,1);assert.equal(d.actorInstance,parked.actorInstance);assert.deepEqual(d.position,parked.position);assert.equal(d.resources.graphicsRetired,true);assert.equal(d.resources.retainedModelGPUBytes,0);assert.equal(d.planning.pending,false);
   assert.equal(layer.frame({...args,stamp:8000}),null);assert.equal((await layer.requestItemArrival('second')).ok,false);
  }finally{release?.();await layer?.dispose();globalThis.document=oldDocument;}
+});
+
+for(const interruption of ['viewport','camera','dpr','context-loss'])test(`parked actor cache accounts one surface and invalidates light/pose ownership before ${interruption}`,async()=>{
+ const oldDocument=globalThis.document,oldDpr=globalThis.devicePixelRatio;globalThis.document=Object.assign(new EventTarget(),{hidden:false});globalThis.devicePixelRatio=1;let layer;
+ try{
+  const bytes=readFileSync(new URL('../public/assets/yard-mika-p2-qa/p2.glb',import.meta.url)),canvas=Object.assign(new EventTarget(),{width:1,height:1}),held=[];let light=1,reserved=0,gpu=0,normalCopies=0,shadows=0;
+  const direction=[...CAMERA_DIRECTION];
+  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,cameraDirection:direction,presentationNow:()=>1000,reserveRGBA:n=>{reserved=n;return true;},canvasFactory:()=>canvas,
+   parkedCanvasFactory:()=>{const c={width:0,height:0,getContext:()=>({drawImage(source){assert.equal(source,canvas);}})};held.push(c);return c;},
+   fetchImpl:async()=>({ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}),
+   loadDependencies:async()=>[THREE,{GLTFLoader},{createPipGardenLighting:()=>({get diagnostics(){return{light};},dispose(){}})}],
+   rendererFactory:()=>({shadowMap:{},setPixelRatio(){},setClearColor(){},setSize(w,h){canvas.width=w;canvas.height=h;},render(){gpu++;},dispose(){},forceContextLoss(){}})});
+  const {snapshot,view}=mikaItemFixture([{slotId:'first',goodieId:'yarn_mouse',x:60,y:45,condition:'new'},{slotId:'second',goodieId:'yarn_mouse',x:88,y:62,condition:'new'}]);
+  const args={snapshot,view,projection:createProjection(308,346),sceneGeometry:{},shadow:()=>shadows++},draw=stamp=>{const f=layer.frame({...args,stamp});assert.ok(f);f.draw({drawImage(){normalCopies++;}});};
+  draw(1000);draw(7010);const atPark=gpu,expected=308*346*4;assert.equal(held.length,1);assert.equal(reserved,308*346*16+expected);assert.equal(layer.diagnostics().resources.heldFrameRGBABytes,expected);
+  shadows=0;const priorCopies=normalCopies;draw(7500);draw(8000);assert.equal(gpu,atPark);assert.equal(normalCopies-priorCopies,2,'Exactly one actor composite per normal frame');assert.equal(shadows,10,'One root and four support shadows per parked frame');assert.equal(layer.diagnostics().resources.parkedRasterCopies,2);
+  light=2;draw(8500);assert.equal(gpu,atPark+1);assert.equal(held.length,2);assert.equal(held[0].width,0);assert.equal(held[0].height,0);assert.equal(reserved,308*346*20);
+  if(interruption==='viewport')args.projection=createProjection(320,360);
+  if(interruption==='camera')direction[0]+=.1;
+  if(interruption==='dpr')globalThis.devicePixelRatio=2;
+  if(interruption==='context-loss')canvas.dispatchEvent(new Event('webglcontextlost',{cancelable:true}));
+  assert.equal(layer.frame({...args,stamp:9000}),null);assert.equal(layer.diagnostics().phase,'aborted');assert.equal(reserved,0);assert.equal(layer.diagnostics().resources.heldFrameRGBABytes,0);assert(held.every(c=>c.width===0&&c.height===0));
+ }finally{await layer?.dispose();globalThis.document=oldDocument;if(oldDpr===undefined)delete globalThis.devicePixelRatio;else globalThis.devicePixelRatio=oldDpr;}
+});
+
+test('parked-raster budget refusal allocates no hidden surface and retires all native graphics',async()=>{
+ const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});let layer;
+ try{
+  const bytes=readFileSync(new URL('../public/assets/yard-mika-p2-qa/p2.glb',import.meta.url)),canvas=Object.assign(new EventTarget(),{width:1,height:1});let heldAllocations=0,reserved=0;
+  layer=await createMikaYardQaLayer({itemApproach:true,continuation:true,cameraDirection:CAMERA_DIRECTION,presentationNow:()=>1000,reserveRGBA:n=>{if(n>308*346*16+16)return false;reserved=n;return true;},canvasFactory:()=>canvas,parkedCanvasFactory:()=>{heldAllocations++;return parkedCanvasFactory();},
+   fetchImpl:async()=>({ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}),loadDependencies:async()=>[THREE,{GLTFLoader},{createPipGardenLighting:()=>({dispose(){}})}],
+   rendererFactory:()=>({shadowMap:{},setPixelRatio(){},setClearColor(){},setSize(w,h){canvas.width=w;canvas.height=h;},render(){},dispose(){},forceContextLoss(){}})});
+  const {snapshot,view}=mikaItemFixture([{slotId:'first',goodieId:'yarn_mouse',x:60,y:45,condition:'new'}]);const args={snapshot,view,projection:createProjection(308,346),sceneGeometry:{},shadow:()=>{}};
+  layer.frame({...args,stamp:1000}).draw({drawImage(){}});layer.frame({...args,stamp:7010}).draw({drawImage(){}});
+  const d=layer.diagnostics();assert.equal(d.phase,'blocked');assert.equal(d.reason,'QA_PARKED_SURFACE_BUDGET');assert.equal(heldAllocations,0);assert.equal(reserved,0);assert.equal(d.resources.heldFrameRGBABytes,0);assert.equal(d.resources.retainedModelGPUBytes,0);
+ }finally{await layer?.dispose();globalThis.document=oldDocument;}
 });

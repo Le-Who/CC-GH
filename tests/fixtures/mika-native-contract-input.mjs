@@ -16,7 +16,7 @@ export function mikaNativeContractInput() {
       nativePose: '90420bd4dc92addab685e5b18fc5c08eefedf988f3c9c462645c5b3c34f0f2ae',
       geometry: '16ede4fd610218357f3b63e8711ec1b611141a1a2b62a30e4a597b6d7a11cba3',
       arrival: '7ceccd5a9abdd195b02f89d6bb8fe9f35436dd736dcfe928c2823a8154be79af',
-      cruise: '0f565691e8ba72f30dc09b9765892e6cd1085d219279c6e5aa164c468f4e3682',
+      cruise: 'f7e9db16bb0e48d0bee96c8d3380d795215d2a80db31a44d39c6a5867b9b7fb1',
       departure: '8a96269248f74b6d988a348eeb0b2bbcfeee792a38750e105ccd363b5235f685',
       turnAway: 'd7309e7ab937a4988f1d2060a0a3552306f65c4f5c5528ee0a1dbd90f37da5fb',
     },

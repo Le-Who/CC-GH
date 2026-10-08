@@ -134,27 +134,42 @@ const planningTask=signal=>new Promise((resolve,reject)=>{
 /** Same candidate iterator as the synchronous geometry oracle. Yield actual
  * tasks so normal Yard rendering and cancellation can run between small batches.
  */
-export async function planMikaYardQaContinuationAsync(layout,calibration,envelope,stoppedSample,{signal,yieldTask=planningTask,onSlice=()=>{},...options}={}){
+export async function planMikaYardQaContinuationAsync(layout,calibration,envelope,stoppedSample,{signal,yieldTask=planningTask,onSlice=()=>{},onBatch=()=>{},...options}={}){
  const job=iterateMikaContinuation(layout,calibration,envelope,stoppedSample,options);
- try{for(;;){signal?.throwIfAborted();const start=performance.now(),step=job.next();onSlice(performance.now()-start,step.value?.stage??'result');if(step.done)return step.value;await yieldTask(signal);}}
- finally{job.return();}
+ try{for(;;){
+  const batchStart=performance.now();let steps=0;
+  for(;;){signal?.throwIfAborted();const start=performance.now(),step=job.next();steps++;onSlice(performance.now()-start,step.value?.stage??'result');
+   if(step.done){onBatch(performance.now()-batchStart,steps);return step.value;}
+   // A single immutable preparation step can exceed this scheduling budget.
+   // Preserve that measured tail rather than claiming a hard wall-clock cap.
+   if(performance.now()-batchStart>=8){onBatch(performance.now()-batchStart,steps);break;}
+  }
+  await yieldTask(signal);
+ }}finally{job.return();}
 }
-function* iterateMikaContinuation(layout,calibration,envelope,stoppedSample,{acceptSweep=()=>true,acceptCandidate=()=>true}={}){
+function* iterateMikaContinuation(layout,calibration,envelope,stoppedSample,{acceptSweep=()=>true,acceptCandidate=()=>true,acceptEndpoint=()=>true}={}){
  calibration=structuredClone(calibration);envelope=structuredClone(envelope);
  if(!validLayout(layout))return{ok:false,reason:'UNSUPPORTED_QA_LAYOUT'};
  const initial=structuredClone(stoppedSample),position=initial?.root?.position,initialHeading=initial?.root?.heading;
  if(!Array.isArray(position)||position.length!==3||!position.every(Number.isFinite)||!Number.isFinite(initialHeading))return{ok:false,reason:'UNQUALIFIED_MIKA_STOPPED_POSE'};
  const frozen=structuredClone(layout),start={x:position[0]*U,y:position[1]*U},departureSeconds=2;
- let candidates=0;
+ let candidates=0;const rootProfiles=new Map();
  for(const turnAway of [0,-Math.PI/2,Math.PI/2])for(const cruiseSeconds of [2,3,4])for(const turn of [-Math.PI/12,Math.PI/12]){
   yield {stage:'candidate-start'}; // Refused candidates yield as well.
   let pivot;try{pivot=turnAway?prepareMikaTurnAway(calibration,initial,turnAway):null;}catch(error){return{ok:false,reason:String(error.message)};}
   const pivotSeconds=pivot?.durationSeconds??0,duration=pivotSeconds+departureSeconds+cruiseSeconds+2,launchPose=pivot?pivot.sample(pivotSeconds):initial,heading=launchPose.root.heading;
-  candidates++;const relative=continuationRoot(turn,cruiseSeconds),offset=calibration.gait.referenceSpeed*(departureSeconds-.9/2);
+  candidates++;const profileKey=turn+':'+cruiseSeconds;
+  if(!rootProfiles.has(profileKey))rootProfiles.set(profileKey,continuationRoot(turn,cruiseSeconds));
+  const relative=rootProfiles.get(profileKey),offset=calibration.gait.referenceSpeed*(departureSeconds-.9/2);
   // Earlier straight history belongs only to the untouched constant-speed
   // scheduler. The displayed departure has its own contact/acceleration owner.
   const rootAt=t=>{const r=t<0?{position:[calibration.gait.referenceSpeed*t,0,0],heading:0}:relative(t);
    const p=transform({x:offset+r.position[0],y:r.position[1]},heading,1,{x:position[0],y:position[1]});return{position:[p.x,p.y,0],heading:heading+r.heading};};
+  const endCruise=rootAt(cruiseSeconds),arrivalTravel=calibration.gait.referenceSpeed*.9/2;
+  const estimatedEnd={x:U*(endCruise.position[0]+arrivalTravel*Math.cos(endCruise.heading)),y:U*(endCruise.position[1]+arrivalTravel*Math.sin(endCruise.heading))};
+  // Necessary heading/progress predicates only. Full final-body and swept
+  // geometry still decide admission after contact preparation.
+  if(acceptEndpoint({start:{...start},end:estimatedEnd,heading:endCruise.heading})!==true)continue;
   let sampleAt;
   yield {stage:'root-profile'};
   try{
