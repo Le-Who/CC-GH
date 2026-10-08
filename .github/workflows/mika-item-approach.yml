@@ -36,7 +36,7 @@ jobs:
       - name: Check finite runtime, source pins, old replay and saved Pip compatibility
         run: |
           mkdir -p test-results/mika-normal
-          node --test --test-concurrency=1 tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-navigation-chrome.test.mjs > test-results/mika-normal/source-tests.log
+          node --test --test-concurrency=1 tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-navigation-chrome.test.mjs tests/yard-renderer-chunk.test.mjs > test-results/mika-normal/source-tests.log
       - name: Collect exact existing normal-Yard browser tests
         run: |
           MIKA_QA_PHASE=collection pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'real pixels' --list > test-results/mika-normal/collection.log

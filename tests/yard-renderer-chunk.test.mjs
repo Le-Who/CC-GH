@@ -86,7 +86,7 @@ test('the static renderer closure stays executable with only the pure receipt ha
   const runtime = [...seen].filter(source => source.startsWith('game-logic/yard-v2/') && source.endsWith('.mjs'));
   const hash = 'game-logic/yard-v2/sha256.mjs';
   const core = runtime.filter(source => source !== hash);
-  assert.deepEqual([...YARD_RUNTIME_CORE_MODULES].sort(), core.sort()); assert.equal(core.length, 26); assert.equal(runtime.length, 27);
+  assert.deepEqual([...YARD_RUNTIME_CORE_MODULES].sort(), core.sort()); assert.equal(core.length, 27); assert.equal(runtime.length, 28);
   assert.equal(yardRendererChunk(path.join(root, hash), root), 'yard-wire-hash');
   assert.doesNotMatch(await readFile(path.join(root, hash), 'utf8'), /^\s*import\b/m, 'Boot hash must not pull the lazy runtime back in');
   for (const source of runtime) assert.equal(YARD_CONTRACT_DATA_MODULES.has(source), false);
@@ -95,7 +95,7 @@ test('the static renderer closure stays executable with only the pure receipt ha
     core: { type: 'chunk', fileName: 'assets/yard-runtime-core.js', isEntry: false, imports: ['assets/yard-wire-hash.js'], dynamicImports: [], modules: Object.fromEntries(core.map(source => [path.join(root, source), { renderedLength: 1 }])) },
     hash: { type: 'chunk', fileName: 'assets/yard-wire-hash.js', isEntry: false, imports: [], dynamicImports: [], modules: { [path.join(root, hash)]: { renderedLength: 1 } } },
   });
-  assert.equal(graph.chunks[0].dataOnly, false); assert.equal(graph.chunks[0].gameModules.length, 26);
+  assert.equal(graph.chunks[0].dataOnly, false); assert.equal(graph.chunks[0].gameModules.length, 27);
   assert.equal(graph.chunks[1].dataOnly, false); assert.deepEqual(graph.chunks[1].gameModules, [hash]);
   assert.equal(DEFAULT_BUILD_BUDGETS.maxGameChunkRawBytes, 75_000);
 });
