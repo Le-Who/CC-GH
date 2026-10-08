@@ -90,13 +90,17 @@
 .cy-wallet>span:last-child{display:block;line-height:1}
 .cy-wallet strong{font-size:16px;font-weight:700;line-height:1.15;white-space:nowrap;font-variant-numeric:tabular-nums}
 .cy-wallet .cy-icon{width:30px;height:30px;flex:0 0 30px}
-.cy-actions{display:flex;align-items:stretch;justify-content:center;gap:0;padding:6px 8px;border-image:none;border:0;background:#edf0d2;box-shadow:inset 0 1px #87985b55}
-.cy-actions button{flex:1 1 0;width:auto;height:56px;min-width:44px;min-height:56px;padding:4px 6px;border-radius:8px;background:transparent;transition:background-color .12s ease}
-.cy-actions button::before{display:none}
-.cy-actions button+button::after{content:"";position:absolute;left:0;top:9px;bottom:9px;width:1px;background:#87985b66;pointer-events:none}
+.cy-actions{display:flex;align-items:stretch;justify-content:center;gap:8px;padding:6px 8px;border-image:none;border:0;background:#edf0d2;box-shadow:inset 0 1px #87985b55}
+.cy-actions button{flex:1 1 0;width:auto;height:56px;min-width:44px;min-height:56px;padding:4px 6px;border-radius:12px;background:transparent;transition:outline-color .12s ease}
+/* Reuse the painted sage skin already used by Yard actions. Keep all labels
+   and state cues in the DOM; the art is data-free and never scales the text. */
+.cy-actions button::before{display:block;border-image:var(--cy-button-art) 48 72 48 72 fill / 8px 12px;filter:none}
+.cy-actions button+button::after{content:"";position:absolute;left:-5px;top:9px;bottom:9px;width:1px;background:linear-gradient(to bottom,transparent,#87985b66,transparent);pointer-events:none}
 .cy-actions strong{display:block;font-size:12px;font-weight:700;line-height:16px;white-space:nowrap}
-.cy-actions button[aria-pressed="true"]{background:#cbd8a6}
-.cy-actions button:active{background:#d5dfb6}
+.cy-actions button[aria-pressed="true"]{outline:2px solid var(--cy-sage);outline-offset:-2px}
+.cy-actions button[aria-pressed="true"] strong{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:2px}
+.cy-actions button:focus-visible{outline:3px solid #715019;outline-offset:2px}
+.cy-actions button:active::before{filter:brightness(.94)}
 .cy-actions img{display:block;flex:0 0 auto;width:32px;height:32px;object-fit:contain}
 .cy-actions img[data-nav-art="food"]{width:40px;height:32px}
 .cy-actions img[data-nav-art="guests"]{width:29px;height:32px}
@@ -110,9 +114,9 @@
 @media(min-width:700px) and (orientation:landscape),(min-aspect-ratio:8/5) and (max-height:550px){
  .cy-app{grid-template:"header nav" 56px "scene nav" minmax(60px,1fr) "status nav" auto "placement nav" auto/minmax(0,1fr) 76px}
  .cy-header{padding:6px 10px;gap:8px}.cy-wallets{gap:16px;margin:0}.cy-wallet strong{font-size:16px}.cy-wallet .cy-icon{width:30px;height:30px;flex-basis:30px}
- .cy-actions{flex-direction:column;justify-content:center;gap:0;padding:8px 6px;background:#edf0d2;border-image:none;box-shadow:inset 1px 0 #87985b55}
+ .cy-actions{flex-direction:column;justify-content:center;gap:8px;padding:8px 6px;background:#edf0d2;border-image:none;box-shadow:inset 1px 0 #87985b55}
  .cy-actions button{flex:0 0 64px;width:64px;height:64px;padding:7px 3px}.cy-actions strong{white-space:normal}
- .cy-actions button+button::after{left:8px;right:8px;top:0;bottom:auto;width:auto;height:1px}
+ .cy-actions button+button::after{left:8px;right:8px;top:-5px;bottom:auto;width:auto;height:1px;background:linear-gradient(to right,transparent,#87985b66,transparent)}
 }
 @media(prefers-reduced-motion:reduce){.cy-actions button{transition:none}}
 
