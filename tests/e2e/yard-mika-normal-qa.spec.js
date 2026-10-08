@@ -61,7 +61,7 @@ function installPixelProbe({capturePixels=true}={}){
  requestAnimationFrame(observe);window.__mikaPixelProof=proof;
 }
 async function setup(page,{itemPosition=[64,54],language='en'}={}){
- const fixture=await startSwFixture({gameActions:true,gardenMode:'r2'}),receipts=[],errors=[],commands=[],assetResponses=[],assetRequests=[];
+ const fixture=await startSwFixture({gameActions:true,gardenMode:'r2'}),receipts=[],errors=[],commands=[],assetResponses=[],assetRequests=[],loadErrors=[],failedResources=[];
  try{
   // Existing source actions, ephemeral account only. Do not edit placement arrays.
   for(const [goodieId,slotId,x,y]of (itemApproach?[['yarn_mouse','qa-mouse',...itemPosition]]:[['yarn_mouse','qa-mouse',45,45],['sun_cushion','qa-cushion',54,66]])){
@@ -69,11 +69,14 @@ async function setup(page,{itemPosition=[64,54],language='en'}={}){
    receipts.push({action:'yard.placeGoodie',payload,status:result.status,body:result.body});assert.equal(result.status,200);assert.equal(result.body.error,undefined);
   }
   const initial=structuredClone(fixture.player('account-a').yard);assert.equal(initial.placedGoodies.length,itemApproach?1:2);
+  page.on('console',message=>{if(message.type()==='error'&&loadErrors.length<20){const entry={text:message.text(),location:message.location()};loadErrors.push(entry);Promise.all(message.args().map(arg=>arg.evaluate(value=>value instanceof Error?{name:value.name,message:value.message,stack:value.stack}:String(value)))).then(args=>{entry.args=args;}).catch(error=>{entry.captureError=String(error);});}});
+  page.on('requestfailed',request=>{if(failedResources.length<40)failedResources.push({url:request.url(),failure:request.failure()});});
+  page.on('response',response=>{if(response.status()>=400&&failedResources.length<40)failedResources.push({url:response.url(),status:response.status()});});
   page.on('pageerror',e=>errors.push(String(e)));page.on('request',request=>{if(new URL(request.url()).pathname===ASSET)assetRequests.push(request.url());});page.on('response',response=>{if(new URL(response.url()).pathname===ASSET)assetResponses.push(response);});
   await page.route('**/api/player/mutate',async route=>{const body=route.request().postDataJSON();if(body?.action?.startsWith('yard.')){commands.push(body);return route.abort('blockedbyclient');}return route.continue();});
   await page.addInitScript(()=>{window.__mikaNormalCanvasDraws=0;const original=CanvasRenderingContext2D.prototype.drawImage;CanvasRenderingContext2D.prototype.drawImage=function(...args){const result=original.apply(this,args);if(this.canvas.matches?.('.cy-scene canvas'))window.__mikaNormalCanvasDraws++;return result;};});
   await page.addInitScript(language=>{localStorage.setItem('gh_dev_user_id','fixture-a');localStorage.setItem('garden_shelf_language',language);},language);
-  return{fixture,receipts,initial,errors,commands,assetResponses,assetRequests};
+  return{fixture,receipts,initial,errors,commands,assetResponses,assetRequests,loadErrors,failedResources};
  }catch(e){try{await fixture.close();}catch(cleanup){e.fixtureCleanupError=String(cleanup.stack||cleanup);}e.seedReceipts=receipts;throw e;}
 }
 async function readyRunning(page,{itemPosition=[64,54]}={}){
@@ -90,7 +93,7 @@ async function evidence(page,info,context,error){
  const proof=await page.evaluate(()=>window.__mikaPixelProof??null).catch(()=>null);
  for(const [i,c]of (proof?.captures??[]).entries()){if(c.normalPNG)await info.attach(`normal-yard-${i}-${c.time.toFixed(3)}s.png`,{body:Buffer.from(c.normalPNG,'base64'),contentType:'image/png'});if(c.actorPNG)await info.attach(`actual-actor-alpha-${i}.png`,{body:Buffer.from(c.actorPNG,'base64'),contentType:'image/png'});delete c.normalPNG;delete c.actorPNG;}
  if(proof?.recording){await info.attach(proof.instrumentedPixels?'normal-yard-instrumented-pixel-proof.webm':'normal-yard-clean-1x-canvas.webm',{body:Buffer.from(proof.recording,'base64'),contentType:'video/webm'});delete proof.recording;}
- await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:'1a66a9df3d177d1b8308bab223ad6f647a76f98a',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,commands:context.commands,assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
+ await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:'1a66a9df3d177d1b8308bab223ad6f647a76f98a',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
 }
 
 async function finish(page,info,context,failure,screenshot){

@@ -54,6 +54,7 @@ jobs:
         run: |
           set -o pipefail
           pnpm run build | tee test-results/mika-normal/build.log
+          tar -czf test-results/mika-normal/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/assets/*.js
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Compact normal-route diagnostic with actual pixels
