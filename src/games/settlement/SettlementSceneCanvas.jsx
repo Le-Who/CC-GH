@@ -337,6 +337,7 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
     const host = hostRef.current;
     if (!host) return undefined;
 
+    host.dataset.settlementSceneState = 'loading';
     const app = new Application();
     appRef.current = app;
 
@@ -1038,14 +1039,21 @@ function SceneCanvas({ selectedBuildingId, activePanel, selectedConstructionItem
         document.removeEventListener('visibilitychange', clearPointerSession);
         resizeObserver?.disconnect();
       };
+      // Publish readiness only after textures, scene layers and camera exist.
+      app.render();
+      host.dataset.settlementSceneState = 'ready';
     }
 
     init().catch((error) => {
-      if (!cancelled) console.error('Pixi scene failed to initialize', error);
+      if (!cancelled) {
+        host.dataset.settlementSceneState = 'error';
+        console.error('Pixi scene failed to initialize', error);
+      }
     });
 
     return () => {
       cancelled = true;
+      delete host.dataset.settlementSceneState;
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
       const app = appRef.current;
       destroyPixiAppSafely(app);
