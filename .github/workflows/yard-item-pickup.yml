@@ -47,7 +47,7 @@ jobs:
       - name: Source-owned crop, recovery, pixel gate and neighboring scene regressions
         run: |
           set -o pipefail
-          node --test tests/yard-saved-viewport-crop.test.mjs tests/yard-saved-pip-pixels.test.mjs tests/yard-canonical-saved-scene.test.mjs tests/yard-pip-scene-lifecycle.test.mjs | tee test-results/item-pickup/crop-source.log
+          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-saved-viewport-crop.test.mjs tests/yard-saved-pip-pixels.test.mjs tests/yard-canonical-saved-scene.test.mjs tests/yard-pip-scene-lifecycle.test.mjs | tee test-results/item-pickup/crop-source.log
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Three viewport actual pixels, visible pickup journal, reload and PostgreSQL readback

@@ -1,5 +1,6 @@
 /** Control-flow test with explicit DOM/image substitutes. Not a browser or pixel
  * test; real rendering is covered only by the separate authorized CI harness. */
+import sharp from 'sharp';
 import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
 import {createCourtyardScene} from '../src/games/companion-yard-v2/scene.mjs';
 import {createProjection} from '../src/games/companion-yard-v2/projection.mjs';
@@ -15,6 +16,10 @@ test('shared scene keeps coherent backing pixels and pointer coordinates during 
  const include=(clips,base)=>{for(const c of clips)for(const p of c.pages)dimensions.set(base+p.src,{width:p.width,height:p.height});};
  include([...Object.values(mika.clips),...Object.values(mika.walk.facings),...Object.values(mika.turns)],'/assets/yard-mika/');
  include([...Object.values(pip.clips),...Object.values(pip.walk.facings),...Object.values(pip.turns)],'/assets/yard-pip/');
+ const backgroundPath='/assets/yard-mika/background.webp';
+ const background=await sharp(await readFile(new URL('../public'+backgroundPath,import.meta.url))).metadata();
+ assert.ok(background.width>0&&background.height>0);
+ dimensions.set(backgroundPath,{width:background.width,height:background.height});
  Object.assign(globalThis,{location:{origin:'https://qa.invalid'},document:{hidden:false},devicePixelRatio:1,
   ResizeObserver:class{constructor(cb){observer=cb;}observe(){}disconnect(){}},Image:class{width=256;height=224;set src(value){this.url=value;queueMicrotask(()=>this.onload());}},
   fetch:async value=>{const u=new URL(value,'https://qa.invalid');assert.equal(u.origin,'https://qa.invalid');requests.push(u.pathname);
