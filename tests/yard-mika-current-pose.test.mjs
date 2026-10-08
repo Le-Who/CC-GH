@@ -46,8 +46,8 @@ test('2/3/4-second constant-speed clips hand actual contact phases into unchange
  }
  assert.equal(phases.size,3,'Every selected duration retains its own actual gait phase');
 });
-test('three source-valid selected targets admit a same-pose two-leg path in three normal cameras with previous target retained',()=>{
- for(const target of [[88,62],[87,57],[87,54]])for(const viewport of [[308,346],[378,622],[756,240]]){
+test('three source-valid selected targets admit a same-pose two-leg path in normal cameras including wrapped compact status with previous target retained',()=>{
+ for(const target of [[88,62],[87,57],[87,54]])for(const viewport of [[308,346],[308,331.625],[378,622],[756,240]]){
   const {bound,stopped,acceptSweep}=fixture(target,viewport),before=structuredClone(stopped),next=planMikaItemContinuation(bound,c,e,stopped,'second',{acceptSweep});
   assert.equal(next.ok,true,`${target} ${viewport}: ${next.reason}`);assert.deepEqual(stopped,before);assert.equal(next.target.slotId,'second');assert.equal(next.target.x,target[0]);assert.equal(next.target.y,target[1]);
   if(target[0]===87&&target[1]===54){const projection=createProjection(...viewport),box=next.target.box;for(const x of[box.x,box.x+box.width])for(const y of[box.y,box.y+box.height]){const q=projection.project({x,y});assert(q.x>=3&&q.x<=projection.width-3&&q.y>=3&&q.y<=projection.height-3,'The chosen visible target footprint fits this normal camera');}}
