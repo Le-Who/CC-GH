@@ -39,7 +39,7 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
       if(!file)throw Error(`Unresolved SW proof import: ${args.path}`);
       return {path:file,namespace:'proof-fs'};
     });
-    b.onLoad({filter:/.*/,namespace:'proof-fs'},args=>({contents:readFileSync(args.path,'utf8'),loader:extname(args.path)==='.jsx'?'jsx':'js'}));
+    b.onLoad({filter:/.*/,namespace:'proof-fs'},args=>({contents:readFileSync(args.path,'utf8'),loader:extname(args.path)==='.json'?'json':extname(args.path)==='.jsx'?'jsx':'js'}));
   }}]});
   let apiFailure=false,delayA=0,delayB=0,httpFresh=false;
   const requests=[],delayedResponses=[],timers=new Set(),players=new Map();
