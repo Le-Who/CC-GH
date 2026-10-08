@@ -41,7 +41,11 @@ jobs:
           set -o pipefail
           node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-mika-qa-*.test.mjs tests/yard-canonical-saved-scene.test.mjs tests/yard-pip-scene-lifecycle.test.mjs | tee test-results/mika-normal/source.log
       - name: Collect exact browser cases
-        run: pnpm exec playwright test --config playwright.mika-normal-qa.config.mjs yard-mika-normal-qa.spec.js --list > test-results/mika-normal/collection.log
+        run: |
+          MIKA_QA_PHASE=collection-off pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'off-build never requests' --list > test-results/mika-normal/collection-off.log
+          MIKA_QA_EXPECT_ENABLED=true MIKA_QA_PHASE=collection-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'four-second seeded cruise, real pixels' --list > test-results/mika-normal/collection-compact.log
+          MIKA_QA_EXPECT_ENABLED=true MIKA_QA_PHASE=collection-matrix pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 portrait390 landscape844 --grep 'four-second seeded cruise|clean' --list > test-results/mika-normal/collection-matrix.log
+          MIKA_QA_EXPECT_ENABLED=true MIKA_QA_PHASE=collection-interruptions pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'editor entry|actual game navigation' --list > test-results/mika-normal/collection-interruptions.log
       - name: Build default-off app
         env:
           NODE_ENV: production
@@ -52,7 +56,7 @@ jobs:
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
       - name: Default-off normal route admission
-        run: MIKA_QA_PHASE=off pnpm exec playwright test --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic yard-mika-normal-qa.spec.js --grep 'off-build never requests'
+        run: MIKA_QA_PHASE=off pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'off-build never requests'
       - name: Build explicit Mika QA app
         id: enabled
         env:
@@ -69,17 +73,17 @@ jobs:
         id: compact
         env:
           MIKA_QA_EXPECT_ENABLED: 'true'
-        run: MIKA_QA_PHASE=compact pnpm exec playwright test --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic yard-mika-normal-qa.spec.js --grep 'four-second seeded cruise, real pixels'
+        run: MIKA_QA_PHASE=compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'four-second seeded cruise, real pixels'
       - name: Three-viewport pixels and clean motion
         if: always() && steps.compact.outcome == 'success'
         env:
           MIKA_QA_EXPECT_ENABLED: 'true'
-        run: MIKA_QA_PHASE=matrix pnpm exec playwright test --config playwright.mika-normal-qa.config.mjs --project portrait320 --project portrait390 --project landscape844 yard-mika-normal-qa.spec.js --grep 'four-second seeded cruise|clean'
+        run: MIKA_QA_PHASE=matrix pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 portrait390 landscape844 --grep 'four-second seeded cruise|clean'
       - name: Real editing and navigation interruption
         if: always() && steps.compact.outcome == 'success'
         env:
           MIKA_QA_EXPECT_ENABLED: 'true'
-        run: MIKA_QA_PHASE=interruptions pnpm exec playwright test --config playwright.mika-normal-qa.config.mjs --project portrait390 yard-mika-normal-qa.spec.js --grep 'editor entry|actual game navigation'
+        run: MIKA_QA_PHASE=interruptions pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'editor entry|actual game navigation'
       - name: Preserve all original evidence
         if: always()
         uses: actions/upload-artifact@v4
