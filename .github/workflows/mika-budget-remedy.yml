@@ -1,4 +1,4 @@
-name: Mika budget measurement (not shipping qualification)
+name: Mika unchanged shipping budgets (not visual acceptance)
 on:
   push:
     branches: ['qa/mika-budget-remedy-20261008']
@@ -12,7 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      BASE: 99e2aa0a101687a19126cb2b623619548ba4b555
+      BASE: 44d954e40f142753ed304ac0319fa27a5cb62205
+      MIKA_REQUIRE_SHIPPING_BUDGET: 'true'
       VITE_YARD_PIP_PREVIEW: 'true'
       VITE_YARD_SAVED_VISITS: 'false'
       VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
@@ -35,6 +36,8 @@ jobs:
           git ls-tree -r HEAD > "$RUNNER_TEMP/mika-budget/repository-tree.txt"
           git grep -I -n -E 'yard-ui/previews|preview-manifest|yard-pip/|pip-left180|pip-left90|pip-snack-combined-r1' -- ':!scripts/mika-budget-measure.mjs' > "$RUNNER_TEMP/mika-budget/asset-reference-audit.txt" || test "$?" = 1
           node --test tests/yard-pip-projection-chunk.test.mjs | tee "$RUNNER_TEMP/mika-budget/source-tests.log"
+          node --test tests/yard-lossless-delivery.test.mjs | tee "$RUNNER_TEMP/mika-budget/lossless-source-tests.log"
+          node scripts/yard-lossless-delivery.mjs --check > "$RUNNER_TEMP/mika-budget/physical-delivery-check.json"
           git diff --exit-code "$BASE" HEAD -- pnpm-lock.yaml package.json scripts/perf-build-guard.mjs scripts/yard-ui-media-budget.mjs scripts/yard-ui-media-budget.json
       - name: Install existing locked dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
@@ -46,6 +49,7 @@ jobs:
           CANDIDATE=$(cat "$RUNNER_TEMP/mika-budget/candidate-sha.txt")
           for kind in baseline candidate; do
             if [ "$kind" = baseline ]; then git checkout --detach "$BASE"; else git checkout --detach "$CANDIDATE"; fi
+            NODE_ENV=test node --test tests/yard-atlas-working-set.test.mjs tests/yard-current-four-atlas.test.mjs tests/yard-current-four-scene.test.mjs tests/yard-pip-scene-lifecycle.test.mjs tests/yard-pip-canonical.test.mjs > "$RUNNER_TEMP/mika-budget/$kind-cache-regressions.log" 2>&1
             for mode in off on; do
               OUT="$RUNNER_TEMP/mika-budget/$kind-$mode"
               mkdir -p "$OUT"

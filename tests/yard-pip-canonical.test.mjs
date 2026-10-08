@@ -100,6 +100,8 @@ test('accepted Pip admission still rejects unsupported foods, worn transition an
 test('canonical atlas bytes and manifest binding remain the frozen independent Pip source',async()=>{
  const {readFile}=await import('node:fs/promises'),{createHash}=await import('node:crypto');
  const seen=new Set();for(const clip of[...Object.values(media.clips),...Object.values(media.walk.facings),...Object.values(media.turns)])for(const page of clip.pages){if(seen.has(page.src))continue;seen.add(page.src);const bytes=await readFile(new URL('../public/assets/yard-pip/'+page.src,import.meta.url));assert.equal(bytes.length,page.encodedBytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),page.sha256);}
- assert.equal(seen.size,101);assert.equal(media.renderBindings['pip-snack-combined-r1'].bindingCalibrationHash,'59fdee75e4bacae7bb65c869745c93fb6607cb67d5e7bd5e12dfe58d052f4492');
+ const logicalPages=[...Object.values(media.clips),...Object.values(media.walk.facings),...Object.values(media.turns)].reduce((n,clip)=>n+clip.pages.length,0);
+ assert.equal(logicalPages,101);assert.equal(seen.size,87);assert.equal(media.deliveryAudit.logicalAtlasPages,101);assert.equal(media.deliveryAudit.uniqueAtlasFiles,87);
+ assert.equal(media.renderBindings['pip-snack-combined-r1'].bindingCalibrationHash,'59fdee75e4bacae7bb65c869745c93fb6607cb67d5e7bd5e12dfe58d052f4492');
  assert.equal(media.playbackReady,false);assert.equal(media.runtimeActivated,false);
 });

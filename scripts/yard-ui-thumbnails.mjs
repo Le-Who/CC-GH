@@ -5,6 +5,7 @@ import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
 import {YARD_FOODS,YARD_GOODIES,YARD_VISITORS} from '../game-logic/yard-catalog.js';
 import {catalogPreviewSource} from '../src/games/companion-yard-v2/catalog-ui.mjs';
+import losslessAliases from './yard-lossless-delivery-aliases.json' with {type:'json'};
 
 const repository=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const sourceRoot=resolve(process.env.YARD_PREVIEW_SOURCE_ROOT||repository);
@@ -26,11 +27,14 @@ for(const sourceURL of [...sources].sort()){
   for(let y=0;y<info.height;y++)for(let x=0;x<info.width;x++)if(data[(y*info.width+x)*4+3]>0){left=Math.min(left,x);top=Math.min(top,y);right=Math.max(right,x);bottom=Math.max(bottom,y);}
   if(right<left)throw Error(`Empty source: ${sourcePath}`);
   const width=right-left+1,height=bottom-top+1,padding=Math.max(2,Math.ceil(Math.max(width,height)*.04));
-  const filename=`${hash(Buffer.from(sourceURL)).slice(0,12)}.webp`,outputURL=`/assets/yard-ui/previews/${filename}`;
+  const filename=`${hash(Buffer.from(sourceURL)).slice(0,12)}.webp`,originalOutputURL=`/assets/yard-ui/previews/${filename}`;
   const output=await sharp(bytes).extract({left,top,width,height}).extend({top:padding,right:padding,bottom:padding,left:padding,background:{r:0,g:0,b:0,alpha:0}}).webp({lossless:true,effort:6}).toBuffer();
+  const alias=losslessAliases.files.find(row=>row.retire===`public${originalOutputURL}`);
+  if(alias&&(hash(output)!==alias.sha256||output.length!==alias.bytes))throw Error(`Changed pixels require fresh alias review: ${originalOutputURL}`);
+  const outputURL=alias?alias.keep.slice('public'.length):originalOutputURL;
   const outputPath=resolve(outputRoot,`public${outputURL}`);await mkdir(dirname(outputPath),{recursive:true});await writeFile(outputPath,output);
   paths[sourceURL]=outputURL;
-  files.push({sourceURL,sourcePath,sourceSha256:hash(bytes),sourceSize:[info.width,info.height],alphaThreshold:1,crop:{left,top,width,height},padding,scale:{x:1,y:1},outputURL,outputSize:[width+2*padding,height+2*padding],outputSha256:hash(output),bytes:output.length});
+  files.push({sourceURL,sourcePath,sourceSha256:hash(bytes),sourceSize:[info.width,info.height],alphaThreshold:1,crop:{left,top,width,height},padding,scale:{x:1,y:1},outputURL,outputSize:[width+2*padding,height+2*padding],outputSha256:hash(output),bytes:output.length,...(alias?{deliveryAliasFrom:originalOutputURL}:{})});
 }
 const manifest={format:'yard-ui-thumbnails/v1',encoder:{sharp:sharp.versions.sharp,vips:sharp.versions.vips,webp:sharp.versions.webp},method:'Tight bbox of every alpha>0 pixel, 4% uniform transparent margin (minimum2px), no resizing, lossless WebP. Runtime object-fit:contain preserves aspect ratio.',files};
 await writeFile(resolve(outputRoot,'public/assets/yard-ui/preview-manifest.json'),JSON.stringify(manifest,null,2)+'\n');

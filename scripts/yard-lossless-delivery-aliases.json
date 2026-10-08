@@ -1,0 +1,190 @@
+{
+  "format": "yard-lossless-delivery-aliases/v1",
+  "sourceCommit": "99e2aa0a101687a19126cb2b623619548ba4b555",
+  "sourcePipManifestSha256": "317363e6b843f96272dd7d8788fe35a484c7330e5f8a1dd036255e4774616580",
+  "savedPublicBytes": 4201606,
+  "files": [
+    {
+      "retire": "public/assets/yard-ui/previews/d089193e43ac.webp",
+      "keep": "public/assets/yard-ui/previews/106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee.webp",
+      "bytes": 35088,
+      "sha256": "106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee",
+      "gitBlob": "8056a081eb4e469523ab836b9baa70a80f6cae7a"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/4ce5d5d9878c.webp",
+      "keep": "public/assets/yard-ui/previews/463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284.webp",
+      "bytes": 55254,
+      "sha256": "463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284",
+      "gitBlob": "85b30c2019a3380b8abafcedf87445ed93a0258a"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/78d5a3dfdddf.webp",
+      "keep": "public/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
+      "bytes": 49514,
+      "sha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
+      "gitBlob": "01636d39df9e03e9cb1fc4712f9f2aa19f62a932"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/b3c42384bce2.webp",
+      "keep": "public/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
+      "bytes": 49514,
+      "sha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
+      "gitBlob": "01636d39df9e03e9cb1fc4712f9f2aa19f62a932"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/6b92945de969.webp",
+      "keep": "public/assets/yard-ui/previews/87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b.webp",
+      "bytes": 47204,
+      "sha256": "87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b",
+      "gitBlob": "be1c07b6eb4a4ef68bffc5892c3ed992f4df6251"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-0-p00.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-0-p00.webp",
+      "bytes": 278038,
+      "sha256": "1f1a581b764c79aa05fa9b47c89f0d0c54efdbd54ef7c112bc073cf75540e126",
+      "gitBlob": "193ea0937a377897b05d6063950385546dc85d2e"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-0-p01.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-0-p01.webp",
+      "bytes": 283596,
+      "sha256": "562897734d69259afa786f3fdeba2ee4e94c4aa57e49686e97daf9a3a64a81e0",
+      "gitBlob": "c636551958259187f371f6012c4fb3b292565c7d"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-0-p02.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-0-p02.webp",
+      "bytes": 268828,
+      "sha256": "3f8a922e6e902dde7aa5bd286c3f0b80b79871f9c6d13df2290963c5cf0a7b74",
+      "gitBlob": "5c83e212fc559bdf0b1f14ca8c935c8a1ccb4c28"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-2-p00.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-2-p00.webp",
+      "bytes": 248714,
+      "sha256": "1903bb93bcfaa91bd5c665cdd4dbc4dd3f15f484157d311dcebc3389cca9c280",
+      "gitBlob": "fc07eb737ba50539f30a9ecd3637abb850490614"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-2-p01.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-2-p01.webp",
+      "bytes": 239966,
+      "sha256": "bd08062aca7eacf5564a8d25e661506bad83430b2f74ef6329fbe48631aa6881",
+      "gitBlob": "22102e4daffb1db1d95a0b9e98fe8be8824dc50c"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-2-p02.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-2-p02.webp",
+      "bytes": 257866,
+      "sha256": "3754a5eeceac0d406ab569f2372380ba5616cb57a2965e797f029195a0508626",
+      "gitBlob": "ee0a79adc97f1f39b29691e2362ad8a971edb5dc"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-4-p00.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-4-p00.webp",
+      "bytes": 276064,
+      "sha256": "f9046459274fdc28214cd8ecf2d0ba803631276672711b1dc44ced17b51478f3",
+      "gitBlob": "840aaab4aa768e0bc6d70efc56976cf7cb686215"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-4-p01.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-4-p01.webp",
+      "bytes": 278584,
+      "sha256": "cae2254eea66d9d9d9b2bd754f6a874a0387e9ee8577297284a1cd6945034422",
+      "gitBlob": "8b89ffc4fb38d1c21d9b283f64c24af6c09eaf09"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-4-p02.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-4-p02.webp",
+      "bytes": 265388,
+      "sha256": "2359738eb09fb17150ab0f08d55f2cd757e9b45662a41de079856ef50b15d298",
+      "gitBlob": "38a160f6d025ee4a1907b0cbd4cc5d68de85be73"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-6-p00.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-6-p00.webp",
+      "bytes": 229360,
+      "sha256": "fcfdb6b5671893071564eca7eb641df74e3f73714e8349654edbe0ff578f3fe0",
+      "gitBlob": "868276bc415cb0e926c5f60afc83486452de6e15"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-6-p01.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-6-p01.webp",
+      "bytes": 215742,
+      "sha256": "4657af002fe9169ae073868a671eeaeff1ee7fa1c3d07018961629745f309e57",
+      "gitBlob": "e63af01018d377e1e1907b714f748d905eaefeea"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-left180-6-p02.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-left90-6-p02.webp",
+      "bytes": 255630,
+      "sha256": "c7c7aa982c4b2e3a7d4ea8710f07cb47faaea0fa4e12925ff41c3fbcb08a0c23",
+      "gitBlob": "dcb6779bf900999070f20e064b805a6c76638716"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p09.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p08.webp",
+      "bytes": 208680,
+      "sha256": "53519f99a9a5ebe23bad534b4a253217ff720227c73e6a3e78f8582a5e1dc5e9",
+      "gitBlob": "0353dde77381d2e8beeb5bd7e682f8d40035b7a0"
+    },
+    {
+      "retire": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p10.webp",
+      "keep": "public/assets/yard-pip/atlases/pip-snack-combined-r1-p08.webp",
+      "bytes": 208680,
+      "sha256": "53519f99a9a5ebe23bad534b4a253217ff720227c73e6a3e78f8582a5e1dc5e9",
+      "gitBlob": "0353dde77381d2e8beeb5bd7e682f8d40035b7a0"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/3da23e9298bc.webp",
+      "keep": "public/assets/yard-ui/previews/11cc55a412e6.webp",
+      "bytes": 61872,
+      "sha256": "2c8d820224db7ec707269ec9c3dec334d3af626bd42a61f226489651ef300637",
+      "gitBlob": "a9a1744c8f2bc1c05b25ad21e6d67756fde5dbea"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/f0351df4cd3f.webp",
+      "keep": "public/assets/yard-ui/previews/57d49653d094.webp",
+      "bytes": 52846,
+      "sha256": "25b9a7741db5c9fa52498829fa8229b73071da0339cc67c251fd02d0d5426b6a",
+      "gitBlob": "93cac64941b6e86b751882f27dde38e126d1f91b"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/87a747ccfbdb.webp",
+      "keep": "public/assets/yard-ui/previews/65b820cc4fc2.webp",
+      "bytes": 62848,
+      "sha256": "01b8bd7e6aada402ca3f1cb7b924e4b1d89a595375c6bc965c9a2b8adb604bb4",
+      "gitBlob": "9401744da48797e660e2e72ecdb66817fc046751"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/c636855c38e8.webp",
+      "keep": "public/assets/yard-ui/previews/6bc5e0bb495d.webp",
+      "bytes": 63748,
+      "sha256": "bffc9d93528db2e7572fd8b6c8a30b89056c9156fbf684c05ab3b96265e25937",
+      "gitBlob": "c74984b5422a4fc14615ded6f8971b8e8bc35c13"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/a77e11bcf056.webp",
+      "keep": "public/assets/yard-ui/previews/8a9078cc414a.webp",
+      "bytes": 61700,
+      "sha256": "65cec7c05d485e72a3a39260eae7229ed89976107d23af233521c9f4398e54f9",
+      "gitBlob": "ed2177d50f9514c3350d7e7038abf1d18b5c7e9f"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/c03d84b94e32.webp",
+      "keep": "public/assets/yard-ui/previews/8dc34655730f.webp",
+      "bytes": 68780,
+      "sha256": "94150b12d56e874890e74b1880ea20e2a8a4a3e3f985f151a402e0ed8f8f176e",
+      "gitBlob": "94dc491204d52178d4c284414b08e41473390535"
+    },
+    {
+      "retire": "public/assets/yard-ui/previews/f836afa33e5a.webp",
+      "keep": "public/assets/yard-ui/previews/b349aca2c573.webp",
+      "bytes": 78102,
+      "sha256": "182fda6dcbb7deb0a71a4d85a2196e8affa02d416c6e4411635025dd204e8bdd",
+      "gitBlob": "fd73ad6db5b8d03550546deaa66a45566da596d0"
+    }
+  ]
+}

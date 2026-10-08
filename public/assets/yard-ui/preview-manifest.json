@@ -1002,13 +1002,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/c636855c38e8.webp",
+      "outputURL": "/assets/yard-ui/previews/6bc5e0bb495d.webp",
       "outputSize": [
         334,
         217
       ],
       "outputSha256": "bffc9d93528db2e7572fd8b6c8a30b89056c9156fbf684c05ab3b96265e25937",
-      "bytes": 63748
+      "bytes": 63748,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/c636855c38e8.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/basil_turtle_rest.png",
@@ -1170,13 +1171,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/f836afa33e5a.webp",
+      "outputURL": "/assets/yard-ui/previews/b349aca2c573.webp",
       "outputSize": [
         358,
         312
       ],
       "outputSha256": "182fda6dcbb7deb0a71a4d85a2196e8affa02d416c6e4411635025dd204e8bdd",
-      "bytes": 78102
+      "bytes": 78102,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/f836afa33e5a.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/mika_cat_sit.png",
@@ -1254,13 +1256,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/f0351df4cd3f.webp",
+      "outputURL": "/assets/yard-ui/previews/57d49653d094.webp",
       "outputSize": [
         303,
         218
       ],
       "outputSha256": "25b9a7741db5c9fa52498829fa8229b73071da0339cc67c251fd02d0d5426b6a",
-      "bytes": 52846
+      "bytes": 52846,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/f0351df4cd3f.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/mochi_bunny_nibble.png",
@@ -1422,13 +1425,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/87a747ccfbdb.webp",
+      "outputURL": "/assets/yard-ui/previews/65b820cc4fc2.webp",
       "outputSize": [
         300,
         270
       ],
       "outputSha256": "01b8bd7e6aada402ca3f1cb7b924e4b1d89a595375c6bc965c9a2b8adb604bb4",
-      "bytes": 62848
+      "bytes": 62848,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/87a747ccfbdb.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/pip_hamster.png",
@@ -1450,13 +1454,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/b3c42384bce2.webp",
+      "outputURL": "/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
       "outputSize": [
         204,
         232
       ],
       "outputSha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
-      "bytes": 49514
+      "bytes": 49514,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/b3c42384bce2.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/pip_hamster_nibble.png",
@@ -1478,13 +1483,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/78d5a3dfdddf.webp",
+      "outputURL": "/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
       "outputSize": [
         204,
         232
       ],
       "outputSha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
-      "bytes": 49514
+      "bytes": 49514,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/78d5a3dfdddf.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/pip_hamster_peek.png",
@@ -1506,13 +1512,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/d089193e43ac.webp",
+      "outputURL": "/assets/yard-ui/previews/106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee.webp",
       "outputSize": [
         205,
         165
       ],
       "outputSha256": "106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee",
-      "bytes": 35088
+      "bytes": 35088,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/d089193e43ac.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/pip_hamster_sit.png",
@@ -1534,13 +1541,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/6b92945de969.webp",
+      "outputURL": "/assets/yard-ui/previews/87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b.webp",
       "outputSize": [
         195,
         242
       ],
       "outputSha256": "87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b",
-      "bytes": 47204
+      "bytes": 47204,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/6b92945de969.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/sage_turtle.png",
@@ -1562,13 +1570,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/c03d84b94e32.webp",
+      "outputURL": "/assets/yard-ui/previews/8dc34655730f.webp",
       "outputSize": [
         329,
         231
       ],
       "outputSha256": "94150b12d56e874890e74b1880ea20e2a8a4a3e3f985f151a402e0ed8f8f176e",
-      "bytes": 68780
+      "bytes": 68780,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/c03d84b94e32.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/sage_turtle_rest.png",
@@ -1674,13 +1683,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/3da23e9298bc.webp",
+      "outputURL": "/assets/yard-ui/previews/11cc55a412e6.webp",
       "outputSize": [
         245,
         285
       ],
       "outputSha256": "2c8d820224db7ec707269ec9c3dec334d3af626bd42a61f226489651ef300637",
-      "bytes": 61872
+      "bytes": 61872,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/3da23e9298bc.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/starlit_fox_curl.png",
@@ -1758,13 +1768,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/4ce5d5d9878c.webp",
+      "outputURL": "/assets/yard-ui/previews/463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284.webp",
       "outputSize": [
         246,
         229
       ],
       "outputSha256": "463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284",
-      "bytes": 55254
+      "bytes": 55254,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/4ce5d5d9878c.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/willow_fox.png",
@@ -1842,13 +1853,14 @@
         "x": 1,
         "y": 1
       },
-      "outputURL": "/assets/yard-ui/previews/a77e11bcf056.webp",
+      "outputURL": "/assets/yard-ui/previews/8a9078cc414a.webp",
       "outputSize": [
         253,
         293
       ],
       "outputSha256": "65cec7c05d485e72a3a39260eae7229ed89976107d23af233521c9f4398e54f9",
-      "bytes": 61700
+      "bytes": 61700,
+      "deliveryAliasFrom": "/assets/yard-ui/previews/a77e11bcf056.webp"
     },
     {
       "sourceURL": "/games/companion-yard/visitors/willow_fox_peek.png",

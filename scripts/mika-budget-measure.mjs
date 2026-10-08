@@ -35,6 +35,7 @@ if(kind==='candidate'){
  for(const entry of graph.chunks.filter(c=>c.isEntry))assert.ok(!visit(entry.file).has(c.file),'Projection promoted to startup');
  assert.ok(!report.failures.some(f=>f.id==='games.max-chunk.raw'),'Game chunk budget still fails');
  assert.ok(report.failures.every(f=>['public-assets.total.raw','public-assets.other-non-family.raw'].includes(f.id)),'Unexpected non-asset failure cannot be treated as split acceptance');
+ if(process.env.MIKA_REQUIRE_SHIPPING_BUDGET==='true')assert.equal(report.passed,true,'Lossless candidate must pass every unchanged shipping budget');
 }
 await fs.writeFile(path.join(out,'measurement.json'),JSON.stringify({kind,mode,shippingPassed:report.passed,failures:report.failures,projectionChunk:c.file,projectionBytes:(await fs.stat(path.join('dist',c.file))).size,gameMaxBytes:report.metrics.gameChunks.maxRawBytes,mikaGlbBytes:glb.length,publicAssetsBytes:report.metrics.publicAssets.rawBytes,otherAssetsBytes:report.yardAssetPartition.otherNonFamilyAssets.rawBytes},null,2));
 console.log(JSON.stringify({kind,mode,shippingPassed:report.passed,failures:report.failures}));

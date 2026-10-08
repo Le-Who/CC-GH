@@ -106,4 +106,4 @@ export const PIP_RELEASE_GATE=deepFreeze({
   ]
 });
 
-export const PIP_MEDIA_REVISION="pip-snack-runtime/r1:4cbbc98b805e422520a08a3445df695305542776898bc42a7e46b6cc6ad447d1";
+export const PIP_MEDIA_REVISION="pip-snack-runtime/r1:f57d45d37a35ea70c6f19161e9c2182b9472e509e7ffca009daa77a006e84176";
