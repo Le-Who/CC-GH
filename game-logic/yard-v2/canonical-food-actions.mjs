@@ -48,6 +48,9 @@ function envelope(player){
  if(!own(runtime,'actionReceipts'))runtime.actionReceipts={};
  return {format:FOUNDATION_FORMAT,player:selected,runtime};
 }
+// Shared compatibility envelope only; adapters retain their own readiness and
+// capability checks. Reusing it preserves legacy nonce/quarantine semantics.
+export {envelope as canonicalSavedActionEnvelope};
 
 /** Exact replay is read-only and precedes time/reconciliation. Always isolate
  * source execution: canonical intents bypass options.advance. Only a genuinely

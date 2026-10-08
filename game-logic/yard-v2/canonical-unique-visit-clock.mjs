@@ -5,6 +5,7 @@
 import {YARD_HOUR_MS,YARD_FOODS,YARD_GOODIES,YARD_VISITORS,getYardGoodieActivities} from './catalog.mjs';
 import {selectOpportunity} from './opportunity-selection.mjs';
 import {inspectCanonicalBowlAfterActions} from './canonical-food-actions.mjs';
+import {inspectCanonicalLayoutAfterActions,canonicalLayoutRowsAt} from './canonical-layout-evidence.mjs';
 import {canonicalVisitPlacementRowsValid} from './canonical-visit-placement-contract.mjs';
 import {CANONICAL_FOOD_CONTRACT} from './canonical-food-protocol.mjs';
 import {VISIT_JOB_SOURCE_HASH} from './canonical-visit-job-contract.mjs';
@@ -29,7 +30,10 @@ const candidate=(s,at,row)=>s?{visitId:s.id,visitorId:s.visitor.id,goodieId:row.
  * Never trust a receipt's saved bowl or reason instead of this source decision.
  */
 export function canonicalActiveHourReceipt(player,wrapper,record,at){
- const runtime=player._yardV2.runtime,row=record.after.rows[0],bowl=clone(record.after.bowl);
+ const runtime=player._yardV2.runtime,originalRow=record.after.rows[0],bowl=clone(record.after.bowl);
+ const layout=inspectCanonicalLayoutAfterActions({wrapper,record,commandReceipts:runtime.commandReceipts,rows:runtime.canonicalPlacements,cursorMs:runtime.cursorMs});
+ if(!layout.valid)return null;
+ const row=canonicalLayoutRowsAt(record,layout,at,{beforeCommands:true})[0];
  let foodSequence=0;
  const receipts=Object.values(runtime.commandReceipts).filter(r=>r?.canonicalFood?.visitId===wrapper.visitId&&r.canonicalFood.eventId===wrapper.eventId&&r.at<at)
   .sort((a,b)=>a.canonicalFood.sequence-b.canonicalFood.sequence);
@@ -39,13 +43,14 @@ export function canonicalActiveHourReceipt(player,wrapper,record,at){
  }
  expire(bowl,at);
  let reason,selected=null;
- if(!bowl.foodId)reason='NO_ELIGIBLE_FOOD';
+ if(!row)reason='NO_PLACED_TARGET';
+ else if(!bowl.foodId)reason='NO_ELIGIBLE_FOOD';
  else if(at<wrapper.releaseAt)reason='TARGET_CAPACITY_RESERVED';
  else{
   const chosen=sourceSelection(runtime.seed,at,row,bowl);selected=candidate(chosen,at,row);
   reason=!selected?'NO_SELECTED_CANDIDATE':selected.visitorId==='pip_hamster'?'PIP_ALREADY_VISITING':'SELECTED_CANDIDATE_UNSUPPORTED';
  }
- return {format:CANONICAL_ACTIVE_HOUR_FORMAT,eventId:canonicalOpportunityEventId(player,at,row.slotId),kind:'not-admitted',visitId:wrapper.visitId,at,
+ return {format:CANONICAL_ACTIVE_HOUR_FORMAT,eventId:canonicalOpportunityEventId(player,at,originalRow.slotId),kind:'not-admitted',visitId:wrapper.visitId,at,
   reason,selection:selected,beforeBowl:bowl,foodSequence,sourceHash:VISIT_JOB_SOURCE_HASH};
 }
 
@@ -57,7 +62,7 @@ export function canonicalActiveVisitClockValid(player,wrapper,record){
   const r=player._yardV2.runtime,hour=wrapper.arrivedAt+YARD_HOUR_MS,stay=wrapper.leavesAt-wrapper.arrivedAt;
   if(!integer(r.cursorMs)||r.cursorMs<wrapper.arrivedAt||r.cursorMs>=wrapper.leavesAt||stay<45*60000||stay>CANONICAL_MAX_VISIT_STAY_MS||stay%60000!==0
    ||!integer(r.nextOpportunityAt)||r.canonicalDepartureCheckpoint!==undefined
-   ||digest(r.canonicalPlacements)!==digest(record.after.rows))return false;
+   ||!inspectCanonicalLayoutAfterActions({wrapper,record,commandReceipts:r.commandReceipts,rows:r.canonicalPlacements,cursorMs:r.cursorMs}).valid)return false;
   const consumed=hour<wrapper.leavesAt&&r.cursorMs>=hour,eventId=canonicalOpportunityEventId(player,hour,record.candidate.slotId);
   if(r.nextOpportunityAt!==hour+(consumed?YARD_HOUR_MS:0))return false;
   const prior=lookup(r.canonicalVisitReceipts,eventId);
@@ -117,7 +122,7 @@ export function canonicalDepartureCheckpointValid(player){
   if(!w||future[0]!==w||w.format!=='yard-authoritative-canonical-visit/v1'||w.sourceHash!==VISIT_JOB_SOURCE_HASH||w.status!==CANONICAL_HELD_DEPARTURE_STATUS
    ||!c||c.visitId!==w.visitId||c.arrivedAt!==w.arrivedAt||c.leavesAt!==w.leavesAt||w.leavesAt!==w.arrivedAt+YARD_HOUR_MS
    ||w.giftId!==`gift_v2_${digest(c.visitId).slice(0,32)}`||!heldSourceProjectionValid(record)
-   ||digest(r.canonicalPlacements)!==digest(record.after?.rows)||digest(w.original)!==digest(canonicalVisitOriginalFor(record))
+   ||!inspectCanonicalLayoutAfterActions({wrapper:w,record,commandReceipts:r.commandReceipts,rows:r.canonicalPlacements,cursorMs:marker.at}).valid||digest(w.original)!==digest(canonicalVisitOriginalFor(record))
    ||digest(marker)!==digest(canonicalDepartureCheckpoint(w))||!object(record.before)||!Array.isArray(record.before.rows)||record.before.rows.length!==1)return false;
   const original=sourceSelection(r.seed,c.arrivedAt,record.before.rows[0],record.before.bowl);
   if(!original||digest(candidate(original,c.arrivedAt,record.before.rows[0]))!==digest(c)

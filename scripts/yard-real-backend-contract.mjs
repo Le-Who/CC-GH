@@ -22,9 +22,10 @@ export function requireExternalId(value){
 /** Search test INITIAL timestamps, never worker/media results. The selected
  * fixture retains this exact seed/time, then the real simulator draws once.
  * No plan/record is authored here and a source refusal fails the test. */
-export function selectCurrentFixture(now=Date.now(),{ending=false}={}){
+export function selectCurrentFixture(now=Date.now(),{ending=false,released=false}={}){
  if(!Number.isSafeInteger(now)||now<120001)throw Error('CURRENT_TEST_TIME_REQUIRED');
- const start=ending?now-45*60000+45000:now-120000,food=YARD_FOODS.kibble,goodie=YARD_GOODIES.leaf_pot;
+ if(ending&&released)throw Error('ONE_FIXTURE_PHASE_REQUIRED');
+ const start=released?now-40*60000:ending?now-45*60000+45000:now-120000,food=YARD_FOODS.kibble,goodie=YARD_GOODIES.leaf_pot;
  const available=getYardGoodieActivities(goodie,'new').sort((a,b)=>a.id<b.id?-1:a.id>b.id?1:0);
  for(let offset=0;offset<60000;offset++){
   const at=start+offset,row={...CANONICAL_LOCATION,slotId:'canonical:a',goodieId:'leaf_pot',

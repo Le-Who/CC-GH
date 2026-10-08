@@ -9,7 +9,7 @@ import {setTimeout as delay} from 'node:timers/promises';
 import {requireDisposableBackend,requireExternalId,selectCurrentFixture,TEST_REFILL_FOOD_ID} from './yard-real-backend-contract.mjs';
 import {YARD_FOODS} from '../game-logic/yard-v2/catalog.mjs';
 import {GARDEN_R2_CATALOG_REVISION} from '../game-logic/garden-r2/catalog.js';
-const {values}=parseArgs({options:{'base-url':{type:'string',default:'http://127.0.0.1:3199'},'external-id':{type:'string'},output:{type:'string'},verify:{type:'string'},receipts:{type:'string'},ending:{type:'boolean'},'verify-gift':{type:'string'}}});
+const {values}=parseArgs({options:{'base-url':{type:'string',default:'http://127.0.0.1:3199'},'external-id':{type:'string'},output:{type:'string'},verify:{type:'string'},receipts:{type:'string'},ending:{type:'boolean'},released:{type:'boolean'},'verify-gift':{type:'string'}}});
 const base=requireDisposableBackend(process.env,values['base-url']);
 const {initDb,ensureDbSchema,closeDb}=await import('../db.js');
 const {withPlayerLock}=await import('../playerManager.js');
@@ -67,7 +67,7 @@ try{
     accountId,command:'adopt',input:{acknowledgedTotal:initial.garden.acknowledgedEarnedTotal,legacyRevision:initial.garden.economicRevision},
     expectedRevision:0,intent:{streamId,sequence:1,createdAt}}}),signal:AbortSignal.timeout(15000)});
   const adopted=await adoption.json();assert.equal(adoption.status,200,JSON.stringify(adopted));assert.equal(adopted.success,true);
-  const fixture=selectCurrentFixture(Date.now(),{ending:values.ending===true});
+  const fixture=selectCurrentFixture(Date.now(),{ending:values.ending===true,released:values.released===true});
   await withPlayerLock(accountId,player=>{
    assert.equal(player.id,accountId);assert.equal(player._onboarded,false,'Never reseed an existing played account');
    assert.equal(player._yardV2.version,3,'Only a fresh saved-runtime disposable account may be seeded');
@@ -103,7 +103,7 @@ try{
   assert.deepEqual(admitted.yard.currencies,initial.yard.currencies,'Seeding and admission must preserve the real starting wallet');
   for(const currency of ['treats','shinyTreats'])assert.ok(admitted.yard.currencies[currency]>=(YARD_FOODS[TEST_REFILL_FOOD_ID].cost[currency]||0),'Source food must be affordable without a fixture grant');
   const result={externalId,accountId,seed:fixture.seed,candidate:fixture.candidate,searchOffset:fixture.searchOffset,testFoodId:TEST_REFILL_FOOD_ID,
-   scope:values.ending?'Source-selected full45m visit seeded near its final45–105seconds; ordinary server clock, worker admission and UI departure. This does not observe the whole45m stay.':'Fresh disposable account seeded before admission; real snapshot route, source worker and durable manager created the only saved visit.',
+   scope:values.released?'Source-selected full45m visit seeded around minute40 for released pickup; ordinary server clock and genuine worker admission. Not whole-stay observation.':values.ending?'Source-selected full45m visit seeded near its final45–105seconds; ordinary server clock, worker admission and UI departure. This does not observe the whole45m stay.':'Fresh disposable account seeded before admission; real snapshot route, source worker and durable manager created the only saved visit.',
    admitted:{currencies:admitted.yard.currencies,foodInventory:admitted.yard.foodInventory,bowl:admitted.yard.bowls[0],petbookVisits:admitted.yard.petbook.pip_hamster.visits},
    seededAt:Date.now()};
   await save(values.output,result);await save(values.output+'.snapshot.json',admitted);

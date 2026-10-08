@@ -74,14 +74,20 @@ export function prepareR1SavedStay(input={}){
 
 /** A newly admitted same-target visitor increments wear after our release. New
  * condition art and identical geometry/lifetime permit this one monotonic update
- * without rewriting the old visit. Every other changed layout still needs an
- * authoritative replan. Before release even this target-use change is stale. */
+ * without rewriting the old visit. Removing the sole released target is also
+ * safe because it cannot obstruct the remaining route. Other changed layouts
+ * need an authoritative replan; before release both changes are stale. */
 export function r1SavedStayLayoutCompatible(plan,serverNow,geometry,rows){
  try{
   if(!Number.isFinite(serverNow))return false;
   if(r1StayLayoutKey(geometry,rows)===plan.layoutKey)return true;
   if(serverNow<plan.releaseAt)return false;
-  const target=plan.inspectionPlan.target,current=rows.find(r=>r.slotId===target.slotId);
+  const target=plan.inspectionPlan.target;
+  // Removing the sole released target only subtracts an obstacle. Reinsert
+  // that exact source row for identity comparison, so geometry changes or
+  // removal of additional props cannot inherit this narrow allowance.
+  if(rows.length===0)return r1StayLayoutKey(geometry,[target])===plan.layoutKey;
+  const current=rows.find(r=>r.slotId===target.slotId);
   if(!current||current.condition!=='new'||!Number.isSafeInteger(current.uses)||current.uses<target.uses||current.uses>=itemProtocol.item.durability)return false;
   return r1StayLayoutKey(geometry,rows.map(r=>r.slotId===target.slotId?{...r,uses:target.uses}:r))===plan.layoutKey;
  }catch{return false;}

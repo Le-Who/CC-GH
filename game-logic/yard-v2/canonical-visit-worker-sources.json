@@ -29,7 +29,7 @@
   },
   {
     "specifier": "./canonical-saved-visit-bridge.mjs",
-    "sha256": "757c7231f39fdae8c408ace6b7ac73de54b0c0952da83b59e12334b4be83556a"
+    "sha256": "5547363df9ab067a1d70c8425d40289281ed5568b3302df27342137cec128b55"
   },
   {
     "specifier": "./catalog.mjs",
@@ -49,7 +49,7 @@
   },
   {
     "specifier": "../../src/games/companion-yard-v2/pip-prototype/canonical-saved-stay.mjs",
-    "sha256": "3bdbbd8b11047ae65dc715d923381081b95c444c29ac78331cd4d000d8e244cf"
+    "sha256": "416cb4876be015255d3d375db45da5243a148be66afdcfe5ce2af43af4b70627"
   },
   {
     "specifier": "../../src/games/companion-yard-v2/pip-prototype/canonical-stay-presentation.mjs",

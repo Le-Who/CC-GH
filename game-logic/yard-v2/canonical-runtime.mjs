@@ -6,6 +6,7 @@ import {canonicalFoodCapabilities,selectCanonicalFoodState} from './canonical-fo
 import {canonicalItemCapabilities} from './canonical-locations.mjs';
 import {finishCanonicalDepartureCheckpoint} from './canonical-unique-visit-clock.mjs';
 import {probeCanonicalFoodAction} from './canonical-food-actions.mjs';
+import {probeCanonicalSavedItemAction} from './canonical-saved-item-actions.mjs';
 import {YARD_HOUR_MS,YARD_FOODS,YARD_GOODIES} from './catalog.mjs';
 import {clone,integer,digest} from './util.mjs';
 export const CANONICAL_RUNTIME_ENABLED=false;
@@ -36,7 +37,10 @@ export function ensureCanonicalPlayerYard(player,{now=Date.now(),simulate=false}
  for(let n=0;r.nextOpportunityAt<=now&&n<48;n++){
   const at=r.nextOpportunityAt;if(!integer(at+YARD_HOUR_MS))return failure('INVALID_YARD_SERVER_TIME');expire(player,at);
   // No placement means the source opportunity has no candidate or debit.
-  if(!r.canonicalPlacements.length){r.cursorMs=at;r.nextOpportunityAt=at+YARD_HOUR_MS;continue;}
+  if(!r.canonicalPlacements.length){
+   if(!finishCanonicalDepartureCheckpoint(player))return failure('CANONICAL_DEPARTURE_CHECKPOINT_INVALID');
+   r.cursorMs=at;r.nextOpportunityAt=at+YARD_HOUR_MS;continue;
+  }
   const result=stageCanonicalVisitPreparation(player,{slotId:r.canonicalPlacements[0].slotId,at});
   if(result.state==='pending'){owner().register(player);return {status:200,mutable:false,yard:player.yard,reconciliation:result};}
   if(!['NO_SELECTED_CANDIDATE','SELECTED_CANDIDATE_UNSUPPORTED'].includes(result.code))return failure(result.code);
@@ -68,10 +72,11 @@ export function publicCanonicalPlayerYard(player,{now=Date.now()}={}){
 }
 export function executeCanonicalYardAction(player,action,payload={}, {now=Date.now(),actionId}={}){
  if(!CANONICAL_RUNTIME_ENABLED)return failure('CANONICAL_RUNTIME_DISABLED');
- const probe=probeCanonicalFoodAction(player,action,payload,{now,actionId});
- if(!probe.needsReconciliation)return probe;
+ const item=action==='yard.pickupGoodie';
+ const probe=(item?probeCanonicalSavedItemAction:probeCanonicalFoodAction)(player,action,payload,{now,actionId});
+ if(!probe.needsReconciliation)return item&&probe.replayed?owner().applyPickup(player,payload,{now,actionId}):probe;
  const advanced=ensureCanonicalPlayerYard(player,{now,simulate:true});
  if(advanced.status!==200)return advanced;
- return owner().applyFood(player,action,payload,{now,actionId});
+ return item?owner().applyPickup(player,payload,{now,actionId}):owner().applyFood(player,action,payload,{now,actionId});
 }
 export async function closeCanonicalRuntime(){if(reconciler){await reconciler.close();reconciler=undefined;}}

@@ -6,6 +6,8 @@
  * qualified one-visit economic effects; preparation alone never grants them.
  */
 import {applyCanonicalFoodActionAtCursor} from './canonical-food-actions.mjs';
+import {probeCanonicalSavedItemAction,applyCanonicalSavedPickupAtCursor} from './canonical-saved-item-actions.mjs';
+import {inspectCanonicalLayoutAfterActions} from './canonical-layout-evidence.mjs';
 import {canonicalDepartureCheckpointValid,finishCanonicalDepartureCheckpoint,CANONICAL_HELD_DEPARTURE_STATUS,CANONICAL_MAX_VISIT_STAY_MS} from './canonical-unique-visit-clock.mjs';
 import {withPlayerLock,afterPlayerCommit} from '../../playerManager.js';
 import {createCanonicalVisitWorker} from './canonical-visit-worker.mjs';
@@ -51,7 +53,8 @@ function inspect(player){
   ||!object(runtime.canonicalVisits)||Object.values(runtime.canonicalVisits).some(v=>!object(v)||!['active','completed',CANONICAL_HELD_DEPARTURE_STATUS].includes(v.status)))return outcome('EXISTING_VISITS_UNQUALIFIED');
  if(!canonicalDepartureCheckpointValid(player))return outcome('CANONICAL_DEPARTURE_CHECKPOINT_INVALID');
  const active=Object.values(runtime.canonicalVisits).filter(v=>v.status==='active');
- if(active.length>1||yard.activeVisitors.length!==active.length||runtime.canonicalPlacements.length>1||active.length&&runtime.canonicalPlacements.length!==1)return outcome('ONE_VISIT_QUALIFICATION_REQUIRED');
+ if(active.length>1||yard.activeVisitors.length!==active.length||runtime.canonicalPlacements.length>1)return outcome('ONE_VISIT_QUALIFICATION_REQUIRED');
+ if(active.length&&!inspectCanonicalLayoutAfterActions({wrapper:active[0],record:active[0].proposal,commandReceipts:runtime.commandReceipts,rows:runtime.canonicalPlacements,cursorMs:runtime.cursorMs}).valid)return outcome('CANONICAL_LAYOUT_EVIDENCE_INVALID');
  return {player,store,runtime,yard};
 }
 export function inspectCanonicalPlayerState(player){
@@ -99,8 +102,10 @@ function currentRequestUnchecked(player){
   const candidate=record.candidate;
   const selected=select({runtime:{...state.runtime,canonicalPlacements:record.before.rows,cursorMs:candidate.arrivedAt-1,nextOpportunityAt:candidate.arrivedAt},yard:{bowls:[record.before.bowl]}},candidate.slotId,candidate.arrivedAt);
   if(!selected||digest(selected.candidate)!==digest(candidate)||wrapper.eventId!==digest({ownerId:player.id,seed:state.runtime.seed,at:candidate.arrivedAt,slotId:candidate.slotId,n:0}))return outcome('SAVED_SELECTION_MISMATCH');
-  const request={ownerId:player.id,operation:'restore',fence:{yardRevision:state.runtime.canonicalRevision??player._version,layoutRevision:digest(sorted(state.runtime.canonicalPlacements)),cursor:wrapper.eventId,reservationDigest:reservations(state)},
-   input:{record:clone(record),rows:sorted(state.runtime.canonicalPlacements),serverNow:candidate.arrivedAt}};
+   const layout=inspectCanonicalLayoutAfterActions({wrapper,record,commandReceipts:state.runtime.commandReceipts,rows:state.runtime.canonicalPlacements,cursorMs:state.runtime.cursorMs});
+   if(!layout.valid)return outcome(layout.code);
+   const request={ownerId:player.id,operation:'restore',fence:{yardRevision:state.runtime.canonicalRevision??player._version,layoutRevision:digest(sorted(state.runtime.canonicalPlacements)),cursor:wrapper.eventId,reservationDigest:reservations(state)},
+    input:{record:clone(record),rows:sorted(state.runtime.canonicalPlacements),serverNow:layout.pickupAt??candidate.arrivedAt}};
   try{snapshotRequest(request,256*1024);}catch(error){return outcome(error.message);}
   return {state,wrapper,request};
  }
@@ -152,6 +157,19 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
  const worker=createCanonicalVisitWorker({enabled:CANONICAL_RECONCILIATION_ENABLED});
  const notifications=new Set(),inflight=new Set(),validated=new Map();let closed=false;
  const observe=result=>{if(closed)return;try{onObservation(Object.freeze(result));}catch{ /* diagnostic failure cannot change state */ }};
+ function retainValidatedProjection(player,cached,now){
+  if(!cached||cached.expiresAt<=performance.now())return;
+  const current=currentRequest(player);if(current.code||!current.wrapper)return;
+  const evidence={state:'prepared',execution:{sourceHash:VISIT_JOB_SOURCE_HASH},artifact:cached.artifact};
+  if(!inspectReplayedCanonicalVisit(player,evidence,{now}).valid)return;
+  const expectedInput=digest(current.request.input),visitId=current.wrapper.visitId;
+  afterPlayerCommit(player,committed=>{
+   const fresh=currentRequest(committed);
+   if(closed||cached.expiresAt<=performance.now()||fresh.code||fresh.wrapper?.visitId!==visitId||digest(fresh.request.input)!==expectedInput)return;
+   if(!inspectReplayedCanonicalVisit(committed,evidence,{now}).valid)return;
+   validated.set(player.id,{...cached,requestKey:snapshotRequest(fresh.request,256*1024).key});
+  },{beforeSync:true});
+ }
  function queueRequest(request){
   setImmediate(()=>{
     if(closed)return;
@@ -269,6 +287,32 @@ export function createCanonicalVisitReconciler({onObservation=()=>{}}={}){
      if(!checked.valid)return {status:409,error:checked.code};
     }
     player.yard=result.yard;player._yardV2.runtime=result.runtime;
+   }
+   const {yard:_yard,runtime:_runtime,...publicResult}=result;return publicResult;
+  },
+  /** The winning transaction alone rekeys immutable replay evidence before
+   * realtime/HTTP projection; a losing OCC attempt never changes this cache. */
+  applyPickup(player,payload,{now,actionId}={}){
+   const probe=probeCanonicalSavedItemAction(player,'yard.pickupGoodie',payload,{now,actionId});
+   if(!probe.needsReconciliation){
+    // Another process may have won this nonce while our immutable source proof
+    // still describes the same visitor. Recheck the fresh typed layout evidence
+    // and refresh projection only after this transaction wins; never replay an
+    // economy mutation or extend the original proof lifetime.
+    if(probe.replayed)retainValidatedProjection(player,validated.get(player.id),now);
+    return probe;
+   }
+   const current=currentRequest(player),cached=validated.get(player.id);
+   if(current.code||!current.wrapper||!cached||cached.requestKey!==snapshotRequest(current.request,256*1024).key||cached.expiresAt<=performance.now())return {status:409,error:'CANONICAL_ACTION_RECONCILIATION_PENDING',retryable:true};
+   const evidence={state:'prepared',execution:{sourceHash:VISIT_JOB_SOURCE_HASH},artifact:cached.artifact};
+   const before=inspectReplayedCanonicalVisit(player,evidence,{now});if(!before.valid)return {status:409,error:before.code};
+   const result=applyCanonicalSavedPickupAtCursor(player,payload,{now,actionId,replayedRecord:cached.artifact.record});
+   if(result.receipt&&result.yard&&result.runtime){
+    const draft={...player,yard:result.yard,_yardV2:{...player._yardV2,runtime:result.runtime}};
+    const checked=inspectReplayedCanonicalVisit(draft,evidence,{now});if(!checked.valid)return {status:409,error:checked.code};
+    const next=currentRequest(draft);if(next.code)return {status:409,error:next.code};
+    player.yard=result.yard;player._yardV2.runtime=result.runtime;
+    retainValidatedProjection(player,cached,now);
    }
    const {yard:_yard,runtime:_runtime,...publicResult}=result;return publicResult;
   },

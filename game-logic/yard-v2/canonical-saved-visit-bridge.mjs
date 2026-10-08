@@ -76,7 +76,10 @@ export function restoreCanonicalSavedVisit(record,{rows,serverNow}={}){
   if(serverNow!==undefined&&!integer(serverNow))return fail('CANONICAL_SERVER_TIME_INVALID');
   if(serverNow!==undefined&&serverNow>=record.candidate.leavesAt)return {...replay,sample:sampleR1SavedStay(replay.plan,serverNow)};
   if(serverNow!==undefined&&rows===undefined)return fail('CANONICAL_CURRENT_ROWS_REQUIRED');
-  if(rows!==undefined&&(!canonicalSavedVisitRowsValid(rows)||digest(rowSort(rows))!==digest(record.after.rows)&&!(serverNow!==undefined&&r1SavedStayLayoutCompatible(replay.plan,serverNow,r1SavedStayGeometry(),rows))))return fail('CANONICAL_SAVED_VISIT_LAYOUT_STALE');
+  // Admission still requires a target. Current rows may be empty after its
+  // release, but only the source plan's time/layout check can permit removal.
+  const currentRowsValid=Array.isArray(rows)&&(rows.length===0||canonicalSavedVisitRowsValid(rows));
+  if(rows!==undefined&&(!currentRowsValid||digest(rowSort(rows))!==digest(record.after.rows)&&!(serverNow!==undefined&&r1SavedStayLayoutCompatible(replay.plan,serverNow,r1SavedStayGeometry(),rows))))return fail('CANONICAL_SAVED_VISIT_LAYOUT_STALE');
   return serverNow===undefined?replay:{...replay,sample:sampleR1SavedStay(replay.plan,serverNow,{rows:rows??record.after.rows})};
  }catch{return fail('CANONICAL_SAVED_VISIT_RECORD_INVALID');}
 }
