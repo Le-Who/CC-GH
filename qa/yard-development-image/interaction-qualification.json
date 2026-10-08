@@ -1,0 +1,109 @@
+{
+  "format": "cc-gh-live-interaction-qualification/v1",
+  "repository": "le-who/cc-gh",
+  "repositoryId": 1162268629,
+  "base": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+  "candidate": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
+  "status": "accepted",
+  "runId": 37733412001,
+  "runAttempt": 1,
+  "workflow": ".github/workflows/live-interaction-feedback.yml",
+  "branch": "qa/live-interaction-feedback-20261008",
+  "artifact": {
+    "id": 11529879276,
+    "sha256": "f8874240d7c93d55a7f83bbcdebb448cbea602b9b0e768453324dc33cdd9fa20",
+    "libraryFileId": "libfile_3a8771066b6481918c88fcd7997c7f9a"
+  },
+  "source": {
+    "passed": 19,
+    "failed": 0,
+    "cancelled": 0,
+    "skipped": 0,
+    "reportSha256": "19a6aec262ce37b13824b1b04a6e865c90d794a250f9f3583a435c7ff4541b70"
+  },
+  "build": {
+    "passed": true,
+    "reportSha256": "0c829a86085fa2d7dc51f01c70893e637288a6c9827e13586e0a054edfdc90e1",
+    "flags": {
+      "VITE_YARD_PIP_PREVIEW": "true",
+      "VITE_YARD_SAVED_VISITS": "false",
+      "VITE_YARD_PAINTED_FOOD_TRIAL": "false"
+    }
+  },
+  "boundary": {
+    "base": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+    "commit": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
+    "productPaths": [
+      "src/game-state/yardPlacementFeedback.mjs",
+      "src/games/companion-yard-v2/CourtyardGame.jsx",
+      "src/games/garden-shelf/lib/GardenR2Provider.tsx",
+      "src/games/garden-shelf/lib/gardenCommandArbiter.js"
+    ],
+    "flags": {
+      "preview": true,
+      "saved": false,
+      "painted": false
+    },
+    "backendSchemaAssetsAndDependencies": "unchanged",
+    "deployment": false
+  },
+  "phases": {
+    "compact": {
+      "passed": 1,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "attempts": 1,
+      "cases": [
+        "yard-live-placement-feedback.spec.js > diagnostic compact320 > normal-release Courtyard journal, ordering, rollback and account recovery"
+      ],
+      "reportSha256": "bed7cc637e6297d8d1c4edfb4562b33218eccfdb22008e1ef5caca4b57a5aa08"
+    },
+    "garden": {
+      "passed": 1,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "attempts": 1,
+      "cases": [
+        "garden-live-heartbeat.spec.js > Garden foreground priority diagnostic > one water during delayed heartbeat remains an explicit intent"
+      ],
+      "reportSha256": "cd0f5c22676bb238d551b9905a4a2147bd3bd6bac58b0e9626289e2f90e6922f"
+    },
+    "matrix": {
+      "passed": 9,
+      "failed": 0,
+      "flaky": 0,
+      "skipped": 0,
+      "attempts": 1,
+      "cases": [
+        "yard-live-placement-feedback.spec.js > acceptance 320x568 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 360x800 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 390x844 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 414x896 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 568x320 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 844x390 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 768x1024 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 1024x768 > normal-release Courtyard journal, ordering, rollback and account recovery",
+        "yard-live-placement-feedback.spec.js > acceptance 1280x720 > normal-release Courtyard journal, ordering, rollback and account recovery"
+      ],
+      "reportSha256": "4f62dbfad774ae0a2588e146cdb9074fc311eae662624d34ad01768a8237d7be"
+    }
+  },
+  "github": {
+    "runSha256": "38973c973a6b64053fe40cca849c884964a8886b193be87483338104b219358e",
+    "jobsSha256": "453a9c2c9518d7ecec37e0b8a76d5a752e882c0b053943368ef526b5dea36a76",
+    "jobId": 113167464020
+  },
+  "visualReview": {
+    "verdict": "accepted",
+    "independent": true,
+    "scope": "Independent visual GO for original compact, Garden and nine-viewport parity evidence, reported by the integration owner; does not accept new image originals."
+  },
+  "deployment": false,
+  "limitations": [
+    "Source-built normal-route interaction fixture with real source command logic; not an immutable-image or deployed PostgreSQL claim.",
+    "New image requires its own five-case actual-image lane and independent review of every original image capture.",
+    "Historical controller qualification establishes mechanisms only; no ec815-bound activation readiness."
+  ]
+}

@@ -13,7 +13,7 @@
   "repositoryId": 1162268629,
   "dockerfileSha256": "e4e0cc3f78eeabd57be5225daea0a200223ca552eba0e4f54e6ccdc13b2ab631",
   "sourceSelection": {
-    "nonShellCount": 76,
+    "nonShellCount": 79,
     "nonShellDeadlineSeconds": 20,
     "releaseSmokeCount": 5,
     "releaseSmokeDeadlineSeconds": 60,
@@ -24,12 +24,14 @@
       "a later invocation refuses unresolved daemon work despite a stale healthy predecessor",
       "signal immediately after clearing a verified candidate marker cannot start an unmarked rollback"
     ],
-    "freshExternalControllerCount": 60
+    "interactionSourceCount": 19,
+    "interactionSourceDeadlineSeconds": 20,
+    "historicalExternalControllerCount": 64
   },
   "workflowTrustBoundary": "GitHub hosted runner and official vendor actions at existing repository major tags. Exact workflow bytes are pinned; major-tag action implementation is not represented as immutable.",
   "finalized": true,
-  "base": "aa43b9167c0af475bec294878d55bcb95a4ff244",
-  "integrationParent": "4de9a6fd099c8a1779b72a969191d9b2697c7811",
+  "base": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+  "integrationParent": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
   "checks": [
     "reviewed-source-inventory",
     "normal-production-image",
@@ -47,170 +49,39 @@
     "prior-image-v2-compatible-replay-preserves-state"
   ],
   "predecessor": {
-    "commit": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
-    "tree": "ce276c7b3a2fa06bc33d5638461873de30654f71",
-    "imageDigest": "sha256:54ae34c2045a15b6431bc74e946e7db66d8c671ed87990397b77307d4d38c015",
-    "imageId": "sha256:fecd7ef08b669ea4bbac9d1460d9538d192e86fb6eb0dca36de7228559f0365a"
+    "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+    "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+    "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+    "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
   },
   "predecessorReceipt": {
-    "json": "{\n  \"format\": \"cc-gh-yard-accepted-active-controller/v1\",\n  \"repository\": \"le-who/cc-gh\",\n  \"repositoryId\": 1162268629,\n  \"status\": \"accepted\",\n  \"release\": {\n    \"commit\": \"9b6b96b4cd1b019d016a741f7300e3172192c3ee\",\n    \"tree\": \"ce276c7b3a2fa06bc33d5638461873de30654f71\",\n    \"imageDigest\": \"sha256:54ae34c2045a15b6431bc74e946e7db66d8c671ed87990397b77307d4d38c015\",\n    \"imageId\": \"sha256:fecd7ef08b669ea4bbac9d1460d9538d192e86fb6eb0dca36de7228559f0365a\"\n  },\n  \"acceptance\": {\n    \"runId\": 37564389140,\n    \"runAttempt\": 1,\n    \"status\": \"completed\",\n    \"conclusion\": \"success\",\n    \"headCommit\": \"9b6b96b4cd1b019d016a741f7300e3172192c3ee\",\n    \"artifactSha256\": \"4e7c42bed99297c7a0f3d5837e0e5747a6077f151a78ad6ddd2b958a54891219\"\n  },\n  \"deployment\": {\n    \"runId\": 37570292685,\n    \"runAttempt\": 1,\n    \"status\": \"completed\",\n    \"conclusion\": \"success\",\n    \"controllerHeadCommit\": \"8e7cc9d17b9ea390ccccb0c5250bbd218bd0b127\",\n    \"targetCommit\": \"9b6b96b4cd1b019d016a741f7300e3172192c3ee\",\n    \"jobId\": 112627155928,\n    \"workflowSha256\": \"4c736ef6730bfbe1329bc09319402e0f36d329732301920599f915665a03ee54\",\n    \"recordSha256\": \"a92209dace49d8b2b2b70be495913bb03f34ca82259b627c195a551787e6ba9f\",\n    \"verifiedAt\": \"2026-10-07T04:14:30Z\",\n    \"evidence\": {\n      \"acceptedImageReceiptSha256\": \"c650ec3c63acc640df141c4ba879d9999a3961ec50bfbb31f1bf1510f7a1aefd\",\n      \"activationResultSha256\": \"14df739c7d29f1ea367f6b7cfb294157f71a835794f2bfc96ffea2f61e34e1b4\",\n      \"githubRunSha256\": \"e063c4b7362bf398e149426d62339d3bd1acfaabd18325f9b5275badfd7c3bd3\",\n      \"githubJobsSha256\": \"8687f92c5b59909e3f1043b10a65fdedea3bad50e9045c46c7724eb1a5781a46\",\n      \"decodedJobLogSha256\": \"af000589a5357e7de9f2a34a8e74974592675adb05985d2fe79342f9a8496dca\",\n      \"publicCheckHashes\": {\n        \"health.json\": \"716c04c97acbcbbc7167a11842f15d0312864128328af39ac27a2fed7deb13d7\",\n        \"config.json\": \"624aaf8a6810927d1163b0fa7ab454d4970814ff357cf93a213ad8e16007376a\",\n        \"index.html\": \"346f20cbe621cad9fa66e5a3e64fec6569af65d69d834dc0453e8e3076af8ecd\"\n      }\n    }\n  },\n  \"scope\": \"Historical verified app-only activation; current host identity remains a mandatory fresh preflight\",\n  \"limitations\": [\n    \"Development deployment only; not full Yard art or saved-visit acceptance\",\n    \"Neighbor public HTTP health not independently tested\",\n    \"Live authenticated phone interaction not newly observed\"\n  ]\n}\n",
-    "sha256": "fa8f4450438549bdaec5e85ef60186cf808097df1742afa670c38abe58e728fb"
+    "json": "{\n  \"format\": \"cc-gh-yard-accepted-active-controller/v1\",\n  \"repository\": \"le-who/cc-gh\",\n  \"repositoryId\": 1162268629,\n  \"status\": \"accepted\",\n  \"release\": {\n    \"commit\": \"ec815065f6adb7c36d81f97b41d47ad16e614b07\",\n    \"tree\": \"b0b85f712645f772bfc138cddabc86a49d01ac07\",\n    \"imageDigest\": \"sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa\",\n    \"imageId\": \"sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d\"\n  },\n  \"acceptance\": {\n    \"runId\": 37623618587,\n    \"runAttempt\": 1,\n    \"status\": \"completed\",\n    \"conclusion\": \"success\",\n    \"headCommit\": \"ec815065f6adb7c36d81f97b41d47ad16e614b07\",\n    \"artifactSha256\": \"fd80d573e642efacd2dc807d6712ed95061449de214649244f49daa204655579\"\n  },\n  \"deployment\": {\n    \"runId\": 37626026418,\n    \"runAttempt\": 1,\n    \"status\": \"completed\",\n    \"conclusion\": \"success\",\n    \"controllerHeadCommit\": \"bd016553563eaa2d6659f0c25b366473b9a5090a\",\n    \"targetCommit\": \"ec815065f6adb7c36d81f97b41d47ad16e614b07\",\n    \"jobId\": 112807870594,\n    \"workflowSha256\": \"8d21d727fc4bb22ecc34bdc123915a81c23a51fe32b95fe479a55f43a73383d7\",\n    \"recordSha256\": \"f8d7419d39faa02ec033f978359cca53cd5e6a7d21884d36736df02ee6875853\",\n    \"verifiedAt\": \"2026-10-07T13:08:51Z\",\n    \"evidence\": {\n      \"acceptedImageReceiptSha256\": \"e67a2d9adbee8e2e9933ce73867351e18e543d40f9addce7701ff193f25e5ef2\",\n      \"originalImageReceiptSha256\": \"f44f0800942e10a73333f22ca47d23a710ba28917b78a2e619b1dd5ad68bfd26\",\n      \"activationResultSha256\": \"a36b0f565eb9c45f4cc05379bbd70f93b17c969760ca5634ddd20cae602258a6\",\n      \"githubRunSha256\": \"669b480c1b34402827d96dfd7923a7f724972a7be32fe8ba654c06c82600c4a9\",\n      \"githubJobsSha256\": \"cbc6e146e7e876c57f51bc692787fa03bf684d064638106b0e7e6efc8b90cd11\",\n      \"decodedJobLogSha256\": \"3e86d232d73046e2f23bda75434665d69c7e29f73fee9dfe9dd45a027aabac2b\"\n    }\n  },\n  \"scope\": \"Historical verified ec815 app-only activation derived from exact original image receipt, supersession, record, result, GitHub run/jobs, workflow and job log. Current host identity requires a fresh preflight.\",\n  \"limitations\": [\n    \"Development batch, not full Yard/saved-visit or final-art acceptance\",\n    \"No newly authenticated physical Telegram-device session\",\n    \"Neighbor public HTTP health not independently tested\",\n    \"Private host values were verified by the guarded helper, not independently downloaded. External public-web check was unavailable.\",\n    \"This receipt does not authorize or establish readiness of a subsequent activation.\"\n  ]\n}\n",
+    "sha256": "fda1fdfe3db01daec915c98eec160029dfc8c0056386a994abaef1b65190ac4b"
   },
-  "scope": "Image-only adapter for qualified development batch; no product behavior or host-controller change",
+  "scope": "Image-only qualification of exact4dde interaction slice; no product, Dockerfile or activation-controller change",
   "priorGreen": {
-    "format": "cc-gh-development-batch-qualification/v1",
-    "runtimeBase": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
-    "candidate": "693b851197c7fd7002566ad883ecdd475c6830b7",
-    "productBaseCandidate": "53c7e1ac073e8aa536153d46ede1324d744a1afa",
-    "runtimeInputsUnchanged": true,
-    "runtimeManifestSha256": "d9575f32572e5997d945c147feaa2dae73aa69bb3ed7f4dbbdd6977b53da9965",
-    "firstRun": {
-      "id": 37609985148,
-      "status": "failed",
-      "passed": 51,
-      "failed": 6
-    },
-    "targetedRun": {
-      "id": 37612683084,
-      "status": "success",
-      "sourceTests": 205,
-      "sourceSkipped": 0,
-      "postgresTests": 1,
-      "browserPassed": 7,
-      "browserFailed": 0,
-      "scope": "All six failed original cases plus deterministic pending-response case; unchanged product/build inputs"
-    },
-    "artifact": {
-      "libraryFileId": "libfile_a7b40f82c730819185df0a433172ecb1",
-      "githubArtifactId": 11478369996,
-      "sha256": "54e2e3e4af4a4b1d0da1da9b9f6ac541019f363d103b8bd91eef41c80cbb13dd"
-    },
-    "visualReview": {
-      "reviewers": [
-        "integration owner",
-        "framing owner",
-        "parent"
-      ],
-      "result": "GO for narrow framing correction and bounded touch checks",
-      "limitations": [
-        "612 app stage600x760 differs from inferred Telegram464x458",
-        "Desktop side/lower pale gutters remain",
-        "Short landscape remains decor-free",
-        "Small old bowl/manualPip unchanged; no painted or saved-visit rollout",
-        "No physical-device or full-Yard acceptance"
-      ]
-    },
-    "imagePublished": false,
-    "deployed": false,
-    "caseEvidenceMap": {
-      "sha256": "a568a6436c6f37dcfaf28845d6dbc00da85fc15e08838c296ff18d6255375ee5",
-      "path": "case-evidence-map.json",
-      "firstRun": {
-        "id": 37609985148,
-        "commit": "53c7e1ac073e8aa536153d46ede1324d744a1afa",
-        "overall": "failure",
-        "jobId": 112754639243,
-        "decodedJobLogSha256": "e0b0ec6d110c8244035e766b09946890685ded7a6c0732e04f38cf2dfae3d683",
-        "mappingMethod": "All57 executed case identities from line reporter; exclude exact final6-failure summary, independently reconcile final51-pass count",
-        "passedCases": [
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 320x568 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 320x568 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 320x568 \u203a detail reward stays above art and retires on actual scroll or dismissal",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 360x800 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 360x800 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 390x844 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 390x844 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 414x896 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 414x896 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 844x390 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 844x390 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 844x390 \u203a detail reward stays above art and retires on actual scroll or dismissal",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 768x1024 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 768x1024 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1024x768 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1024x768 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1280x720 \u203a confirmed reward paints over living plants and stays within its tap target",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 1280x720 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 320x568",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 360x800",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 390x844",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 414x896",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 568x320",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 844x390",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 768x1024",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 1024x768",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 1280x720",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Home toggle and Garden persistence 393x873",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a capture actual blox gameplay",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a capture actual bubbo gameplay",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a capture actual trivia gameplay",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a static poster loading no-preference",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a static poster loading reduce",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Russian labels and theme 320x568",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a Russian labels and theme 844x390",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a record one genuine Bubbo shot for optional preview",
-          "tests/home-theme-e2e/home-theme.spec.mjs \u203a one explicit Bubbo preview loads only on request and pauses safely",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 320x568",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 360x800",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 390x844",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 414x896",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 568x320",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 844x390",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 768x1024",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 1024x768",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 1280x720",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a profile nickname 393x873",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a match3 public and historical names, safe HTML and self label",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a blox public and historical names, safe HTML and self label",
-          "tests/leaderboard-privacy-e2e/privacy.spec.mjs \u203a Trivia public history and lobby render safe names and reject old username/winner snapshots"
-        ],
-        "failedCases": [
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 390x844 \u203a held touch aims without firing; release makes exactly one persisted shot",
-          "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 568x320 \u203a held touch aims without firing; release makes exactly one persisted shot",
-          "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 612x982",
-          "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 320x568",
-          "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 568x320"
-        ]
-      },
-      "targetedRun": {
-        "id": 37612683084,
-        "commit": "693b851197c7fd7002566ad883ecdd475c6830b7",
-        "overall": "success",
-        "browserJsonSha256": "81ef6fdcc3045fd381980049cd55108d6c6f3d41e74c4fcb977d5a5b65cbe0cb",
-        "passedCases": [
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a compact resources, accessible controls and quiet server throttle preserve real rewards",
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a a pending response coalesces an overlapping key before the next settled tend",
-          "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 390x844 \u203a held touch aims without firing; release makes exactly one persisted shot",
-          "tests/development-batch-e2e/bubbo-touch.spec.mjs \u203a Bubbo full-app touch 568x320 \u203a held touch aims without firing; release makes exactly one persisted shot",
-          "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 612x982",
-          "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 320x568",
-          "tests/development-batch-e2e/yard-framing.spec.mjs \u203a Yard initial framing ordinary shell 568x320"
-        ]
-      },
-      "coverage": {
-        "originalCases": 57,
-        "originalFailedNowPassed": 6,
-        "newRegressionCases": [
-          "qa/garden-tap-layout/garden-tap-layout.spec.mjs \u203a 568x320 \u203a a pending response coalesces an overlapping key before the next settled tend"
-        ],
-        "uniquePassedCasesAcrossRuns": 58,
-        "singleGreenFullSuiteClaim": false
-      }
-    }
+    "runId": 37733412001,
+    "head": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
+    "status": "success",
+    "scope": "Source-built normal-route interaction qualification; new image originals remain independently reviewed"
   },
-  "activationControllerQualification": "Reviewed external exact source and60-case node-spec proof; final transport and host verification remain separate",
+  "activationControllerQualification": "Historical exact64-case controller mechanism proof only; ec815-bound activation requires separately qualified controller and fresh host preflight",
   "acceptanceOnlyPaths": [
     ".github/workflows/yard-development-image.yml",
-    "qa/development-batch/manifest.json",
-    "qa/yard-development-image/batch-qualification.json",
+    "qa/yard-development-image/activation-controller-compose.json",
+    "qa/yard-development-image/activation-controller-formatter.log",
+    "qa/yard-development-image/activation-controller-proof.json",
+    "qa/yard-development-image/activation-controller-source.json",
+    "qa/yard-development-image/activation-controller.log",
+    "qa/yard-development-image/interaction-qualification.json",
     "qa/yard-development-image/manifest.json",
+    "qa/yard-development-image/predecessor-active-receipt.json",
     "scripts/yard-development-acceptance.mjs",
     "scripts/yard-development-receipt.mjs",
     "tests/helpers/yard-development-acceptance.mjs",
     "tests/yard-development-receipt.test.mjs"
   ],
-  "activationControllerProofSha256": "a6627d64a5c1f6fa394a49c79ea5fb341279f19614d471fc1fdcdaa1dcb0e135",
-  "batchQualificationSha256": "c624c1c94bd83d9b7474ef8de38b8bbf022d58b0043321d5aa22525b5e5efb05"
+  "activationControllerProofSha256": "fc2528986d5080a27a3ffbb6e3df6a20a4d1ac417d5acc3a98eee2ac73db656d",
+  "interactionQualificationSha256": "af90dea423e7ed3735a86a4dbc7d4a98a2805b201c3b06074adc3ddfeb60cad8",
+  "activationReady": false
 }

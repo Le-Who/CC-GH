@@ -1,24 +1,71 @@
 {
-  "format": "cc-gh-yard-external-controller-proof/v1",
-  "kind": "reviewed-external-source-mocked-release-proof",
+  "format": "cc-gh-yard-controller-native-qa/v1",
+  "repository": "le-who/cc-gh",
+  "repositoryId": 1162268629,
+  "status": "accepted",
+  "controllerHeadCommit": "d0c57b85401ac77e0f5a7e41141eab134abb1ac1",
+  "controllerTree": "6c1ec580d7535279953ba1ea2d640091fb645810",
+  "controllerSourceBase": "ab4bd95df88ac6a23ffab151691694d4b5570643",
+  "runId": 37619591914,
+  "runAttempt": 1,
+  "jobId": 112786205767,
+  "conclusion": "success",
+  "workflow": ".github/workflows/development-controller-qa.yml",
+  "workflowSha256": "a5d046c65ffc496a23d7122f190a7ffa57ab25d558e13f942f61de4bb32255af",
+  "sourceManifestSha256": "191fc5fdc482541a836583537adf5ceca1c4f491978a6d1748c06ff0d0900073",
+  "artifact": {
+    "id": 11481059998,
+    "name": "development-controller-d0c57b85401ac77e0f5a7e41141eab134abb1ac1",
+    "sha256": "814e2267b1d90746c31631ff1578b0da109221c3302060ebb0f3e5c04f040e4f",
+    "bytes": 3861
+  },
   "sourcePins": [
     {
       "path": "scripts/ccgh-app-development-release.sh",
-      "sha256": "c7fb2494a1097b1c16878ef7ccba89b73721a135ccc728bb04ea5945d4def95c"
+      "sha256": "8be49f606f6c468f024c9d1b9f668be5dae599c1469816ef2b6dbea40eb907f4"
     },
     {
       "path": "scripts/yard-development-contract.mjs",
-      "sha256": "f5772ffe1a8cf89a73ff6ebbb63d038558cb0caf9e14e816db5963cd32606564"
+      "sha256": "64d9d9578918df8cf15f87be9ecf37e05a8be73f1bcfe5287ef37e2c461cf1cb"
     },
     {
       "path": "tests/yard-development-release.test.mjs",
-      "sha256": "dc2b7b74ecadd00a49b1fab94598bd1cd52bd64ad473d88a638a0db9f7e5da5f"
+      "sha256": "fd78e942c2713c7e35b1f8bbfd11a0323bc5d174c1bbb885fa5c72b48ef1eb54"
     }
   ],
-  "tests": 60,
-  "originalReporter": "node-spec",
-  "logSha256": "be64859cd7b67ce207767fb45d31f40bd536f20160f49818c712ca76b80d1118",
-  "scope": "Separate rebound9b controller source; deterministic mocked tools, no actual host activation",
-  "predecessorCommit": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
-  "runtimeOperationPerformed": false
+  "tests": {
+    "controller": 64,
+    "controllerReporter": "node-tap",
+    "compose": "actual config only; synthetic files; no daemon",
+    "formatter": {
+      "strictHealthCases": 14,
+      "databaseCases": 7
+    }
+  },
+  "originalFiles": [
+    {
+      "path": "source.json",
+      "bytes": 877,
+      "sha256": "5660feb11114655794ee5019ff7832179fc4eb0319c742663f53360629da61a2"
+    },
+    {
+      "path": "controller.tap",
+      "bytes": 12178,
+      "sha256": "6382f96bb2a022023885dccfe3f738add5a24614ff900dcab5a15b608f27c09f"
+    },
+    {
+      "path": "compose.json",
+      "bytes": 887,
+      "sha256": "d82a8cb12bf1790fcf462b3ec31d7ab0b39d9dd20ab2bea9d1598265350c2ec2"
+    },
+    {
+      "path": "formatter.log",
+      "bytes": 127,
+      "sha256": "81f2dc0741fe68f0bd5d7c3694dc0b491148c906abbd771ce0c1ec8d8653cc13"
+    }
+  ],
+  "runtimeChanged": false,
+  "imageRebuilt": false,
+  "hostActivationPerformed": false,
+  "scope": "Final external controller QA; independent of gameplay-image source. No claim that these controller bytes were in the image artifact."
 }

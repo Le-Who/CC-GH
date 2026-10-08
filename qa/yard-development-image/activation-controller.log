@@ -1,68 +1,394 @@
-✔ development record binds the current compatible predecessor without reset (4.665013ms)
-✔ approval hash cannot be obtained implicitly from candidate bytes (1.343597ms)
-✔ rejects maintenance disguise (0.719219ms)
-✔ rejects unreviewed predecessor (0.441366ms)
-✔ rejects database reset (0.879417ms)
-✔ rejects rollback compatibility claim (0.61266ms)
-✔ rejects client enablement authority (0.540333ms)
-✔ rejects fixture loader (0.388537ms)
-✔ rejects canonical visitor admission (0.58582ms)
-✔ rejects foreign public target (0.474986ms)
-✔ rejects invented neighbor-health claim (0.394486ms)
-✔ rejects acceptance missing capability case (1.437737ms)
-✔ rejects acceptance different digest (0.412653ms)
-✔ rejects acceptance hidden retry (0.318573ms)
-✔ rejects acceptance unsuccessful prior deployment (0.411161ms)
-✔ health independently binds image, service, exact build, both dependencies and authentication (1.058623ms)
-✔ protected host/neighbor changes fail even when application is healthy (0.725168ms)
-✔ CLI failure does not serialize private neighbor comparison values (61.495429ms)
-✔ shell success changes only app image/build identity and preserves original compose/env (7911.831673ms)
-✔ shell unauthorized-root fails before replacing any app (6.185213ms)
-✔ shell root-symlink fails before replacing any app (5.427728ms)
-✔ shell packet-symlink fails before replacing any app (6.47253ms)
-✔ shell lock-symlink fails before replacing any app (12.872872ms)
-✔ shell lock-hardlink fails before replacing any app (13.392365ms)
-✔ shell backup-symlink fails before replacing any app (6.394625ms)
-✔ shell compose-symlink fails before replacing any app (9.514821ms)
-✔ shell env-symlink fails before replacing any app (10.83218ms)
-✔ shell verifier-symlink fails before replacing any app (16.36364ms)
-✔ shell record-symlink fails before replacing any app (6.590685ms)
-✔ shell docker-config-override fails before replacing any app (4.390535ms)
-✔ shell backup-corruption fails before replacing any app (5789.16221ms)
-✔ shell config-drift fails before replacing any app (1382.322903ms)
-✔ shell remote-context fails before replacing any app (71.592749ms)
-✔ shell no-compose fails before replacing any app (134.903499ms)
-✔ shell wrong-predecessor fails before replacing any app (163.845274ms)
-✔ shell wrong-candidate-image fails before replacing any app (1277.05555ms)
-✔ shell pre-health fails before replacing any app (1462.291289ms)
-✔ shell backup-fail fails before replacing any app (3415.529018ms)
-✔ shell backup-invalid fails before replacing any app (3148.915161ms)
-✔ disappearing neighbor details stay in private evidence rather than public stderr (2848.060024ms)
-✔ Compose timeout stays unverified and does not launch a competing rollback (5330.372171ms)
-✔ a later invocation refuses unresolved daemon work despite a stale healthy predecessor (5616.835057ms)
-✔ signal immediately after clearing a verified candidate marker cannot start an unmarked rollback (7730.62453ms)
-✔ shell candidate-port-drift performs actual healthy predecessor rollback (9202.168762ms)
-✔ shell candidate-config-drift performs actual healthy predecessor rollback (10235.962819ms)
-✔ shell during-switch performs actual healthy predecessor rollback (7982.824401ms)
-✔ shell candidate-local performs actual healthy predecessor rollback (9483.205251ms)
-✔ shell candidate-public performs actual healthy predecessor rollback (14271.624091ms)
-✔ shell stale-public performs actual healthy predecessor rollback (14326.584015ms)
-✔ shell rollback-unhealthy refuses a false recovered claim (7374.116803ms)
-✔ shell rollback-command refuses a false recovered claim (5931.39147ms)
-✔ shell neighbor-drift refuses a false recovered claim (10184.266905ms)
-✔ shell has no host installation, registry login, unrelated deletion, environment dump or database restore (0.487235ms)
-✔ controller transport-identity-absent blocks before backup/replacement (2.729192ms)
-✔ controller transport-identity-mismatch blocks before backup/replacement (246.65937ms)
-✔ current active provenance rejects controller confused with app (0.676606ms)
-✔ current active provenance rejects wrong deployed target (0.342599ms)
-✔ current active provenance rejects unrelated successful run (0.63211ms)
-✔ current active provenance rejects missing actual log evidence (3.757164ms)
-✔ rollback diagnostics describe the qualified current predecessor compatibility (0.177985ms)
-ℹ tests 60
-ℹ suites 0
-ℹ pass 60
-ℹ fail 0
-ℹ cancelled 0
-ℹ skipped 0
-ℹ todo 0
-ℹ duration_ms 135819.284458
+TAP version 13
+# Subtest: development record binds the current compatible predecessor without reset
+ok 1 - development record binds the current compatible predecessor without reset
+  ---
+  duration_ms: 4.928992
+  type: 'test'
+  ...
+# Subtest: approval hash cannot be obtained implicitly from candidate bytes
+ok 2 - approval hash cannot be obtained implicitly from candidate bytes
+  ---
+  duration_ms: 1.466351
+  type: 'test'
+  ...
+# Subtest: rejects maintenance disguise
+ok 3 - rejects maintenance disguise
+  ---
+  duration_ms: 0.525322
+  type: 'test'
+  ...
+# Subtest: rejects unreviewed predecessor
+ok 4 - rejects unreviewed predecessor
+  ---
+  duration_ms: 0.432519
+  type: 'test'
+  ...
+# Subtest: rejects database reset
+ok 5 - rejects database reset
+  ---
+  duration_ms: 1.255157
+  type: 'test'
+  ...
+# Subtest: rejects rollback compatibility claim
+ok 6 - rejects rollback compatibility claim
+  ---
+  duration_ms: 0.729754
+  type: 'test'
+  ...
+# Subtest: rejects client enablement authority
+ok 7 - rejects client enablement authority
+  ---
+  duration_ms: 0.512438
+  type: 'test'
+  ...
+# Subtest: rejects fixture loader
+ok 8 - rejects fixture loader
+  ---
+  duration_ms: 0.570396
+  type: 'test'
+  ...
+# Subtest: rejects canonical visitor admission
+ok 9 - rejects canonical visitor admission
+  ---
+  duration_ms: 0.51889
+  type: 'test'
+  ...
+# Subtest: rejects foreign public target
+ok 10 - rejects foreign public target
+  ---
+  duration_ms: 0.70621
+  type: 'test'
+  ...
+# Subtest: rejects invented neighbor-health claim
+ok 11 - rejects invented neighbor-health claim
+  ---
+  duration_ms: 0.501818
+  type: 'test'
+  ...
+# Subtest: rejects acceptance missing capability case
+ok 12 - rejects acceptance missing capability case
+  ---
+  duration_ms: 0.594191
+  type: 'test'
+  ...
+# Subtest: rejects acceptance different digest
+ok 13 - rejects acceptance different digest
+  ---
+  duration_ms: 1.228356
+  type: 'test'
+  ...
+# Subtest: rejects acceptance hidden retry
+ok 14 - rejects acceptance hidden retry
+  ---
+  duration_ms: 0.407952
+  type: 'test'
+  ...
+# Subtest: rejects acceptance unsuccessful prior deployment
+ok 15 - rejects acceptance unsuccessful prior deployment
+  ---
+  duration_ms: 0.426007
+  type: 'test'
+  ...
+# Subtest: health independently binds image, service, exact build, both dependencies and authentication
+ok 16 - health independently binds image, service, exact build, both dependencies and authentication
+  ---
+  duration_ms: 0.948663
+  type: 'test'
+  ...
+# Subtest: protected host/neighbor changes fail even when application is healthy
+ok 17 - protected host/neighbor changes fail even when application is healthy
+  ---
+  duration_ms: 1.062186
+  type: 'test'
+  ...
+# Subtest: CLI failure does not serialize private neighbor comparison values
+ok 18 - CLI failure does not serialize private neighbor comparison values
+  ---
+  duration_ms: 41.52916
+  type: 'test'
+  ...
+# Subtest: shell success changes only app image/build identity and preserves original compose/env
+ok 19 - shell success changes only app image/build identity and preserves original compose/env
+  ---
+  duration_ms: 9119.452251
+  type: 'test'
+  ...
+# Subtest: shell unauthorized-root fails before replacing any app
+ok 20 - shell unauthorized-root fails before replacing any app
+  ---
+  duration_ms: 8.494908
+  type: 'test'
+  ...
+# Subtest: shell root-symlink fails before replacing any app
+ok 21 - shell root-symlink fails before replacing any app
+  ---
+  duration_ms: 7.430236
+  type: 'test'
+  ...
+# Subtest: shell packet-symlink fails before replacing any app
+ok 22 - shell packet-symlink fails before replacing any app
+  ---
+  duration_ms: 8.560679
+  type: 'test'
+  ...
+# Subtest: shell lock-symlink fails before replacing any app
+ok 23 - shell lock-symlink fails before replacing any app
+  ---
+  duration_ms: 15.451204
+  type: 'test'
+  ...
+# Subtest: shell lock-hardlink fails before replacing any app
+ok 24 - shell lock-hardlink fails before replacing any app
+  ---
+  duration_ms: 15.461376
+  type: 'test'
+  ...
+# Subtest: shell backup-symlink fails before replacing any app
+ok 25 - shell backup-symlink fails before replacing any app
+  ---
+  duration_ms: 9.012273
+  type: 'test'
+  ...
+# Subtest: shell compose-symlink fails before replacing any app
+ok 26 - shell compose-symlink fails before replacing any app
+  ---
+  duration_ms: 13.052022
+  type: 'test'
+  ...
+# Subtest: shell env-symlink fails before replacing any app
+ok 27 - shell env-symlink fails before replacing any app
+  ---
+  duration_ms: 14.734376
+  type: 'test'
+  ...
+# Subtest: shell verifier-symlink fails before replacing any app
+ok 28 - shell verifier-symlink fails before replacing any app
+  ---
+  duration_ms: 25.996623
+  type: 'test'
+  ...
+# Subtest: shell record-symlink fails before replacing any app
+ok 29 - shell record-symlink fails before replacing any app
+  ---
+  duration_ms: 17.792921
+  type: 'test'
+  ...
+# Subtest: shell docker-config-override fails before replacing any app
+ok 30 - shell docker-config-override fails before replacing any app
+  ---
+  duration_ms: 7.039536
+  type: 'test'
+  ...
+# Subtest: shell backup-corruption fails before replacing any app
+ok 31 - shell backup-corruption fails before replacing any app
+  ---
+  duration_ms: 6165.924333
+  type: 'test'
+  ...
+# Subtest: shell config-drift fails before replacing any app
+ok 32 - shell config-drift fails before replacing any app
+  ---
+  duration_ms: 1463.286765
+  type: 'test'
+  ...
+# Subtest: shell remote-context fails before replacing any app
+ok 33 - shell remote-context fails before replacing any app
+  ---
+  duration_ms: 63.351881
+  type: 'test'
+  ...
+# Subtest: shell no-compose fails before replacing any app
+ok 34 - shell no-compose fails before replacing any app
+  ---
+  duration_ms: 133.656324
+  type: 'test'
+  ...
+# Subtest: shell wrong-predecessor fails before replacing any app
+ok 35 - shell wrong-predecessor fails before replacing any app
+  ---
+  duration_ms: 171.537707
+  type: 'test'
+  ...
+# Subtest: shell wrong-candidate-image fails before replacing any app
+ok 36 - shell wrong-candidate-image fails before replacing any app
+  ---
+  duration_ms: 1284.963202
+  type: 'test'
+  ...
+# Subtest: shell pre-health fails before replacing any app
+ok 37 - shell pre-health fails before replacing any app
+  ---
+  duration_ms: 1521.926023
+  type: 'test'
+  ...
+# Subtest: shell backup-fail fails before replacing any app
+ok 38 - shell backup-fail fails before replacing any app
+  ---
+  duration_ms: 3585.694299
+  type: 'test'
+  ...
+# Subtest: shell backup-invalid fails before replacing any app
+ok 39 - shell backup-invalid fails before replacing any app
+  ---
+  duration_ms: 3608.56086
+  type: 'test'
+  ...
+# Subtest: disappearing neighbor details stay in private evidence rather than public stderr
+ok 40 - disappearing neighbor details stay in private evidence rather than public stderr
+  ---
+  duration_ms: 3165.279846
+  type: 'test'
+  ...
+# Subtest: Compose timeout stays unverified and does not launch a competing rollback
+ok 41 - Compose timeout stays unverified and does not launch a competing rollback
+  ---
+  duration_ms: 6088.997142
+  type: 'test'
+  ...
+# Subtest: a later invocation refuses unresolved daemon work despite a stale healthy predecessor
+ok 42 - a later invocation refuses unresolved daemon work despite a stale healthy predecessor
+  ---
+  duration_ms: 6168.563645
+  type: 'test'
+  ...
+# Subtest: signal immediately after clearing a verified candidate marker cannot start an unmarked rollback
+ok 43 - signal immediately after clearing a verified candidate marker cannot start an unmarked rollback
+  ---
+  duration_ms: 8606.206207
+  type: 'test'
+  ...
+# Subtest: shell candidate-port-drift performs actual healthy predecessor rollback
+ok 44 - shell candidate-port-drift performs actual healthy predecessor rollback
+  ---
+  duration_ms: 9995.482074
+  type: 'test'
+  ...
+# Subtest: shell candidate-config-drift performs actual healthy predecessor rollback
+ok 45 - shell candidate-config-drift performs actual healthy predecessor rollback
+  ---
+  duration_ms: 10426.328506
+  type: 'test'
+  ...
+# Subtest: shell during-switch performs actual healthy predecessor rollback
+ok 46 - shell during-switch performs actual healthy predecessor rollback
+  ---
+  duration_ms: 8632.809918
+  type: 'test'
+  ...
+# Subtest: shell candidate-local performs actual healthy predecessor rollback
+ok 47 - shell candidate-local performs actual healthy predecessor rollback
+  ---
+  duration_ms: 10672.076968
+  type: 'test'
+  ...
+# Subtest: shell candidate-public performs actual healthy predecessor rollback
+ok 48 - shell candidate-public performs actual healthy predecessor rollback
+  ---
+  duration_ms: 15790.633145
+  type: 'test'
+  ...
+# Subtest: shell stale-public performs actual healthy predecessor rollback
+ok 49 - shell stale-public performs actual healthy predecessor rollback
+  ---
+  duration_ms: 16369.81287
+  type: 'test'
+  ...
+# Subtest: shell rollback-unhealthy refuses a false recovered claim
+ok 50 - shell rollback-unhealthy refuses a false recovered claim
+  ---
+  duration_ms: 8389.372881
+  type: 'test'
+  ...
+# Subtest: shell rollback-command refuses a false recovered claim
+ok 51 - shell rollback-command refuses a false recovered claim
+  ---
+  duration_ms: 6396.995963
+  type: 'test'
+  ...
+# Subtest: shell neighbor-drift refuses a false recovered claim
+ok 52 - shell neighbor-drift refuses a false recovered claim
+  ---
+  duration_ms: 11254.022919
+  type: 'test'
+  ...
+# Subtest: shell has no host installation, registry login, unrelated deletion, environment dump or database restore
+ok 53 - shell has no host installation, registry login, unrelated deletion, environment dump or database restore
+  ---
+  duration_ms: 0.615639
+  type: 'test'
+  ...
+# Subtest: controller transport-identity-absent blocks before backup/replacement
+ok 54 - controller transport-identity-absent blocks before backup/replacement
+  ---
+  duration_ms: 4.819144
+  type: 'test'
+  ...
+# Subtest: controller transport-identity-mismatch blocks before backup/replacement
+ok 55 - controller transport-identity-mismatch blocks before backup/replacement
+  ---
+  duration_ms: 288.62474
+  type: 'test'
+  ...
+# Subtest: current active provenance rejects controller confused with app
+ok 56 - current active provenance rejects controller confused with app
+  ---
+  duration_ms: 0.602866
+  type: 'test'
+  ...
+# Subtest: current active provenance rejects wrong deployed target
+ok 57 - current active provenance rejects wrong deployed target
+  ---
+  duration_ms: 0.345925
+  type: 'test'
+  ...
+# Subtest: current active provenance rejects unrelated successful run
+ok 58 - current active provenance rejects unrelated successful run
+  ---
+  duration_ms: 0.358929
+  type: 'test'
+  ...
+# Subtest: current active provenance rejects missing actual log evidence
+ok 59 - current active provenance rejects missing actual log evidence
+  ---
+  duration_ms: 6.127075
+  type: 'test'
+  ...
+# Subtest: rollback diagnostics describe the qualified current predecessor compatibility
+ok 60 - rollback diagnostics describe the qualified current predecessor compatibility
+  ---
+  duration_ms: 0.215211
+  type: 'test'
+  ...
+# Subtest: repeated release accepts the exact existing base plus prior digest override
+ok 61 - repeated release accepts the exact existing base plus prior digest override
+  ---
+  duration_ms: 8644.950172
+  type: 'test'
+  ...
+# Subtest: repeated release rejects prior-bare-config rather than accepting an alternate hash
+ok 62 - repeated release rejects prior-bare-config rather than accepting an alternate hash
+  ---
+  duration_ms: 1517.316495
+  type: 'test'
+  ...
+# Subtest: repeated release rejects prior-id-config rather than accepting an alternate hash
+ok 63 - repeated release rejects prior-id-config rather than accepting an alternate hash
+  ---
+  duration_ms: 1518.78487
+  type: 'test'
+  ...
+# Subtest: repeated release proves the prior digest reference exists before backup or replacement
+ok 64 - repeated release proves the prior digest reference exists before backup or replacement
+  ---
+  duration_ms: 1104.966664
+  type: 'test'
+  ...
+1..64
+# tests 64
+# suites 0
+# pass 64
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 162479.286314

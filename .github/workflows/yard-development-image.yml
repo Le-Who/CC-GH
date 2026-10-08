@@ -1,13 +1,13 @@
 name: Yard normal development image
 on:
   push:
-    branches: ['qa/development-batch-match3-image-20261007']
+    branches: ['qa/live-interaction-image-20261008']
 permissions:
   contents: read
   actions: read
   packages: write
 concurrency:
-  group: development-batch-match3-image-20261007
+  group: live-interaction-image-20261008
   cancel-in-progress: false
 jobs:
   acceptance:
@@ -20,6 +20,9 @@ jobs:
       DOCKER_BUILD_RECORD_UPLOAD: 'false'
       DOCKER_BUILD_SUMMARY: 'false'
       YARD_DEVELOPMENT_IMAGE_ACCEPTANCE: '1'
+      VITE_YARD_PIP_PREVIEW: 'true'
+      VITE_YARD_SAVED_VISITS: 'false'
+      VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
       NODE_OPTIONS: ''
       DEV_AUTH_ENABLED: ''
       TELEGRAM_BOT_TOKEN: ''
@@ -40,7 +43,8 @@ jobs:
           node-version: '24'
       - name: Verify reviewed source before dependencies
         run: |
-          git fetch --no-tags --depth=1 origin aa43b9167c0af475bec294878d55bcb95a4ff244
+          git fetch --no-tags --depth=1 origin ec815065f6adb7c36d81f97b41d47ad16e614b07
+          git fetch --no-tags --depth=1 origin 4dde8354a1679012c1a01fe7bd35b7c36a647d42
           node scripts/yard-development-acceptance.mjs preflight
       - name: Install locked test dependencies
         run: |
@@ -52,6 +56,7 @@ jobs:
         run: |
           set -o pipefail
           timeout 20s node --test-skip-pattern='^(shell (?!has no)|disappearing neighbor |Compose timeout |a later invocation |signal immediately after)' --import ./tests/yard-pip-register-vendor.mjs --test --test-reporter=tap --test-concurrency=1 tests/yard-development-capabilities.test.mjs tests/yard-internal-entry.test.mjs tests/yard-occupied-decor-labels.test.mjs tests/yard-canonical-food-host-scene.test.mjs tests/yard-renderer-chunk.test.mjs tests/yard-development-release.test.mjs tests/yard-development-acceptance.test.mjs tests/yard-development-receipt.test.mjs | tee test-results/yard-development/source.tap
+          timeout 20s node --test --test-reporter=tap tests/garden-heartbeat-priority.test.mjs tests/garden-command-arbiter.test.mjs tests/garden-command-journal.test.mjs tests/yard-live-placement-feedback.test.mjs tests/sw-fixture-json-loader.test.mjs | tee test-results/yard-development/interaction-source.tap
           timeout 60s node --test --test-reporter=tap --test-name-pattern='^(shell success changes only app image/build identity and preserves original compose/env|shell during-switch performs actual healthy predecessor rollback|shell stale-public performs actual healthy predecessor rollback|a later invocation refuses unresolved daemon work despite a stale healthy predecessor|signal immediately after clearing a verified candidate marker cannot start an unmarked rollback)$' tests/yard-development-release.test.mjs | tee test-results/yard-development/release-smoke.tap
       - uses: docker/login-action@v4
         with:
