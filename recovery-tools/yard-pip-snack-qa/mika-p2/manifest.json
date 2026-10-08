@@ -28,8 +28,8 @@
     },
     {
       "file": "preview.mjs",
-      "bytes": 7121,
-      "sha256": "0e0de9794071fbbfc832524b4d37f7769d175177940ba32bf07b43a31990bb26"
+      "bytes": 7553,
+      "sha256": "fe71165fc1983e8b88b0230837ecfc6e7a667ebcfc22ee7c7566440e148c9423"
     },
     {
       "file": "expected.json",
