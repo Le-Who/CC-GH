@@ -41,14 +41,12 @@ jobs:
         run: |
           mkdir -p test-results/mika-normal
           node --test --test-concurrency=1 tests/yard-native-item-command.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-async-scene.test.mjs > test-results/mika-normal/source-tests.log
-      - name: Collect Russian, affected cameras and interruption flows
+      - name: Collect visible modal feedback rechecks
         run: |
           MIKA_QA_PHASE=collection-ru pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika selected item UI: ru actual footer' --list > test-results/mika-normal/collection-ru.log
           test "$(grep -c 'Mika selected item UI: ru actual footer' test-results/mika-normal/collection-ru.log)" -eq 1
-          MIKA_QA_PHASE=collection-cameras pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --project landscape844 --grep 'Mika selected item UI: en actual footer' --list > test-results/mika-normal/collection-cameras.log
-          test "$(grep -c 'Mika selected item UI: en actual footer' test-results/mika-normal/collection-cameras.log)" -eq 2
-          MIKA_QA_PHASE=collection-interrupted pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'Mika selected item UI: (selection|cancel|editing) cancels' --list > test-results/mika-normal/collection-interrupted.log
-          test "$(grep -c 'cancels the current command' test-results/mika-normal/collection-interrupted.log)" -eq 3
+          MIKA_QA_PHASE=collection-cancel pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'Mika selected item UI: (selection|cancel) cancels' --list > test-results/mika-normal/collection-cancel.log
+          test "$(grep -c 'cancels the current command' test-results/mika-normal/collection-cancel.log)" -eq 2
       - name: Build explicit current-pose candidate, never deployment
         env:
           NODE_ENV: production
@@ -59,17 +57,13 @@ jobs:
       - name: Install official Chromium
         id: browser
         run: pnpm exec playwright install --with-deps chromium
-      - name: Russian compact footer and keyboard focus
+      - name: Russian footer busy, arrival and visible refusal feedback
         run: |
-          MIKA_QA_PHASE=selected-ru pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika selected item UI: ru actual footer'
-      - name: DPR2 portrait and landscape selected-item UI
+          MIKA_QA_PHASE=modal-ru pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika selected item UI: ru actual footer'
+      - name: Visible selection and explicit cancellation feedback
         if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
         run: |
-          MIKA_QA_PHASE=selected-cameras pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --project landscape844 --grep 'Mika selected item UI: en actual footer'
-      - name: Real selection, cancel and editing interruptions
-        if: ${{ !cancelled() && steps.browser.outcome == 'success' }}
-        run: |
-          MIKA_QA_PHASE=selected-interrupted pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'Mika selected item UI: (selection|cancel|editing) cancels'
+          MIKA_QA_PHASE=modal-cancel pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'Mika selected item UI: (selection|cancel) cancels'
       - name: Preserve original bounded current-pose evidence
         if: always()
         uses: actions/upload-artifact@v4

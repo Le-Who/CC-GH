@@ -159,3 +159,5 @@
 .cy-native-status,.cy-native-status-reserve{display:grid;min-width:0}
 .cy-native-status>span,.cy-native-status-reserve>span{grid-area:1/1}
 .cy-native-status-reserve{visibility:hidden;pointer-events:none}
+
+.cy-native-command-feedback{font-size:14px;line-height:1.25}

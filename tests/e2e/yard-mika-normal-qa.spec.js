@@ -377,7 +377,7 @@ test('Mika current-pose continuation: source entry rejection at88,65 remains unp
 });
 
 
-const nativeUiLabels={en:{go:'Go to item',inYard:'In the yard',ready:'Ready to walk',already:'Already by this item',arrived:'By the item',refused:'Cannot reach this item',cancelled:'Walk cancelled'},ru:{go:'К предмету',inYard:'Во дворе',ready:'Готов к подходу',already:'Уже рядом с предметом',arrived:'Рядом с предметом',refused:'Не добраться до предмета',cancelled:'Подход отменён'}};
+const nativeUiLabels={en:{go:'Go to item',inYard:'In the yard',moving:'Moving to the item',ready:'Ready to walk',already:'Already by this item',arrived:'By the item',refused:'Cannot reach this item',cancelled:'Walk cancelled'},ru:{go:'К предмету',inYard:'Во дворе',moving:'Идёт к предмету',ready:'Готов к подходу',already:'Уже рядом с предметом',arrived:'Рядом с предметом',refused:'Не добраться до предмета',cancelled:'Подход отменён'}};
 async function openNativeItems(page,slot){
  await page.locator('[data-nav-item="decor"]').click();await expect(page.locator('.cy-dialog')).toBeVisible();
  if(slot)await page.locator(`.cy-catalog-choice[data-slot-id="${slot}"]`).click();
@@ -395,17 +395,19 @@ for(const language of ['en','ru'])test(`Mika selected item UI: ${language} actua
   assert.equal((await qa(page)).actionsStarted,1);assert.deepEqual((await qa(page)).position,first.position);
   go=await openNativeItems(page,'qa-mouse-next');await expect(go).toBeEnabled();await expect(go).toHaveAttribute('data-slot-id','qa-mouse-next');
   const itemName=await page.locator('.cy-selected-actions strong').innerText();assert((await go.getAttribute('aria-label')).includes(itemName));await expect(page.locator('.cy-selected-actions small')).toHaveText(label.inYard);
+  const feedbackHeight=(await page.locator('.cy-native-command-feedback').boundingBox()).height;
   const button=await go.boundingBox();assert(button.width>=44&&button.height>=44);await page.screenshot({path:info.outputPath(`native-selected-${language}-footer.png`)});
   const requestedAt=Date.now();await go.click();await expect(page.locator('.cy-dialog')).not.toBeVisible();
   await expect.poll(async()=>(await qa(page))?.actionsStarted,{timeout:10000}).toBe(2);const admitted=await qa(page);assert.equal(admitted.actorInstance,first.actorInstance);assert.deepEqual(admitted.plan.start,first.position);assert.equal(admitted.itemApproach.target.slotId,'qa-mouse-next');
-  go=await openNativeItems(page);await expect(go).toBeDisabled();await expect(go).toHaveAttribute('aria-busy','true');await expect(page.locator('[data-yard-action="native-cancel"]')).toBeVisible();
+  go=await openNativeItems(page);await expect(go).toBeDisabled();await expect(go).toHaveAttribute('aria-busy','true');await expect(page.locator('[data-yard-action="native-cancel"]')).toBeVisible();await expect(page.locator('.cy-native-command-feedback')).toBeVisible();await expect(page.locator('.cy-native-command-feedback .cy-native-status-text')).toHaveText(label.moving);assert.equal((await page.locator('.cy-native-command-feedback').boundingBox()).height,feedbackHeight);await expect(page.locator('.cy-status')).toHaveAttribute('aria-live','off');
   await page.screenshot({path:info.outputPath(`native-selected-${language}-busy.png`)});await page.locator('.cy-dialog header button').click();
   await expect.poll(async()=>(await qa(page))?.actionsCompleted,{timeout:25000}).toBe(2);await expect(page.locator('[data-native-status="arrived"] .cy-native-status-text')).toHaveText(label.arrived);const terminal=await qa(page);assert.equal(terminal.actorInstance,first.actorInstance);assert.equal(terminal.itemApproach.rootSpeed,0);assert.notDeepEqual(terminal.position,first.position);
   const afterSurface=await page.locator('.cy-scene').boundingBox();assert.equal(afterSurface.width,surface.width);assert.equal(afterSurface.height,surface.height,'Native feedback must keep the admitted canvas size stable');
   await page.screenshot({path:info.outputPath(`native-selected-${language}-arrived.png`)});
   go=await openNativeItems(page,'qa-mouse');await expect(go).toBeEnabled();await go.click();await expect(page.locator('[data-native-status="refused"] .cy-native-status-text')).toHaveText(label.refused);
   const refused=await qa(page);assert.equal(refused.phase,'parked');assert.equal(refused.actionsStarted,2);assert.equal(refused.actorInstance,first.actorInstance);assert.deepEqual(refused.position,terminal.position);assert.equal(refused.heading,terminal.heading);
-  c.uiCommandEvidence={language,entry:'normal placed-item footer',defaultSlot:'qa-mouse',selectedSlot:'qa-mouse-next',requestedAt,first,admitted,terminal,refused,surface,afterSurface};unchanged(c);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
+  await openNativeItems(page);await expect(page.locator('.cy-native-command-feedback')).toBeVisible();await expect(page.locator('.cy-native-command-feedback .cy-native-status-text')).toHaveText(label.refused);assert.equal((await page.locator('.cy-native-command-feedback').boundingBox()).height,feedbackHeight);await page.screenshot({path:info.outputPath(`native-selected-${language}-refused.png`)});await page.locator('.cy-dialog header button').click();
+  c.uiCommandEvidence={feedbackHeight,language,entry:'normal placed-item footer',defaultSlot:'qa-mouse',selectedSlot:'qa-mouse-next',requestedAt,first,admitted,terminal,refused,surface,afterSurface};unchanged(c);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
   await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
   await page.evaluate(()=>{window.__mikaRetiredReader=window.__yardMikaQa.snapshot;});await page.locator('.cy-home').click();await expect(page.getByTestId('home-catalogue')).toBeVisible();await selectHomeGame(page,'blox');
   await expect.poll(()=>page.evaluate(()=>window.__mikaRetiredReader().lastRetired?.qaMika?.phase)).toBe('disposed');retired(await page.evaluate(()=>window.__mikaRetiredReader().lastRetired.qaMika));unchanged(c);
@@ -417,12 +419,12 @@ for(const interruption of ['selection','cancel','editing'])test(`Mika selected i
  try{
   await page.addInitScript(installPixelProbe,{capturePixels:false,completeActions:2});await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000}).toBe('parked');const parked=await qa(page);
   await(await openNativeItems(page,'qa-mouse-next')).click();await expect.poll(async()=>{const d=await qa(page);return d?.actionsStarted===2&&d.phase==='running'&&d.time>=1;},{timeout:10000}).toBe(true);
-  await openNativeItems(page);const before=await qa(page);
+  await openNativeItems(page);const before=await qa(page),feedbackHeight=(await page.locator('.cy-native-command-feedback').boundingBox()).height;
   if(interruption==='selection')await page.locator('.cy-catalog-choice[data-slot-id="qa-mouse"]').click();
   if(interruption==='cancel')await page.locator('[data-yard-action="native-cancel"]').click();
   if(interruption==='editing')await page.locator('[data-yard-action="move"]').click();
   await expect.poll(async()=>(await qa(page))?.phase).toBe('aborted');const cancelled=await qa(page);assert.equal(cancelled.actorInstance,parked.actorInstance);assert.equal(cancelled.actionsStarted,2);assert.deepEqual(cancelled.position,parked.position);assert(cancelled.time<5.35);retired(cancelled);
-  if(interruption==='editing'){await expect(page.locator('.cy-placement')).toBeVisible();assert.equal(cancelled.reason,'ITEM_EDITING');}else await expect(page.locator('[data-native-status="cancelled"] .cy-native-status-text')).toHaveText(nativeUiLabels.ru.cancelled);await page.screenshot({path:info.outputPath(`native-selected-${interruption}-cancelled.png`)});
-  c.uiCommandEvidence={interruption,parked,before,cancelled};unchanged(c);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
+  if(interruption==='editing'){await expect(page.locator('.cy-placement')).toBeVisible();assert.equal(cancelled.reason,'ITEM_EDITING');}else{await expect(page.locator('.cy-native-command-feedback')).toBeVisible();await expect(page.locator('.cy-native-command-feedback .cy-native-status-text')).toHaveText(nativeUiLabels.ru.cancelled);assert.equal((await page.locator('.cy-native-command-feedback').boundingBox()).height,feedbackHeight);await expect(page.locator('.cy-status')).toHaveAttribute('aria-live','off');}await page.screenshot({path:info.outputPath(`native-selected-${interruption}-cancelled.png`)});
+  c.uiCommandEvidence={feedbackHeight,interruption,parked,before,cancelled};unchanged(c);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
  }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'native-selected-cancel-failure.png':undefined);}
 });
