@@ -34,3 +34,10 @@ test('account A→B→A advances QA epoch even with omitted or unchanged session
   finally{qa.result.dispose();}
  }
 });
+
+test('current-pose action capability needs all explicit QA flags and remains closed for saved visits',()=>{
+ for(const flags of [[],['VITE_YARD_MIKA_QA'],['VITE_YARD_MIKA_QA','VITE_YARD_MIKA_ITEM_QA'],['VITE_YARD_MIKA_CONTINUATION_QA'],['VITE_YARD_MIKA_QA','VITE_YARD_MIKA_ITEM_QA','VITE_YARD_MIKA_CONTINUATION_QA','VITE_YARD_SAVED_VISITS']]){
+  const q=evaluate(Object.fromEntries(flags.map(key=>[key,'true'])));assert.notEqual(q.legacyOptions.qaContinuation,true);assert.equal(globalThis.__yardMikaQa?.requestItemArrival,undefined);q.result.dispose();
+ }
+ const q=evaluate({VITE_YARD_MIKA_QA:'true',VITE_YARD_MIKA_ITEM_QA:'true',VITE_YARD_MIKA_CONTINUATION_QA:'true'});assert.equal(q.legacyOptions.qaContinuation,true);assert.equal(typeof globalThis.__yardMikaQa.requestItemArrival,'function');q.result.dispose();assert.equal(globalThis.__yardMikaQa,undefined);
+});

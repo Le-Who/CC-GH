@@ -59,3 +59,11 @@ test('real entry fences A→B→A while module or actor construction is pending'
   }finally{await scene?.dispose();h.restore();}
  }
 });
+
+
+test('normal scene disposal awaits a pending native planner retirement before replacement',async()=>{
+ const h=harness(),gate=deferred();let scene,disposed=0;
+ try{scene=h.create({loadQaLayer:async()=>({createMikaYardQaLayer:async()=>({diagnostics:()=>({phase:'parked'}),dispose(){disposed++;return gate.promise;}})})});await scene.ready;
+  let settled=false;const retiring=scene.dispose().then(()=>settled=true);await Promise.resolve();assert.equal(disposed,1);assert.equal(settled,false);gate.resolve();await retiring;assert.equal(settled,true);
+ }finally{gate.resolve();await scene?.dispose();h.restore();}
+});

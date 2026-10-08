@@ -17,26 +17,28 @@ if(!['true','false'].includes(expected))throw Error('Set MIKA_QA_EXPECT_ENABLED=
 const off=expected==='false';
 const itemApproach=process.env.MIKA_QA_EXPECT_ITEM_APPROACH==='true';
 const arrival=process.env.MIKA_QA_EXPECT_ARRIVAL==='true',expectedDuration=arrival?6:4;
+const continuation=process.env.MIKA_QA_EXPECT_CONTINUATION==='true',continuationClean=process.env.MIKA_QA_CLEAN_CONTINUATION==='true';
 const captureTargets=arrival?[.2,3.9,4.25,4.9,5.8]:[.2,2,3.6];
 const completedReason=arrival?'FINITE_ITEM_ARRIVAL_ENDED_NO_INTERACTION':itemApproach?'FINITE_ITEM_APPROACH_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION';
 test.use({serviceWorkers:'block'}); // viewport/DPR come exclusively from projects.
 const read=page=>page.evaluate(()=>window.__yardMikaQa?.snapshot());
 const qa=async page=>(await read(page))?.scene?.qaMika;
+const requestNativeAction=(page,slot)=>page.evaluate(async slot=>{const start=performance.now(),result=await window.__yardMikaQa.requestItemArrival(slot),end=performance.now();return{...result,requestTiming:{start,end,wallMs:end-start}};},slot);
 
 // Instrumentation only: observe actual WebGL->normal Canvas2D copies. Capture
 // the full actor alpha raster at the requested phase landmarks, then the finished normal canvas
 // after that same RAF call stack. No getContext/pixel/render behavior is changed.
-function installPixelProbe({capturePixels=true,captureTargets=[.2,2,3.6]}={}){
+function installPixelProbe({capturePixels=true,captureTargets=[.2,2,3.6],captureSteps=null,completeActions=0}={}){
  const webgl=new WeakSet(),get=HTMLCanvasElement.prototype.getContext,draw=CanvasRenderingContext2D.prototype.drawImage;
- const proof={instrumentedPixels:capturePixels,captures:[],errors:[],first:null,last:null,copies:0,recording:null,recordingDone:false,states:[]};
- let recorder,stream,chunks=[],pending=false;const targets=captureTargets;
+ const proof={instrumentedPixels:capturePixels,captures:[],errors:[],first:null,last:null,copies:0,recording:null,recordingDone:false,states:[],raf:{samples:0,maxGapMs:0,worst:null,gapsOver100ms:[]}};
+ let recorder,stream,chunks=[],pending=false,lastRaf=null;const targets=captureTargets;
  const png=canvas=>canvas.toDataURL('image/png').split(',')[1];
  HTMLCanvasElement.prototype.getContext=function(type,...args){const value=get.call(this,type,...args);if(value&&/^(webgl|webgl2|experimental-webgl)$/.test(type))webgl.add(this);return value;};
  CanvasRenderingContext2D.prototype.drawImage=function(image,...args){
   const result=draw.call(this,image,...args);
   if(!this.canvas.matches?.('.cy-scene canvas')||!webgl.has(image))return result;
   try{
-   const state=window.__yardMikaQa?.snapshot()?.scene?.qaMika;if(state?.phase!=='running')return result;
+   const state=window.__yardMikaQa?.snapshot()?.scene?.qaMika;if(state?.phase!=='running'&&!(completeActions&&['parked','planning'].includes(state?.phase)))return result;
    proof.copies++;proof.last={wall:performance.now(),time:state.time};
    if(!proof.first){
     proof.first={wall:performance.now(),time:state.time};
@@ -48,29 +50,33 @@ function installPixelProbe({capturePixels=true,captureTargets=[.2,2,3.6]}={}){
     recorder.onstop=async()=>{try{const reader=new FileReader();reader.onload=()=>{proof.recording=String(reader.result).split(',')[1];proof.recordingDone=true;};reader.onerror=()=>proof.errors.push('RECORDING_READ_FAILED');reader.readAsDataURL(new Blob(chunks,{type:mime}));}catch(e){proof.errors.push(String(e));}finally{stream.getTracks().forEach(t=>t.stop());}};
     recorder.start();
    }
-   const target=targets[proof.captures.length];
-   if(capturePixels&&!pending&&target!==undefined&&state.time>=target){
+   const step=captureSteps?.[proof.captures.length],target=captureSteps?step?.time:targets[proof.captures.length];
+   if(capturePixels&&!pending&&target!==undefined&&(!step||state.actionsStarted===step.action)&&state.time>=target){
     pending=true;const probeStarted=performance.now(),canvas=this.canvas,scratch=document.createElement('canvas');scratch.width=image.width;scratch.height=image.height;
     const ctx=get.call(scratch,'2d',{willReadFrequently:true});draw.call(ctx,image,0,0);
     const pixels=ctx.getImageData(0,0,scratch.width,scratch.height).data;let minX=scratch.width,minY=scratch.height,maxX=-1,maxY=-1,count=0,sumX=0,sumY=0;
     for(let y=0;y<scratch.height;y++)for(let x=0;x<scratch.width;x++)if(pixels[(y*scratch.width+x)*4+3]>2){minX=Math.min(minX,x);minY=Math.min(minY,y);maxX=Math.max(maxX,x);maxY=Math.max(maxY,y);count++;sumX+=x;sumY+=y;}
-    const capture={target,time:state.time,wall:performance.now(),state:structuredClone(state),actorPNG:png(scratch),actorAlpha:{minX,minY,maxX,maxY,count,centroid:count?{x:sumX/count,y:sumY/count}:null,width:scratch.width,height:scratch.height}};
+    const capture={target,action:state.actionsStarted,time:state.time,wall:performance.now(),state:structuredClone(state),actorPNG:png(scratch),actorAlpha:{minX,minY,maxX,maxY,count,centroid:count?{x:sumX/count,y:sumY/count}:null,width:scratch.width,height:scratch.height}};
     queueMicrotask(()=>{try{capture.normalPNG=png(canvas);capture.canvas={width:canvas.width,height:canvas.height};capture.probeCostMs=performance.now()-probeStarted;proof.captures.push(capture);}catch(e){proof.errors.push(String(e));}finally{pending=false;}});
    }
   }catch(e){proof.errors.push(String(e));}return result;
  };
- function observe(){const state=window.__yardMikaQa?.snapshot()?.scene?.qaMika;if(state&&proof.states.at(-1)?.phase!==state.phase)proof.states.push({phase:state.phase,time:state.time,reason:state.reason});if(recorder?.state==='recording'&&state?.phase!=='running'){proof.stopWall=performance.now();recorder.stop();}requestAnimationFrame(observe);}
+ function observe(stamp){const state=window.__yardMikaQa?.snapshot()?.scene?.qaMika;if(proof.first&&!proof.stopWall&&lastRaf!==null&&lastRaf>=proof.first.wall){const gap=stamp-lastRaf,row={start:lastRaf,end:stamp,gapMs:gap,phase:state?.phase,action:state?.actionsStarted};proof.raf.samples++;if(gap>proof.raf.maxGapMs){proof.raf.maxGapMs=gap;proof.raf.worst=row;}if(gap>100&&proof.raf.gapsOver100ms.length<40)proof.raf.gapsOver100ms.push(row);}lastRaf=stamp;if(state&&proof.states.at(-1)?.phase!==state.phase)proof.states.push({phase:state.phase,time:state.time,reason:state.reason});if(recorder?.state==='recording'&&(completeActions?(!['running','parked','planning'].includes(state?.phase)||state.actionsCompleted>=completeActions):state?.phase!=='running')){proof.stopWall=performance.now();recorder.stop();}requestAnimationFrame(observe);}
  requestAnimationFrame(observe);window.__mikaPixelProof=proof;
 }
-async function setup(page,{itemPosition=[64,54],language='en'}={}){
+async function setup(page,{itemPosition=[64,54],language='en',additionalItems=[]}={}){
  const fixture=await startSwFixture({gameActions:true,gardenMode:'r2'}),receipts=[],errors=[],commands=[],assetResponses=[],assetRequests=[],loadErrors=[],failedResources=[];
  try{
   // Existing source actions, ephemeral account only. Do not edit placement arrays.
-  for(const [goodieId,slotId,x,y]of (itemApproach?[['yarn_mouse','qa-mouse',...itemPosition]]:[['yarn_mouse','qa-mouse',45,45],['sun_cushion','qa-cushion',54,66]])){
+  for(const [goodieId,slotId,x,y]of [...(itemApproach?[['yarn_mouse','qa-mouse',...itemPosition]]:[['yarn_mouse','qa-mouse',45,45],['sun_cushion','qa-cushion',54,66]]),...additionalItems]){
+   if(!(fixture.player('account-a').yard.goodieInventory[goodieId]>0)){
+    const purchase=await applyActionWithReceipt(fixture.player('account-a'),'yard.buyGoodie',{goodieId},{clientActionId:'yard-v2:mika-fixture-buy-'+slotId,gardenR2Enabled:true});
+    receipts.push({action:'yard.buyGoodie',payload:{goodieId},status:purchase.status,body:purchase.body});assert.equal(purchase.status,200);assert.equal(purchase.body.error,undefined);
+   }
    const payload={goodieId,slotId,x,y},result=await applyActionWithReceipt(fixture.player('account-a'),'yard.placeGoodie',payload,{clientActionId:'yard-v2:mika-fixture-'+slotId,gardenR2Enabled:true});
    receipts.push({action:'yard.placeGoodie',payload,status:result.status,body:result.body});assert.equal(result.status,200);assert.equal(result.body.error,undefined);
   }
-  const initial=structuredClone(fixture.player('account-a').yard);assert.equal(initial.placedGoodies.length,itemApproach?1:2);
+  const initial=structuredClone(fixture.player('account-a').yard);assert.equal(initial.placedGoodies.length,(itemApproach?1:2)+additionalItems.length);
   page.on('console',message=>{if(message.type()==='error'&&loadErrors.length<20){const entry={text:message.text(),location:message.location()};loadErrors.push(entry);Promise.all(message.args().map(arg=>arg.evaluate(value=>value instanceof Error?{name:value.name,message:value.message,stack:value.stack}:String(value)))).then(args=>{entry.args=args;}).catch(error=>{entry.captureError=String(error);});}});
   page.on('requestfailed',request=>{if(failedResources.length<40)failedResources.push({url:request.url(),failure:request.failure()});});
   page.on('response',response=>{if(response.status()>=400&&failedResources.length<40)failedResources.push({url:response.url(),status:response.status()});});
@@ -81,11 +87,11 @@ async function setup(page,{itemPosition=[64,54],language='en'}={}){
   return{fixture,receipts,initial,errors,commands,assetResponses,assetRequests,loadErrors,failedResources};
  }catch(e){try{await fixture.close();}catch(cleanup){e.fixtureCleanupError=String(cleanup.stack||cleanup);}e.seedReceipts=receipts;throw e;}
 }
-async function readyRunning(page,{itemPosition=[64,54]}={}){
+async function readyRunning(page,{itemPosition=[64,54],propCount=itemApproach?1:2}={}){
  await expect(page.locator('.cy-app')).toBeVisible({timeout:30000});
  await expect.poll(async()=>{const d=await qa(page);if(d&&['blocked','unavailable','aborted','complete'].includes(d.phase))throw Error('Cruise never observed running: '+JSON.stringify(d));return d?.phase==='running'&&d.frames>0;},{timeout:30000,intervals:[25,50,100]}).toBe(true);
  const d=await qa(page);assert.equal(d.normalCamera,true);assert.equal(d.diagnosticCameraFit,false);assert.equal(d.rootOwner,'navigation');assert.equal(d.assetSha256,SHA);assert.equal(d.bones,22);
- const view=(await read(page)).scene.view;assert.equal(view.props.length,itemApproach?1:2);
+ const view=(await read(page)).scene.view;assert.equal(view.props.length,propCount);
  if(itemApproach){assert.equal(d.itemApproach.action,arrival?'finite-item-arrival':'finite-item-approach');assert.equal(d.itemApproach.target.slotId,'qa-mouse');assert.equal(d.itemApproach.target.x,itemPosition[0]);assert.equal(d.itemApproach.target.y,itemPosition[1]);assert.equal(d.itemApproach.interactionReady,false);assert.equal(d.itemApproach.savedVisitReady,false);}
  return d;
 }
@@ -105,7 +111,7 @@ async function evidence(page,info,context,error){
  const proof=await page.evaluate(()=>window.__mikaPixelProof??null).catch(()=>null);
  for(const [i,c]of (proof?.captures??[]).entries()){if(c.normalPNG)await info.attach(`normal-yard-${i}-${c.time.toFixed(3)}s.png`,{body:Buffer.from(c.normalPNG,'base64'),contentType:'image/png'});if(c.actorPNG)await info.attach(`actual-actor-alpha-${i}.png`,{body:Buffer.from(c.actorPNG,'base64'),contentType:'image/png'});delete c.normalPNG;delete c.actorPNG;}
  if(proof?.recording){await info.attach(proof.instrumentedPixels?'normal-yard-instrumented-pixel-proof.webm':'normal-yard-clean-1x-canvas.webm',{body:Buffer.from(proof.recording,'base64'),contentType:'video/webm'});delete proof.recording;}
- await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:arrival?'8aab52a32e6eb6bf3bdd8083dd9ec3d4691823db':'1a66a9df3d177d1b8308bab223ad6f647a76f98a',durationSeconds:expectedDuration,mode:arrival?'finite-item-arrival':itemApproach?'finite-item-approach':'finite-qa-cruise',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:arrival?'Source-action current-item placement, actual normal camera and six-second approach/contact-aware arrival/standing idle. Clean recording uses lightweight draw observation; pixel probes are instrumented. No saved visit, interaction, general navigation or performance acceptance.':'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,arrivalDelivery:context.arrivalDelivery??null,sceneDeliveries:await page.evaluate(()=>window.__mikaArrivalDeliveries??null).catch(()=>null),assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
+ await info.attach('mika-normal-yard-evidence.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({base:continuation?'a4f00e639e1482c659c69ba11111916639609eb1':arrival?'8aab52a32e6eb6bf3bdd8083dd9ec3d4691823db':'1a66a9df3d177d1b8308bab223ad6f647a76f98a',durationSeconds:continuation?null:expectedDuration,initialDurationSeconds:expectedDuration,continuation,mode:continuation?'finite-current-pose-actions':arrival?'finite-item-arrival':itemApproach?'finite-item-approach':'finite-qa-cruise',ciRevision:process.env.GITHUB_SHA??null,project:info.project.name,itemApproach,scope:continuation?'Two finite same-actor actions in the normal Yard scene. Source-bought second item; exact current stopped-pose handoff, stepped turn-away, constant-speed distance selection, arrival and explicit cleanup. No UI/saved admission, interaction, reward or general navigation.':arrival?'Source-action current-item placement, actual normal camera and six-second approach/contact-aware arrival/standing idle. Clean recording uses lightweight draw observation; pixel probes are instrumented. No saved visit, interaction, general navigation or performance acceptance.':'Seeded source-action fixture admission, actual normal Yard camera/props and finite cruise. Clean case uses MediaRecorder/lightweight draw observation, no in-flight raster scan or PNG. Pixel case is timing-instrumented. No performance, artistic, general navigation, entry/replan, or async browser-race acceptance.',publicAssetBuildDeltaBytes:ENCODED,flagOffOnlyPreventsRuntimeLoad:true,error:error?String(error.stack||error):null,errors:context.errors,loadErrors:context.loadErrors,failedResources:context.failedResources,pageURL:page.url(),commands:context.commands,nativeActions:context.nativeActions??null,arrivalDelivery:context.arrivalDelivery??null,sceneDeliveries:await page.evaluate(()=>window.__mikaArrivalDeliveries??null).catch(()=>null),assetRequests:context.assetRequests,seedReceipts:context.receipts,initialYard:context.initial,diagnostics:await read(page).catch(()=>null),proof},null,2))});
 }
 
 async function finish(page,info,context,failure,screenshot){
@@ -296,4 +302,56 @@ test('Mika normal Yard: current target relocation during arrival retires the nat
   assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
   await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
  }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'arrival-relocation-failure.png':undefined);}
+});
+
+
+const continuationCaptureSteps=[{action:1,time:.2},{action:1,time:5.8},{action:2,time:2},{action:2,time:5.35},{action:2,time:6.4},{action:2,time:7.4},{action:2,time:9.4},{action:2,time:11.2}];
+for(const nextPosition of [[88,62],[88,65],[87,57]])test(`Mika current-pose continuation: ${continuationClean?'clean two-item recording':'actual two-item arrival'} to ${nextPosition.join(',')}`,async({page},info)=>{
+ test.skip(off||!continuation,'Explicit current-pose candidate only');test.setTimeout(90000);
+ const c=await setup(page,{itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',...nextPosition]]});let failure;
+ try{
+  await page.addInitScript(installPixelProbe,{capturePixels:!continuationClean,captureSteps:continuationCaptureSteps,completeActions:2});
+  await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});
+  const invoke=slot=>requestNativeAction(page,slot);
+  c.nativeActions=[];c.nativeActions.push(await invoke('qa-mouse-next'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ACTOR_NOT_SETTLED');
+  await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000,intervals:[30,50]}).toBe('parked');
+  const parked=await qa(page);assert.equal(parked.actionsCompleted,1);assert.equal(parked.resources.graphicsRetired,false);
+  c.nativeActions.push(await invoke('missing'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ITEM_TARGET_UNAVAILABLE');
+  c.nativeActions.push(await invoke('qa-mouse'));assert.equal(c.nativeActions.at(-1).reason,'ALREADY_ARRIVED');
+  const unchangedPose=await qa(page);assert.deepEqual(unchangedPose.position,parked.position);assert.equal(unchangedPose.heading,parked.heading);assert.equal(unchangedPose.time,parked.time);assert.equal(unchangedPose.actorInstance,parked.actorInstance);
+  c.nativeActions.push(await invoke('qa-mouse-next'));assert.equal(c.nativeActions.at(-1).ok,true);
+  const started=await qa(page);assert.equal(started.actionsStarted,2);assert.equal(started.actorInstance,parked.actorInstance);assert.deepEqual(started.plan.start,parked.position);assert.equal(started.plan.heading,parked.heading);assert.equal(started.itemApproach.target.x,nextPosition[0]);assert.equal(started.itemApproach.target.y,nextPosition[1]);
+  c.nativeActions.push(await invoke('qa-mouse-next'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ACTOR_NOT_SETTLED');
+  await expect.poll(async()=>(await qa(page))?.actionsCompleted,{timeout:25000,intervals:[40,80]}).toBe(2);
+  await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
+  const d=await qa(page),proof=await page.evaluate(()=>window.__mikaPixelProof);assert.equal(d.phase,'parked');assert.equal(d.actorInstance,parked.actorInstance);assert.equal(d.actionsStarted,2);assert.equal(d.itemApproach.motionPhase,'standing-idle');assert.equal(d.itemApproach.rootSpeed,0);assert.equal(c.assetRequests.length,1);assert.equal(c.assetResponses.length,1);assert.deepEqual(proof.errors,[]);assert.equal(proof.captures.length,continuationClean?0:continuationCaptureSteps.length);assert(proof.stopWall-proof.first.wall>=17000);
+  for(const capture of proof.captures){const b=capture.actorAlpha;assert(b.count>100);assert(b.minX>0&&b.minY>0&&b.maxX<b.width-1&&b.maxY<b.height-1);assert(capture.time>=capture.target&&capture.time<capture.target+.35);}
+  if(!continuationClean){assert.equal(proof.captures.find(row=>row.action===2&&row.target===2).state.itemApproach.motionPhase,'turning-away');assert.equal(proof.captures.find(row=>row.action===2&&row.target===6.4).state.itemApproach.motionPhase,'departing');}
+  unchanged(c);await info.attach('two-leg-terminal-owner.json',{body:Buffer.from(JSON.stringify({parked,d},null,2)),contentType:'application/json'});
+  // The ordinary scene owner, not a test-only dispose command, retires the
+  // retained actor when the player navigates to another actual game.
+  await page.evaluate(()=>{window.__mikaRetiredReader=window.__yardMikaQa.snapshot;});await page.locator('.cy-home').click();await expect(page.getByTestId('home-catalogue')).toBeVisible();await selectHomeGame(page,'blox');
+  await expect.poll(()=>page.evaluate(()=>window.__mikaRetiredReader().lastRetired?.qaMika?.phase)).toBe('disposed');const old=await page.evaluate(()=>window.__mikaRetiredReader().lastRetired.qaMika);retired(old);assert.equal(old.actorInstance,parked.actorInstance);await info.attach('two-leg-retired-owner.json',{body:Buffer.from(JSON.stringify(old,null,2)),contentType:'application/json'});unchanged(c);
+ }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'current-pose-failure.png':undefined);}
+});
+
+test('Mika current-pose continuation: moving the selected item during turn cancels without pose reset',async({page},info)=>{
+ test.skip(off||!continuation,'Explicit current-pose candidate only');test.setTimeout(90000);
+ const c=await setup(page,{itemPosition:[60,45],additionalItems:[['yarn_mouse','qa-mouse-next',88,62]]});let failure;
+ try{
+  await page.addInitScript(installPixelProbe,{capturePixels:false,completeActions:2});await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page,{itemPosition:[60,45],propCount:2});
+  await expect.poll(()=>c.fixture.realtimeConnections()).toBeGreaterThan(0);
+  await expect.poll(async()=>(await qa(page))?.phase,{timeout:15000}).toBe('parked');const parked=await qa(page);
+  c.nativeActions=[await requestNativeAction(page,'qa-mouse-next')];assert.equal(c.nativeActions[0].ok,true);
+  await expect.poll(async()=>{const d=await qa(page);return d?.phase==='running'&&d.actionsStarted===2&&d.time>=2;},{timeout:10000,intervals:[30,50]}).toBe(true);
+  const before=await qa(page),payload={slotId:'qa-mouse-next',x:87,y:57},previousSeq=c.fixture.player('account-a')._syncSeq||0;
+  assert.equal(before.itemApproach.motionPhase,'turning-away');assert.deepEqual(before.position,parked.position);
+  const response=await fetch(c.fixture.origin+'/api/player/mutate',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'tma fixture-a'},body:JSON.stringify({action:'yard.moveGoodie',payload,clientActionId:'yard-v2:mika-turn-relocate'})}),body=await response.json();c.receipts.push({action:'yard.moveGoodie',payload,status:response.status,body});assert.equal(response.status,200);assert.equal(body.error,undefined);
+  const current=c.fixture.player('account-a'),s=body.snapshot;assert.equal(s.player.id,current.id);assert.equal(s.player.syncSeq,previousSeq+1);assert.equal(current._syncSeq,s.player.syncSeq);
+  c.fixture.emitPlayerSync({accountId:current.id,serverTime:s.serverTime,syncSeq:current._syncSeq,gardenR2:s.gardenR2,resources:current.resources,harvested:current.farm.harvested,plots:current.farm.plots,merge:current.merge,garden:current.garden,yard:s.yard,yardRuntime:s.yardRuntime,pet:current.pet,achievements:current.achievements});
+  await expect.poll(async()=>(await qa(page))?.reason,{timeout:5000}).toBe('LAYOUT_CHANGED');const d=await qa(page);assert.equal(d.phase,'aborted');assert(d.time>=2&&d.time<5.35);assert.equal(d.actorInstance,parked.actorInstance);assert.deepEqual(d.position,parked.position);retired(d);
+  await expect.poll(async()=>(await read(page))?.scene?.view?.yard?.placedGoodies?.find(row=>row.slotId==='qa-mouse-next')?.x).toBe(87);
+  c.nativeActions.push(await requestNativeAction(page,'qa-mouse-next'));assert.equal(c.nativeActions.at(-1).reason,'NATIVE_ACTION_UNAVAILABLE');assert.equal(c.assetRequests.length,1);assert.deepEqual(current.yard.goodieInventory,c.initial.goodieInventory);assert.deepEqual(current.yard.currencies,c.initial.currencies);assert.deepEqual(c.commands,[]);assert.deepEqual(c.errors,[]);
+  await expect.poll(()=>page.evaluate(()=>window.__mikaPixelProof.recordingDone),{timeout:10000}).toBe(true);
+ }catch(error){failure=error;throw error;}finally{await finish(page,info,c,failure,failure?'current-pose-cancel-failure.png':undefined);}
 });

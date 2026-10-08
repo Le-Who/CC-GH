@@ -47,14 +47,26 @@
     {
       "role": "cruise",
       "path": "src/games/companion-yard-v2/mika-qa/mika-yard-route.mjs",
-      "bytes": 9944,
-      "sha256": "ff7c4c38d591f501962aad8b77262d393e0f86c9df421c2ba67734fcb3c6994b"
+      "bytes": 17369,
+      "sha256": "0f565691e8ba72f30dc09b9765892e6cd1085d219279c6e5aa164c468f4e3682"
     },
     {
       "role": "arrival",
       "path": "src/games/companion-yard-v2/mika-qa/mika-arrival.mjs",
       "bytes": 6912,
       "sha256": "7ceccd5a9abdd195b02f89d6bb8fe9f35436dd736dcfe928c2823a8154be79af"
+    },
+    {
+      "role": "departure",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-departure.mjs",
+      "bytes": 7102,
+      "sha256": "8a96269248f74b6d988a348eeb0b2bbcfeee792a38750e105ccd363b5235f685"
+    },
+    {
+      "role": "turnAway",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-turn-away.mjs",
+      "bytes": 6420,
+      "sha256": "d7309e7ab937a4988f1d2060a0a3552306f65c4f5c5528ee0a1dbd90f37da5fb"
     }
   ]
 }

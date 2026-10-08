@@ -1,11 +1,11 @@
-name: Mika item arrival candidate
+name: Mika current-pose candidate
 on:
   push:
-    branches: ['qa/native-mika-arrival-20261008']
+    branches: ['qa/native-mika-current-pose-20261008']
 permissions:
   contents: read
 concurrency:
-  group: native-mika-arrival-20261008
+  group: native-mika-current-pose-20261008
   cancel-in-progress: false
 jobs:
   qualify:
@@ -25,6 +25,8 @@ jobs:
       MIKA_QA_EXPECT_ENABLED: 'true'
       MIKA_QA_EXPECT_ITEM_APPROACH: 'true'
       MIKA_QA_EXPECT_ARRIVAL: 'true'
+      VITE_YARD_MIKA_CONTINUATION_QA: 'true'
+      MIKA_QA_EXPECT_CONTINUATION: 'true'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -34,15 +36,19 @@ jobs:
           node-version: '24'
       - name: Install locked existing dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Check arrival seam, contacts, complete admission and accepted cruise compatibility
+      - name: Check current-pose contacts, complete admission and unchanged cruise/Pip contracts
         run: |
           mkdir -p test-results/mika-normal
-          node --test --test-concurrency=1 tests/yard-mika-arrival.test.mjs tests/yard-mika-item-arrival.test.mjs tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-renderer-chunk.test.mjs > test-results/mika-normal/source-tests.log
-      - name: Collect only the corrected arrival relocation case
+          node --test --test-concurrency=1 tests/yard-mika-departure.test.mjs tests/yard-mika-turn-away.test.mjs tests/yard-mika-current-pose.test.mjs tests/yard-mika-arrival.test.mjs tests/yard-mika-item-arrival.test.mjs tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-renderer-chunk.test.mjs > test-results/mika-normal/source-tests.log
+      - name: Collect exact current-pose browser cases
         run: |
-          MIKA_QA_PHASE=collection-cancel pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'target relocation during arrival' --list > test-results/mika-normal/collection-cancel.log
-          test "$(grep -c 'target relocation during arrival' test-results/mika-normal/collection-cancel.log)" -eq 1
-      - name: Build explicit arrival candidate, never deployment
+          MIKA_QA_PHASE=collection-current-pose pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'Mika current-pose continuation' --list > test-results/mika-normal/collection-current-pose.log
+          test "$(grep -c 'Mika current-pose continuation' test-results/mika-normal/collection-current-pose.log)" -eq 4
+          MIKA_QA_PHASE=collection-cameras pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --project landscape844 --grep 'actual two-item arrival to 88,62' --list > test-results/mika-normal/collection-cameras.log
+          test "$(grep -c 'actual two-item arrival to 88,62' test-results/mika-normal/collection-cameras.log)" -eq 2
+          MIKA_QA_PHASE=collection-clean MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'clean two-item recording to 88,62' --list > test-results/mika-normal/collection-clean.log
+          test "$(grep -c 'clean two-item recording to 88,62' test-results/mika-normal/collection-clean.log)" -eq 1
+      - name: Build explicit current-pose candidate, never deployment
         env:
           NODE_ENV: production
         run: |
@@ -51,15 +57,19 @@ jobs:
           tar -czf test-results/mika-normal/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/assets/*.js
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
-      # The unchanged product's 11 positive browser cases remain attributed to
-      # 29870d30 / run 37815852644. Only the invalid realtime fixture is rerun.
-      - name: Correct account-scoped realtime delivery cancels active arrival
-        run: MIKA_QA_PHASE=arrival-cancel-recheck pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'target relocation during arrival'
-      - name: Preserve original bounded arrival evidence
+      - name: Compact same-actor two-leg diagnostic
+        run: MIKA_QA_PHASE=current-pose-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'actual two-item arrival to 88,62'
+      - name: Same path in DPR2 portrait and landscape
+        run: MIKA_QA_PHASE=current-pose-cameras pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --project landscape844 --grep 'actual two-item arrival to 88,62'
+      - name: Independently positioned next targets and active-turn cancellation
+        run: MIKA_QA_PHASE=current-pose-variants pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'actual two-item arrival to (88,65|87,57)|moving the selected item during turn'
+      - name: Clean continuous two-leg recording at native timing
+        run: MIKA_QA_PHASE=current-pose-clean MIKA_QA_CLEAN_CONTINUATION=true pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'clean two-item recording to 88,62'
+      - name: Preserve original bounded current-pose evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mika-item-arrival-${{ github.sha }}
+          name: mika-current-pose-${{ github.sha }}
           path: test-results/mika-normal/
           retention-days: 7
           if-no-files-found: error

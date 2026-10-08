@@ -62,6 +62,7 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
    active?.update(value);
   },setGhost(value){if(value&&isCanonicalItemIntent(value)&&currentMode!=='canonical-items')return false;active?.setGhost(value);return true;},point:event=>active?.point(event)??null,hit:event=>active?.hit(event)??null,offsetPoint:(p,d)=>active?.offsetPoint(p,d)??null,
   setCanonicalActionPending:value=>{canonicalActionPending=!!value;active?.setCanonicalActionPending?.(value);},
+  requestMikaItemArrival:slotId=>!disposed&&!suspended&&currentMode==='legacy'?active?.requestMikaItemArrival?.(slotId)??{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'}:{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'},
   inspectCanonicalSlot:slotId=>active?.inspectCanonicalSlot?.(slotId),
   selectCanonicalSlot:slotId=>active?.selectCanonicalSlot?.(slotId),
   beginPointer:()=>active?.beginPointer?.(),endPointer:()=>active?.endPointer?.(),
@@ -72,3 +73,4 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
   dispose(){if(disposed)return tail;disposed=true;desired=false;++epoch;window.removeEventListener('pagehide',onHide);window.removeEventListener('pageshow',onShow);const previous=retire();tail=tail.then(()=>previous).catch(blocked);return tail;}
  };
 }
+
