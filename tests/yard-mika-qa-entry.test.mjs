@@ -15,6 +15,12 @@ test('explicit QA build owns only an optional legacy draw layer and cleans its d
  const qa=evaluate({VITE_YARD_MIKA_QA:'true'});assert.equal(qa.options.canonicalSavedVisitsAllowed,false);assert.equal(typeof qa.legacyOptions.loadQaLayer,'function');assert.equal(Object.isFrozen(globalThis.__yardMikaQa),true);qa.result.dispose();assert.equal(qa.disposals(),1);assert.equal(globalThis.__yardMikaQa,undefined);
 });
 
+test('persisted-item approach requires both explicit QA flags and cannot replace saved Pip',()=>{
+ const inert=evaluate({VITE_YARD_MIKA_ITEM_QA:'true'});assert.equal(inert.options.createLegacy,inert.legacy);inert.result.dispose();
+ const enabled=evaluate({VITE_YARD_MIKA_QA:'true',VITE_YARD_MIKA_ITEM_QA:'true'});assert.equal(enabled.legacyOptions.qaItemApproach,true);enabled.result.dispose();
+ const saved=evaluate({VITE_YARD_MIKA_QA:'true',VITE_YARD_MIKA_ITEM_QA:'true',VITE_YARD_SAVED_VISITS:'true'});assert.equal(saved.options.createLegacy,saved.legacy);saved.result.dispose();
+});
+
 test('same-ID session changes advance only a private QA epoch without serializing session values',()=>{
  const qa=evaluate({VITE_YARD_MIKA_QA:'true'}),a=Object.freeze({revision:1}),b=Object.freeze({revision:2}),value={player:{id:'same'}};
  try{qa.result.update(value,{accountSession:a});assert.equal(qa.legacyOptions.qaSessionEpoch(),0);qa.result.update(value,{accountSession:a});assert.equal(qa.legacyOptions.qaSessionEpoch(),0);qa.result.update(value,{accountSession:b});assert.equal(qa.legacyOptions.qaSessionEpoch(),1);assert.deepEqual(globalThis.__yardMikaQa.snapshot(),{mode:'legacy'});}

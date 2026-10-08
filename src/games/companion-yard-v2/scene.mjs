@@ -30,7 +30,7 @@ const stillIds = [...new Set(['sun-cushion-clean','yarn-mouse-clean','yarn-mouse
 async function json(path,signal){const r=await fetch(path,{signal});if(!r.ok)throw Error(`Media ${r.status}: ${path}`);return r.json();}
 
 /** One disposable canvas owner. Server snapshots are read-only; RAF never writes a save or reward. */
-export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner,loadQaLayer=null,qaSessionEpoch=()=>0}={}) {
+export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner,loadQaLayer=null,qaItemApproach=false,qaSessionEpoch=()=>0}={}) {
   const ctx=canvas.getContext('2d'),abort=new AbortController(),timing=new FrameTelemetry();
   const familyMode=Object.values(FAMILY_ACTOR_REFERENCES).some(ref=>resolveActorProfile(ref,actorProfiles));
   const atlasPolicy=familyMode?FAMILY_ATLAS_POLICY:[MIKA_ACTOR_REFERENCE,MOCHI_ACTOR_REFERENCE,PEBBLE_ACTOR_REFERENCE,PIP_ACTOR_REFERENCE]
@@ -187,7 +187,7 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
         const module=await loadQaLayer();checkQaSession();
         if(disposed)return;
         if(!qaInterruption){
-          qaLayer=await module.createMikaYardQaLayer({signal:abort.signal,cameraDirection:CAMERA_DIRECTION,
+          qaLayer=await module.createMikaYardQaLayer({itemApproach:qaItemApproach,signal:abort.signal,cameraDirection:CAMERA_DIRECTION,
             reserveRGBA:bytes=>{if(bytes===0){qaRgbaBytes=0;return true;}if(disposed||!Number.isFinite(bytes)||bytes<0||!atlas.reserveExternal(outside()-qaRgbaBytes+bytes))return false;qaRgbaBytes=bytes;budgetSample('qa-surface');return true;}});
           checkQaSession();if(qaInterruption)qaLayer.abort(qaInterruption);
           if(disposed){qaLayer.dispose();return;}

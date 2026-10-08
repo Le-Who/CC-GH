@@ -3,6 +3,7 @@ import envelope from './mika-p2-skin-envelope.json' with {type:'json'};
 import mask from './meadow-mask.json' with {type:'json'};
 import {createMikaNativePoseDriver} from './mika-native-pose.mjs';
 import {planMikaYardQaCruise,sampleMikaYardQaCruise} from './mika-yard-route.mjs';
+import {bindMikaPersistedItems,planMikaItemApproach} from './mika-item-approach.mjs';
 import {configureMikaYardCamera} from './mika-yard-camera.mjs';
 const ASSET='/assets/yard-mika-p2-qa/p2.glb',BYTES=3671320,BINARY_BYTES=3624236,MODEL_CPU_BOUND=BYTES*3;
 const defaultDependencies=()=>Promise.all([import('../pip-prototype/vendor/three/build/three.module.js'),import('../pip-prototype/vendor/three/addons/loaders/GLTFLoader.js'),import('../pip-prototype/grounding-recipe.mjs')]);
@@ -28,9 +29,10 @@ export function mikaQaLayout(view,sceneGeometry){
 /** One disposable QA draw layer; the existing Courtyard RAF owns all frames.
  * No account commands, visit records, saved identities, timers or second RAF.
  */
-export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,fetchImpl=fetch,loadDependencies=defaultDependencies,canvasFactory=()=>document.createElement('canvas'),rendererFactory=null,presentationNow=()=>performance.now()}={}){
+export async function createMikaYardQaLayer({itemApproach=false,signal,cameraDirection,reserveRGBA,fetchImpl=fetch,loadDependencies=defaultDependencies,canvasFactory=()=>document.createElement('canvas'),rendererFactory=null,presentationNow=()=>performance.now()}={}){
  if(typeof reserveRGBA!=='function')throw Error('QA_RESOURCE_OWNER_REQUIRED');
  let THREE,model,driver,renderer,lighting,scene,camera,canvas,disposed=false,graphicsRetired=false,phase='loading',reason=null,plan=null,originStamp=null,lastResult=null,layoutStamp=null,account=null,accountObserved=false,allocatedPixels=0,rgbaBytes=0,modelGPUBytes=0;
+ let itemCandidate=null;
  const trace=[];let currentTime=0,frames=0,maximumEnvelopeRadius=0,projectionStamp=null,interruption=null;
  function traceState(){trace.push({phase,reason,time:currentTime,frames});if(trace.length>12)trace.shift();}
  function releaseGraphics(){
@@ -73,14 +75,22 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
   if(disposed||graphicsRetired)return null;
   try{
    noteSnapshot(snapshot);if(graphicsRetired)return null;
-   const layout=mikaQaLayout(view,sceneGeometry),nextProjection=JSON.stringify([projection.width,projection.height,projection.ppu]);
+   const bound=itemApproach?bindMikaPersistedItems(snapshot,view):null;
+   if(bound&&!bound.ok){stop('blocked',bound.reason);return null;}
+   if(itemCandidate&&itemCandidate.bindingKey!==bound.key){stop('aborted','NATIVE_ITEM_BINDING_CHANGED');return null;}
+   const layout=bound?bound.binding.layout:mikaQaLayout(view,sceneGeometry),nextProjection=JSON.stringify([projection.width,projection.height,projection.ppu]);
    if(projectionStamp!==null&&projectionStamp!==nextProjection){stop('aborted','VIEWPORT_CHANGED');return null;}projectionStamp=nextProjection;
-   if(!plan){plan=planMikaYardQaCruise(layout,calibration,envelope,{acceptSweep:(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}))});if(!plan.ok){stop('blocked',plan.reason);return null;}phase='running';traceState();}
+   if(!plan){
+    const options={acceptSweep:(sweep,vertical)=>sweep.every(p=>[vertical.min,vertical.max].every(z=>{const q=projection.project({...p,z});return q.x>=3&&q.y>=3&&q.x<=projection.width-3&&q.y<=projection.height-3;}))};
+    if(bound){itemCandidate=planMikaItemApproach(bound,calibration,envelope,options);if(!itemCandidate.ok){stop('blocked',itemCandidate.reason);return null;}plan=itemCandidate.plan;}
+    else plan=planMikaYardQaCruise(layout,calibration,envelope,options);
+    if(!plan.ok){stop('blocked',plan.reason);return null;}phase='running';traceState();
+   }
    // RAF timestamps and performance.now share the browser monotonic origin.
    // Planning, allocation and the first GPU render precede the first copy;
    // they must not consume the finite authored cruise. Undrawn poses stay at0.
    currentTime=originStamp===null?0:Math.max(0,(stamp-originStamp)/1000);
-   if(currentTime>plan.duration){stop('complete','FINITE_CRUISE_ENDED_NO_TRANSITION');return null;}
+   if(currentTime>plan.duration){stop('complete',itemApproach?'FINITE_ITEM_APPROACH_ENDED_NO_INTERACTION':'FINITE_CRUISE_ENDED_NO_TRANSITION');return null;}
    const result=sampleMikaYardQaCruise(plan,layout,currentTime);if(result.status!=='ready'){stop('aborted',result.reason||result.status);return null;}
    const width=Math.ceil(projection.width),height=Math.ceil(projection.height),pixels=width*height;
    if(pixels!==allocatedPixels||canvas.width!==width||canvas.height!==height){
@@ -102,5 +112,5 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
    },canvas,get snapshot(){return result;}};
   }catch(error){stop('aborted',String(error.message));return null;}
  }
- return{noteSnapshot,frame,abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return;disposed=true;document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();}};
+ return{noteSnapshot,frame,abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,itemApproach:itemApproach?{action:'finite-item-approach',target:itemCandidate?.target??null,interactionReady:false,savedVisitReady:false}:null,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return;disposed=true;document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();}};
 }
