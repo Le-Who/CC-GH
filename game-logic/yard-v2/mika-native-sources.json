@@ -29,8 +29,8 @@
     {
       "role": "locomotion",
       "path": "src/games/companion-yard-v2/mika-qa/mika-locomotion.mjs",
-      "bytes": 14440,
-      "sha256": "55b22f0b13bc18cd8f775896869be25e397a2f77e36b8262a3d87ee04bf96867"
+      "bytes": 15048,
+      "sha256": "0fd31ac97bebd1aaa55f682efb598190a3b36ea189b71f55b15948f2ee7465d2"
     },
     {
       "role": "nativePose",
@@ -47,8 +47,14 @@
     {
       "role": "cruise",
       "path": "src/games/companion-yard-v2/mika-qa/mika-yard-route.mjs",
-      "bytes": 8137,
-      "sha256": "98b060b4bf101513aa6a8ac70fd4c042f47e0746f7f6b56de1118b8800b9b418"
+      "bytes": 9944,
+      "sha256": "ff7c4c38d591f501962aad8b77262d393e0f86c9df421c2ba67734fcb3c6994b"
+    },
+    {
+      "role": "arrival",
+      "path": "src/games/companion-yard-v2/mika-qa/mika-arrival.mjs",
+      "bytes": 6912,
+      "sha256": "7ceccd5a9abdd195b02f89d6bb8fe9f35436dd736dcfe928c2823a8154be79af"
     }
   ]
 }

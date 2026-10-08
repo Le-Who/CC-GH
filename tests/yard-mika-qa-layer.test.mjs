@@ -15,8 +15,8 @@ for(const [width,height] of [[320,420],[390,650],[844,252]])test(`persisted-item
     render(scene,camera){renders++;const v=new THREE.Vector3();scene.traverse(mesh=>{if(!mesh.isMesh)return;for(let i=0;i<mesh.geometry.attributes.position.count;i++){mesh.getVertexPosition(i,v).applyMatrix4(mesh.matrixWorld).project(camera);vertices++;assert.ok(Math.abs(v.x)<1&&Math.abs(v.y)<1&&Math.abs(v.z)<1);}});},dispose(){},forceContextLoss(){}})});
   const {snapshot,view}=mikaItemFixture([{slotId:'qa-mouse',goodieId:'yarn_mouse',x:64,y:54,condition:'new'}]);
   const original=structuredClone(snapshot),args={snapshot,view,projection:createProjection(width,height),sceneGeometry:{},shadow:()=>{}};
-  for(const time of [0,1.23,3.9,1.23,4]){const f=layer.frame({...args,stamp:1000+time*1000});assert.ok(f,JSON.stringify(layer.diagnostics()));f.draw({drawImage(){}});}
-  assert.equal(renders,5);assert.ok(vertices>250000);assert.deepEqual(snapshot,original);
+  for(const time of [0,3.9,4,4.001,4.5,4.9,5.5,6,4.2]){const f=layer.frame({...args,stamp:1000+time*1000});assert.ok(f,JSON.stringify(layer.diagnostics()));f.draw({drawImage(){}});}
+  assert.equal(renders,9);assert.ok(vertices>450000);assert.deepEqual(snapshot,original);
   const d=layer.diagnostics();assert.equal(d.itemApproach.target.slotId,'qa-mouse');assert.equal(d.itemApproach.interactionReady,false);assert.equal(d.itemApproach.savedVisitReady,false);
   const changed=structuredClone(snapshot);changed.yard.placedGoodies[0].x++;
   layer.noteSnapshot(changed);assert.equal(layer.diagnostics().phase,'aborted');assert.equal(layer.diagnostics().reason,'LAYOUT_CHANGED');

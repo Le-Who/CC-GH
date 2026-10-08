@@ -99,7 +99,7 @@ test('independent native source pins match exact repository bytes and the actual
   const root = new URL('../', import.meta.url), input = mikaNativeContractInput();
   assert.equal(MIKA_NATIVE_SOURCES.format, 'native-mika-sources/v1');
   assert.equal(MIKA_NATIVE_SOURCES.baseCommit, '0acaf4e522629e762cf8b399504740406bde0a38');
-  assert.deepEqual(MIKA_NATIVE_SOURCES.sources.map(row => row.role), ['model', 'calibration', 'skinEnvelope', 'envelope', 'locomotion', 'nativePose', 'geometry', 'cruise']);
+  assert.deepEqual(MIKA_NATIVE_SOURCES.sources.map(row => row.role), ['model', 'calibration', 'skinEnvelope', 'envelope', 'locomotion', 'nativePose', 'geometry', 'cruise', 'arrival']);
   for (const row of MIKA_NATIVE_SOURCES.sources) {
     const bytes = await readFile(new URL(row.path, root));
     assert.equal(bytes.length, row.bytes, row.role);

@@ -1,5 +1,6 @@
 import {createMikaLocomotionRoute,sampleMikaLocomotion} from './mika-locomotion.mjs';
 import {boundMikaPose} from './mika-envelope.mjs';
+import {prepareMikaArrival} from './mika-arrival.mjs';
 const EPS=1e-8,U=8,DURATION=4;
 const internals=new WeakMap(),templates=new WeakMap();
 const canonical=v=>v===null||typeof v!=='object'?JSON.stringify(v):Array.isArray(v)?'['+v.map(canonical).join(',')+']':'{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';
@@ -40,30 +41,48 @@ function worldCorners(sample,envelope,units=1){
  const b=boundMikaPose(sample,envelope,{includeCorners:true}),origin={x:sample.root.position[0]*units,y:sample.root.position[1]*units};
  return b.points.map(p=>transform({x:p[0],y:p[1]},sample.root.heading,units,origin));
 }
-function prepareTemplates(calibration,envelope){
- const key=canonical(envelope);let cached=templates.get(calibration);if(cached?.key===key)return cached.rows;
+function prepareTemplates(calibration,envelope,withArrival=false){
+ const key=(withArrival?'arrival:':'cruise:')+canonical(envelope);let cached=templates.get(calibration);if(!cached){cached=new Map();templates.set(calibration,cached);}if(cached.has(key))return cached.get(key);
  const rows=[];
  for(const turn of [-Math.PI/12,Math.PI/12]){
-  const rootAt=relativeRoot(turn),route=createMikaLocomotionRoute(rootAt,calibration,{mirrorPhase:turn>0});let points=[],minZ=0,maxZ=0;
-  for(let i=0;i<=160;i++){
-   const sample=sampleMikaLocomotion(route,calibration,i/40),box=boundMikaPose(sample,envelope);minZ=Math.min(minZ,box.min[2]);maxZ=Math.max(maxZ,box.max[2]);
+  const rootAt=relativeRoot(turn),route=createMikaLocomotionRoute(rootAt,calibration,{mirrorPhase:turn>0,activeEnd:withArrival?4.5:DURATION});
+  const arrival=withArrival?prepareMikaArrival(calibration,t=>sampleMikaLocomotion(route,calibration,t)):null;
+  const duration=arrival?.durationSeconds??DURATION,sampleAt=t=>arrival&&t>DURATION?arrival.sample(t):sampleMikaLocomotion(route,calibration,t);
+  let points=[],minZ=0,maxZ=0;
+  for(let i=0;i<=Math.ceil(duration*40);i++){
+   const sample=sampleAt(Math.min(duration,i/40)),box=boundMikaPose(sample,envelope);minZ=Math.min(minZ,box.min[2]);maxZ=Math.max(maxZ,box.max[2]);
    points.push(...worldCorners(sample,envelope));if(i%10===0)points=hull(points);
   }
   // Fixed reserve surrounds sampled extrema. Every actual frame is separately
   // bounded against this admitted hull before drawing; an escape aborts QA.
   const padded=hull(hull(points).flatMap(p=>[-.08,.08].flatMap(x=>[-.08,.08].map(y=>({x:p.x+x,y:p.y+y})))));
-  rows.push({turn,rootAt,endBody:hull(worldCorners(sampleMikaLocomotion(route,calibration,DURATION),envelope)),sweep:padded,vertical:{min:minZ-.08,max:maxZ+.08}});
+  const end=sampleAt(duration);
+  rows.push({turn,rootAt,sampleAt,duration,endRoot:end.root,endBody:hull(worldCorners(end,envelope)),sweep:padded,vertical:{min:minZ-.08,max:maxZ+.08}});
  }
- templates.set(calibration,{key,rows});return rows;
+ cached.set(key,rows);return rows;
 }
 function validLayout(layout){
  return layout?.remodel==='meadow'&&Array.isArray(layout.maskRows)&&layout.maskRows.length===51&&Array.isArray(layout.obstacles)&&layout.obstacles.length<=32&&layout.obstacles.every(b=>typeof b.id==='string'&&[b.x,b.y,b.width,b.height].every(Number.isFinite)&&b.width>0&&b.height>0);
 }
 /** A finite QA cruise selector, not a general path planner or replan system. */
-export function planMikaYardQaCruise(layout,calibration,envelope,{acceptSweep=()=>true,acceptCandidate=()=>true,candidateStarts=null}={}){
+export function planMikaYardQaCruise(layout,calibration,envelope,options={}){
+ return planMikaYardQaPassage(layout,calibration,envelope,{...options,withArrival:false});
+}
+/** Candidate arrival extension. It cannot be selected through the accepted
+ * four-second replay API; all added body motion is included in admission. */
+export function planMikaYardQaArrival(layout,calibration,envelope,options={}){
+ return planMikaYardQaPassage(layout,calibration,envelope,{...options,withArrival:true});
+}
+function placeSample(sample,heading,start){
+ const world=p=>{const q=transform({x:p[0],y:p[1]},heading,1,{x:start.x/U,y:start.y/U});return[q.x,q.y,p[2]];};
+ return {...sample,root:{position:world(sample.root.position),heading:sample.root.heading+heading},
+  contacts:Object.fromEntries(Object.entries(sample.contacts).map(([id,foot])=>[id,{...foot,yaw:foot.yaw+heading,
+   ...Object.fromEntries(['paw','hip','knee','ankle'].filter(key=>Array.isArray(foot[key])).map(key=>[key,world(foot[key])]))}]))};
+}
+function planMikaYardQaPassage(layout,calibration,envelope,{acceptSweep=()=>true,acceptCandidate=()=>true,candidateStarts=null,withArrival=false}={}){
  if(!validLayout(layout))return {ok:false,reason:'UNSUPPORTED_QA_LAYOUT'};
  if(candidateStarts!==null&&(!Array.isArray(candidateStarts)||candidateStarts.length>70||candidateStarts.some(p=>!p||![p.x,p.y].every(n=>Number.isFinite(n)&&n>=0&&n<=100))))return{ok:false,reason:'INVALID_QA_CANDIDATE_STARTS'};
- const frozen=structuredClone(layout),layoutKey=canonical(frozen),rows=prepareTemplates(calibration,envelope),starts=[];
+ const frozen=structuredClone(layout),layoutKey=canonical(frozen),rows=prepareTemplates(calibration,envelope,withArrival),starts=[];
  if(candidateStarts!==null)starts.push(...candidateStarts.map(p=>({x:p.x,y:p.y})));
  else for(let y=42;y<=78;y+=6)for(let x=26;x<=80;x+=6)starts.push({x,y});
  starts.sort((a,b)=>Math.hypot(a.x-50,a.y-60)-Math.hypot(b.x-50,b.y-60));let candidates=0;
@@ -72,12 +91,12 @@ export function planMikaYardQaCruise(layout,calibration,envelope,{acceptSweep=()
   if(!polygonWithinMask(sweep,frozen.maskRows)||frozen.obstacles.some(b=>polygonHitsBox(sweep,b)))continue;
   // Optional finite-action selection only narrows the existing clear set. It
   // cannot change the root, pose, duration, collision sweep or per-frame guard.
-  const end=template.rootAt(DURATION),position=transform({x:end.position[0],y:end.position[1]},heading,U,start);
+  const end=template.endRoot,position=transform({x:end.position[0],y:end.position[1]},heading,U,start);
   if(acceptCandidate({start:{...start},end:{...position},heading:end.heading+heading,endBody:template.endBody.map(p=>transform(p,heading,U,start))})!==true||acceptSweep(sweep,template.vertical)!==true)continue;
   const rootAt=t=>{const r=template.rootAt(t),p=transform({x:r.position[0],y:r.position[1]},heading,1,{x:start.x/U,y:start.y/U});return{position:[p.x,p.y,0],heading:r.heading+heading};};
-  const route=createMikaLocomotionRoute(rootAt,calibration,{mirrorPhase:template.turn>0});
-  const plan=Object.freeze({ok:true,format:'mika-normal-yard-qa-cruise/v1',unitsPerSource:U,duration:DURATION,start:Object.freeze(start),heading,turnRadians:template.turn,sweep:Object.freeze(sweep.map(Object.freeze)),candidates,scope:'finite visual-only cruise; sampled pose-envelope with per-frame fail-closed guard; no saved identity/replan/action entry'});
-  internals.set(plan,{layoutKey,calibration:structuredClone(calibration),envelope:structuredClone(envelope),route,aborted:false});return plan;
+  const route=withArrival?null:createMikaLocomotionRoute(rootAt,calibration,{mirrorPhase:template.turn>0});
+  const plan=Object.freeze({ok:true,format:withArrival?'mika-normal-yard-qa-arrival/v1':'mika-normal-yard-qa-cruise/v1',unitsPerSource:U,duration:template.duration,start:Object.freeze(start),heading,turnRadians:template.turn,sweep:Object.freeze(sweep.map(Object.freeze)),candidates,scope:withArrival?'finite item approach, contact-aware arrival and idle; full-sweep and per-frame guard; no saved visit/interaction':'finite visual-only cruise; sampled pose-envelope with per-frame fail-closed guard; no saved identity/replan/action entry'});
+  internals.set(plan,{layoutKey,calibration:structuredClone(calibration),envelope:structuredClone(envelope),route,sampleAt:withArrival?t=>placeSample(template.sampleAt(t),heading,start):null,aborted:false});return plan;
  }
  return {ok:false,reason:'NO_CLEAR_QA_CRUISE',candidates};
 }
@@ -85,7 +104,7 @@ export function sampleMikaYardQaCruise(plan,layout,time){
  const state=internals.get(plan);if(!state)return {status:'aborted',reason:'UNPREPARED_QA_CRUISE'};
  if(state.aborted||canonical(layout)!==state.layoutKey){state.aborted=true;return{status:'aborted',reason:'LAYOUT_CHANGED'};}
  if(!Number.isFinite(time)||time<0||time>plan.duration)return{status:'complete'};
- const sample=sampleMikaLocomotion(state.route,state.calibration,time);
+ const sample=state.sampleAt?state.sampleAt(time):sampleMikaLocomotion(state.route,state.calibration,time);
  if(worldCorners(sample,state.envelope,U).some(p=>!contains(plan.sweep,p))){state.aborted=true;return{status:'aborted',reason:'POSE_ENVELOPE_ESCAPE'};}
  return{status:'ready',sample,position:{x:sample.root.position[0]*U,y:sample.root.position[1]*U},envelope:boundMikaPose(sample,state.envelope)};
 }
