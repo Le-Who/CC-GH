@@ -1,0 +1,68 @@
+name: Mika persisted-item approach candidate
+on:
+  push:
+    branches: ['qa/native-mika-item-approach-20261008']
+permissions:
+  contents: read
+concurrency:
+  group: native-mika-item-approach-20261008
+  cancel-in-progress: false
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      VITE_YARD_PIP_PREVIEW: 'true'
+      VITE_YARD_SAVED_VISITS: 'false'
+      VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
+      VITE_YARD_MIKA_QA: 'true'
+      VITE_YARD_MIKA_ITEM_QA: 'true'
+      MIKA_QA_EXPECT_ENABLED: 'true'
+      MIKA_QA_EXPECT_ITEM_APPROACH: 'true'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Install locked existing dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Check finite runtime, source pins, old replay and saved Pip compatibility
+        run: |
+          mkdir -p test-results/mika-normal
+          node --test --test-concurrency=1 tests/yard-mika-item-approach.test.mjs tests/yard-mika-qa-route.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-layer.test.mjs tests/yard-mika-qa-async-layer.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs tests/yard-mika-native-cruise-replay.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-navigation-chrome.test.mjs tests/yard-renderer-chunk.test.mjs > test-results/mika-normal/source-tests.log
+      # Product unchanged since d78c38d: compact pixels and 17 matrix cases passed.
+      # Retry only the completed-assertions/fixture-shutdown timeout plus unrun dock cases.
+      - name: Collect exact affected navigation case
+        run: MIKA_QA_PHASE=collection-navigation pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'actual game navigation' --list > test-results/mika-normal/collection-navigation.log
+      - name: Collect composed navigation cases
+        run: |
+          MIKA_QA_PHASE=collection-nav pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --project portrait360 --project portrait390 --project portrait414 --project landscape568 --project landscape844 --project tablet768 --project tablet1024 --project desktop1280 --project rotating393 --grep 'navigation labels and selection' --list > test-results/mika-normal/collection-nav.log
+          test "$(grep -c 'navigation labels and selection' test-results/mika-normal/collection-nav.log)" -eq 20
+      - name: Build explicit finite-item candidate, never deployment
+        env:
+          NODE_ENV: production
+        run: |
+          set -o pipefail
+          pnpm run build | tee test-results/mika-normal/build.log
+          tar -czf test-results/mika-normal/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/assets/*.js
+      - name: Install official Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Rerun compact navigation with browser-before-server teardown
+        run: MIKA_QA_PHASE=navigation-recheck pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --grep 'actual game navigation'
+      - name: Full dock matrix, rotating phone and DPR2 English/Russian labels
+        run: MIKA_QA_PHASE=nav-matrix pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 --project portrait360 --project portrait390 --project portrait414 --project landscape568 --project landscape844 --project tablet768 --project tablet1024 --project desktop1280 --project rotating393 --grep 'navigation labels and selection'
+      - name: Preserve original candidate evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mika-persisted-item-${{ github.sha }}
+          path: test-results/mika-normal/
+          retention-days: 7
+          if-no-files-found: error

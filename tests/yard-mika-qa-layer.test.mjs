@@ -1,8 +1,28 @@
 import test from 'node:test';import assert from 'node:assert/strict';import{readFileSync}from'node:fs';import{registerHooks}from'node:module';
 import{createMikaYardQaLayer}from'../src/games/companion-yard-v2/mika-qa/mika-yard-layer.mjs';
 import{createProjection,CAMERA_DIRECTION}from'../src/games/companion-yard-v2/projection.mjs';
+import {mikaItemFixture} from './fixtures/mika-item-input.mjs';
 const vendor=new URL('../src/games/companion-yard-v2/pip-prototype/vendor/three/',import.meta.url);registerHooks({resolve(s,c,n){return n(s==='three'?new URL('build/three.module.js',vendor).href:s,c);}});
 const THREE=await import('three'),{GLTFLoader}=await import(new URL('addons/loaders/GLTFLoader.js',vendor));
+for(const [width,height] of [[320,420],[390,650],[844,252]])test(`persisted-item native approach uses the normal camera ${width}x${height} and cancels current target changes`,async()=>{
+ const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});let layer;
+ try{
+  const bytes=readFileSync(new URL('../public/assets/yard-mika-p2-qa/p2.glb',import.meta.url)),canvas=Object.assign(new EventTarget(),{width:1,height:1});let vertices=0,renders=0;
+  layer=await createMikaYardQaLayer({itemApproach:true,cameraDirection:CAMERA_DIRECTION,presentationNow:()=>1000,reserveRGBA:()=>true,canvasFactory:()=>canvas,
+   fetchImpl:async()=>({ok:true,arrayBuffer:async()=>bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+bytes.byteLength)}),
+   loadDependencies:async()=>[THREE,{GLTFLoader},{createPipGardenLighting:()=>({dispose(){}})}],
+   rendererFactory:()=>({shadowMap:{},setPixelRatio(){},setClearColor(){},setSize(w,h){canvas.width=w;canvas.height=h;},
+    render(scene,camera){renders++;const v=new THREE.Vector3();scene.traverse(mesh=>{if(!mesh.isMesh)return;for(let i=0;i<mesh.geometry.attributes.position.count;i++){mesh.getVertexPosition(i,v).applyMatrix4(mesh.matrixWorld).project(camera);vertices++;assert.ok(Math.abs(v.x)<1&&Math.abs(v.y)<1&&Math.abs(v.z)<1);}});},dispose(){},forceContextLoss(){}})});
+  const {snapshot,view}=mikaItemFixture([{slotId:'qa-mouse',goodieId:'yarn_mouse',x:64,y:54,condition:'new'}]);
+  const original=structuredClone(snapshot),args={snapshot,view,projection:createProjection(width,height),sceneGeometry:{},shadow:()=>{}};
+  for(const time of [0,1.23,3.9,1.23,4]){const f=layer.frame({...args,stamp:1000+time*1000});assert.ok(f,JSON.stringify(layer.diagnostics()));f.draw({drawImage(){}});}
+  assert.equal(renders,5);assert.ok(vertices>250000);assert.deepEqual(snapshot,original);
+  const d=layer.diagnostics();assert.equal(d.itemApproach.target.slotId,'qa-mouse');assert.equal(d.itemApproach.interactionReady,false);assert.equal(d.itemApproach.savedVisitReady,false);
+  const changed=structuredClone(snapshot);changed.yard.placedGoodies[0].x++;
+  layer.noteSnapshot(changed);assert.equal(layer.diagnostics().phase,'aborted');assert.equal(layer.diagnostics().reason,'LAYOUT_CHANGED');
+  assert.equal(layer.frame({...args,stamp:2500}),null);assert.equal(layer.diagnostics().resources.retainedModelGPUBytes,0);
+ }finally{layer?.dispose();globalThis.document=oldDocument;}
+});
 for(const[width,height]of[[320,420],[390,650],[844,252]])test(`QA layer normal camera ${width}x${height}: full native body, read-only lifecycle and abort`,async()=>{
  const oldDocument=globalThis.document;globalThis.document=Object.assign(new EventTarget(),{hidden:false});
  try{

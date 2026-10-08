@@ -52,7 +52,7 @@ function prepareTemplates(calibration,envelope){
   // Fixed reserve surrounds sampled extrema. Every actual frame is separately
   // bounded against this admitted hull before drawing; an escape aborts QA.
   const padded=hull(hull(points).flatMap(p=>[-.08,.08].flatMap(x=>[-.08,.08].map(y=>({x:p.x+x,y:p.y+y})))));
-  rows.push({turn,rootAt,sweep:padded,vertical:{min:minZ-.08,max:maxZ+.08}});
+  rows.push({turn,rootAt,endBody:hull(worldCorners(sampleMikaLocomotion(route,calibration,DURATION),envelope)),sweep:padded,vertical:{min:minZ-.08,max:maxZ+.08}});
  }
  templates.set(calibration,{key,rows});return rows;
 }
@@ -60,14 +60,20 @@ function validLayout(layout){
  return layout?.remodel==='meadow'&&Array.isArray(layout.maskRows)&&layout.maskRows.length===51&&Array.isArray(layout.obstacles)&&layout.obstacles.length<=32&&layout.obstacles.every(b=>typeof b.id==='string'&&[b.x,b.y,b.width,b.height].every(Number.isFinite)&&b.width>0&&b.height>0);
 }
 /** A finite QA cruise selector, not a general path planner or replan system. */
-export function planMikaYardQaCruise(layout,calibration,envelope,{acceptSweep=()=>true}={}){
+export function planMikaYardQaCruise(layout,calibration,envelope,{acceptSweep=()=>true,acceptCandidate=()=>true,candidateStarts=null}={}){
  if(!validLayout(layout))return {ok:false,reason:'UNSUPPORTED_QA_LAYOUT'};
+ if(candidateStarts!==null&&(!Array.isArray(candidateStarts)||candidateStarts.length>70||candidateStarts.some(p=>!p||![p.x,p.y].every(n=>Number.isFinite(n)&&n>=0&&n<=100))))return{ok:false,reason:'INVALID_QA_CANDIDATE_STARTS'};
  const frozen=structuredClone(layout),layoutKey=canonical(frozen),rows=prepareTemplates(calibration,envelope),starts=[];
- for(let y=42;y<=78;y+=6)for(let x=26;x<=80;x+=6)starts.push({x,y});
+ if(candidateStarts!==null)starts.push(...candidateStarts.map(p=>({x:p.x,y:p.y})));
+ else for(let y=42;y<=78;y+=6)for(let x=26;x<=80;x+=6)starts.push({x,y});
  starts.sort((a,b)=>Math.hypot(a.x-50,a.y-60)-Math.hypot(b.x-50,b.y-60));let candidates=0;
  for(const start of starts)for(const heading of [0,Math.PI/2,Math.PI,-Math.PI/2,Math.PI/4,-Math.PI/4,3*Math.PI/4,-3*Math.PI/4])for(const template of rows){
   candidates++;const sweep=template.sweep.map(p=>transform(p,heading,U,start));
-  if(!polygonWithinMask(sweep,frozen.maskRows)||frozen.obstacles.some(b=>polygonHitsBox(sweep,b))||acceptSweep(sweep,template.vertical)!==true)continue;
+  if(!polygonWithinMask(sweep,frozen.maskRows)||frozen.obstacles.some(b=>polygonHitsBox(sweep,b)))continue;
+  // Optional finite-action selection only narrows the existing clear set. It
+  // cannot change the root, pose, duration, collision sweep or per-frame guard.
+  const end=template.rootAt(DURATION),position=transform({x:end.position[0],y:end.position[1]},heading,U,start);
+  if(acceptCandidate({start:{...start},end:{...position},heading:end.heading+heading,endBody:template.endBody.map(p=>transform(p,heading,U,start))})!==true||acceptSweep(sweep,template.vertical)!==true)continue;
   const rootAt=t=>{const r=template.rootAt(t),p=transform({x:r.position[0],y:r.position[1]},heading,1,{x:start.x/U,y:start.y/U});return{position:[p.x,p.y,0],heading:r.heading+heading};};
   const route=createMikaLocomotionRoute(rootAt,calibration,{mirrorPhase:template.turn>0});
   const plan=Object.freeze({ok:true,format:'mika-normal-yard-qa-cruise/v1',unitsPerSource:U,duration:DURATION,start:Object.freeze(start),heading,turnRadians:template.turn,sweep:Object.freeze(sweep.map(Object.freeze)),candidates,scope:'finite visual-only cruise; sampled pose-envelope with per-frame fail-closed guard; no saved identity/replan/action entry'});

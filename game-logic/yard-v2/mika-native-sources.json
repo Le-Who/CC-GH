@@ -47,8 +47,8 @@
     {
       "role": "cruise",
       "path": "src/games/companion-yard-v2/mika-qa/mika-yard-route.mjs",
-      "bytes": 7250,
-      "sha256": "ac4e0c913fc9b3c7a8f68fbadaaad521f2b0619d3341f0c3bb415750fce79f91"
+      "bytes": 8137,
+      "sha256": "98b060b4bf101513aa6a8ac70fd4c042f47e0746f7f6b56de1118b8800b9b418"
     }
   ]
 }

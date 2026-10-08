@@ -25,6 +25,7 @@ export const YARD_RUNTIME_CORE_MODULES = new Set([
   'game-logic/yard-v2/media/stay-schedule.mjs',
   'game-logic/yard-v2/media/stride-routes.mjs',
   'game-logic/yard-v2/media/walk-phase-lookup.mjs',
+  'game-logic/yard-v2/mika-item-geometry.mjs',
   'game-logic/yard-v2/mika-media.mjs',
   'game-logic/yard-v2/mochi-actor-profile.mjs',
   'game-logic/yard-v2/motion-ground-guard.mjs',

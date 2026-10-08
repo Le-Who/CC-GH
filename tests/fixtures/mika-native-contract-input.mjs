@@ -15,7 +15,7 @@ export function mikaNativeContractInput() {
       locomotion: '55b22f0b13bc18cd8f775896869be25e397a2f77e36b8262a3d87ee04bf96867',
       nativePose: '90420bd4dc92addab685e5b18fc5c08eefedf988f3c9c462645c5b3c34f0f2ae',
       geometry: '16ede4fd610218357f3b63e8711ec1b611141a1a2b62a30e4a597b6d7a11cba3',
-      cruise: 'ac4e0c913fc9b3c7a8f68fbadaaad521f2b0619d3341f0c3bb415750fce79f91',
+      cruise: '98b060b4bf101513aa6a8ac70fd4c042f47e0746f7f6b56de1118b8800b9b418',
     },
     geometry: {id: 'released-meadow-mask/v1', domain: {min: [0, 0], max: [100, 100]}, unitsPerSource: 8},
     binding: null,

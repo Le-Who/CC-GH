@@ -9,8 +9,9 @@ import { footprint, overlaps, buildNavigation, validateLayout } from './geometry
 import { clone, digest } from './util.mjs';
 import { createMotionGroundGuard,MIKA_GROUND_FOOTPRINT_REVISION } from './motion-ground-guard.mjs';
 import { FOOD_BINDINGS,BOWL_BINDINGS,foodVesselExclusion,YARD_FOOD_MEDIA_REVISION } from './food-media.mjs';
+import {MIKA_ITEM_FOOTPRINTS} from './mika-item-geometry.mjs';
 export const MIKA_SCENE = Object.freeze({entry:{x:90,y:68},bowlAnchor:BOWL_BINDINGS['bowl-1'].anchor,
-  walkReservationRadius:3.44, footprints:{yarn_mouse:{width:8.8,height:3.2},sun_cushion:{width:22.4,height:19.2}},
+  walkReservationRadius:3.44, footprints:MIKA_ITEM_FOOTPRINTS,
   exclusions:[foodVesselExclusion()]});
 /** Suggestions for a NEW placement only. Migration never applies these to stored rows. */
 export const MIKA_PLACEMENT_SUGGESTIONS=Object.freeze({
