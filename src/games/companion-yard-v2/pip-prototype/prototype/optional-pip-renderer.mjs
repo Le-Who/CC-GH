@@ -41,7 +41,7 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
   let foodEpoch=0,foodRequest=0,foodSerial=Promise.resolve(),foodRetirement=null,foodRestartRequired=false,foodPending=0;
   let foodSelection={available:false,state:null,reason:'CANONICAL_FOOD_DISABLED'};
   const foodUnavailable=reason=>({available:false,state:null,reason});
-  function foodDiagnostics(){return {enabled:canonicalFoodEnabled===true,hasOwner:foodOwnerKey!==null,ownerKeyType:foodOwnerKey===null?null:typeof foodOwnerKey,ownerEpoch:foodEpoch,pending:foodPending,
+  function foodDiagnostics(){return {enabled:canonicalFoodEnabled===true,hasOwner:foodOwnerKey!==null,ownerKeyType:foodOwnerKey===null?null:typeof foodOwnerKey,ownerEpoch:foodEpoch,request:foodRequest,pending:foodPending,
     restartRequired:foodRestartRequired,selection:{...foodSelection},binding:foodBinding?.diagnostics??null,
     resources:foodMeasurements,ledger:foodResources?.snapshot()??null};}
   function foodChanged(selection){foodSelection=selection;if(!disposed)onResources({event:'canonical-food-changed',owner,selection:{...selection},requiresFreshRender:true});return {...selection};}
@@ -227,7 +227,8 @@ export async function createOptionalPipRenderer({enabled=false,loadAssetBytes,lo
       ctx.save();try{ctx.globalAlpha*=Math.max(0,Math.min(1,alpha));ctx.drawImage(canvas,rect.x,rect.y,rect.width,rect.height);}finally{ctx.restore();}
       counts.copies++;
     }else counts.directPresentations++;
-    const t3=performance.now();lastFrame={mode,visibility,rootGLTF:rootGLTF.toArray(),presentationRoot:presentationRoot.toArray(),point:{...point},rect,cssRect,alpha,rasterPolicy:'garden-reference-grid-v1',cameraWorld:camera.matrixWorld.toArray(),cameraProjection:camera.projectionMatrix.toArray()};
+    const t3=performance.now();lastFrame={mode,visibility,rootGLTF:rootGLTF.toArray(),presentationRoot:presentationRoot.toArray(),point:{...point},rect,cssRect,alpha,rasterPolicy:'garden-reference-grid-v1',cameraWorld:camera.matrixWorld.toArray(),cameraProjection:camera.projectionMatrix.toArray(),
+      canonicalFood:{ownerEpoch:foodEpoch,request:foodRequest,available:foodSelection.available,state:foodSelection.state,visible:foodBinding?.diagnostics?.visible===true}};
     onFrameMetrics({mode,poseCameraAndPresentationMs:t1-t0,renderSubmitMs:t2-t1,drawImageCallMs:mode==='copy'?t3-t2:null,totalCallMs:t3-t0,
       drawImageIncludesPossibleGPUSynchronization:mode==='copy',GPUCompletionMeasured:false,compositorCompletionMeasured:false,backing:[size.bw,size.bh]});return true;
   }

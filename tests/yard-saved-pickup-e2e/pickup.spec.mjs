@@ -1,5 +1,6 @@
 /** Actual saved pickup UI, durable browser journal, delayed winning HTTP and PostgreSQL readback. */
 import {test,expect} from '@playwright/test';
+import {savedPipScreenshotPixels} from '../fixtures/saved-pip-pixels.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -20,10 +21,32 @@ for(const [width,height] of [[320,568],[390,844],[844,390]])test(`actual UI rele
  const context=await browser.newContext({viewport:{width,height},deviceScaleFactor:2,isMobile:true,hasTouch:true,serviceWorkers:'block'}),page=await context.newPage(),errors=[];
  page.on('pageerror',error=>errors.push(String(error)));
  const read=()=>page.evaluate(()=>window.__yardPipIntegration?.snapshot());
- const ready=async empty=>expect.poll(async()=>{const d=await read();return d?.mode==='canonical-saved-visits'&&d.scene?.ready===true&&d.scene.lastFrame?.visitId===metadata.candidate.visitId&&d.scene.lastFrame?.visibility==='both'&&d.scene.canonicalRecords?.length===(empty?0:1);},{timeout:30000}).toBe(true);
+ const ready=async empty=>expect.poll(async()=>{
+  const d=await read(),s=d?.scene,f=s?.canonicalFood,c=s?.renderer?.canonicalFood,paint=s?.renderer?.lastFrame?.canonicalFood;
+  return d?.mode==='canonical-saved-visits'&&s?.ready===true&&s.lastFrame?.visitId===metadata.candidate.visitId&&s.lastFrame?.visibility==='both'&&s.canonicalRecords?.length===(empty?0:1)
+   &&f?.loading===false&&f.render?.available===true&&f.render.state===f.state&&c?.pending===0&&c.binding?.visible===true
+   &&paint?.available===true&&paint.visible===true&&paint.state===f.state&&paint.request===c.request&&paint.ownerEpoch===c.ownerEpoch;
+ },{timeout:30000}).toBe(true);
+ const pixelEvidence=[];
+ const visibleActor=async label=>{
+  let lastImage,lastProof;
+  try{await expect.poll(async()=>{
+   const s=(await read()).scene,bounds=s.lastFrame?.viewportBounds||[],actor=bounds.find(b=>b.id==='saved-Pip'),food=bounds.find(b=>b.id==='canonical-food');
+   if(!actor||!food||actor.portalClipped)return false;
+   const stage=s.projection;
+   for(const bound of [actor,food])assert.ok(bound.x>=bound.padding-.05&&bound.y>=bound.padding-.05&&bound.right<=stage.width-bound.padding+.05&&bound.bottom<=stage.height-bound.padding+.05,bound.id+' whole source volume fits stage clear of HUD');
+   lastImage=await page.locator('.cy-scene').screenshot({scale:'css'});
+   const box=b=>({left:b.x,top:b.y,right:b.right,bottom:b.bottom}),pixels=await savedPipScreenshotPixels(lastImage,box(actor),box(food));
+   assert.equal(pixels.imageWidth,Math.round(stage.width),'screenshot CSS width matches projection');assert.equal(pixels.imageHeight,Math.round(stage.height),'screenshot CSS height matches projection');
+   lastProof={label,frame:s.frameCount,actor,food,pixels,foodRender:s.renderer.lastFrame.canonicalFood};
+   return pixels.count>=100&&pixels.width>=10&&pixels.height>=20&&pixels.food.count>=15&&pixels.food.width>=5&&pixels.food.height>=3;
+  },{timeout:15000,message:'Actual actor-body and bowl pixels must be present inside the source-owned viewport volumes'}).toBe(true);
+  }finally{if(lastProof)pixelEvidence.push(lastProof);if(lastImage)await fs.writeFile(path.join(OUT,label+'-stage-pixels.png'),lastImage);}
+ };
+
  try{
   await page.addInitScript(({externalId})=>{localStorage.setItem('gh_dev_user_id',externalId);localStorage.setItem('garden_shelf_language','en');},{externalId});
-  await page.goto(info.project.use.baseURL+'/');await expect(page.locator('.gs2-stage')).toBeVisible({timeout:30000});await selectHomeGame(page,'room');await ready(false);
+  await page.goto(info.project.use.baseURL+'/');await expect(page.locator('.gs2-stage')).toBeVisible({timeout:30000});await selectHomeGame(page,'room');await ready(false);await visibleActor('before-pickup');
   await page.screenshot({path:path.join(OUT,'before-pickup.png'),scale:'device'});
   const journal=()=>page.evaluate(async accountId=>{
     const key='game_hub_yard_outbox_v2:'+encodeURIComponent(accountId),fallback=localStorage.getItem(key);
@@ -70,12 +93,12 @@ for(const [width,height] of [[320,568],[390,844],[844,390]])test(`actual UI rele
   assert.deepEqual(body.snapshot.yard.currencies,initial.yard.currencies);
   const replayResponse=await page.request.post('/api/player/mutate',{headers:{authorization:'dev '+externalId},data:command}),replay=await replayResponse.json();
   assert.equal(replayResponse.status(),200);assert.equal(replay.duplicate,true);assert.deepEqual(replay.snapshot.yard.goodieInventory,body.snapshot.yard.goodieInventory);
-  await ready(true);await page.screenshot({path:path.join(OUT,'after-pickup.png'),scale:'device'});
-  await page.reload();await expect(page.locator('.cy-app')).toBeVisible({timeout:25000});await ready(true);
+  await page.locator('.cy-dialog header button').click();await ready(true);await visibleActor('after-pickup');await page.screenshot({path:path.join(OUT,'after-pickup.png'),scale:'device'});
+  await page.reload();await expect(page.locator('.cy-app')).toBeVisible({timeout:25000});await ready(true);await visibleActor('after-reload');
   await page.screenshot({path:path.join(OUT,'after-reload.png'),scale:'device'});assert.deepEqual(errors,[]);
   const durable=await run(process.execPath,['scripts/yard-pickup-backend-readback.mjs',metadataFile,commandFile,path.join(OUT,'durable.json')],{env,timeout:30000,maxBuffer:1024*1024});
   await fs.writeFile(path.join(OUT,'readback.log'),durable.stdout+'\n'+durable.stderr);
-  await fs.writeFile(path.join(OUT,'proof.json'),JSON.stringify({scope:'Actual pickup button, IDB journal before send and while committed HTTP is delayed, receipt settlement, API duplicate, ordinary renderer and reload; not a verified realtime-delivery assertion, full-stay or all-device qualification',passed:true,visitId:metadata.candidate.visitId,leavesAt:metadata.candidate.leavesAt,commandId:command.clientActionId,diagnostics:await read()},null,2)+'\n');
- }catch(error){await page.screenshot({path:path.join(OUT,'failure.png'),scale:'device'}).catch(()=>{});await fs.writeFile(path.join(OUT,'failure.json'),JSON.stringify({error:String(error.stack),errors,diagnostics:await read().catch(()=>null)},null,2)+'\n');throw error;
+  await fs.writeFile(path.join(OUT,'proof.json'),JSON.stringify({scope:'Actual pickup button, IDB journal before send and while committed HTTP is delayed, receipt settlement, API duplicate, ordinary renderer and reload; not a verified realtime-delivery assertion, full-stay or all-device qualification',passed:true,visitId:metadata.candidate.visitId,leavesAt:metadata.candidate.leavesAt,commandId:command.clientActionId,pixelEvidence,diagnostics:await read()},null,2)+'\n');
+ }catch(error){await page.screenshot({path:path.join(OUT,'failure.png'),scale:'device'}).catch(()=>{});await fs.writeFile(path.join(OUT,'failure.json'),JSON.stringify({error:String(error.stack),errors,pixelEvidence,diagnostics:await read().catch(()=>null)},null,2)+'\n');throw error;
  }finally{await context.close();}
 });

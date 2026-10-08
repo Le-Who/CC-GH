@@ -14,7 +14,7 @@ import{pipGroundingRecipe,createPipGardenLighting}from'./grounding-recipe.mjs';
 import{createOptionalPipRenderer}from'./prototype/optional-pip-renderer.mjs';
 import{createFixtureClock}from'./fixture-clock.mjs';
 import{createFixtureScheduler}from'./fixture-scheduler.mjs';
-import{createCleanProjection,assertCleanComposition,supportsCleanViewport,CLEAN_STAGE_MIN}from'./projection.mjs';
+import{createCleanProjection,savedVisitViewportVolumes,assertCleanComposition,supportsCleanViewport,CLEAN_STAGE_MIN}from'./projection.mjs';
 import{makePlanterInspection,repeatPlanterInspection,samplePlanterInspection,PLANTER_INSPECTION_VERSION}from'./planter-interaction.mjs';
 import{acquirePipLease,admitPipResources,rgbaAdmission,KNOWN_CPU_BUFFER_PEAK,BACKGROUND_ENCODED_BYTES,ENCODED_BACKGROUND_CPU_BYTES,COMBINED_KNOWN_CPU_PEAK,LIMITS}from'./resources.mjs';
 import{uiImageLifetimeLedger}from'../ui-image-reserve.mjs';
@@ -34,7 +34,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  // Full current UI lifetime, including 1,516,600 B catalogue and new R1 portrait.
  let uiBytes=Math.max(uiImageLifetimeLedger(canonicalItems?canonicalItemCatalog:null).bytes,19138304,uiImageOwner.snapshot().bytes),backgroundBytes=0,directSurfaceBytes=0,lastResources=null,peakRgba=0,frameCount=0,lastPhase='loading',retirement=null;
  const release=acquirePipLease(),clock=createFixtureClock({now}),listeners=[];
- let viewportBlocked=false,rejectedViewport=null,viewportRefusals=0,viewportRecoveries=0,frozenResizePending=false,resolveViewport;
+ let viewportBlocked=false,rejectedViewport=null,viewportRefusals=0,viewportRecoveries=0,frozenResizePending=false,resolveViewport,savedCropKey=null;
  const viewportReady=new Promise(resolve=>{resolveViewport=resolve;});
  const initialVisibility={canvas:canonicalSavedVisits?'':canvas.style?.visibility??'',direct:canonicalSavedVisits?'':directHost.style?.visibility??''};
  function hideSurface(hidden){if(canvas.style)canvas.style.visibility=hidden?'hidden':initialVisibility.canvas;if(directHost.style)directHost.style.visibility=hidden?'hidden':initialVisibility.direct;}
@@ -61,6 +61,17 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  const listen=(target,type,fn)=>{target.addEventListener(type,fn);listeners.push(()=>target.removeEventListener(type,fn));};
  function pause(reason,value){if(disposed)return;clock.setReason(reason,value);api?.setPaused(clock.paused);savedClient?.setDrawingEnabled(!clock.paused);scheduler.setPaused(clock.paused);notify(phase());}
  function background(){if(viewportBlocked||!image||!projection)return;ctx.clearRect(0,0,projection.width,projection.height);ctx.fillStyle='#d8e3c1';ctx.fillRect(0,0,projection.width,projection.height);const a=projection.art;ctx.drawImage(image,a.x,a.y,a.width,a.height);}
+ function savedCrop(result){
+  const requiredVolumes=savedVisitViewportVolumes(savedClient.state.plan,result,CANONICAL_FOOD_CONTRACT,{rows:currentRows(),itemEnvelope:canonicalGeometry.composition.itemEnvelope});
+  return {key:JSON.stringify([savedClient.state.plan?.visitId,result.phase,requiredVolumes]),requiredVolumes};
+ }
+ function projectedViewport(width,height,crop=null){return createCleanProjection(descriptor,width,height,{focus:canonicalItems?(displayedItem()||{x:setup.placements[0][0],y:setup.placements[0][1]}):null,...(canonicalItems?{framing:'top-biased',contextPoints:[{x:CANONICAL_FOOD_CONTRACT.anchorCanonicalXYZ[0],y:CANONICAL_FOOD_CONTRACT.anchorCanonicalXYZ[1],paddingCss:24}]}:{}),requiredVolumes:crop?.requiredVolumes??[]});}
+ function refuseViewport(r,composition=null){
+  if(!viewportBlocked||rejectedViewport?.width!==r.width||rejectedViewport?.height!==r.height)viewportRefusals++;
+  rejectedViewport={width:r.width,height:r.height,...(composition?{code:'CANONICAL_SAVED_VIEWPORT_CROP_UNAVAILABLE',composition}:{} )};viewportBlocked=true;
+  if(lastFrame)lastFrame={...lastFrame,visibility:'empty',viewportFailure:composition};
+  hideSurface(true);pause('viewport',true);scheduler.cancelPending();publish();
+ }
  function resize(){
   if(disposed||restartPending||foodReentryRequired||!descriptor)return;const r=canvas.getBoundingClientRect();
   if(canonicalItems&&itemPointerActive&&(projection?.width!==r.width||projection?.height!==r.height)){
@@ -68,8 +79,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
    itemPointerActive=false;ghost=null;onPointerInterrupt();
   }
   if(!supportsCleanViewport(r.width,r.height)){
-   if(!viewportBlocked||rejectedViewport?.width!==r.width||rejectedViewport?.height!==r.height)viewportRefusals++;
-   rejectedViewport={width:r.width,height:r.height};viewportBlocked=true;hideSurface(true);pause('viewport',true);scheduler.cancelPending();publish();return;
+   refuseViewport(r);return;
   }
   const wasBlocked=viewportBlocked;
   // ResizeObserver runs before paint. Keep both layers private until this
@@ -77,7 +87,9 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   hideSurface(true);
   const dpr=Math.min(globalThis.devicePixelRatio||1,2),bw=Math.max(1,Math.round(r.width*dpr)),bh=Math.max(1,Math.round(r.height*dpr));
   const changed=canvas.width!==bw||canvas.height!==bh;reserve(changed?bw*bh*4:0);
-  const nextProjection=createCleanProjection(descriptor,r.width,r.height,{focus:canonicalItems?(displayedItem()||{x:setup.placements[0][0],y:setup.placements[0][1]}):null,...(canonicalItems?{framing:'top-biased',contextPoints:[{x:CANONICAL_FOOD_CONTRACT.anchorCanonicalXYZ[0],y:CANONICAL_FOOD_CONTRACT.anchorCanonicalXYZ[1],paddingCss:24}]}:{})});
+  const crop=canonicalSavedVisits?savedCrop(savedClient.sample()):null;let nextProjection;
+  try{nextProjection=projectedViewport(r.width,r.height,crop);}catch(error){if(error.message!=='CANONICAL_SAVED_VIEWPORT_CROP_UNAVAILABLE')throw error;refuseViewport(r,error.geometry);return;}
+  savedCropKey=crop?.key??null;
   if(changed){canvas.width=0;canvas.height=bh;canvas.width=bw;}
   // One shared transform. A recoverable size refusal never destroys this owner.
   ctx.setTransform(bw/r.width,0,0,bh/r.height,0,0);projection=nextProjection;viewportBlocked=false;
@@ -139,15 +151,24 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
   const result=savedClient.sample();savedClient.cancelWake();
   if(!savedClient.state.available||result.code||document.hidden){if(lastFrame)lastFrame={...lastFrame,visibility:'empty'};publish();return false;}
   try{
+   const crop=savedCrop(result);
+   if(crop.key!==savedCropKey){
+    const next=projectedViewport(projection.width,projection.height,crop);
+    const moved=next.art.x!==projection.art.x||next.art.y!==projection.art.y;
+    projection=next;savedCropKey=crop.key;
+    // No new raster, geometry or camera calibration. Change both shared layers
+    // before exposing this frame, and only when source geometry requires it.
+    if(moved){api.resize({viewport:projection.renderViewport});background();}
+   }
    const fallback={world:supportedPose(setup.actor,{position:{x:setup.placements[0][0],y:setup.placements[0][1]},heading:0}),startsFromSettled:true,styleFrame:96,anticipationU:1,settleU:1,intention:result.phase};
    const sample=result.sample??fallback,rows=currentRows(),visibility=result.sample?'both':rows.length?'planter':'empty';
    const changed=lastFrame?.visitId!==savedClient.state.plan?.visitId||lastFrame?.savedPhase!==result.phase||lastFrame?.visibility!==visibility;
    api.setCanonicalPlacements(rows,{selectedSlotId:savedClient.state.plan?.inspectionPlan.target.slotId??null});
    if(!api.renderDirect({sample,point:projection.project(sample.world.root),presentation:presentation(),forcePausedRedraw:true,visibility}))return false;
-   lastFrame={visitId:savedClient.state.plan?.visitId??null,elapsedMs:result.serverNow,root:sample.world.root,intention:sample.intention,savedPhase:result.phase,records:rows,visibility};
+   lastFrame={visitId:savedClient.state.plan?.visitId??null,elapsedMs:result.serverNow,root:sample.world.root,intention:sample.intention,savedPhase:result.phase,records:rows,visibility,viewportBounds:projection.requiredBounds};
    frozenResizePending=false;hideSurface(false);frameCount++;savedClient.setDrawingEnabled(!clock.paused);savedClient.afterDraw(result);if(changed){publish();notify(phase());}
    return result.needsAnimationFrame&&!clock.paused;
-  }catch(error){reportFailure(error,'canonical-saved-render');return false;}
+  }catch(error){if(error.message==='CANONICAL_SAVED_VIEWPORT_CROP_UNAVAILABLE'){refuseViewport(projection,error.geometry);return false;}if(lastFrame)lastFrame={...lastFrame,visibility:'empty',viewportFailure:error.geometry??null};publish();reportFailure(error,'canonical-saved-render');return false;}
  }
  function drawItems(){
   let operation='canonical-sample';
