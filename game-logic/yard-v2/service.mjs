@@ -4,6 +4,7 @@
  * second player or wallet. Unknown versions are preserved, never normalized.
  */
 import {releaseActionPolicy,supportedYardBindings} from './availability.mjs';
+import {MIKA_NATIVE_CHECKPOINT_ACTION,publicMikaNativeCheckpoint} from './mika-native-checkpoint.mjs';
 import { getYardServerOptions } from './yard-media.mjs';
 import { presentationCompatibility } from './presentation-compatibility.mjs';
 import { FOUNDATION_FORMAT } from './migration.mjs';
@@ -23,6 +24,8 @@ const object = value => value !== null && typeof value === 'object' && !Array.is
 const has = (o,k) => Object.hasOwn(o,k);
 const failure = (error, details) => ({ status:409, error, ...(details ? {details} : {}), mutable:false });
 const epoch = value => integer(value) && value <= 8640000000000000;
+// Server-only development gate; HTTP payloads never become these options.
+const checkpointOptions=options=>({nativeMikaCheckpointEnabled:globalThis.process?.env?.YARD_NATIVE_MIKA_CHECKPOINT_QA==='true',...options});
 // Only an explicit current v3 container can enter the new source-owned runtime.
 // No option, request field or saved capability can upgrade an old container.
 const canonicalRuntimeOwns = (player,now) => CANONICAL_RUNTIME_ENABLED === true
@@ -98,15 +101,16 @@ export function ensurePersistentPlayerYard(player,{now=Date.now(),simulate=false
   } catch(error) { return {...failure('YARD_STATE_REQUIRES_REVIEW',String(error.message)),yard:player.yard}; }
 }
 
-/** All 14 mutations share one durable compound action-id namespace. Replay is read-only and
+/** All Yard mutations share one durable compound action-id namespace. Replay is read-only and
  * precedes clock advancement; results commit only yard/_yardV2, never a stale account clone.
  */
 export function executePersistentYardAction(player,action,payload={}, {now=Date.now(),actionId,...options}={}) {
+  if (action===MIKA_NATIVE_CHECKPOINT_ACTION&&player?._yardV2?.version===3) return failure('NATIVE_MIKA_STORAGE_VERSION_UNSUPPORTED');
   if (canonicalRuntimeOwns(player,now)) return executeCanonicalYardAction(player,action,payload,{...options,now,actionId});
   const checked=inspectStored(player,now);
   if (checked.status!==200) return checked;
   const effectiveNow=Math.max(now,checked.state.runtime.cursorMs);
-  const configuration={...getYardServerOptions(),...options};
+  const configuration={...getYardServerOptions(),...checkpointOptions(options)};
   const actionPolicy=typeof options.actionPolicy==='function'?options.actionPolicy:
     candidate=>releaseActionPolicy({...candidate,mediaRegistry:configuration.mediaRegistry});
   const result=applyYardAction(checked.state,action,payload,{...configuration,actionPolicy,now:effectiveNow,actionId});
@@ -161,6 +165,7 @@ export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}
   const state=checked.state,display=resolvePersistentDisplay(state,{scene:scene||defaults.scene});
   const readiness=options.placementReadiness||defaults.placementReadiness;
   const registry=options.mediaRegistry||defaults.mediaRegistry,registryHash=digest(registry);
+  const nativeCheckpoint=publicMikaNativeCheckpoint(state,checkpointOptions(options));
   const visits=Object.values(state.runtime.visits).filter(record=>['active','unsupported-legacy'].includes(record.status)).map(record=>({
     visitId:record.visitId,visitorId:record.original?.visitorId,slotId:record.slotId,activityId:record.activityId,
     original:clone(record.original),source:record.source,status:record.status,
@@ -174,7 +179,8 @@ export function publicPersistentYard(player,{now=Date.now(),scene,...options}={}
       boxes:clone(v.mediaAdmission?.plan?.reservationBoxes||[])})),
     display:{placements:display.placements,ok:display.ok,issues:display.issues},
     placementReadiness:typeof readiness==='function'?clone(readiness(display.yard)):[],
-    actionProtocol:'yard-v2:', supportedActions:Object.keys(ACTION_CONTRACTS),
+    actionProtocol:'yard-v2:', supportedActions:Object.keys(ACTION_CONTRACTS).filter(action=>action!==MIKA_NATIVE_CHECKPOINT_ACTION||nativeCheckpoint.capabilities.enabled),
+    nativeMikaCheckpointCapabilities:nativeCheckpoint.capabilities,nativeMikaCheckpoint:nativeCheckpoint.checkpoint,
     canonicalPlacements:clone(state.runtime.canonicalPlacements||[]),itemPlacementCapabilities:canonicalItemCapabilities(options),
     foodLocationCapabilities:canonicalFoodCapabilities(options),
     canonicalFoodState:selectCanonicalFoodState({yard:state.player.yard,yardRuntime:{version:1,status:'ready',canonicalPlacements:state.runtime.canonicalPlacements||[],foodLocationCapabilities:canonicalFoodCapabilities(options)}}),

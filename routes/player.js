@@ -1322,8 +1322,11 @@ export async function applyActionWithReceipt(p, action, payload = {}, meta = {})
   if (String(action).startsWith('yard.') && usesPersistentYard(p)) {
     const result=executeReleasedYardAction(p,action,payload,{now:meta.serverNow ?? Date.now(),actionId:meta.clientActionId});
     if(result.status!==200)return fail(result.status,result.error,{code:result.error,details:result.details});
-    if(!result.replayed)p._onboarded=true;
-    return ok(action,p,{...result.extras,clientActionId:meta.clientActionId,duplicate:result.replayed});
+    const nativeCheckpoint=action==='yard.saveNativeMikaCheckpoint';
+    if(!result.replayed&&!nativeCheckpoint)p._onboarded=true;
+    // A presentation checkpoint cannot persist unrelated snapshot normalizers
+    // or regeneration as a side effect of returning its acknowledgment.
+    return ok(action,nativeCheckpoint?structuredClone(p):p,{...result.extras,clientActionId:meta.clientActionId,duplicate:result.replayed});
   }
   const yardConflict=yardCommandConflict(p,action,meta.clientActionId);
   if(yardConflict)return fail(409,yardConflict,{clientActionId:meta.clientActionId});

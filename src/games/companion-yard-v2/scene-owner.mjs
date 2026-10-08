@@ -69,6 +69,7 @@ export function createSceneOwner(canvas,{createLegacy,loadPrototype,prototypeAll
    if(disposed||suspended||active!==child||commandGeneration!==generation||currentMode!=='legacy')return{ok:false,reason:'NATIVE_ACTION_CANCELLED'};
    return result??{ok:false,reason:'NATIVE_ACTION_UNAVAILABLE'};
   },
+  prepareMikaCheckpoint(scope){if(disposed||suspended||currentMode!=='legacy'||!active||scope?.accountId!==ownerAccount||scope?.accountSession!==ownerSession)return{ok:false,reason:'NATIVE_CHECKPOINT_UNAVAILABLE'};return active.prepareMikaCheckpoint?.(scope)??{ok:false,reason:'NATIVE_CHECKPOINT_UNAVAILABLE'};},
   cancelMikaItemArrival:scope=>!disposed&&!suspended&&currentMode==='legacy'?active?.cancelMikaItemArrival?.(scope)??false:false,
   inspectCanonicalSlot:slotId=>active?.inspectCanonicalSlot?.(slotId),
   selectCanonicalSlot:slotId=>active?.selectCanonicalSlot?.(slotId),

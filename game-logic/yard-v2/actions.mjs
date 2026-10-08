@@ -10,10 +10,12 @@ import {hexToBase64url} from './sha256.mjs';
 import {isCanonicalItemIntent,isCanonicalItemNonce,canonicalItemGate,applyCanonicalItemAction,CANONICAL_LOCATION,canonicalCommandLocation,CANONICAL_ACTION_NONCE_PREFIX,isCanonicalItemAction} from './canonical-locations.mjs';
 
 import {CANONICAL_FOOD_LOCATION,CANONICAL_FOOD_NONCE_PREFIX} from './canonical-food-protocol.mjs';
+import {MIKA_NATIVE_CHECKPOINT_ACTION,applyMikaNativeCheckpoint} from './mika-native-checkpoint.mjs';
 
 const receiptPolicy='Required stable actionId; digest(action,payload); exact old player receipt replay before simulation; new intent must use yard-v2: nonce; mismatch409; state+receipt must commit atomically';
 const contract=(payload,effects,extras,guards=[],deviations=[])=>({payload,effects,extras,guards,deviations,receiptPolicy});
 export const ACTION_CONTRACTS=deepFreeze({
+ [MIKA_NATIVE_CHECKPOINT_ACTION]:contract({version:1,accountId:'current player id',layoutHash:'current authoritative native binding',sourceHash:'pinned settled recipe source',priorRevision:'current checkpoint revision, zero when absent',recipeJson:'bounded finite action recipe'},['save one validated native settled endpoint only'],['nativeMikaCheckpoint'],['server capability','account/layout/source/prior-revision fences','no real visitors','authoritative finite terminal recipe'],['never advance clock or economic state']),
  'yard.buyFood':contract({foodId:'source food id',qty:'Number, floor, clamp1..9; default1'},['spend source food.cost ×qty in yard.currencies only','increment foodInventory'],['foodId','qty'],['known food','sufficient Yard currency','safe integer ownership']),
  'yard.setFood':contract({foodId:'source food id',bowlId:'default bowl-1'},['consume one owned food','set source servings and duration'],['foodId','bowlId'],['known food','existing bowl','food owned'],['persistent admission/media gate replaces request-partition-dependent legacy simulation']),
  'yard.buyGoodie':contract({goodieId:'source goodie id'},['spend exact source goodie.cost','increment goodieInventory by1'],['goodieId'],['known purchasable source goodie','sufficient Yard currency']),
@@ -82,6 +84,17 @@ export function applyYardAction(input,action,payload={},options={}) {
  if(canonicalIntent&&!isCanonicalItemNonce(actionId))return rawFailure(409,'CANONICAL_NONCE_REQUIRED');
  if(!canonicalIntent&&!/^yard-v2:[A-Za-z0-9_.:-]{1,112}$/.test(actionId))return rawFailure(409,'LEGACY_NONCE_REQUIRES_NEW_PROTOCOL_INTENT');
  if(!integer(now)||now<input.runtime.cursorMs||now>8640000000000000)return rawFailure(400,'INVALID_ACTION_TIME');
+ if(action===MIKA_NATIVE_CHECKPOINT_ACTION){
+  if(canonicalIntent)return rawFailure(409,'NATIVE_MIKA_NONCE_SCOPE_MISMATCH');
+  // This branch must stay before all ordinary simulation and action policy.
+  // Failed writes receive the same durable replay semantics without catch-up.
+  const state=workingCopy(input),result=applyMikaNativeCheckpoint(state,payload,{...options,now});
+  const next=result.status===200?state:workingCopy(input);next.runtime.commandReceipts??={};
+  const receipt={format:RECEIPT_FORMAT,actionId,action,requestHash,at:now,status:result.status,
+   ...(result.error?{error:result.error}:{}),...(result.extras?{extras:clone(result.extras)}:{})};
+  put(next.runtime.commandReceipts,actionId,receipt);
+  return {...result,state:next,receipt:clone(receipt)};
+ }
  if(canonicalIntent){
   const scope=canonicalCommandLocation(options);
   // A durable rejection is only legitimate under the actually enabled v2

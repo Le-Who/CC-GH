@@ -77,7 +77,7 @@ export function planMikaItemApproach(bound, calibration, envelope, options = {})
 export function planMikaItemArrival(bound, calibration, envelope, options = {}) {
   return planItemPassage(bound, calibration, envelope, options, true);
 }
-function planItemPassage(bound, calibration, envelope, {acceptSweep = () => true, targetSlotId = null} = {}, withArrival) {
+function planItemPassage(bound, calibration, envelope, {acceptSweep = () => true, targetSlotId = null, selectedCandidate = null} = {}, withArrival) {
   if (!bound?.ok || !bound.binding?.items?.length) return fail('NATIVE_ITEM_TARGET_UNAVAILABLE');
   for (const target of bound.binding.items.filter(item => targetSlotId === null || item.slotId === targetSlotId)) {
     // At most 64 nearby start candidates, translated with the current item.
@@ -86,7 +86,7 @@ function planItemPassage(bound, calibration, envelope, {acceptSweep = () => true
       const angle = index * Math.PI / 8;
       return {x: target.x + radius * Math.cos(angle), y: target.y + radius * Math.sin(angle)};
     })).filter(finitePoint);
-    const plan = (withArrival ? planMikaYardQaArrival : planMikaYardQaCruise)(bound.binding.layout, calibration, envelope, {acceptSweep, candidateStarts,
+    const plan = (withArrival ? planMikaYardQaArrival : planMikaYardQaCruise)(bound.binding.layout, calibration, envelope, {acceptSweep, candidateStarts, selectedCandidate,
       acceptCandidate({start, end, heading, endBody}) {
         const dx = target.x - end.x, dy = target.y - end.y, distance = Math.hypot(dx, dy);
         const gap = bodyGap(endBody, target.box);
