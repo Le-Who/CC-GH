@@ -39,3 +39,7 @@ The exact baseline Pip pose driver is retained under `reference/` for read-only 
 ## Resource budget and next gate
 
 One bounded route table, maximum 100,001 samples; four limb solves per pose; one shared runtime model and no Blender process. The complete checkpoint occupies about 13 MB locally (about 5 MB zipped), including exact source/oracle GLBs, fixtures and pinned vendor code. The independent source/native review is GO. Next: hosted fixed-frame images and actual-speed video, including all-mesh containment at screenshot times; normal-Yard integration remains separate.
+
+## Landscape regression and diagnostic camera revision
+
+Hosted b5fcb84 passed 320x568 and 390x844 DPR2, but the straight cruise at t=0 clipped the tail in 844x390. The exact native reproduction found main-skin vertex 10052 at projected Y=1.1536447523. The diagnostic camera previously centered the root midpoint, ignoring the complete route/body envelope. A once-per-route 49-pose/all-mesh camera-space envelope plus 0.2 source-unit padding now centers and fits the unchanged motion with the same camera direction and aspect policy. This is diagnostic framing, not the game camera. Full-mesh screen bounds and screenshots remain strict. Root, gait, asset, bone conversion and native parity are unchanged. The hosted rerun first targets landscape, then repeats the complete three-viewport matrix.

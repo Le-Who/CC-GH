@@ -32,6 +32,22 @@ test('one native scene root and parent-local bones reproduce original and mirror
   }
 });
 
+test('fixed diagnostic camera contains the full straight-route tail at the failing landscape frame',async()=>{
+  const {fitMikaRouteCamera}=await import('../browser/route-camera-fit.mjs');
+  const {createMikaPreviewRoute}=await import('../src/mika-preview-routes.mjs');
+  const driver=createMikaNativePoseDriver(THREE,await fresh(),calibration),route=createMikaPreviewRoute('straight',calibration);
+  const sampleAt=t=>sampleMikaLocomotion(route,calibration,t),middle=sampleAt(2).root.position,target=new THREE.Vector3(middle[0],.75,-middle[1]);
+  const camera=new THREE.OrthographicCamera(-8,8,2.3625,-2.3625,.05,100);camera.position.copy(target).add(new THREE.Vector3(...expected.variants.p2.camera.direction));camera.lookAt(target);camera.updateMatrixWorld(true);
+  const fit=fitMikaRouteCamera(THREE,{camera,driver,sampleAt});
+  const aspect=844/252,height=Math.max(4.725,fit.minimumHeight,Math.max(6.3,fit.minimumWidth)/aspect),width=height*aspect;
+  Object.assign(camera,{left:-width/2,right:width/2,top:height/2,bottom:-height/2});camera.updateProjectionMatrix();
+  const v=new THREE.Vector3();let maximum=-Infinity;
+  for(const time of [0,2.25,4]){driver.apply(sampleAt(time));for(const mesh of driver.skinned)for(let i=0;i<mesh.geometry.attributes.position.count;i++){
+    mesh.getVertexPosition(i,v).applyMatrix4(mesh.matrixWorld).project(camera);maximum=Math.max(maximum,Math.abs(v.x),Math.abs(v.y));
+  }}
+  assert.ok(maximum<1,`full-character projected extent ${maximum}`);
+});
+
 test('all native skin vertices match baked original/mirror and repeated/fresh sampling does not accumulate scale',async()=>{
   const gltf=await fresh(),driver=createMikaNativePoseDriver(THREE,gltf,calibration),scene=new THREE.Scene();scene.add(driver.root);
   let maximum=0,compared=0;

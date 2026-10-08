@@ -40,11 +40,11 @@ jobs:
           grep -F 'Total: 3 tests in 1 file' test-results-mika-adaptive/collection.txt
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Compact-phone harness qualification
-        run: pnpm exec playwright test --config playwright.mika-adaptive.config.mjs --grep '320x568 DPR1'
-      - name: Preserve compact diagnostic
+      - name: Targeted landscape crop regression
+        run: pnpm exec playwright test --config playwright.mika-adaptive.config.mjs --grep '844x390 DPR1'
+      - name: Preserve targeted diagnostic
         if: always()
-        run: test ! -d test-results-mika-adaptive || cp -a test-results-mika-adaptive test-results-mika-adaptive-compact
+        run: test ! -d test-results-mika-adaptive || cp -a test-results-mika-adaptive test-results-mika-adaptive-targeted
       - name: Complete three viewport acceptance matrix
         run: pnpm exec playwright test --config playwright.mika-adaptive.config.mjs
       - name: Preserve exact source identity
@@ -58,6 +58,6 @@ jobs:
           name: mika-adaptive-${{ github.sha }}
           path: |
             test-results-mika-adaptive/
-            test-results-mika-adaptive-compact/
+            test-results-mika-adaptive-targeted/
           retention-days: 7
           if-no-files-found: error

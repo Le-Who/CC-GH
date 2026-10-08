@@ -28,8 +28,8 @@
     },
     {
       "path": "tests/native-pose.test.mjs",
-      "bytes": 5432,
-      "sha256": "31d61c3b31acb3c88da60a8f9f88b4eaabffee31d165665d2875ec334dd3ddf3"
+      "bytes": 6923,
+      "sha256": "b8820cacfa8b6c4cefeb2929d2bbd2039032bb7dfe29a4e5574e37559e9473c3"
     },
     {
       "path": "tests/locomotion.test.mjs",
@@ -48,8 +48,8 @@
     },
     {
       "path": "browser/preview.mjs",
-      "bytes": 9118,
-      "sha256": "a0bf3b0c2daa47282c2a8fe2818569f3db1dcc199fd89f350bf4e7a8d8f41390"
+      "bytes": 9357,
+      "sha256": "1a643724f3b00023b2ec4409ca99dadc2849549100ddfc3b5f4f2f898ce0e1ed"
     },
     {
       "path": "browser/index.html",
@@ -90,6 +90,11 @@
       "path": "browser/src/mika-preview-routes.mjs",
       "bytes": 1244,
       "sha256": "956c4cd3b88e2226de5ad2d1ea6ac52ac31b47a98f65c772bc259830cc749640"
+    },
+    {
+      "path": "browser/route-camera-fit.mjs",
+      "bytes": 1703,
+      "sha256": "cae695b268fed7ed2bd3b1b139d426fe28907ccc53f8094a3a881def193ff4e7"
     }
   ],
   "vendorPins": [
