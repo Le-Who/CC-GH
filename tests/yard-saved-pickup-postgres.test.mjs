@@ -28,7 +28,11 @@ test('actual PostgreSQL pickup loses one CAS, replays one nonce and preserves so
  const plan=initial.canonicalVisits[0].plan;now=plan.releaseAt;await closeCanonicalRuntime();
  const load=async()=>{const [row]=await sql`SELECT data FROM players WHERE id=${owner}`;return row.data;};
  const a=worker(),b=worker();children.push(a,b);await Promise.all([a.ready(),b.ready()]);
- await Promise.all([a.reply(a.send('warm',owner,now)),b.reply(b.send('warm',owner,now))]);
+ // Preparation is not the race under test. Concurrent 20ms setup polls create
+ // unrelated CAS writes before the controlled pickup barrier. Warm each proof
+ // first, then deliberately collide both pickup transactions below.
+ await a.reply(a.send('warm',owner,now));
+ await b.reply(b.send('warm',owner,now));
  const before=await load(),ia=a.send('pickup',owner,now),ib=b.send('pickup',owner,now);
  const [ba,bb]=await Promise.all([until(()=>a.messages.find(m=>m.type==='barrier'&&m.id===ia)),until(()=>b.messages.find(m=>m.type==='barrier'&&m.id===ib))]);
  assert.equal(ba.version,bb.version,'separate processes reached the same actual PostgreSQL version');
