@@ -1,4 +1,4 @@
-name: Mika normal Yard finite cruise QA
+name: Mika normal Yard navigation follow-up
 on:
   push:
     branches: ['qa/mika-normal-yard-20261008']
@@ -8,9 +8,9 @@ concurrency:
   group: mika-normal-yard-20261008
   cancel-in-progress: false
 jobs:
-  qualify:
+  qualify-navigation:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 10
     env:
       CI: 'true'
       NODE_ENV: test
@@ -21,7 +21,7 @@ jobs:
       VITE_YARD_SAVED_VISITS: 'false'
       VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
       VITE_YARD_MIKA_QA: 'false'
-      MIKA_QA_EXPECT_ENABLED: 'false'
+      MIKA_QA_EXPECT_ENABLED: 'true'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -29,36 +29,25 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
-      - name: Verify immutable source and full inherited closure
+      - name: Verify unchanged qualified product and closed source
         run: |
           mkdir -p test-results/mika-normal
-          git fetch --no-tags --depth=1 origin 1a66a9df3d177d1b8308bab223ad6f647a76f98a
+          git fetch --no-tags --depth=1 origin 1a66a9df3d177d1b8308bab223ad6f647a76f98a 8f9c22e67efe2423dd1a53d07a8a4bdaa4c04622
           node scripts/mika-normal-qa-preflight.mjs source > test-results/mika-normal/source-boundary.json
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import {execFileSync} from 'node:child_process';
+          const prior='8f9c22e67efe2423dd1a53d07a8a4bdaa4c04622';
+          const changed=execFileSync('git',['diff','--name-only',prior,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          assert.deepEqual(changed,['.github/workflows/mika-normal-yard-qa.yml','tests/e2e/yard-mika-normal-qa.spec.js']);
+          fs.writeFileSync('test-results/mika-normal/follow-up-scope.json',JSON.stringify({prior,priorRun:37745097843,priorArtifact:11535811230,priorArtifactSha256:'7cef6a6005ca102564d1f9a13eac11afb94dbd08918d3d0c69b0ec7ab14b201d',priorPassed:{source:33,off:1,compact:1,matrix:6,editing:1},priorShippingBudget:{passed:false,sourceReport:'run37745097843/build-budget.json',failures:[{id:'games.max-chunk.raw',actual:77363,budget:75000},{id:'public-assets.total.raw',actual:281260834,budget:277287267},{id:'public-assets.other-non-family.raw',actual:77453635,budget:73470314}]},priorFailure:'Generic Home helper did not recognize current Courtyard back control; navigation did not begin',changed,productUnchanged:true,currentScope:'one actual UI navigation/disposal case',activation:false},null,2));
+          JS
       - name: Install existing locked dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Source and neighboring owner regressions
-        run: |
-          set -o pipefail
-          node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-mika-qa-*.test.mjs tests/yard-canonical-saved-scene.test.mjs tests/yard-pip-scene-lifecycle.test.mjs | tee test-results/mika-normal/source.log
-      - name: Collect exact browser cases
-        run: |
-          MIKA_QA_PHASE=collection-off pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'off-build never requests' --list > test-results/mika-normal/collection-off.log
-          MIKA_QA_EXPECT_ENABLED=true MIKA_QA_PHASE=collection-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'four-second seeded cruise, real pixels' --list > test-results/mika-normal/collection-compact.log
-          MIKA_QA_EXPECT_ENABLED=true MIKA_QA_PHASE=collection-matrix pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 portrait390 landscape844 --grep 'four-second seeded cruise|clean' --list > test-results/mika-normal/collection-matrix.log
-          MIKA_QA_EXPECT_ENABLED=true MIKA_QA_PHASE=collection-interruptions pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'editor entry|actual game navigation' --list > test-results/mika-normal/collection-interruptions.log
-      - name: Build default-off app
-        env:
-          NODE_ENV: production
-        run: |
-          set -o pipefail
-          pnpm run build | tee test-results/mika-normal/off-build.log
-          node scripts/mika-normal-qa-preflight.mjs off > test-results/mika-normal/off-build-graph.json
-      - name: Install official Chromium
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Default-off normal route admission
-        run: MIKA_QA_PHASE=off pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'off-build never requests'
-      - name: Build explicit Mika QA app
-        id: enabled
+      - name: Preflight exact navigation command
+        run: MIKA_QA_PHASE=collection-navigation pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'actual game navigation' --list > test-results/mika-normal/collection-navigation.log
+      - name: Build unchanged explicit QA app
         env:
           NODE_ENV: production
           VITE_YARD_MIKA_QA: 'true'
@@ -66,29 +55,15 @@ jobs:
           set -o pipefail
           pnpm run build | tee test-results/mika-normal/on-build.log
           node scripts/mika-normal-qa-preflight.mjs on > test-results/mika-normal/on-build-graph.json
-      - name: Record QA build shipping-budget status
-        continue-on-error: true
-        run: node scripts/perf-build-guard.mjs --report test-results/mika-normal/build-budget.json
-      - name: Compact actual-pixel diagnostic
-        id: compact
-        env:
-          MIKA_QA_EXPECT_ENABLED: 'true'
-        run: MIKA_QA_PHASE=compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'four-second seeded cruise, real pixels'
-      - name: Three-viewport pixels and clean motion
-        if: always() && steps.compact.outcome == 'success'
-        env:
-          MIKA_QA_EXPECT_ENABLED: 'true'
-        run: MIKA_QA_PHASE=matrix pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait320 portrait390 landscape844 --grep 'four-second seeded cruise|clean'
-      - name: Real editing and navigation interruption
-        if: always() && steps.compact.outcome == 'success'
-        env:
-          MIKA_QA_EXPECT_ENABLED: 'true'
-        run: MIKA_QA_PHASE=interruptions pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'editor entry|actual game navigation'
-      - name: Preserve all original evidence
+      - name: Install official Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Actual Courtyard Home to Blox navigation
+        run: MIKA_QA_PHASE=navigation pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project portrait390 --grep 'actual game navigation'
+      - name: Preserve original follow-up evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mika-normal-yard-${{ github.sha }}
+          name: mika-normal-yard-navigation-${{ github.sha }}
           path: test-results/mika-normal/
           retention-days: 7
           if-no-files-found: error

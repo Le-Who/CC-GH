@@ -135,6 +135,7 @@ test('Mika normal Yard: actual game navigation disposes the QA owner',async({pag
  test.skip(off,'Enabled QA build case');test.setTimeout(60000);const c=await setup(page);let failure;
  try{
   await page.goto(c.fixture.origin+'/?tab=room');await readyRunning(page);await page.evaluate(()=>{window.__mikaRetiredReader=window.__yardMikaQa.snapshot;});
+  await page.locator('.cy-home').click();await expect(page.getByTestId('home-catalogue')).toBeVisible();
   await selectHomeGame(page,'blox');await expect.poll(()=>page.evaluate(()=>window.__yardMikaQa===undefined)).toBe(true);
   await expect.poll(()=>page.evaluate(()=>window.__mikaRetiredReader().lastRetired?.qaMika?.phase)).toBe('disposed');const old=await page.evaluate(()=>window.__mikaRetiredReader().lastRetired);retired(old.qaMika);assert.equal(old.disposed,true);unchanged(c);
   await info.attach('normal-yard-retired-owner.json',{body:Buffer.from(JSON.stringify(old,null,2)),contentType:'application/json'});
