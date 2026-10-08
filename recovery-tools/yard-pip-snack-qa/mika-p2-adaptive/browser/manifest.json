@@ -1,0 +1,142 @@
+{
+  "format": "mika-adaptive-native-fixture/v1",
+  "productBaseCommit": "09861fcc11407ee3c7b2e937ecf0e76c7447eefb",
+  "rendererRecipe": "PR60 pinned Three186, same lights/materials/camera controls",
+  "rootOwner": "navigation group only",
+  "runtimeAssetCount": 1,
+  "productionActivated": false,
+  "files": [
+    {
+      "path": "src/mika-p2-calibration.json",
+      "bytes": 22211,
+      "sha256": "be0046e0f326d0c8ae991486770304b40b514d922e384b8feb7874a40c007eb5"
+    },
+    {
+      "path": "src/mika-native-pose.mjs",
+      "bytes": 3557,
+      "sha256": "90420bd4dc92addab685e5b18fc5c08eefedf988f3c9c462645c5b3c34f0f2ae"
+    },
+    {
+      "path": "src/mika-locomotion.mjs",
+      "bytes": 14440,
+      "sha256": "55b22f0b13bc18cd8f775896869be25e397a2f77e36b8262a3d87ee04bf96867"
+    },
+    {
+      "path": "src/mika-preview-routes.mjs",
+      "bytes": 1244,
+      "sha256": "956c4cd3b88e2226de5ad2d1ea6ac52ac31b47a98f65c772bc259830cc749640"
+    },
+    {
+      "path": "tests/native-pose.test.mjs",
+      "bytes": 5432,
+      "sha256": "31d61c3b31acb3c88da60a8f9f88b4eaabffee31d165665d2875ec334dd3ddf3"
+    },
+    {
+      "path": "tests/locomotion.test.mjs",
+      "bytes": 5860,
+      "sha256": "b96351eb8fe25ac42350718e5260775883ab337c3b4630ff93b7fa826bf50cef"
+    },
+    {
+      "path": "tests/fixtures/motion.json",
+      "bytes": 1651749,
+      "sha256": "0d4da615efcb6922637b10a97a56a17480d550b6eb9832246997f6554401c63b"
+    },
+    {
+      "path": "tests/fixtures/mirrored-motion.json",
+      "bytes": 1649640,
+      "sha256": "71234a5e5e0b5796ff98231e8bd4f084c0fb03a13de19df9834ae78465d6c136"
+    },
+    {
+      "path": "browser/preview.mjs",
+      "bytes": 9118,
+      "sha256": "a0bf3b0c2daa47282c2a8fe2818569f3db1dcc199fd89f350bf4e7a8d8f41390"
+    },
+    {
+      "path": "browser/index.html",
+      "bytes": 1485,
+      "sha256": "6cb136cceb07568c25ae8df55722c4d1d9bb81565349f82b6bb340bf35a98f42"
+    },
+    {
+      "path": "browser/expected.json",
+      "bytes": 160175,
+      "sha256": "fe39e3c552bd8445cbf1373e0ce0e0da029f767f80611df1897d7cfae511ac17"
+    },
+    {
+      "path": "browser/models/p2.glb",
+      "bytes": 3671320,
+      "sha256": "2249774f8ced124451d3c46a8a69bc06a9889c7d9cc31c836a6dd868fd96f084"
+    },
+    {
+      "path": "browser/models/mirror.glb",
+      "bytes": 3671332,
+      "sha256": "e40918fbb85172be2035e3d08086fe7c6455af5cbbbf0f1c2205a5723673040e"
+    },
+    {
+      "path": "browser/src/mika-p2-calibration.json",
+      "bytes": 22211,
+      "sha256": "be0046e0f326d0c8ae991486770304b40b514d922e384b8feb7874a40c007eb5"
+    },
+    {
+      "path": "browser/src/mika-native-pose.mjs",
+      "bytes": 3557,
+      "sha256": "90420bd4dc92addab685e5b18fc5c08eefedf988f3c9c462645c5b3c34f0f2ae"
+    },
+    {
+      "path": "browser/src/mika-locomotion.mjs",
+      "bytes": 14440,
+      "sha256": "55b22f0b13bc18cd8f775896869be25e397a2f77e36b8262a3d87ee04bf96867"
+    },
+    {
+      "path": "browser/src/mika-preview-routes.mjs",
+      "bytes": 1244,
+      "sha256": "956c4cd3b88e2226de5ad2d1ea6ac52ac31b47a98f65c772bc259830cc749640"
+    }
+  ],
+  "vendorPins": [
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/LICENSE.txt",
+      "bytes": 1081,
+      "sha256": "8b378ebe60e2fe500158cb0ac71cb5e8b7d92953c2abcc63a0eb90499653b5bc"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.core.js",
+      "bytes": 1458113,
+      "sha256": "9edde002b066a9a05676a6127f67735b62baf399bdea529f2f7e31657da769e6"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.module.js",
+      "bytes": 662772,
+      "sha256": "9052042d676cb0fdc1ddfefe193053f34b7ac0513a616fdac4535d49987812ea"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/loaders/GLTFLoader.js",
+      "bytes": 117570,
+      "sha256": "131c0f78c01d19368ae495caa65b3adaa10487810a36a05bb5901b769a35ac16"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/BufferGeometryUtils.js",
+      "bytes": 37712,
+      "sha256": "9fb63427ce6641fa14fd0baff9cc4d1b5f9c3d85fd084bf2e90e803c44ec1797"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/vendor/three/addons/utils/SkeletonUtils.js",
+      "bytes": 11535,
+      "sha256": "b1632a703206c3d830de9fcbe515696770d04b71a15ee6b50afa6d2c3298c86f"
+    }
+  ],
+  "runnerPins": [
+    {
+      "path": "playwright.pip.config.js",
+      "sha256": "9f90ccda1b2e5dcd46d5274acad359b83f924c54353356a1255be260dae32a13"
+    },
+    {
+      "path": "scripts/yard-pip-ci-server.mjs",
+      "sha256": "c8cddb5abc964e3bf1f58a1df182457141738577c1d09794866b413d84c97869"
+    },
+    {
+      "path": "scripts/yard-pip-fixture-path.mjs",
+      "sha256": "d1f0b78afc797cddc798ad993afcbc84f689ae8ba944f4a9555df5e4d6f86da3"
+    }
+  ],
+  "scope": "source-native parity plus bounded cruise variants only; no obstacle/replan/action/game acceptance"
+}

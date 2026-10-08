@@ -1,0 +1,30 @@
+{
+  "peakYawRate": 1.0334182967717993,
+  "joints": 22,
+  "parents": {
+    "root": null,
+    "body": "root",
+    "pelvis": "root",
+    "hindFar_upper": "pelvis",
+    "hindFar_lower": "hindFar_upper",
+    "hindFar_paw": "hindFar_lower",
+    "hindNear_upper": "pelvis",
+    "hindNear_lower": "hindNear_upper",
+    "hindNear_paw": "hindNear_lower",
+    "tail_0": "pelvis",
+    "tail_1": "tail_0",
+    "tail_2": "tail_1",
+    "lumbar": "pelvis",
+    "chest": "lumbar",
+    "foreNear_upper": "chest",
+    "foreNear_lower": "foreNear_upper",
+    "foreNear_paw": "foreNear_lower",
+    "foreFar_upper": "chest",
+    "foreFar_lower": "foreFar_upper",
+    "foreFar_paw": "foreFar_lower",
+    "neck": "chest",
+    "head": "neck"
+  },
+  "glbBytes": 3671320,
+  "sourceInputsUnchanged": true
+}
