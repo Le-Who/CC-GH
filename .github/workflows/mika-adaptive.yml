@@ -1,0 +1,63 @@
+name: Mika P2 adaptive native pose qualification
+on:
+  push:
+    branches: ['qa/mika-p2-adaptive-20261008']
+permissions:
+  contents: read
+concurrency:
+  group: mika-p2-adaptive-20261008
+  cancel-in-progress: false
+jobs:
+  qualify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NODE_ENV: test
+      CI: 'true'
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify pinned fixture, runner and Three closure
+        run: |
+          mkdir -p test-results-mika-adaptive
+          git rev-parse HEAD > test-results-mika-adaptive/source-commit.txt
+          node scripts/prepare-mika-adaptive-qa.mjs > test-results-mika-adaptive/preflight.json
+      - name: Native source and evaluated skin parity
+        run: node --test recovery-tools/yard-pip-snack-qa/mika-p2-adaptive/tests/*.test.mjs
+      - name: Install existing locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Verify exactly three viewport cases
+        run: |
+          set -o pipefail
+          pnpm exec playwright test --config playwright.mika-adaptive.config.mjs --list | tee test-results-mika-adaptive/collection.txt
+          grep -F 'Total: 3 tests in 1 file' test-results-mika-adaptive/collection.txt
+      - name: Install official Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Targeted landscape crop regression
+        run: pnpm exec playwright test --config playwright.mika-adaptive.config.mjs --grep '844x390 DPR1'
+      - name: Preserve targeted diagnostic
+        if: always()
+        run: test ! -d test-results-mika-adaptive || cp -a test-results-mika-adaptive test-results-mika-adaptive-targeted
+      - name: Complete three viewport acceptance matrix
+        run: pnpm exec playwright test --config playwright.mika-adaptive.config.mjs
+      - name: Preserve exact source identity
+        if: always()
+        run: |
+          mkdir -p test-results-mika-adaptive
+          git rev-parse HEAD > test-results-mika-adaptive/source-commit.txt
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: mika-adaptive-${{ github.sha }}
+          path: |
+            test-results-mika-adaptive/
+            test-results-mika-adaptive-targeted/
+          retention-days: 7
+          if-no-files-found: error
