@@ -5,6 +5,11 @@ import {readFile} from 'node:fs/promises';
 import sharp from 'sharp';
 import {createCourtyardScene} from '../src/games/companion-yard-v2/scene.mjs';
 import {LEGACY_M2_BACKGROUND} from '../src/games/companion-yard-v2/legacy-m2-background.mjs';
+import {courtyardPresentation} from '../src/games/companion-yard-v2/presentation.mjs';
+import {selectPetPose} from '../src/games/companion-yard-v2/pose-selection.mjs';
+import {atlasPageFor} from '../src/games/companion-yard-v2/atlas.mjs';
+import {actorEntryForPet} from '../src/games/companion-yard-v2/actor-media.mjs';
+import {MIKA_CLIPS} from '../game-logic/yard-v2/media/mika-clips.mjs';
 import {createMochiMedia} from '../game-logic/yard-v2/mochi-media.mjs';
 import {createPebbleMedia} from '../game-logic/yard-v2/pebble-media.mjs';
 import {createPipMedia} from '../game-logic/yard-v2/pip-media.mjs';
@@ -49,12 +54,12 @@ async function inspectStill(src){
 const backgroundBytes=await readFile(new URL('../public'+LEGACY_M2_BACKGROUND.url,import.meta.url));
 function environment({background=backgroundBytes}={}){
  const globals=['fetch','createImageBitmap','ResizeObserver','location','document','devicePixelRatio','requestAnimationFrame','cancelAnimationFrame'],old=new Map(globals.map(k=>[k,{own:Object.hasOwn(globalThis,k),value:globalThis[k]}]));
- let mono=0,raf=null,resize=null,clears=0,draws=[],rect={width:360,height:800,left:0,top:0};const waiting=[],images=[],errors=[];
+ let mono=0,raf=null,resize=null,clears=0,draws=[],rect={width:360,height:800,left:0,top:0};const waiting=[],images=[],errors=[],requests=[];
  const ctx={setTransform(){},clearRect(){clears++;draws=[];},save(){},restore(){},translate(){},scale(){},createRadialGradient(){return{addColorStop(){}};},fillRect(){},drawImage(im){draws.push(im);}};
  globalThis.location={origin:'https://yard.fixture'};globalThis.document={hidden:false};globalThis.devicePixelRatio=2;
  globalThis.ResizeObserver=class{constructor(fn){this.fn=fn;resize=fn;}observe(){this.fn();}disconnect(){}};
  globalThis.requestAnimationFrame=fn=>(raf=fn,1);globalThis.cancelAnimationFrame=()=>raf=null;
- globalThis.fetch=async url=>{const u=new URL(url,location.origin);assert.equal(u.origin,location.origin);if(u.pathname.endsWith('runtime-media.json')){const id=u.pathname.split('/')[2].replace('yard-','');return{ok:true,json:async()=>copy(manifests[id])};}if(u.pathname.endsWith('still-layer-contract.json'))return{ok:true,json:async()=>copy(stills)};assert.ok(dimensions.has(u.href)||staticDescriptors.has(u.href),u.href);if(staticDescriptors.has(u.href))await inspectStill(u.href);const blob=new Blob([u.pathname===LEGACY_M2_BACKGROUND.url?background:'synthetic'],{type:'image/webp'});blob.src=u.href;return{ok:true,blob:async()=>blob};};
+ globalThis.fetch=async url=>{const u=new URL(url,location.origin);requests.push(u.href);assert.equal(u.origin,location.origin);if(u.pathname.endsWith('runtime-media.json')){const id=u.pathname.split('/')[2].replace('yard-','');return{ok:true,json:async()=>copy(manifests[id])};}if(u.pathname.endsWith('still-layer-contract.json'))return{ok:true,json:async()=>copy(stills)};assert.ok(dimensions.has(u.href)||staticDescriptors.has(u.href),u.href);if(staticDescriptors.has(u.href))await inspectStill(u.href);const blob=new Blob([u.pathname===LEGACY_M2_BACKGROUND.url?background:'synthetic'],{type:'image/webp'});blob.src=u.href;return{ok:true,blob:async()=>blob};};
  const bitmap=(src,p)=>{const im={src,width:p.width,height:p.height,closed:0,close(){this.closed++;}};images.push(im);return im;};
  // Bootstrap stills resolve immediately at their verified file size; only atlas
  // decodes are delayed so owner.ready is independent of the frame-switch gate.
@@ -63,6 +68,17 @@ function environment({background=backgroundBytes}={}){
  const owner=createCourtyardScene(canvas,{actorProfiles:profiles,now:()=>mono,onError:e=>errors.push(e)});
  return{owner,canvas,waiting,images,errors,
   get clears(){return clears;},get draws(){return draws;},get atlasDraws(){return draws.filter(im=>dimensions.has(im.src));},
+  captureCold(snapshot){
+   const scene=owner.diagnostics(),error=e=>({name:e.name,message:e.message,code:e.code,stack:e.stack}),required=[];let selectionError=null;
+   try{const next=courtyardPresentation(snapshot,scene.presentationTime,MIKA_CLIPS,{actorEntries:entries,actorProfiles:profiles});
+    for(const pet of next.pets){const entry=actorEntryForPet(pet,entries),pose=selectPetPose(entry.manifest,pet,{actorProfile:entry.profile}),{page}=atlasPageFor(pose.clip,pose.index);
+     required.push({visitorId:pet.visitorId,phase:pet.phase,clipId:pose.clip.id,index:pose.index,src:assetURL(new URL(page.src,pose.clip.assetBaseURL).href,pose.clip.assetRevision),width:page.width,height:page.height,bytes:page.width*page.height*4});}
+   }catch(e){selectionError=error(e);}
+   const bitmaps=images.map(im=>({src:im.src,width:im.width,height:im.height,bytes:im.width*im.height*4,closed:im.closed,kind:staticDescriptors.has(im.src)?'static':'atlas'}));
+   const staticBytes=bitmaps.filter(im=>im.closed===0&&im.kind==='static').reduce((n,im)=>n+im.bytes,0),canvasBytes=canvas.width*canvas.height*4,uiBytes=Math.max(scene.uiLifetimeFloor,scene.uiReserve.bytes),requiredBytes=[...new Map(required.map(r=>[r.src,r])).values()].reduce((n,r)=>n+r.bytes,0);
+   const outsideBytes=staticBytes+canvasBytes+uiBytes+scene.qaRgbaBytes;
+   console.log('CURRENT_FOUR_COLD_CAPTURE',JSON.stringify({scene,errors:errors.map(error),rafScheduled:!!raf,monotonicMs:mono,clears,requests:requests.map(src=>({src,kind:dimensions.has(src)?'atlas':staticDescriptors.has(src)?'static':'json'})),queuedDecodes:waiting.map(({src})=>({src,width:dimensions.get(src)?.width,height:dimensions.get(src)?.height})),bitmaps,required,selectionError,coldLedger:{staticBytes,canvasBytes,uiBytes,qaBytes:scene.qaRgbaBytes,outsideBytes,requiredBytes,totalRequiredBytes:outsideBytes+requiredBytes,limitBytes:scene.atlasPolicy.maxDecodedBytes}}));
+  },
   resize(width,height){rect={...rect,width,height};resize();},
   tick(ms){mono=ms;assert.ok(raf,'scene must schedule the next synthetic RAF');const fn=raf;raf=null;fn(ms);},
   async complete(){await step();const q=waiting.shift();assert.ok(q);const p=dimensions.get(q.src);assert.ok(p,q.src);const im=bitmap(q.src,p);q.resolve(im);await step();return im;},
@@ -72,7 +88,7 @@ function environment({background=backgroundBytes}={}){
 }
 test('shared scene holds one coherent four-actor frame through slow simultaneous switches, resize, disposal and reload',async()=>{
  const snap=snapshot(),saved=JSON.stringify(snap),h=environment();try{
-  h.owner.update(snap);await h.owner.ready;assert.deepEqual(h.errors,[]);h.tick(0);await step();assert.equal(h.clears,0,'a partial cold four-actor frame must never be drawn');assert.equal(h.waiting.length,1);
+  h.owner.update(snap);await h.owner.ready;assert.deepEqual(h.errors,[]);h.tick(0);await step();h.captureCold(snap);assert.equal(h.clears,0,'a partial cold four-actor frame must never be drawn');assert.equal(h.waiting.length,1);
   while(h.waiting.length){await h.complete();if(h.waiting.length)assert.equal(h.clears,0);}
   h.tick(0);assert.equal(h.owner.diagnostics().view.pets.length,4);assert.equal(h.atlasDraws.length,4);const heldClear=h.clears,heldImages=h.draws.slice(),heldView=h.owner.diagnostics().view;
   // Force a simultaneous phase/route change by jumping to a later snapshot.
