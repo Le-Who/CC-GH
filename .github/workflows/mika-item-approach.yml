@@ -56,7 +56,8 @@ jobs:
         id: browser
         run: pnpm exec playwright install --with-deps chromium
       - name: Normal item selection, button, busy state, arrival and refusal
-        run: MIKA_QA_PHASE=selected-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika selected item UI: en actual footer'
+        run: |
+          MIKA_QA_PHASE=selected-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika selected item UI: en actual footer'
       - name: Preserve original bounded current-pose evidence
         if: always()
         uses: actions/upload-artifact@v4
