@@ -17,7 +17,7 @@ jobs:
       DATABASE_URL: ''
       REDIS_URL: ''
       NODE_OPTIONS: ''
-      VITE_YARD_PIP_PREVIEW: 'false'
+      VITE_YARD_PIP_PREVIEW: 'true'
       VITE_YARD_SAVED_VISITS: 'false'
       VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
     steps:
@@ -40,7 +40,7 @@ jobs:
           node --test tests/garden-heartbeat-priority.test.mjs tests/garden-command-arbiter.test.mjs tests/garden-command-journal.test.mjs tests/yard-live-placement-feedback.test.mjs tests/sw-fixture-json-loader.test.mjs | tee test-results/live-interaction/source.log
       - name: Collect all exact normal-release browser cases
         run: pnpm exec playwright test --config playwright.live-interaction.config.mjs yard-live-placement-feedback.spec.js garden-live-heartbeat.spec.js --list > test-results/live-interaction/collection.log
-      - name: Normal release build with preview and saved modes off
+      - name: Exact live-parity build preserving existing preview entry
         id: build
         env:
           NODE_ENV: production

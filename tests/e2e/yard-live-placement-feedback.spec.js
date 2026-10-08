@@ -2,7 +2,8 @@
  * HTTP uses the existing ephemeral fixture's real applyActionWithReceipt; only
  * transport ordering and one explicit rejection are injected. No deployed DB,
  * full-actor-stay or same-document login-switch claim is made. The exact
- * ec815 interaction slice is built with all VITE saved/preview flags false. */
+ * ec815 live-parity slice preserves VITE_YARD_PIP_PREVIEW=true; saved and
+ * painted trial flags remain false. The default route stays in legacy mode. */
 import {test,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import {startSwFixture} from './helpers/swFixture.mjs';
@@ -39,7 +40,8 @@ async function ready(page){
   await expect.poll(async()=>{const d=await draws(page);return d?.frame>1&&d.rows.length>0;},{timeout:30000}).toBe(true);
   await expect(page.locator('.cy-app')).toHaveAttribute('data-pip-preview','false');
   await expect(page.locator('[data-pip-control]')).toHaveCount(0);
-  assert.equal(await page.evaluate(()=>Object.hasOwn(window,'__yardPipIntegration')),false,'normal release must not expose preview diagnostics');
+  assert.equal(await page.evaluate(()=>Object.hasOwn(window,'__yardPipIntegration')),true,'preserve existing live optional-scene owner exposure without reading its diagnostics');
+  await expect(page.locator('[data-yard-action="open-canonical-yard"]')).toBeVisible();
   await expect(page.locator('.cy-app')).toHaveAttribute('data-canonical-items','false');
 }
 async function catalogRows(page,count){
@@ -150,7 +152,7 @@ for(const profile of profiles)test.describe(profile.name,()=>{
     assert.equal(fixture.player('account-a').yard.placedGoodies.filter(row=>row.slotId===lost.command.payload.slotId).length,1);
     assert.deepEqual(fixture.player('account-a').yard.currencies,initial.currencies);assert.deepEqual(errors,[]);
     await page.screenshot({path:info.outputPath('placement-account-return-settled.png')});
-    await info.attach('placement-proof.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({profile,sourceBaseline:'ec815065f6adb7c36d81f97b41d47ad16e614b07',scope:'Normal-release flags false. Actual production Courtyard normal room route in legacy renderer, real hub/API/IDB/Socket.IO and source game action fixture. Delayed HTTP, realtime before HTTP, one sprite draw, explicit rejection, lost response, account-isolated reload and original-nonce replay. Not deployed PostgreSQL, same-document auth switching or full visual acceptance from assertions alone.',commands,foreignRealtimeFrameObserved:syncFrames.some(event=>event?.payload?.qaDelivery==='foreign-a-after-b'&&event.socketIndex>=bSocketStart),ui:await uiState(page),draws:await draws(page)},null,2))});
+    await info.attach('placement-proof.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({profile,sourceBaseline:'ec815065f6adb7c36d81f97b41d47ad16e614b07',scope:'Exact live preview build flag true; saved/painted flags false; normal default scene unchanged. Actual production Courtyard normal room route in legacy renderer, real hub/API/IDB/Socket.IO and source game action fixture. Delayed HTTP, realtime before HTTP, one sprite draw, explicit rejection, lost response, account-isolated reload and original-nonce replay. Not deployed PostgreSQL, same-document auth switching or full visual acceptance from assertions alone.',commands,foreignRealtimeFrameObserved:syncFrames.some(event=>event?.payload?.qaDelivery==='foreign-a-after-b'&&event.socketIndex>=bSocketStart),ui:await uiState(page),draws:await draws(page)},null,2))});
   }catch(error){await page.screenshot({path:info.outputPath('placement-failure.png')}).catch(()=>{});await info.attach('placement-failure.json',{contentType:'application/json',body:Buffer.from(JSON.stringify({error:String(error.stack),errors,commands,ui:await uiState(page).catch(()=>null),draws:await draws(page).catch(()=>null)},null,2))});throw error;
   }finally{closing=true;for(const control of held){control.send();control.deliver();}await fixture.close();}
 });

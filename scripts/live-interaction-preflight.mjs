@@ -9,6 +9,7 @@ assert.deepEqual(new Set(product),allowed,'exactly four approved product paths')
 for(const path of ['package.json','pnpm-lock.yaml','routes/player.js','playerManager.js','game-logic/yard-v2/release-policy.mjs','src/games/companion-yard-v2/YardReleaseGame.jsx'])assert(readFileSync(path).equals(execFileSync('git',['show',base+':'+path])),path+' must be exact live baseline');
 const courtyard=readFileSync('src/games/companion-yard-v2/CourtyardGame.jsx','utf8');
 assert(!/canonical-saved-|canonicalSaved|savedMode/.test(courtyard),'no unreleased saved-v3 integration');
-for(const key of ['VITE_YARD_PIP_PREVIEW','VITE_YARD_SAVED_VISITS','VITE_YARD_PAINTED_FOOD_TRIAL'])assert.equal(process.env[key],'false',key);
+assert.equal(process.env.VITE_YARD_PIP_PREVIEW,'true','preserve exact ec815 live build flag');
+for(const key of ['VITE_YARD_SAVED_VISITS','VITE_YARD_PAINTED_FOOD_TRIAL'])assert.equal(process.env[key],'false',key);
 const workflow=readFileSync('.github/workflows/live-interaction-feedback.yml','utf8');assert(workflow.includes('contents: read'));assert(!/packages: write|ssh-action|build-push-action|docker\/login-action/.test(workflow));
-console.log(JSON.stringify({base,commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productPaths:product,previewAndSavedFlags:'false',backendSchemaAssetsAndDependencies:'unchanged',deployment:false},null,2));
+console.log(JSON.stringify({base,commit:execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim(),productPaths:product,flags:{preview:true,saved:false,painted:false},backendSchemaAssetsAndDependencies:'unchanged',deployment:false},null,2));
