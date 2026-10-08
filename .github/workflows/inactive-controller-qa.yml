@@ -1,0 +1,56 @@
+name: Inactive ec815 app-only controller qualification
+on:
+  push:
+    branches: ['qa/inactive-controller-ec815-20261008']
+permissions:
+  contents: read
+concurrency:
+  group: inactive-controller-ec815-20261008
+  cancel-in-progress: false
+jobs:
+  synthetic-controller:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 2
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify exact inactive source closure
+        run: |
+          node --input-type=module <<'JS'
+          import fs from 'node:fs';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
+          const m=JSON.parse(fs.readFileSync('qa/development-controller/manifest.json'));
+          assert.equal(execFileSync('git',['rev-parse','HEAD^'],{encoding:'utf8'}).trim(),m.parent);
+          const changed=execFileSync('git',['diff','--name-only',m.parent,'HEAD'],{encoding:'utf8'}).trim().split('\n').sort();
+          assert.deepEqual(changed,[...m.files.map(x=>x.path),'qa/development-controller/manifest.json','.github/workflows/inactive-controller-qa.yml'].sort());
+          for(const f of m.files)assert.equal(createHash('sha256').update(fs.readFileSync(f.path)).digest('hex'),f.sha256,f.path);
+          assert.equal(m.activationEnabled,false);assert.equal(m.candidateImageDigest,null);
+          fs.mkdirSync('test-results/inactive-controller',{recursive:true});fs.writeFileSync('test-results/inactive-controller/source.json',JSON.stringify({commit:process.env.GITHUB_SHA,...m}));
+          JS
+      - name: Exact controller unit and synthetic shell cases
+        run: |
+          set -o pipefail
+          timeout 420s node --test --test-reporter=tap --test-concurrency=1 qa/development-controller/tests/*.test.mjs | tee test-results/inactive-controller/controller.tap
+      - name: Real Compose config with synthetic inputs and nonexistent daemon socket
+        run: |
+          set -o pipefail
+          python3 qa/development-controller/tests/probe-compose-repeat-release.py | tee test-results/inactive-controller/compose.json
+      - name: Strict formatter regression without dependency downloads
+        env:
+          GOTOOLCHAIN: local
+          GOPROXY: 'off'
+          GOSUMDB: 'off'
+        run: |
+          set -o pipefail
+          go run qa/development-controller/inspect-format.go | tee test-results/inactive-controller/formatter.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: inactive-controller-${{ github.sha }}
+          path: test-results/inactive-controller/
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,40 @@
+{
+  "parent": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+  "scope": "Inactive exact ec815 predecessor app-only controller; synthetic qualification only",
+  "activationEnabled": false,
+  "candidateImageDigest": null,
+  "files": [
+    {
+      "path": "qa/development-controller/inspect-format.go",
+      "sha256": "e1934543430a88ddfeaf7d91a29439eb7cbbc2a4a942928838e959247f750926"
+    },
+    {
+      "path": "qa/development-controller/predecessor-binding.json",
+      "sha256": "7ca64de354185b10f6905e0bfed06982e48ffe4d1268190f5295958f8611f445"
+    },
+    {
+      "path": "qa/development-controller/predecessor-receipt.json",
+      "sha256": "071c26348be772fb59d39a7425fc5745b359c175521872e11dc7731f686c5a1a"
+    },
+    {
+      "path": "qa/development-controller/scripts/ccgh-app-development-release.sh",
+      "sha256": "bd60ffd1d2321d4100e233339e5061553838c20fd3a38e9f8a62861b898bd812"
+    },
+    {
+      "path": "qa/development-controller/scripts/yard-development-contract.mjs",
+      "sha256": "d39fee6a48c582871e80d9f2f146cceda219623ba36b6e0d4183397ba95eb95a"
+    },
+    {
+      "path": "qa/development-controller/tests/ec815-predecessor-binding.test.mjs",
+      "sha256": "44ac492481b860d48ce73ddf184fb30dc4a0c3d49852d1109db450e349004b4a"
+    },
+    {
+      "path": "qa/development-controller/tests/probe-compose-repeat-release.py",
+      "sha256": "78391ae7857d4f6fc9b6d33cda481e363e2eab320939d6eae657f092790bd9c4"
+    },
+    {
+      "path": "qa/development-controller/tests/yard-development-release.test.mjs",
+      "sha256": "f6efe14d8dfe4961f6c356248a8275b4d1bc62a78c468f00850581c7408ae10e"
+    }
+  ]
+}
