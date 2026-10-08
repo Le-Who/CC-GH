@@ -6,6 +6,14 @@ import {planMikaYardQaCruise,sampleMikaYardQaCruise} from './mika-yard-route.mjs
 import {configureMikaYardCamera} from './mika-yard-camera.mjs';
 const ASSET='/assets/yard-mika-p2-qa/p2.glb',BYTES=3671320,BINARY_BYTES=3624236,MODEL_CPU_BOUND=BYTES*3;
 const defaultDependencies=()=>Promise.all([import('../pip-prototype/vendor/three/build/three.module.js'),import('../pip-prototype/vendor/three/addons/loaders/GLTFLoader.js'),import('../pip-prototype/grounding-recipe.mjs')]);
+// Finite screenshot comparison only, gated separately from the normal QA build.
+// No sampler, camera, model, navigation or shared Pip recipe is modified.
+export function mikaGroundingComparison(search,enabled=false){
+ if(!enabled)return null;
+ const q=new URLSearchParams(search),variant=q.get('mikaGrounding'),sampleTime=Number(q.get('mikaGroundingTime'));
+ if(q.getAll('mikaGrounding').length!==1||q.getAll('mikaGroundingTime').length!==1||!['baseline','warm','contact','combined'].includes(variant)||![.2,2,3.6].includes(sampleTime))throw Error('INVALID_MIKA_GROUNDING_COMPARISON');
+ return {variant,sampleTime,warm:variant==='warm'||variant==='combined',contact:variant==='contact'||variant==='combined',scope:'Fixed authored sampler instant; visual comparison only, not motion qualification'};
+}
 const snapshotLayout=value=>JSON.stringify([value?.yard?.remodel,(value?.yard?.placedGoodies??[]).map(p=>[p.slotId,p.goodieId,p.x,p.y,p.rotationZ??0,p.condition]).sort((a,b)=>String(a[0]).localeCompare(String(b[0]))),value?.yardRuntime?.display?.placements??[],(value?.yard?.bowls??[]).map(b=>b.id)]);
 
 /** Read-only normal-Yard geometry, including every visible prop and exclusion.
@@ -29,6 +37,7 @@ export function mikaQaLayout(view,sceneGeometry){
  * No account commands, visit records, saved identities, timers or second RAF.
  */
 export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,fetchImpl=fetch,loadDependencies=defaultDependencies,canvasFactory=()=>document.createElement('canvas'),rendererFactory=null,presentationNow=()=>performance.now()}={}){
+ const comparison=mikaGroundingComparison(globalThis.location?.search??'',import.meta.env?.VITE_YARD_MIKA_GROUNDING_AB==='true');
  if(typeof reserveRGBA!=='function')throw Error('QA_RESOURCE_OWNER_REQUIRED');
  let THREE,model,driver,renderer,lighting,scene,camera,canvas,disposed=false,graphicsRetired=false,phase='loading',reason=null,plan=null,originStamp=null,lastResult=null,layoutStamp=null,account=null,accountObserved=false,allocatedPixels=0,rgbaBytes=0,modelGPUBytes=0;
  const trace=[];let currentTime=0,frames=0,maximumEnvelopeRadius=0,projectionStamp=null,interruption=null;
@@ -61,7 +70,7 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
   canvas=canvasFactory();canvas.width=1;canvas.height=1;renderer=rendererFactory?rendererFactory({THREE,canvas}):new THREE.WebGLRenderer({canvas,alpha:true,antialias:false,premultipliedAlpha:true,preserveDrawingBuffer:false});
   renderer.setPixelRatio(1);renderer.setClearColor(0,0);renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.shadowMap.enabled=false;
   scene=new THREE.Scene();driver=createMikaNativePoseDriver(THREE,gltf,calibration);scene.add(driver.root);camera=new THREE.OrthographicCamera();
-  lighting=createPipGardenLighting({THREE,scene,renderer,target:new THREE.Vector3(50/8,0,-66/8),recipe:'baseline'});
+  lighting=createPipGardenLighting({THREE,scene,renderer,target:new THREE.Vector3(50/8,0,-66/8),recipe:comparison?.warm?'pip-garden-grounding-v1':'baseline'});
   canvas.addEventListener('webglcontextlost',onLost);phase='waiting-layout';traceState();
  }catch(error){reason=String(error?.message??error);phase=signal?.aborted||interruption?'aborted':'unavailable';releaseGraphics();traceState();}
  function noteSnapshot(snapshot){
@@ -81,7 +90,7 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
    // they must not consume the finite authored cruise. Undrawn poses stay at0.
    currentTime=originStamp===null?0:Math.max(0,(stamp-originStamp)/1000);
    if(currentTime>plan.duration){stop('complete','FINITE_CRUISE_ENDED_NO_TRANSITION');return null;}
-   const result=sampleMikaYardQaCruise(plan,layout,currentTime);if(result.status!=='ready'){stop('aborted',result.reason||result.status);return null;}
+   const result=sampleMikaYardQaCruise(plan,layout,comparison?.sampleTime??currentTime);if(result.status!=='ready'){stop('aborted',result.reason||result.status);return null;}
    const width=Math.ceil(projection.width),height=Math.ceil(projection.height),pixels=width*height;
    if(pixels!==allocatedPixels||canvas.width!==width||canvas.height!==height){
     // Before allocating, include old+new color/depth/swap estimates in the same
@@ -93,8 +102,8 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
    maximumEnvelopeRadius=Math.max(maximumEnvelopeRadius,result.envelope.radius);lastResult=result;
    return {y:projection.project(result.position).y,draw:ctx=>{
     if(graphicsRetired)return;
-    try{const ppu=projection.ppu;shadow(projection.project(result.position),ppu*.55,ppu*.16,.12);
-     for(const foot of Object.values(result.sample.contacts))if(foot.contact)shadow(projection.project({x:foot.paw[0]*8,y:foot.paw[1]*8}),ppu*.13,ppu*.045,.2*foot.load);
+    try{const ppu=projection.ppu;shadow(projection.project(result.position),ppu*.55,ppu*.16,comparison?.contact ? .20 : .12);
+     for(const foot of Object.values(result.sample.contacts))if(foot.contact)shadow(projection.project({x:foot.paw[0]*8,y:foot.paw[1]*8}),ppu*(comparison?.contact ? .16 : .13),ppu*(comparison?.contact ? .065 : .045),(comparison?.contact ? .30 : .2)*foot.load);
      renderer.render(scene,camera);ctx.drawImage(canvas,0,0,projection.width,projection.height);
      if(originStamp===null)originStamp=presentationNow();
      frames++;
@@ -102,5 +111,5 @@ export async function createMikaYardQaLayer({signal,cameraDirection,reserveRGBA,
    },canvas,get snapshot(){return result;}};
   }catch(error){stop('aborted',String(error.message));return null;}
  }
- return{noteSnapshot,frame,abort:why=>stop('aborted',why),diagnostics:()=>({phase,reason,time:currentTime,frames,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return;disposed=true;document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();}};
+ return{noteSnapshot,frame,abort:why=>stop('aborted',why),diagnostics:()=>({comparison,phase,reason,time:currentTime,frames,unitsPerSource:8,assetSha256:envelope.assetSha256,bones:22,rootOwner:'navigation',normalCamera:true,diagnosticCameraFit:false,plan:plan?.ok?{start:plan.start,heading:plan.heading,turnRadians:plan.turnRadians,duration:plan.duration,sweep:plan.sweep,candidates:plan.candidates}:null,position:lastResult?.position??null,maximumEnvelopeRadius,resources:{rgbaBytes,encodedGLBBytes:BYTES,glbBinaryBytes:BINARY_BYTES,modelCPUUpperBound:MODEL_CPU_BOUND,modelGPUBytes,graphicsRetired,retainedModelGPUBytes:graphicsRetired?0:modelGPUBytes,retainedModelCPUUpperBound:graphicsRetired?0:MODEL_CPU_BOUND,engineObjectOverheadKnown:false,rasterDpr:1},trace:trace.map(r=>({...r})),scope:'QA only; no visit/save/economy mutation; layout change aborts; no entry/arrival transition'}),dispose(){if(disposed)return;disposed=true;document.removeEventListener('visibilitychange',onHidden);canvas?.removeEventListener('webglcontextlost',onLost);releaseGraphics();phase='disposed';traceState();}};
 }

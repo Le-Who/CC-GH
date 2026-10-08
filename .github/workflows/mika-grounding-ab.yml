@@ -1,0 +1,72 @@
+name: Mika bounded grounding static comparison
+on:
+  push:
+    branches: ['qa/mika-grounding-ab-20261008']
+permissions:
+  contents: read
+concurrency:
+  group: mika-grounding-ab-20261008
+  cancel-in-progress: false
+jobs:
+  compare-grounding:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      CI: 'true'
+      NODE_ENV: test
+      DATABASE_URL: ''
+      REDIS_URL: ''
+      NODE_OPTIONS: ''
+      VITE_YARD_PIP_PREVIEW: 'true'
+      VITE_YARD_SAVED_VISITS: 'false'
+      VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
+      VITE_YARD_MIKA_QA: 'true'
+      VITE_YARD_MIKA_GROUNDING_AB: 'true'
+      MIKA_QA_EXPECT_ENABLED: 'true'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+      - name: Verify immutable comparison inputs
+        run: |
+          mkdir -p test-results/mika-grounding
+          git fetch --no-tags --depth=1 origin 99e2aa0a101687a19126cb2b623619548ba4b555
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          import {createHash} from 'node:crypto';
+          import {execFileSync} from 'node:child_process';
+          const base='99e2aa0a101687a19126cb2b623619548ba4b555';
+          const changed=execFileSync('git',['diff','--name-only',base,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          assert.deepEqual(changed,[".github/workflows/mika-grounding-ab.yml", "playwright.mika-grounding-ab.config.mjs", "src/games/companion-yard-v2/mika-qa/mika-yard-layer.mjs", "tests/e2e/yard-mika-grounding-ab.spec.js", "tests/yard-mika-grounding-ab.test.mjs"]);
+          const asset='public/assets/yard-mika-p2-qa/p2.glb',sha=createHash('sha256').update(fs.readFileSync(asset)).digest('hex');
+          assert.equal(sha,'2249774f8ced124451d3c46a8a69bc06a9889c7d9cc31c836a6dd868fd96f084');
+          const productDelta=execFileSync('git',['diff',base,'HEAD','--','src/games/companion-yard-v2/mika-qa/mika-yard-layer.mjs'],{encoding:'utf8'});
+          fs.writeFileSync('test-results/mika-grounding/input-equivalence.json',JSON.stringify({base,head:process.env.GITHUB_SHA,changed,asset,sha,frozen:'All existing product files except Mika QA layer byte-identical to base, including shared Pip lighting defaults, camera, driver, route, body/gait GLB, props and raster policy',experiment:'Four lighting/contact variants at exact fixed .2/2/3.6 sampler instants. Static pose comparison, no frame-pacing claim.',activation:false},null,2));
+          fs.writeFileSync('test-results/mika-grounding/product-delta.patch',productDelta);
+          JS
+      - name: Install locked dependencies
+        run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Source admission and unchanged lifecycle tests
+        run: node --import ./tests/yard-pip-register-vendor.mjs --test --test-concurrency=1 tests/yard-mika-qa-*.test.mjs tests/yard-mika-grounding-ab.test.mjs > test-results/mika-grounding/source-tests.log
+      - name: Collect all 36 static comparison cases
+        run: MIKA_QA_PHASE=collection pnpm exec playwright test yard-mika-grounding-ab.spec.js --config playwright.mika-grounding-ab.config.mjs --list > test-results/mika-grounding/collection.log
+      - name: Build explicit inactive visual comparison
+        env:
+          NODE_ENV: production
+        run: pnpm run build > test-results/mika-grounding/build.log 2>&1
+      - name: Install official Chromium
+        run: pnpm exec playwright install --with-deps chromium
+      - name: Capture exact pose-matched actual normal canvases
+        run: MIKA_QA_PHASE=matrix pnpm exec playwright test yard-mika-grounding-ab.spec.js --config playwright.mika-grounding-ab.config.mjs
+      - name: Preserve original pixels and receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mika-grounding-ab-${{ github.sha }}
+          path: test-results/mika-grounding/
+          retention-days: 7
+          if-no-files-found: error
