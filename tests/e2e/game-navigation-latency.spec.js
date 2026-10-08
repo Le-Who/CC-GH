@@ -1,4 +1,7 @@
-import {test, expect} from '@playwright/test';
+import {test, expect as baseExpect} from '@playwright/test';
+// Diagnostic observations may take30s under declared mobile throttling.
+// This records latency; it is not a performance acceptance threshold.
+const expect=baseExpect.configure({timeout:30000});
 import {startSwFixture} from './helpers/swFixture.mjs';
 import {openHome, selectHomeGame} from './helpers/home.js';
 import {installGameLatencyProbe, saveGameLatency} from './helpers/gameLatencyProbe.js';

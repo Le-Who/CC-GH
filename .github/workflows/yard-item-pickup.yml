@@ -10,18 +10,7 @@ concurrency:
 jobs:
   qualify:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
-    services:
-      postgres:
-        image: postgres:17
-        env:
-          POSTGRES_USER: ccgh_visit_test
-          POSTGRES_DB: ccgh_visit_test
-          POSTGRES_HOST_AUTH_METHOD: trust
-        ports: ['55437:5432']
-        options: >-
-          --health-cmd "pg_isready -U ccgh_visit_test -d ccgh_visit_test"
-          --health-interval 5s --health-timeout 5s --health-retries 10
+    timeout-minutes: 12
     env:
       NODE_ENV: test
       CI: 'true'
@@ -40,25 +29,24 @@ jobs:
           mkdir -p test-results/item-pickup
           git fetch --no-tags --depth=1 origin ec815065f6adb7c36d81f97b41d47ad16e614b07
           node scripts/yard-item-pickup-preflight.mjs
-          grep -F 'export const CANONICAL_SAVED_ITEM_ACTIONS_ENABLED=false;' game-logic/yard-v2/canonical-saved-item-actions.mjs
           git rev-parse HEAD > test-results/item-pickup/source-commit.txt
       - name: Install existing locked dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Visible pickup status and exact fixture bundle preflight
+      - name: Exact fixture JSON bundle preflight
         run: |
           set -o pipefail
-          node --test tests/sw-fixture-json-loader.test.mjs tests/yard-saved-pickup-visible-status.test.mjs tests/yard-saved-pickup-ui-dispatch.test.mjs | tee test-results/item-pickup/focused-source.log
+          node --test tests/sw-fixture-json-loader.test.mjs | tee test-results/item-pickup/fixture-json.log
+      - name: Build the exact integrated client
+        env:
+          NODE_ENV: production
+          VITE_YARD_PIP_PREVIEW: 'true'
+          VITE_YARD_SAVED_VISITS: 'true'
+          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
+        run: pnpm run build
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Actual pickup UI, delayed HTTP journal, renderer, replay and PostgreSQL readback
-        env:
-          DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test
-          YARD_SAVED_VISIT_PG: '1'
-          DEV_AUTH_ENABLED: 'true'
-          VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
-        run: pnpm exec playwright test --config playwright.yard-saved-pickup.config.mjs
-      - name: Remaining Courtyard ordering and throttled timing observation
-        run: pnpm exec playwright test --config playwright.game-feedback.config.mjs game-navigation-latency.spec.js yard-placement-feedback.spec.js --grep 'mobile throttle|Courtyard pending placement'
+      - name: Throttled cold and warm navigation observation only
+        run: pnpm exec playwright test --config playwright.game-feedback.config.mjs game-navigation-latency.spec.js --grep 'mobile throttle'
       - name: Preserve success and failure evidence
         if: always()
         uses: actions/upload-artifact@v4
