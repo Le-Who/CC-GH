@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      BASE: 44d954e40f142753ed304ac0319fa27a5cb62205
+      BASE: 2ca29c1e033c6ff97a64b8db79b65d912c0811b5
       MIKA_REQUIRE_SHIPPING_BUDGET: 'true'
       VITE_YARD_PIP_PREVIEW: 'true'
       VITE_YARD_SAVED_VISITS: 'false'
@@ -32,6 +32,11 @@ jobs:
           mkdir -p "$RUNNER_TEMP/mika-budget"
           git diff "$BASE" HEAD --binary > "$RUNNER_TEMP/mika-budget/source.patch"
           git rev-parse HEAD > "$RUNNER_TEMP/mika-budget/candidate-sha.txt"
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';import {execFileSync} from 'node:child_process';
+          const changed=execFileSync('git',['diff','--name-only',process.env.BASE,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+          assert.deepEqual(changed,['.github/workflows/mika-budget-remedy.yml','tests/yard-current-four-scene.test.mjs','tests/yard-pip-canonical.test.mjs']);
+          JS
           cp scripts/mika-budget-measure.mjs "$RUNNER_TEMP/mika-budget-measure.mjs"
           git ls-tree -r HEAD > "$RUNNER_TEMP/mika-budget/repository-tree.txt"
           git grep -I -n -E 'yard-ui/previews|preview-manifest|yard-pip/|pip-left180|pip-left90|pip-snack-combined-r1' -- ':!scripts/mika-budget-measure.mjs' > "$RUNNER_TEMP/mika-budget/asset-reference-audit.txt" || test "$?" = 1
@@ -62,12 +67,33 @@ jobs:
               node "$RUNNER_TEMP/mika-budget-measure.mjs" "$OUT" "$kind" "$mode"
             done
           done
-      - name: Preserve failed regression status after independent budget measurements
+      - name: Require corrected candidate regressions and classify unchanged baseline evidence
         if: always()
         run: |
           set -euo pipefail
-          test "$(cat "$RUNNER_TEMP/mika-budget/baseline-regression-exit.txt")" = 0
           test "$(cat "$RUNNER_TEMP/mika-budget/candidate-regression-exit.txt")" = 0
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import fs from 'node:fs';
+          const root=process.env.RUNNER_TEMP+'/mika-budget/';
+          const baseline=fs.readFileSync(root+'baseline-cache-regressions.log','utf8');
+          const candidate=fs.readFileSync(root+'candidate-cache-regressions.log','utf8');
+          assert.match(candidate,/ℹ tests 29\b/);assert.match(candidate,/ℹ pass 29\b/);assert.match(candidate,/ℹ fail 0\b/);
+          const baselineExit=fs.readFileSync(root+'baseline-regression-exit.txt','utf8').trim();
+          if(baselineExit==='0'){assert.match(baseline,/ℹ pass 28\b/);}
+          else{
+            assert.equal(baselineExit,'1');assert.match(baseline,/ℹ pass 24\b/);assert.match(baseline,/ℹ fail 4\b/);
+            const failures=[...new Set(baseline.split('\n').filter(l=>l.startsWith('✖ ')&&!l.includes('failing tests:')).map(l=>l.slice(2).replace(/ \([\d.]+ms\)$/,'')))].sort();
+            assert.deepEqual(failures,[
+              'shared scene holds one coherent four-actor frame through slow simultaneous switches, resize, disposal and reload',
+              'closed Pip preserves Mika, accepted Mochi, foods, catalog and every inventory field',
+              'stale, moved, worn or closed records preserve the save and never render as another species',
+              'accepted Pip admission still rejects unsupported foods, worn transition and other props safely',
+            ].sort());
+            assert.match(baseline,/Legacy source image identity mismatch/);
+          }
+          fs.writeFileSync(root+'regression-classification.json',JSON.stringify({baselineExit,baselineFailuresArePreviouslyRecorded:baselineExit==='1',candidatePassed:29,candidateFailed:0,scope:'corrected test fixtures; product bytes unchanged from2ca29c1e'},null,2));
+          JS
       - name: Preserve measurements including genuine budget failures
         if: always()
         uses: actions/upload-artifact@v4

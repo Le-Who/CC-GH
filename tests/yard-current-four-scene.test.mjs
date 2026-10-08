@@ -1,7 +1,10 @@
 import './yard-inventory-only-loader.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import sharp from 'sharp';
 import {createCourtyardScene} from '../src/games/companion-yard-v2/scene.mjs';
+import {LEGACY_M2_BACKGROUND} from '../src/games/companion-yard-v2/legacy-m2-background.mjs';
 import {createMochiMedia} from '../game-logic/yard-v2/mochi-media.mjs';
 import {createPebbleMedia} from '../game-logic/yard-v2/pebble-media.mjs';
 import {createPipMedia} from '../game-logic/yard-v2/pip-media.mjs';
@@ -26,23 +29,43 @@ function snapshot(){
  fixture={yard:{remodel:'meadow',placedGoodies:props,bowls:[],pendingGifts:[]},yardRuntime:{serverNow:at,mutable:true,visits}};return copy(fixture);
 }
 const dimensions=new Map();for(const e of Object.values(entries))for(const c of allClips(e))for(const p of c.pages){const url=new URL(p.src,c.assetBaseURL);url.searchParams.set('yard-media',c.assetRevision);dimensions.set(url.href,p);}
-function environment(){
- const globals=['fetch','createImageBitmap','Image','ResizeObserver','location','document','devicePixelRatio','requestAnimationFrame','cancelAnimationFrame'],old=new Map(globals.map(k=>[k,{own:Object.hasOwn(globalThis,k),value:globalThis[k]}]));
+const staticDescriptors=new Map(),staticDimensions=new Map(),assetURL=(path,revision)=>{const url=new URL(path,'https://yard.fixture');if(revision)url.searchParams.set('yard-media',revision);return url.href;};
+const addStill=(path,meta)=>staticDescriptors.set(assetURL(path,meta.assetRevision),meta);
+addStill(LEGACY_M2_BACKGROUND.url,LEGACY_M2_BACKGROUND);
+for(const[id,meta]of Object.entries(stills))addStill(`/assets/yard-mika/${id}.webp`,meta);
+for(const e of Object.values(entries))for(const meta of Object.values(e.stills||{}))addStill(meta.assetURL,meta);
+async function inspectStill(src){
+ if(staticDimensions.has(src))return;
+ const meta=staticDescriptors.get(src),path=new URL(src).pathname;
+ const {format,width,height}=await sharp(await readFile(new URL('../public'+path,import.meta.url))).metadata();
+ assert.equal(format,'webp',src);assert.ok(Number.isSafeInteger(width)&&width>0&&Number.isSafeInteger(height)&&height>0,src);
+ if(Object.hasOwn(meta,'canvas'))assert.deepEqual([width,height],meta.canvas,src);
+ // Mochi and Pebble do not declare canvas sizes. Do not add a declaration:
+ // the real scene must still apply its unchanged finite fallback reserve.
+ staticDimensions.set(src,{width,height});
+}
+// The real loader verifies this immutable source before decoding it. Synthetic
+// atlas bytes remain sufficient here because only their scheduling is mocked.
+const backgroundBytes=await readFile(new URL('../public'+LEGACY_M2_BACKGROUND.url,import.meta.url));
+function environment({background=backgroundBytes}={}){
+ const globals=['fetch','createImageBitmap','ResizeObserver','location','document','devicePixelRatio','requestAnimationFrame','cancelAnimationFrame'],old=new Map(globals.map(k=>[k,{own:Object.hasOwn(globalThis,k),value:globalThis[k]}]));
  let mono=0,raf=null,resize=null,clears=0,draws=[],rect={width:360,height:800,left:0,top:0};const waiting=[],images=[],errors=[];
  const ctx={setTransform(){},clearRect(){clears++;draws=[];},save(){},restore(){},translate(){},scale(){},createRadialGradient(){return{addColorStop(){}};},fillRect(){},drawImage(im){draws.push(im);}};
  globalThis.location={origin:'https://yard.fixture'};globalThis.document={hidden:false};globalThis.devicePixelRatio=2;
  globalThis.ResizeObserver=class{constructor(fn){this.fn=fn;resize=fn;}observe(){this.fn();}disconnect(){}};
  globalThis.requestAnimationFrame=fn=>(raf=fn,1);globalThis.cancelAnimationFrame=()=>raf=null;
- globalThis.Image=class{width=64;height=64;set src(v){this.url=v;queueMicrotask(()=>this.onload());}};
- globalThis.fetch=async url=>{const u=new URL(url,location.origin);if(u.pathname.endsWith('runtime-media.json')){const id=u.pathname.split('/')[2].replace('yard-','');return{ok:true,json:async()=>copy(manifests[id])};}if(u.pathname.endsWith('still-layer-contract.json'))return{ok:true,json:async()=>copy(stills)};const blob=new Blob(['synthetic']);blob.src=u.href;return{ok:true,blob:async()=>blob};};
- globalThis.createImageBitmap=blob=>new Promise(resolve=>waiting.push({src:blob.src,resolve}));
+ globalThis.fetch=async url=>{const u=new URL(url,location.origin);assert.equal(u.origin,location.origin);if(u.pathname.endsWith('runtime-media.json')){const id=u.pathname.split('/')[2].replace('yard-','');return{ok:true,json:async()=>copy(manifests[id])};}if(u.pathname.endsWith('still-layer-contract.json'))return{ok:true,json:async()=>copy(stills)};assert.ok(dimensions.has(u.href)||staticDescriptors.has(u.href),u.href);if(staticDescriptors.has(u.href))await inspectStill(u.href);const blob=new Blob([u.pathname===LEGACY_M2_BACKGROUND.url?background:'synthetic'],{type:'image/webp'});blob.src=u.href;return{ok:true,blob:async()=>blob};};
+ const bitmap=(src,p)=>{const im={src,width:p.width,height:p.height,closed:0,close(){this.closed++;}};images.push(im);return im;};
+ // Bootstrap stills resolve immediately at their verified file size; only atlas
+ // decodes are delayed so owner.ready is independent of the frame-switch gate.
+ globalThis.createImageBitmap=blob=>{const p=staticDimensions.get(blob.src);if(p)return Promise.resolve(bitmap(blob.src,p));assert.ok(dimensions.has(blob.src),blob.src);return new Promise(resolve=>waiting.push({src:blob.src,resolve}));};
  const canvas={width:0,height:0,getContext:()=>ctx,getBoundingClientRect:()=>rect};
  const owner=createCourtyardScene(canvas,{actorProfiles:profiles,now:()=>mono,onError:e=>errors.push(e)});
  return{owner,canvas,waiting,images,errors,
-  get clears(){return clears;},get draws(){return draws;},
+  get clears(){return clears;},get draws(){return draws;},get atlasDraws(){return draws.filter(im=>dimensions.has(im.src));},
   resize(width,height){rect={...rect,width,height};resize();},
   tick(ms){mono=ms;assert.ok(raf,'scene must schedule the next synthetic RAF');const fn=raf;raf=null;fn(ms);},
-  async complete(){await step();const q=waiting.shift();assert.ok(q);const p=dimensions.get(q.src);assert.ok(p,q.src);const im={src:q.src,width:p.width,height:p.height,closed:0,close(){this.closed++;}};images.push(im);q.resolve(im);await step();return im;},
+  async complete(){await step();const q=waiting.shift();assert.ok(q);const p=dimensions.get(q.src);assert.ok(p,q.src);const im=bitmap(q.src,p);q.resolve(im);await step();return im;},
   async flush(){await step();while(waiting.length)await this.complete();},
   restore(){owner.dispose();for(const[k,v]of old)if(v.own)globalThis[k]=v.value;else delete globalThis[k];},
  };
@@ -51,13 +74,19 @@ test('shared scene holds one coherent four-actor frame through slow simultaneous
  const snap=snapshot(),saved=JSON.stringify(snap),h=environment();try{
   h.owner.update(snap);await h.owner.ready;assert.deepEqual(h.errors,[]);h.tick(0);await step();assert.equal(h.clears,0,'a partial cold four-actor frame must never be drawn');assert.equal(h.waiting.length,1);
   while(h.waiting.length){await h.complete();if(h.waiting.length)assert.equal(h.clears,0);}
-  h.tick(0);assert.equal(h.owner.diagnostics().view.pets.length,4);assert.equal(h.draws.filter(im=>im.src).length,4);const heldClear=h.clears,heldImages=h.draws.slice(),heldView=h.owner.diagnostics().view;
+  h.tick(0);assert.equal(h.owner.diagnostics().view.pets.length,4);assert.equal(h.atlasDraws.length,4);const heldClear=h.clears,heldImages=h.draws.slice(),heldView=h.owner.diagnostics().view;
   // Force a simultaneous phase/route change by jumping to a later snapshot.
   const leave=Math.max(...snap.yardRuntime.visits.map(r=>r.mediaAdmission.plan.departureAt));const dt=leave-snap.yardRuntime.serverNow+1000;
   h.tick(dt);await step();assert.equal(h.clears,heldClear);assert.deepEqual(h.draws,heldImages);assert.equal(h.owner.diagnostics().view,heldView);assert.equal(h.owner.diagnostics().view.pets.length,4);assert.equal(h.waiting.length,1);const backing=h.canvas.width;h.resize(390,844);assert.equal(h.canvas.width,backing,'resize must not clear held pixels');assert.equal(h.owner.diagnostics().pendingResize,true);
   const before=copy(h.owner.diagnostics());assert.ok(before.timing.activeMediaWait);assert.equal(before.atlasPolicy.maxPages,7);assert.equal(before.atlasPolicy.maxDecodedBytes,64*M);assert.equal(before.atlasPolicy.maxConcurrentDecodes,1);
-  await h.flush();h.tick(dt+40);const current=h.owner.diagnostics();assert.equal(current.view.pets.length,4);assert.equal(h.draws.filter(im=>im.src).length,4);assert.ok(current.presentationTime>=snap.yardRuntime.serverNow+dt);assert.equal(current.timing.activeMediaWait,null);assert.equal(h.canvas.width,780);assert.equal(h.canvas.height,1688);assert.equal(current.pendingResize,false);assert.equal(current.pendingDecodes<=1,true);assert.ok(current.decodedBytesEstimate+current.pendingBytesEstimate<=64*M);assert.equal(JSON.stringify(snap),saved);
+  await h.flush();h.tick(dt+40);const current=h.owner.diagnostics();assert.equal(current.view.pets.length,4);assert.equal(h.atlasDraws.length,4);assert.ok(current.presentationTime>=snap.yardRuntime.serverNow+dt);assert.equal(current.timing.activeMediaWait,null);assert.equal(h.canvas.width,780);assert.equal(h.canvas.height,1688);assert.equal(current.pendingResize,false);assert.equal(current.pendingDecodes<=1,true);assert.ok(current.decodedBytesEstimate+current.pendingBytesEstimate<=64*M);assert.equal(JSON.stringify(snap),saved);
   h.owner.dispose();await h.flush();assert.ok(h.images.every(im=>im.closed===1));assert.equal(h.errors.length,0);
  }finally{h.restore();}
- const reload=environment();try{reload.owner.update(JSON.parse(saved));await reload.owner.ready;reload.tick(0);await reload.flush();reload.tick(0);assert.equal(reload.owner.diagnostics().view.pets.length,4);assert.equal(reload.draws.filter(im=>im.src).length,4);assert.equal(reload.errors.length,0);}finally{reload.restore();}
+ const reload=environment();try{reload.owner.update(JSON.parse(saved));await reload.owner.ready;reload.tick(0);await reload.flush();reload.tick(0);assert.equal(reload.owner.diagnostics().view.pets.length,4);assert.equal(reload.atlasDraws.length,4);assert.equal(reload.errors.length,0);}finally{reload.restore();}
+});
+test('shared scene rejects a changed legacy source before any bitmap decode',async()=>{
+ const corrupt=Uint8Array.from(backgroundBytes);corrupt[0]^=1;
+ const h=environment({background:corrupt});try{
+  await h.owner.ready;assert.equal(h.owner.diagnostics().ready,false);assert.equal(h.errors.length,1);assert.match(h.errors[0].message,/Legacy source image identity mismatch/);assert.equal(h.images.length,0);assert.equal(h.waiting.length,0);
+ }finally{h.restore();}
 });

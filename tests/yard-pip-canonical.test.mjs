@@ -3,7 +3,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {createDefaultPlayer} from '../game-logic/player.js';
 import {YARD_GOODIES,YARD_VISITORS,YARD_FOODS} from '../game-logic/yard-v2/catalog.mjs';
 import {ACTOR_PROFILES} from '../game-logic/yard-v2/actor-profiles.mjs';
-import {PIP_ACTOR_PROFILE,PIP_ACTOR_REFERENCE,PIP_RELEASE_GATE} from '../game-logic/yard-v2/pip-actor-profile.mjs';
+import {PIP_ACTOR_PROFILE,PIP_ACTOR_REFERENCE} from '../game-logic/yard-v2/pip-actor-profile.mjs';
 import {getMikaServerOptions} from '../game-logic/yard-v2/mika-media.mjs';
 import {getYardServerOptions,createYardMedia} from '../game-logic/yard-v2/yard-media.mjs';
 import {createPipMedia} from '../game-logic/yard-v2/pip-media.mjs';
@@ -19,6 +19,15 @@ import {MIKA_CLIPS} from '../game-logic/yard-v2/media/mika-clips.mjs';
 import {edgeOpacity} from '../src/games/companion-yard-v2/edge-opacity.mjs';
 import media from '../public/assets/yard-pip/runtime-media.json' with {type:'json'};
 const NOW=Date.UTC(2026,9,3,12),H=3600000,copy=structuredClone,accepted=createPipAcceptanceOptions();
+// Release defaults now admit Pip. Model a closed source explicitly through the
+// trusted server seam; never change the released profile, registry or manifest.
+function closedPipSource(){
+ const pip=createPipMedia();return{...pip,actorProfiles:{},
+  candidateProfile:{...copy(pip.candidateProfile),playbackReady:false},
+  mediaRegistry:{...copy(pip.mediaRegistry),bindings:pip.mediaRegistry.bindings.map(b=>({...copy(b),playbackReady:false,unavailableReason:'PIP_FULL_YARD_ACCEPTANCE_REQUIRED'}))},
+  preflight:()=>({ok:false,code:'PIP_FULL_YARD_ACCEPTANCE_REQUIRED'})};
+}
+const closedPipOptions=()=>createYardMedia({pip:closedPipSource()});
 function player(){
  const p=createDefaultPlayer('pip-canonical-9','Fixture',NOW);
  p.yard.placedGoodies=[{slotId:'snack',goodieId:'snack_table',x:50,y:50,rotationZ:0,condition:'new',uses:0,opaque:{keep:'target'}}];
@@ -35,14 +44,16 @@ const entry=()=>createPipActorMediaEntry(media,{assetBaseURL:'https://qa.invalid
 const snapshot=(p,now,options=accepted)=>({yard:p.yard,yardRuntime:publicPersistentYard(p,{now,...options})});
 
 test('closed Pip preserves Mika, accepted Mochi, foods, catalog and every inventory field',()=>{
- assert.equal(PIP_RELEASE_GATE.accepted,false);assert.equal(PIP_ACTOR_PROFILE.playbackReady,false);assert.deepEqual(Object.keys(ACTOR_PROFILES),['mika']);
- const options=getYardServerOptions(),pip=createPipMedia(),withoutPip=createYardMedia({pip:{...pip,mediaRegistry:{...pip.mediaRegistry,bindings:[]}}});assert.deepEqual(options.mediaRegistry,withoutPip.mediaRegistry);assert.equal(options.sourceRegistry.bindings.find(b=>b.visitorId==='pip_hamster').playbackReady,false);
- const mochi=createMochiAcceptanceOptions();assert.equal(mochi.mediaRegistry.bindings.filter(b=>b.visitorId==='mochi_bunny').length,1);assert.equal(mochi.mediaRegistry.bindings.some(b=>b.visitorId==='pip_hamster'),false);assert.deepEqual(mochi.mediaRegistry.foodBindings,options.mediaRegistry.foodBindings);
+ assert.deepEqual(Object.keys(ACTOR_PROFILES),['mika']);
+ const pip=closedPipSource(),options=createYardMedia({pip}),withoutPip=createYardMedia({pip:{...pip,mediaRegistry:{...pip.mediaRegistry,bindings:[]}}});
+ assert.deepEqual(options.mediaRegistry,withoutPip.mediaRegistry);assert.equal(options.sourceRegistry.bindings.find(b=>b.visitorId==='pip_hamster').playbackReady,false);assert.equal(options.actorProfiles.pip,undefined);
+ const mika=getMikaServerOptions();assert.deepEqual(options.mediaRegistry.bindings.filter(b=>b.visitorId==='mika_cat'),mika.mediaRegistry.bindings);assert.deepEqual(options.actorProfiles.mika,mika.actorProfiles.mika);
+ const mochi=createMochiAcceptanceOptions();assert.equal(options.mediaRegistry.bindings.filter(b=>b.visitorId==='mochi_bunny').length,1);assert.deepEqual(options.mediaRegistry.bindings.filter(b=>b.visitorId==='mochi_bunny'),mochi.mediaRegistry.bindings.filter(b=>b.visitorId==='mochi_bunny'));assert.equal(options.mediaRegistry.bindings.some(b=>b.visitorId==='pip_hamster'),false);assert.deepEqual(mochi.mediaRegistry.foodBindings,options.mediaRegistry.foodBindings);
  assert.equal(Object.keys(YARD_VISITORS).length,8);assert.equal(Object.keys(YARD_GOODIES).length,11);assert.equal(Object.keys(YARD_FOODS).length,3);
- const p=player(),before=copy(p.yard);ensurePersistentPlayerYard(p,{now:NOW});assert.equal(ensurePersistentPlayerYard(p,{now:NOW+H,simulate:true}).status,200);
+ const p=player(),before=copy(p.yard);assert.equal(ensurePersistentPlayerYard(p,{now:NOW,...options}).status,200);assert.equal(ensurePersistentPlayerYard(p,{now:NOW+H,simulate:true,...options}).status,200);
  assert.equal(Object.keys(p._yardV2.runtime.visits).length,0);assert.equal(p.yard.bowls[0].servings,5);assert.equal(p.yard.placedGoodies[0].uses,0);for(const key of['goodieInventory','foodInventory','helper','petbook'])assert.deepEqual(p.yard[key],before[key]);
- assert.throws(()=>createPipActorMediaEntry(media,{assetBaseURL:'https://qa.invalid/'}),/Registered exact/);
- const balance=copy(p.yard.currencies);assert.equal(executePersistentYardAction(p,'yard.buyGoodie',{goodieId:'snack_table'},{now:NOW+H,actionId:'yard-v2:closed-buy'}).status,409);assert.deepEqual(p.yard.currencies,balance);
+ assert.throws(()=>createPipActorMediaEntry(media,{assetBaseURL:'https://qa.invalid/',profiles:options.actorProfiles}),/Registered exact/);
+ const balance=copy(p.yard.currencies);assert.equal(executePersistentYardAction(p,'yard.buyGoodie',{goodieId:'snack_table'},{now:NOW+H,actionId:'yard-v2:closed-buy',...options}).status,409);assert.deepEqual(p.yard.currencies,balance);
 });
 test('real catalog probability admits an exact Pip schedule and spends only existing food/use',()=>{
  const {p,visit}=admitted(),plan=visit.mediaAdmission.plan;assert.equal(visit.original.activityId,'nibble');assert.equal(validPresentationPlan(plan,{at:visit.arrivedAt,leavesAt:visit.leavesAt,slotId:visit.slotId}),true);
@@ -68,7 +79,8 @@ test('shared presentation owns exact source frames, contacts and prop throughout
 });
 test('stale, moved, worn or closed records preserve the save and never render as another species',()=>{
  const {p,visit}=admitted(),at=visit.mediaAdmission.plan.schedule.combinedStart+4800,before=JSON.stringify(p),actor=entry(),args={actorEntries:{pip:actor},actorProfiles:accepted.actorProfiles};
- assert.equal(courtyardPresentation(snapshot(p,at,getYardServerOptions()),at,MIKA_CLIPS,args).pets.length,0);assert.equal(JSON.stringify(p),before);
+ const released=snapshot(p,at,getYardServerOptions());assert.equal(released.yardRuntime.visits[0].renderCompatible,true);assert.equal(courtyardPresentation(released,at,MIKA_CLIPS,args).pets[0].visitorId,'pip_hamster');
+ const closed=snapshot(p,at,closedPipOptions());assert.equal(closed.yardRuntime.visits[0].renderCompatible,false);assert.ok(closed.yardRuntime.visits[0].presentationIssues.includes('INTERACTION_MEDIA_NOT_READY'));assert.equal(courtyardPresentation(closed,at,MIKA_CLIPS,args).pets.length,0);assert.equal(JSON.stringify(p),before);
  for(const mutate of[r=>r.mediaAdmission.plan.groundFootprintRevision='stale',r=>r.mediaAdmission.bindingCalibrationHash='stale',r=>r.mediaAdmission.actorProfile.revision='stale']){const q=copy(p);mutate(Object.values(q._yardV2.runtime.visits)[0]);assert.equal(snapshot(q,at).yardRuntime.visits[0].renderCompatible,false);}
  for(const mutate of[q=>q.x++,q=>q.condition='worn',q=>q.rotationZ=.1]){const snap=snapshot(p,at);snap.yard=copy(snap.yard);mutate(snap.yard.placedGoodies[0]);const view=courtyardPresentation(snap,at,MIKA_CLIPS,args);assert.equal(view.pets.length,0);assert.equal(view.props[0].drawStandalone,true);}
 });
@@ -95,7 +107,8 @@ test('accepted table actions preserve catalog prices, placement authority and ex
 test('accepted Pip admission still rejects unsupported foods, worn transition and other props safely',()=>{
  const source=createPipMedia(),p=player(),placement=p.yard.placedGoodies[0],base={at:NOW,leavesAt:NOW+H,placement,yard:p.yard,visitor:YARD_VISITORS.pip_hamster,goodie:YARD_GOODIES.snack_table,activity:{id:'nibble'},bowl:p.yard.bowls[0],active:[],reserved:[]};
  for(const [mutate,code]of[[q=>q.placement.uses=8,'POST_ADMISSION_PROP_STATE_UNSUPPORTED'],[q=>q.bowl.foodId='future_food','FOOD_PRESENTATION_UNAVAILABLE'],[q=>q.activity.id='sniff','ACTIVITY_MEDIA_UNAVAILABLE'],[q=>q.active.push({visitorId:'pip_hamster',leavesAt:NOW+2*H}),'PIP_ALREADY_VISITING'],[q=>q.yard.placedGoodies.push({slotId:'future',goodieId:'leaf_pot',x:80,y:80}),'PLACEMENT_CALIBRATION_UNAVAILABLE']]){const q=copy(base);mutate(q);const before=JSON.stringify(q);assert.equal(source.preflightCandidate(q).code,code);assert.equal(JSON.stringify(q),before);}
- assert.equal(createAdmissionPolicy(getYardServerOptions())(base).ok,false);
+ const before=JSON.stringify(base),admission=createAdmissionPolicy(getYardServerOptions())(base);assert.equal(admission.ok,true,admission.code);assert.deepEqual(admission.binding.actorProfile,PIP_ACTOR_REFERENCE);assert.equal(validPresentationPlan(admission.binding.plan,{at:base.at,leavesAt:base.leavesAt,slotId:placement.slotId}),true);
+ assert.deepEqual(createAdmissionPolicy(closedPipOptions())(base),{ok:false,code:'UNSUPPORTED_VISIT_MEDIA'});assert.equal(JSON.stringify(base),before);
 });
 test('canonical atlas bytes and manifest binding remain the frozen independent Pip source',async()=>{
  const {readFile}=await import('node:fs/promises'),{createHash}=await import('node:crypto');
