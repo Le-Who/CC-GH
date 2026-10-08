@@ -1,14 +1,16 @@
 /** Explicit saved food/inventory wire union. The existing outbox still owns
  * account fencing, durable nonces and retries; no general Yard grant is made. */
 import {CANONICAL_SAVED_FOOD_ACTIONS,canonicalSavedFoodCapability,canonicalSavedFoodReplayAllowed,isCanonicalSavedFoodIntent} from './canonicalSavedFoodProtocol.mjs';
+import {canonicalSavedPickupDescriptor} from './canonicalSavedPickupProtocol.mjs';
 export const CANONICAL_SAVED_INVENTORY_ACTIONS=Object.freeze(['yard.buyGoodie','yard.collectGifts','yard.claimDailyLetter']);
 const object=v=>v!==null&&typeof v==='object'&&!Array.isArray(v);
 const same=(a,b)=>Array.isArray(a)&&a.length===b.length&&a.every((v,i)=>v===b[i]);
 function foodScope(snapshot){
- const r=snapshot?.yardRuntime,c=r?.canonicalInventoryActions;
+ const r=snapshot?.yardRuntime,c=r?.canonicalInventoryActions,pickup=r?.canonicalPickupActions;
+ if(pickup!==undefined&&!canonicalSavedPickupDescriptor(pickup))return null;
  if(c===undefined)return snapshot;
  if(!object(c)||Object.keys(c).sort().join(',')!=='actions,enabled,protocol'||c.protocol!=='yard-canonical-inventory-actions/v1'||c.enabled!==true
-  ||!same(c.actions,CANONICAL_SAVED_INVENTORY_ACTIONS)||!same(r.supportedActions,[...CANONICAL_SAVED_FOOD_ACTIONS,...CANONICAL_SAVED_INVENTORY_ACTIONS]))return null;
+  ||!same(c.actions,CANONICAL_SAVED_INVENTORY_ACTIONS)||!same(r.supportedActions,[...CANONICAL_SAVED_FOOD_ACTIONS,...CANONICAL_SAVED_INVENTORY_ACTIONS,...(pickup?['yard.pickupGoodie']:[])]))return null;
  return {...snapshot,yardRuntime:{...r,supportedActions:[...CANONICAL_SAVED_FOOD_ACTIONS]}};
 }
 export function canonicalSavedActionCapability(snapshot){const food=foodScope(snapshot);return !!food&&canonicalSavedFoodCapability(food);}
@@ -31,7 +33,7 @@ export function canonicalSavedActionReplayAllowed(item,snapshot){
 export function canonicalSavedActionResumeWitness(snapshot){
  if(!canonicalSavedActionCapability(snapshot))return null;
  const r=snapshot.yardRuntime;
- return structuredClone({player:{id:snapshot.player.id},yardRuntime:Object.fromEntries(['version','storageVersion','canonicalVisitProtocol','status','mutable','serverNow','actionProtocol','canonicalFoodActions','canonicalInventoryActions','supportedActions','supportedBindings'].filter(k=>Object.hasOwn(r,k)).map(k=>[k,r[k]]))});
+ return structuredClone({player:{id:snapshot.player.id},yardRuntime:Object.fromEntries(['version','storageVersion','canonicalVisitProtocol','status','mutable','serverNow','actionProtocol','canonicalFoodActions','canonicalInventoryActions','canonicalPickupActions','supportedActions','supportedBindings'].filter(k=>Object.hasOwn(r,k)).map(k=>[k,r[k]]))});
 }
 export function canonicalSavedActionPermissionScope(snapshot){
  if(!canonicalSavedActionCapability(snapshot))return null;

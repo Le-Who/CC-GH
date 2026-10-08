@@ -1,6 +1,7 @@
 import protocol from '../../game-logic/yard-v2/canonical-item-protocol.json' with {type:'json'};
 import {CANONICAL_FOOD_CONTRACT,CANONICAL_FOOD_LOCATION,CANONICAL_FOOD_NONCE_PREFIX,canonicalCommandJson} from '../../game-logic/yard-v2/canonical-food-protocol.mjs';
 import {sha256} from '../../game-logic/yard-v2/sha256.mjs';
+import {canonicalSavedPickupCapability,SAVED_PICKUP_CAPABILITY} from './canonicalSavedPickupProtocol.mjs';
 export {CANONICAL_FOOD_LOCATION};
 export const CANONICAL_LOCATION=Object.freeze(protocol.location);
 export const CANONICAL_ITEM=Object.freeze(protocol.item);
@@ -32,6 +33,7 @@ export function canonicalSupersededReceipt(item,result){
 export const CANONICAL_PENDING_ERRORS=new Set(['LEGACY_NONCE_REQUIRES_NEW_PROTOCOL_INTENT','UNSUPPORTED_YARD_STORAGE_VERSION','CANONICAL_LOCATION_UNKNOWN','CANONICAL_LOCATION_VERSION_MISMATCH','CANONICAL_GEOMETRY_REVISION_MISMATCH','CANONICAL_ITEM_PLACEMENT_DISABLED','CANONICAL_ACTION_UNSUPPORTED','CANONICAL_NONCE_REQUIRED','CANONICAL_LOCATION_REQUIRED']);
 /** Startup-safe capability check. Geometry remains in the lazy Yard module. */
 export function canonicalCapability(snapshot,action=null){
+ if(snapshot?.yardRuntime?.itemPlacementCapabilities?.protocol===SAVED_PICKUP_CAPABILITY)return canonicalSavedPickupCapability(snapshot,action);
  const runtime=snapshot?.yardRuntime,cap=runtime?.itemPlacementCapabilities,item=cap?.items?.leaf_pot,rows=runtime?.canonicalPlacements,scope=canonicalPresentationScope(snapshot),foodAware=scope===CANONICAL_FOOD_LOCATION;
  const food=runtime?.foodLocationCapabilities;
  if(foodAware&&(!same(food,CANONICAL_FOOD_LOCATION)||food?.enabled!==true||food.descriptorId!==CANONICAL_FOOD_CONTRACT.id||!identity(food.storageLocation)

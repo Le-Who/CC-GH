@@ -9,6 +9,8 @@ import {
   getUnlockedYardSlots,
   isYardVisitUsingGoodie,
 } from "../../../game-logic.js";
+import { selectPendingPlacementVisuals, mergePlacementVisuals } from "../../game-state/yardPlacementFeedback.mjs";
+import { isCanonicalItemIntent } from "../../game-state/canonicalYardProtocol.mjs";
 import { useGameHub } from "../../game-state/useGameHub.js";
 import { audioManager } from "../../services/audioManager.js";
 import { useAppI18n } from "../../app/i18n.jsx";
@@ -340,6 +342,10 @@ export default function CompanionYardGame() {
   const homeOpen = useContext(HomeVisibilityContext);
   const previousHome = useRef({ open: homeOpen, accountSession: useGameHub.getState().accountSession, accountId: snapshot?.player?.id });
   const yard = snapshot?.yard || {};
+  const placedVisuals = mergePlacementVisuals(yard.placedGoodies || [], selectPendingPlacementVisuals({
+    accountId: snapshot?.player?.id, placements: yard.placedGoodies || [], pendingActions,
+    accepts: item => !isCanonicalItemIntent(item.payload, item.clientActionId),
+  }));
   const catalog = snapshot?.meta?.yardCatalog || {};
   const foods = catalog.foods || YARD_FOODS;
   const goodies = catalog.goodies || YARD_GOODIES;
@@ -347,7 +353,10 @@ export default function CompanionYardGame() {
   const remodels = catalog.remodels || YARD_REMODELS;
   const slots = getUnlockedYardSlots(yard.expansion?.level || 1);
   const [activeScreen, setActiveScreen] = useState(null);
-  const [placementDraft, setPlacementDraft] = useState(null);
+  const accountSession = useGameHub(state => state.accountSession);
+  const [storedPlacementDraft, setPlacementDraft] = useState(null);
+  const placementDraft = storedPlacementDraft?.ownerAccountId === snapshot?.player?.id
+    && storedPlacementDraft?.ownerSession === accountSession ? storedPlacementDraft : null;
   const [selectedVisitId, setSelectedVisitId] = useState(null);
   const [companionName, setCompanionName] = useState(yard.companion?.name || "Buddy");
   const [assetManifest, setAssetManifest] = useState(undefined);
@@ -474,7 +483,7 @@ export default function CompanionYardGame() {
   const selectedRemodel = remodels[yard.remodel] || remodels.meadow || {};
   const staleGoodies = (yard.placedGoodies || []).filter((placed) => placed.condition !== "new");
   const starterGoodieHints = useMemo(() => {
-    if ((yard.placedGoodies || []).length || placementDraft) return [];
+    if (placedVisuals.length || placementDraft) return [];
     return Object.entries(yard.goodieInventory || {})
       .filter(([goodieId, qty]) => (Number(qty) || 0) > 0 && goodies[goodieId])
       .slice(0, 2)
@@ -486,7 +495,7 @@ export default function CompanionYardGame() {
           position: clampYardPointToPlayzone(yard.remodel || "meadow", rawPosition, { margin: 1 }),
         };
       });
-  }, [goodies, placementDraft, yard.goodieInventory, yard.placedGoodies, yard.remodel]);
+  }, [goodies, placementDraft, placedVisuals, yard.goodieInventory, yard.remodel]);
   const text = useCallback((key, fallback, values) => yardText(t, key, fallback, values), [t]);
   const foodName = useCallback((food) => catalogText(t, "foods", food?.id, "name", food?.name || ""), [t]);
   const foodDesc = useCallback((food) => catalogText(t, "foods", food?.id, "desc", food?.desc || ""), [t]);
@@ -548,11 +557,17 @@ export default function CompanionYardGame() {
   }, [placementDraft, stagePointFromEvent]);
 
   const startPlaceGoodie = useCallback((goodieId) => {
+    // Inventory remains authoritative; do not reserve the same owned item twice.
+    const state = useGameHub.getState();
+    if (state.pendingActions.some(item => item.accountId === state.snapshot?.player?.id && item.status !== "failed" && item.action === "yard.placeGoodie" && item.payload?.goodieId === goodieId)) return;
     const start = clampYardPointToPlayzone(yard.remodel || "meadow", { x: 50, y: 70 }, { margin: 1 });
     setActiveScreen(null);
     setSelectedVisitId(null);
     setPlacementDraft({
+      ownerAccountId: state.snapshot?.player?.id,
+      ownerSession: state.accountSession,
       mode: "place",
+      slotId: `free_${globalThis.crypto?.randomUUID?.() || `${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`}`,
       goodieId,
       x: start.x,
       y: start.y,
@@ -564,6 +579,8 @@ export default function CompanionYardGame() {
     setActiveScreen(null);
     setSelectedVisitId(null);
     setPlacementDraft({
+      ownerAccountId: useGameHub.getState().snapshot?.player?.id,
+      ownerSession: useGameHub.getState().accountSession,
       mode: "move",
       goodieId: placed.goodieId,
       slotId: placed.slotId,
@@ -579,6 +596,8 @@ export default function CompanionYardGame() {
 
   const confirmPlacement = useCallback(() => {
     if (!placementDraft) return;
+    const owner = useGameHub.getState();
+    const submitted = placementDraft;
     const payload = {
       goodieId: placementDraft.goodieId,
       x: placementDraft.x,
@@ -587,9 +606,11 @@ export default function CompanionYardGame() {
     const action = placementDraft.mode === "move" ? "yard.moveGoodie" : "yard.placeGoodie";
     if (placementDraft.slotId) payload.slotId = placementDraft.slotId;
     performAction(action, payload).then((result) => {
+      const current = useGameHub.getState();
+      if (current.accountSession !== owner.accountSession || current.snapshot?.player?.id !== owner.snapshot?.player?.id) return;
       if (!result.error) {
-        setPlacementDraft(null);
-        setActiveScreen("goodies");
+        setPlacementDraft(draft => draft === submitted ? null : draft);
+        setActiveScreen(null);
       }
     });
   }, [performAction, placementDraft]);
@@ -673,10 +694,12 @@ export default function CompanionYardGame() {
 
   const renderPlacedGoodies = () => (
     <div className="yard-slot-layer">
-      {(yard.placedGoodies || []).map((placed) => {
+      {(placedVisuals).map((placed) => {
+        // The editor already draws this slot while its journal write settles.
+        if (placementDraft?.slotId === placed.slotId) return null;
         const goodie = goodies[placed.goodieId];
         const position = getPlacedPosition(placed, slotMap);
-        const slotPending = pendingByKey.get(`slot:${placed.slotId}`);
+        const slotPending = pendingByKey.get(`slot:${placed.slotId}`) || placed.pendingActionId;
         const slotVisitors = visitorsBySlot.get(placed.slotId) || [];
         const moving = placementDraft?.mode === "move" && placementDraft.slotId === placed.slotId;
         if (!goodie) return null;
@@ -806,7 +829,7 @@ export default function CompanionYardGame() {
                 <div className="yard-shop-row" key={goodieId} {...yardGroupSlotAttrs("goodies", "inventory-row", rowIndex, "inventory-list")}>
                   <img src={assetPath("goodies", goodieId)} alt="" />
                   <span><strong>{goodieName(goodie)}</strong><small>x{qty} · {text(`yard.size.${goodie.size}`, goodie.size)}</small></span>
-                  <YardActionButton icon="placement" onClick={() => startPlaceGoodie(goodieId)}>{text("yard.place", "Place")}</YardActionButton>
+                  <YardActionButton icon="placement" disabled={pendingActions.some(item => item.accountId === snapshot?.player?.id && item.status !== "failed" && item.action === "yard.placeGoodie" && item.payload?.goodieId === goodieId)} onClick={() => startPlaceGoodie(goodieId)}>{text("yard.place", "Place")}</YardActionButton>
                 </div>
               );
             })}
@@ -1242,3 +1265,4 @@ export default function CompanionYardGame() {
     </HudRegion>
   );
 }
+

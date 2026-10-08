@@ -1,5 +1,4 @@
-/** Real dev-auth API and PostgreSQL, then the ordinary saved visitor renderer.
- * Item controls intentionally remain disabled; this does not claim UI pickup. */
+/** Actual saved pickup UI, durable browser journal, delayed winning HTTP and PostgreSQL readback. */
 import {test,expect} from '@playwright/test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
@@ -10,7 +9,7 @@ import {randomUUID} from 'node:crypto';
 import {selectHomeGame} from '../e2e/helpers/home.js';
 import {CANONICAL_FOOD_LOCATION,CANONICAL_FOOD_NONCE_PREFIX} from '../../game-logic/yard-v2/canonical-food-protocol.mjs';
 const run=promisify(execFile),OUT=path.resolve('test-results/saved-pickup-browser');
-test('actual API released pickup keeps Pip visible through duplicate and browser reload',async({browser},info)=>{
+test('actual UI released pickup keeps its journal until delayed winning HTTP settles',async({browser},info)=>{
  await fs.mkdir(OUT,{recursive:true});
  const externalId='saved-pip-real-'+randomUUID().replaceAll('-',''),metadataFile=path.join(OUT,'account.json'),commandFile=path.join(OUT,'command.json');
  const env={...process.env,NODE_ENV:'test',DEV_AUTH_ENABLED:'true',YARD_SAVED_VISIT_PG:'1',REDIS_URL:'',NODE_OPTIONS:''};
@@ -25,9 +24,38 @@ test('actual API released pickup keeps Pip visible through duplicate and browser
   await page.addInitScript(({externalId})=>{localStorage.setItem('gh_dev_user_id',externalId);localStorage.setItem('garden_shelf_language','en');},{externalId});
   await page.goto(info.project.use.baseURL+'/');await expect(page.locator('.gs2-stage')).toBeVisible({timeout:30000});await selectHomeGame(page,'room');await ready(false);
   await page.screenshot({path:path.join(OUT,'before-pickup.png'),scale:'device'});
-  const command={accountId:metadata.accountId,action:'yard.pickupGoodie',clientActionId:CANONICAL_FOOD_NONCE_PREFIX+'browser-'+randomUUID(),payload:{...CANONICAL_FOOD_LOCATION,slotId:'canonical:a'}};
+  const journal=()=>page.evaluate(async accountId=>{
+    const key='game_hub_yard_outbox_v2:'+encodeURIComponent(accountId),fallback=localStorage.getItem(key);
+    if(fallback!==null)throw Error('Expected actual IndexedDB journal, found localStorage fallback');
+    return await new Promise((resolve,reject)=>{const open=indexedDB.open('keyval-store');open.onerror=()=>reject(open.error);open.onsuccess=()=>{const db=open.result,request=db.transaction('keyval','readonly').objectStore('keyval').get(key);request.onsuccess=()=>{resolve(request.result);db.close();};request.onerror=()=>{reject(request.error);db.close();};};});
+  },metadata.accountId);
+  let command,body,response,send,deliver;
+  const beforeSend=new Promise(resolve=>{send=resolve;}),beforeDeliver=new Promise(resolve=>{deliver=resolve;});
+  await page.route('**/api/player/mutate',async route=>{
+    const candidate=route.request().postDataJSON();
+    if(candidate.action!=='yard.pickupGoodie')return route.continue();
+    assert.equal(command,undefined,'one UI intent sends one initial command');command=candidate;
+    await beforeSend;response=await route.fetch();body=await response.json();await beforeDeliver;await route.fulfill({response});
+  });
+  await page.locator('[data-nav-item="decor"]').click();
+  await page.locator('[data-decor-tab="placed"]').click();
+  await page.locator('.cy-catalog-choice[data-slot-id="canonical:a"]').click();
+  const pickup=page.locator('[data-yard-action="pickup"]');
+  await expect(page.locator('[data-yard-action="move"]')).toBeDisabled();
+  await expect(pickup).toBeEnabled();await pickup.click();
+  await expect.poll(()=>command?.action).toBe('yard.pickupGoodie');
+  assert.equal(command.accountId,metadata.accountId);assert(command.clientActionId.startsWith(CANONICAL_FOOD_NONCE_PREFIX));
+  assert.deepEqual(command.payload,{...CANONICAL_FOOD_LOCATION,slotId:'canonical:a'});
+  await expect.poll(async()=> (await journal())?.items?.length).toBe(1);
+  const commandFields=item=>({accountId:item.accountId,action:item.action,payload:item.payload,clientActionId:item.clientActionId});
+  const held=await journal();assert.deepEqual(commandFields(held.items[0]),commandFields(command));
+  await expect(pickup).toBeDisabled();await expect(page.locator('.cy-status')).toContainText(/saving/i);
+  await ready(false);await page.screenshot({path:path.join(OUT,'pending-before-server.png'),scale:'device'});
+  send();await expect.poll(()=>body?.success,{timeout:30000}).toBe(true);
+  assert.deepEqual(commandFields((await journal()).items[0]),commandFields(command),'winning HTTP held: exact durable command remains until acknowledgement');
+  await page.screenshot({path:path.join(OUT,'pending-winning-http.png'),scale:'device'});
   await fs.writeFile(commandFile,JSON.stringify(command,null,2)+'\n');
-  const response=await page.request.post('/api/player/mutate',{headers:{authorization:'dev '+externalId},data:command});const body=await response.json();
+  deliver();await expect.poll(async()=> (await journal())?.items?.length).toBe(0);
   assert.equal(response.status(),200,JSON.stringify(body));assert.equal(body.success,true);assert.equal(body.snapshot.yardRuntime.status,'ready');
   assert.deepEqual(body.snapshot.yardRuntime.canonicalPlacements,[]);assert.equal(body.snapshot.yardRuntime.canonicalVisits[0].visitId,metadata.candidate.visitId);
   assert.equal(body.snapshot.yardRuntime.canonicalVisits[0].plan.leavesAt,metadata.candidate.leavesAt);
@@ -40,7 +68,7 @@ test('actual API released pickup keeps Pip visible through duplicate and browser
   await page.screenshot({path:path.join(OUT,'after-reload.png'),scale:'device'});assert.deepEqual(errors,[]);
   const durable=await run(process.execPath,['scripts/yard-pickup-backend-readback.mjs',metadataFile,commandFile,path.join(OUT,'durable.json')],{env,timeout:30000,maxBuffer:1024*1024});
   await fs.writeFile(path.join(OUT,'readback.log'),durable.stdout+'\n'+durable.stderr);
-  await fs.writeFile(path.join(OUT,'proof.json'),JSON.stringify({scope:'Actual API command, atomic response, duplicate, ordinary renderer and reload; not UI button or full-stay qualification',passed:true,visitId:metadata.candidate.visitId,leavesAt:metadata.candidate.leavesAt,commandId:command.clientActionId,diagnostics:await read()},null,2)+'\n');
+  await fs.writeFile(path.join(OUT,'proof.json'),JSON.stringify({scope:'Actual pickup button, IDB journal before send and while committed HTTP is delayed, receipt settlement, API duplicate, ordinary renderer and reload; not a verified realtime-delivery assertion, full-stay or all-device qualification',passed:true,visitId:metadata.candidate.visitId,leavesAt:metadata.candidate.leavesAt,commandId:command.clientActionId,diagnostics:await read()},null,2)+'\n');
  }catch(error){await page.screenshot({path:path.join(OUT,'failure.png'),scale:'device'}).catch(()=>{});await fs.writeFile(path.join(OUT,'failure.json'),JSON.stringify({error:String(error.stack),errors,diagnostics:await read().catch(()=>null)},null,2)+'\n');throw error;
  }finally{await context.close();}
 });

@@ -1,3 +1,5 @@
+import {canonicalSavedPickupCommandAllowed} from "./canonical-saved-pickup-actions.mjs";
+import {selectPendingPlacementVisuals} from "../../game-state/yardPlacementFeedback.mjs";
 import {canonicalSavedInventoryCommandAllowed} from './canonical-saved-inventory-actions.mjs';
 import {canonicalSavedFoodReady,canonicalSavedFoodCommandAllowed} from './canonical-saved-food-actions.mjs';
 import {selectCanonicalFoodState} from '../../../game-logic/yard-v2/canonical-food-contract.mjs';
@@ -46,6 +48,18 @@ function Row({title,detail,src,children}) { return <div className="cy-row">{src 
 function Card({title,detail,src,photo,children}) { return <article className="cy-card"><Preview src={src} photo={photo}/><strong>{title}</strong><small>{detail}</small>{children && <div className="cy-card-actions">{children}</div>}</article>; }
 function Empty({src,children}) { return <div className="cy-empty"><Preview src={src}/><p>{children}</p></div>; }
 
+// Reuse the existing ghost renderer without promoting an intent to game state.
+// Saved visits do not allow placement and must never receive an optimistic actor.
+function pendingScenePlacement(state,{canonical=false,saved=false}={}) {
+  if(saved)return null;
+  const snapshot=state.snapshot,scope=canonical?canonicalCommandScope(snapshot):null;
+  if(canonical&&!scope)return null;
+  const placements=canonical?canonicalPlacements(snapshot):snapshot?.yard?.placedGoodies||[];
+  return selectPendingPlacementVisuals({accountId:snapshot?.player?.id,placements,pendingActions:state.pendingActions,
+    accepts:item=>canonical?isCanonicalItemIntent(item.payload,item.clientActionId)&&Object.entries(scope).every(([k,v])=>item.payload[k]===v):!isCanonicalItemIntent(item.payload,item.clientActionId),
+  })[0]||null;
+}
+
 export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototype=false,allowCanonicalFoodPreview=false,pipGroundingRecipe='baseline'}={}) {
   const {language,t}=useAppI18n();
   // Build permission only makes the lazy owner available. Its initial mode is
@@ -78,6 +92,8 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const canonicalState=canonicalItemState(snapshot);
   const savedMode=current.canonicalSavedVisits===true,savedPending=savedMode&&snapshot?.yardRuntime?.status==='reconciliation-pending';
   const itemMode=current.canonicalItems===true,itemMutable=!savedMode&&itemMode&&current.mediaReady&&!!canonicalCapability(snapshot);
+  const placementMode=useRef({canonical:itemMode,saved:savedMode});
+  placementMode.current={canonical:itemMode,saved:savedMode};
   const actionSession=useGameHub(s=>s.accountSession);
   const canonicalFood=canonicalFoodPreview&&itemMode?selectCanonicalFoodState(snapshot):null;
   const canUseCanonicalFood=(snap=snapshot)=>savedMode?canonicalSavedFoodReady(snap,current,pipPreview):!!(canonicalFoodPreview&&itemMode&&current.mediaReady===true&&snap?.player?.id&&canonicalCapability(snap)&&selectCanonicalFoodState(snap).available&&current.canonicalFood?.render?.available===true&&!current.canonicalFood?.reentryRequired&&current.canonicalFood.render.state===selectCanonicalFoodState(snap).state);
@@ -95,7 +111,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
   const navigationArt=id=>id==='decor'&&itemMode?catalogPreview('goodie','leaf_pot'):YARD_UI_ART[id];
   const closePanel=useCallback(()=>setPanel(null),[]);
   useEscapeDismiss(!!panel,closePanel);
-  const cancel=useCallback((accepted=false)=>{if(accepted!==true&&pendingPlacement(useGameHub.getState(),ghostRef.current))return;if(drag.current!=null&&canvas.current?.hasPointerCapture?.(drag.current))canvas.current.releasePointerCapture(drag.current);drag.current=null;scene.current?.endPointer();ghostRef.current=null;setGhost(null);scene.current?.setGhost(null);},[]);
+  const cancel=useCallback((accepted=false)=>{if(accepted!==true&&pendingPlacement(useGameHub.getState(),ghostRef.current))return;if(drag.current!=null&&canvas.current?.hasPointerCapture?.(drag.current))canvas.current.releasePointerCapture(drag.current);drag.current=null;scene.current?.endPointer();ghostRef.current=null;setGhost(null);scene.current?.setGhost(pendingScenePlacement(useGameHub.getState(),placementMode.current));},[]);
   useEffect(()=>{
     useGameHub.getState().setActiveGameShell({id:'room',openPanel:!!panel,closePanel});
     return ()=>{const s=useGameHub.getState();if(s.activeGameShell?.id==='room')s.setActiveGameShell(null);};
@@ -113,7 +129,11 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     return()=>{if(window.__yardPipIntegration===diagnostics)delete window.__yardPipIntegration;};
   },[optionalSceneAllowed]);
   useEffect(()=>{scene.current?.update(snapshot,{accountSession:actionSession});if(ghostRef.current){const g=ghostRef.current;if(!ownsPlacement(useGameHub.getState(),g)){cancel(true);return;}const result=validatePlacement(snapshot,g);const next={...g,valid:result.ok,placementError:result.errors?.[0]?.code};ghostRef.current=next;setGhost(next);scene.current?.setGhost(next);}},[snapshot,actionSession]);
-  useEffect(()=>{scene.current?.setCanonicalActionPending(hasCanonicalIntent(useGameHub.getState()));},[pending,snapshot]);
+  useEffect(()=>{
+    const state=useGameHub.getState();
+    scene.current?.setCanonicalActionPending(hasCanonicalIntent(state));
+    if(!ghostRef.current)scene.current?.setGhost(pendingScenePlacement(state,placementMode.current));
+  },[pending,snapshot,itemMode,savedMode,current.mediaReady]);
   useEffect(()=>{
     const g=ghostRef.current,state=useGameHub.getState();
     if(g){
@@ -132,7 +152,8 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     const actionBusy=state.pendingActions.some(p=>p.action.startsWith('yard.')&&p.status!=='failed');
     const purchase=itemMode&&action==='yard.buyGoodie'&&canBuyGoodie(payload.goodieId,state.snapshot);
     const foodAction=savedMode?canonicalSavedFoodCommandAllowed(state.snapshot,current,action,payload,pipPreview):canUseCanonicalFood(state.snapshot)&&(action==='yard.setFood'&&payload.bowlId==='bowl-1'&&state.snapshot.yardRuntime.supportedBindings?.bowls?.['bowl-1']?.set===true&&state.snapshot.yardRuntime.supportedBindings?.foods?.[payload.foodId]?.set===true&&state.snapshot.yard.foodInventory?.[payload.foodId]>0||action==='yard.buyFood'&&payload.qty===1&&state.snapshot.yardRuntime.supportedBindings?.foods?.[payload.foodId]?.buy===true&&canAffordCatalogCost(YARD_FOODS[payload.foodId]?.cost,state.snapshot.yard.currencies));
-    if(actionBusy || !(canonical?itemMutable&&canonicalCapability(state.snapshot,action):savedMode?(foodAction||canonicalSavedInventoryCommandAllowed(state.snapshot,current,action,payload,pipPreview)):current.mutable||purchase||foodAction))return;
+    const savedPickup=savedMode&&action==='yard.pickupGoodie'&&canonicalSavedPickupCommandAllowed(state.snapshot,current,action,payload,pipPreview);
+    if(actionBusy || !(savedPickup||(canonical?itemMutable&&canonicalCapability(state.snapshot,action):savedMode?(foodAction||canonicalSavedInventoryCommandAllowed(state.snapshot,current,action,payload,pipPreview)):current.mutable||purchase||foodAction)))return;
     if(canonical)scene.current?.setCanonicalActionPending(true);
     try{const result=await useGameHub.getState().performReliableAction(action,payload,{clientActionId:`${canonical?canonicalNoncePrefix(state.snapshot):'yard-v2:'}${uuid()}`,durability:'outbox'});
       if(result.error)setError(result.error);else if(result.success&&result.pending)setError('');
@@ -224,7 +245,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
       {itemMode&&!canonicalState.available&&!pipPreview.viewportBlocked && <p className="cy-pip-viewport-note" role="status">{t(savedPending?'yard.persistent.loading':'yard.canonical.unknown')}</p>}
       {pipPreview.viewportBlocked && <p className="cy-pip-viewport-note" role="status">{t('yard.pipPreview.viewportPaused')}</p>}
     </HudRegion>
-    <HudRegion id="yardVisitStatus" className="cy-status" data-important={canonicalImportant?'true':undefined} data-editing={itemMode&&ghost?'true':undefined} applyLayout={false} role="status" aria-label={foodNotice|| (pipPreview.enabled&&!itemMode?`${previewStatus} ${t('yard.pipPreview.readOnly')}`:undefined)}>{itemMode&&ghost&&<span className="cy-placement-status-reserve" aria-hidden="true">{t('yard.persistent.placement.blocked')}</span>}<span>{savedMode?(savedPending?t('yard.persistent.loading'):feedback||(current.pets.length?t('yard.persistent.status.visiting',{name:name('pip_hamster')}):current.pendingGifts.length?t('yard.persistent.status.gifts',{count:current.pendingGifts.length}):t(current.bowls.some(b=>b.foodId&&b.servings>0)?'yard.persistent.status.food':'yard.persistent.status.empty'))):itemMode?(canonicalPending&&t('yard.canonical.pending')||!canonicalState.available&&t('yard.canonical.unknown')||feedback||foodNotice&&t(foodReentryRequired?'yard.canonical.food.reentryShort':foodConflict?'yard.canonical.food.occupiedShort':current.canonicalFood?.loading?'yard.canonical.food.loadingShort':'yard.canonical.food.unavailableShort')||busy&&t('yard.persistent.saving')||ghost&&(ghost.valid?t('yard.persistent.spaceFree'):t('yard.persistent.placement.blocked'))||interactionStatus||t(itemMutable?'yard.canonical.ready':'yard.canonical.unavailable')):pipPreview.enabled?previewStatus:status}</span></HudRegion>
+    <HudRegion id="yardVisitStatus" className="cy-status" data-important={canonicalImportant?'true':undefined} data-editing={itemMode&&ghost?'true':undefined} applyLayout={false} role="status" aria-label={foodNotice|| (pipPreview.enabled&&!itemMode?`${previewStatus} ${t('yard.pipPreview.readOnly')}`:undefined)}>{itemMode&&ghost&&<span className="cy-placement-status-reserve" aria-hidden="true">{t('yard.persistent.placement.blocked')}</span>}<span>{savedMode?(savedPending?t('yard.persistent.loading'):feedback||busy&&t('yard.persistent.saving')||(current.pets.length?t('yard.persistent.status.visiting',{name:name('pip_hamster')}):current.pendingGifts.length?t('yard.persistent.status.gifts',{count:current.pendingGifts.length}):t(current.bowls.some(b=>b.foodId&&b.servings>0)?'yard.persistent.status.food':'yard.persistent.status.empty'))):itemMode?(canonicalPending&&t('yard.canonical.pending')||!canonicalState.available&&t('yard.canonical.unknown')||feedback||foodNotice&&t(foodReentryRequired?'yard.canonical.food.reentryShort':foodConflict?'yard.canonical.food.occupiedShort':current.canonicalFood?.loading?'yard.canonical.food.loadingShort':'yard.canonical.food.unavailableShort')||busy&&t('yard.persistent.saving')||ghost&&(ghost.valid?t('yard.persistent.spaceFree'):t('yard.persistent.placement.blocked'))||interactionStatus||t(itemMutable?'yard.canonical.ready':'yard.canonical.unavailable')):pipPreview.enabled?previewStatus:status}</span></HudRegion>
     {!savedMode&&(allowPipPrototype||internalEntryAvailable||pipPreview.enabled) && !ghost && <HudRegion id="yardPlacementControls" applyLayout={false} className="cy-placement cy-pip-controls" data-active={pipPreview.enabled?"true":"false"} role="group" aria-label={t(allowPipPrototype?'yard.pipPreview.name':'yard.canonical.title')}>
       {(allowPipPrototype||pipPreview.enabled)&&<button data-pip-control="toggle" aria-label={t(pipPreview.enabled?'yard.pipPreview.return':'yard.pipPreview.enable')} type="button" disabled={!pipPreview.enabled&&(busy||submittingPlacement)} onClick={()=>{setPanel(null);scene.current?.setPrototypeEnabled(!pipPreview.enabled);}}>{pipPreview.enabled?t('yard.pipPreview.returnShort'):t('yard.pipPreview.enable')}</button>}
       {!allowPipPrototype&&!pipPreview.enabled&&internalEntryAvailable&&<button data-yard-action="open-canonical-yard" type="button" disabled={submittingPlacement||current.mediaReady!==true} onClick={enterCanonicalYard}>{t('yard.canonical.open')}</button>}
@@ -282,7 +303,7 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
       {feedback && <p className="cy-feedback" role="alert">{feedback}</p>}
       </div>
       {panel==='decor' && selected && <footer className="cy-selected-actions"><div><strong>{name(selected.id)}</strong><small>{chosen.detail}{decorTab==='shop'?purchaseNote(YARD_GOODIES[selected.id]?.cost,bindings.goodies?.[selected.id]?.buy):''}{decorTab==='placed' && selected.raw.condition!=='new' && chosen.supported && !affordable(YARD_GOODIES[selected.id]?.fixCost)?` · ${t('yard.persistent.insufficientFunds')}`:''}</small></div><div className="cy-row-actions">
-        {decorTab==='placed' && <><button data-yard-action="move" disabled={(itemMode?itemBlocked:blocked) || chosen.reserved || !chosen.supported} onClick={()=>startPlacement(chosen.prop || selected.raw)}>{t('yard.move')}</button><button data-yard-action="pickup" disabled={(itemMode?itemBlocked:blocked) || chosen.reserved} onClick={()=>act('yard.pickupGoodie',{slotId:selected.raw.slotId,...(itemMode?canonicalCommandScope(snapshot):{})})}>{t('yard.store')}</button>{selected.raw.condition!=='new' && <button disabled={blocked || chosen.reserved || !chosen.supported || !affordable(YARD_GOODIES[selected.id]?.fixCost)} onClick={()=>act('yard.fixGoodie',{slotId:selected.raw.slotId})}>{t('yard.persistent.repairCost',{cost:cost(YARD_GOODIES[selected.id]?.fixCost)})}</button>}</>}
+        {decorTab==='placed' && <><button data-yard-action="move" disabled={(itemMode?itemBlocked:blocked) || chosen.reserved || !chosen.supported} onClick={()=>startPlacement(chosen.prop || selected.raw)}>{t('yard.move')}</button><button data-yard-action="pickup" disabled={savedMode ? busy || !canonicalSavedPickupCommandAllowed(snapshot,current,'yard.pickupGoodie',{slotId:selected.raw.slotId,...canonicalCommandScope(snapshot)},pipPreview) : (itemMode?itemBlocked:blocked) || chosen.reserved} onClick={()=>act('yard.pickupGoodie',{slotId:selected.raw.slotId,...(itemMode?canonicalCommandScope(snapshot):{})})}>{t('yard.store')}</button>{selected.raw.condition!=='new' && <button disabled={blocked || chosen.reserved || !chosen.supported || !affordable(YARD_GOODIES[selected.id]?.fixCost)} onClick={()=>act('yard.fixGoodie',{slotId:selected.raw.slotId})}>{t('yard.persistent.repairCost',{cost:cost(YARD_GOODIES[selected.id]?.fixCost)})}</button>}</>}
         {decorTab==='placed'&&itemMode && <button data-pip-control="inspect-selected" disabled={itemBlocked||!!ghost||!pipPreview.interaction?.spawned} onClick={()=>{try{if(scene.current?.inspectCanonicalSlot(selected.raw.slotId)){setError('');setPanel(null);}else setError('CANONICAL_INTERACTION_UNAVAILABLE');}catch{setError('CANONICAL_INTERACTION_UNAVAILABLE');}}}>{t('yard.canonical.inspect')}</button>}
         {decorTab==='inventory' && <button data-yard-action="place" disabled={(itemMode?itemBlocked||placedItems.length>=CANONICAL_MAX_PLACEMENTS:blocked||!bindings.goodies?.[selected.id]?.place) || !chosen.supported} onClick={()=>startPlacement({goodieId:selected.id},true)}>{t('yard.place')}</button>}
         {decorTab==='shop' && <button data-yard-action="buy-goodie" disabled={busy || !canBuyGoodie(selected.id)} onClick={()=>act('yard.buyGoodie',{goodieId:selected.id})}>{t('yard.buy')}</button>}
@@ -290,3 +311,4 @@ export default function CourtyardGame({allowCanonicalEntry=false,allowPipPrototy
     </dialog>
   </div></VisualCatalogContext.Provider></UiImageAdmissionContext.Provider>;
 }
+

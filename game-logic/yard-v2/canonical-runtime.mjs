@@ -6,7 +6,8 @@ import {canonicalFoodCapabilities,selectCanonicalFoodState} from './canonical-fo
 import {canonicalItemCapabilities} from './canonical-locations.mjs';
 import {finishCanonicalDepartureCheckpoint} from './canonical-unique-visit-clock.mjs';
 import {probeCanonicalFoodAction} from './canonical-food-actions.mjs';
-import {probeCanonicalSavedItemAction} from './canonical-saved-item-actions.mjs';
+import {probeCanonicalSavedItemAction,CANONICAL_SAVED_ITEM_ACTIONS_ENABLED} from './canonical-saved-item-actions.mjs';
+import {CANONICAL_FOOD_NONCE_PREFIX} from './canonical-food-protocol.mjs';
 import {YARD_HOUR_MS,YARD_FOODS,YARD_GOODIES} from './catalog.mjs';
 import {clone,integer,digest} from './util.mjs';
 export const CANONICAL_RUNTIME_ENABLED=false;
@@ -54,9 +55,17 @@ export function ensureCanonicalPlayerYard(player,{now=Date.now(),simulate=false}
 }
 function foodPresentation(runtime){
  if(runtime.status!=='ready'||runtime.error)return runtime;
- return {...runtime,canonicalFoodActions:{protocol:'yard-canonical-food-actions/v1',enabled:true,actions:['yard.buyFood','yard.setFood']},
+ const view={...runtime,canonicalFoodActions:{protocol:'yard-canonical-food-actions/v1',enabled:true,actions:['yard.buyFood','yard.setFood']},
   canonicalInventoryActions:{protocol:'yard-canonical-inventory-actions/v1',enabled:true,actions:['yard.buyGoodie','yard.collectGifts','yard.claimDailyLetter']},
   supportedActions:['yard.buyFood','yard.setFood','yard.buyGoodie','yard.collectGifts','yard.claimDailyLetter'],supportedBindings:{goodies:Object.fromEntries(Object.keys(YARD_GOODIES).map(id=>[id,{buy:true,place:false,move:false,pickup:false,fix:false}])),foods:Object.fromEntries(Object.keys(YARD_FOODS).map(id=>[id,{buy:true,set:true}])),bowls:{'bowl-1':{set:true}}}};
+ if(!CANONICAL_SAVED_ITEM_ACTIONS_ENABLED)return view;
+ const cap=canonicalItemCapabilities({canonicalItemPlacementEnabled:true,canonicalFoodLocationEnabled:true});
+ const plan=runtime.canonicalVisits?.length===1?runtime.canonicalVisits[0].plan:null,row=runtime.canonicalPlacements?.length===1?runtime.canonicalPlacements[0]:null;
+ const ready=plan&&row&&runtime.targetReserved===false&&runtime.serverNow>=plan.releaseAt&&runtime.serverNow<plan.leavesAt&&row.slotId===plan.inspectionPlan?.target?.slotId;
+ return {...view,canonicalPickupActions:{protocol:'yard-canonical-released-pickup-actions/v1',enabled:true,actions:['yard.pickupGoodie']},
+  supportedActions:[...view.supportedActions,'yard.pickupGoodie'],supportedBindings:{...view.supportedBindings,goodies:{...view.supportedBindings.goodies,leaf_pot:{...view.supportedBindings.goodies.leaf_pot,pickup:true}}},
+  itemPlacementCapabilities:{...cap,protocol:'yard-canonical-saved-pickup-capability/v1',actions:['yard.pickupGoodie'],replayNoncePrefixes:[CANONICAL_FOOD_NONCE_PREFIX],
+   pickupReadySlotIds:ready?[row.slotId]:[],items:{leaf_pot:{...cap.items.leaf_pot,place:false,move:false,pickup:true}}}};
 }
 export function publicCanonicalPlayerYard(player,{now=Date.now()}={}){
  const base={version:1,storageVersion:3,canonicalVisitProtocol:CANONICAL_VISIT_PRESENTATION_PROTOCOL,serverNow:now,mutable:false,

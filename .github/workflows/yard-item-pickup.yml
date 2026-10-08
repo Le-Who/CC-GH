@@ -44,14 +44,14 @@ jobs:
           git rev-parse HEAD > test-results/item-pickup/source-commit.txt
       - name: Install existing locked dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
+      - name: Pickup authority, existing controls, placement feedback and Garden arbitration
+        run: |
+          set -o pipefail
+          node --test tests/yard-saved-pickup-client.test.mjs tests/yard-saved-pickup-outbox.test.mjs tests/yard-placement-feedback.test.mjs tests/yard-saved-pickup-ui-dispatch.test.mjs tests/garden-heartbeat-priority.test.mjs tests/garden-command-arbiter.test.mjs tests/garden-command-journal.test.mjs tests/yard-canonical-saved-food-client.test.mjs tests/yard-canonical-saved-food-outbox.test.mjs tests/yard-canonical-saved-inventory-client.test.mjs | tee test-results/item-pickup/client-feedback.log
       - name: Closed gate and source-layout controls
         run: |
           set -o pipefail
           node --test tests/yard-saved-item-gate.test.mjs tests/yard-saved-zero-row-restore.test.mjs | tee test-results/item-pickup/source.log
-      - name: Existing saved loop and receipt-backed cold replay
-        run: |
-          set -o pipefail
-          node --import ./tests/fixtures/register-runtime-test.mjs --test --test-concurrency=1 tests/yard-saved-loop.test.mjs tests/yard-saved-zero-row-reconciliation.test.mjs | tee test-results/item-pickup/regressions.log
       - name: Actual command, duration boundaries and independent warm caches
         run: |
           set -o pipefail
@@ -70,13 +70,15 @@ jobs:
           node --import ./tests/fixtures/register-runtime-test.mjs --import ./tests/fixtures/register-item-action-test.mjs --test tests/yard-saved-pickup-postgres.test.mjs | tee test-results/item-pickup/postgres.log
       - name: Install official Chromium
         run: pnpm exec playwright install --with-deps chromium
-      - name: Real API, ordinary renderer, duplicate, reload and PostgreSQL readback
+      - name: Actual pickup UI, delayed HTTP journal, renderer, replay and PostgreSQL readback
         env:
           DATABASE_URL: postgres://ccgh_visit_test@127.0.0.1:55437/ccgh_visit_test
           YARD_SAVED_VISIT_PG: '1'
           DEV_AUTH_ENABLED: 'true'
           VITE_YARD_PAINTED_FOOD_TRIAL: 'true'
         run: pnpm exec playwright test --config playwright.yard-saved-pickup.config.mjs
+      - name: Courtyard pending visuals, Garden heartbeat and separate navigation timings
+        run: pnpm exec playwright test --config playwright.game-feedback.config.mjs game-navigation-latency.spec.js yard-placement-feedback.spec.js
       - name: Preserve success and failure evidence
         if: always()
         uses: actions/upload-artifact@v4

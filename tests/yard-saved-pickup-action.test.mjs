@@ -1,3 +1,4 @@
+import {canonicalSavedPickupCapability,canonicalSavedPickupNewIntentAllowed,canonicalSavedPickupReplayAllowed} from '../src/game-state/canonicalSavedPickupProtocol.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {setTimeout as delay} from 'node:timers/promises';
@@ -12,7 +13,13 @@ for(const [minutes,seed] of [[45,null],[60,'long-stay:1703'],[65,'zero-row-hour:
  await withPlayerLock(owner,p=>{fixture(p);if(seed)p._yardV2.runtime.seed=seed;});
  async function ready(){const end=performance.now()+45000;while(performance.now()<end){let view;await withPlayerLock(owner,p=>{ensureCanonicalPlayerYard(p,{now,simulate:true});view=publicCanonicalPlayerYard(p,{now});});if(view.status==='ready'&&view.canonicalVisits?.length)return view;await delay(20);}throw Error('PICKUP_VISIT_READY_TIMEOUT');}
  const initial=await ready(),plan=initial.canonicalVisits[0].plan;
+ const client=view=>({player:{id:owner},yardRuntime:view});
+ assert.ok(canonicalSavedPickupCapability(client(initial)),'actual server advertisement is accepted by the strict client');
  assert.equal(plan.leavesAt-plan.arrivedAt,minutes*60000);
+ assert.deepEqual(initial.itemPlacementCapabilities.actions,['yard.pickupGoodie']);
+ assert.equal(initial.itemPlacementCapabilities.items.leaf_pot.place,false);
+ assert.equal(initial.itemPlacementCapabilities.items.leaf_pot.move,false);
+ assert.deepEqual(initial.itemPlacementCapabilities.pickupReadySlotIds,[]);
  const actionId=CANONICAL_FOOD_NONCE_PREFIX+'actual-pickup',payload={...CANONICAL_FOOD_LOCATION,slotId:row.slotId};
  now=plan.releaseAt-1;
  await withPlayerLock(owner,p=>{
@@ -23,7 +30,7 @@ for(const [minutes,seed] of [[45,null],[60,'long-stay:1703'],[65,'zero-row-hour:
  });
  now=plan.releaseAt;
  let before,committed;
- await withPlayerLock(owner,p=>{before=structuredClone({yard:p.yard,runtime:p._yardV2.runtime});});
+ await withPlayerLock(owner,p=>{before=structuredClone({yard:p.yard,runtime:p._yardV2.runtime});const view=publicCanonicalPlayerYard(p,{now});assert.deepEqual(view.itemPlacementCapabilities.pickupReadySlotIds,[row.slotId]);assert.equal(canonicalSavedPickupNewIntentAllowed(client(view),'yard.pickupGoodie',payload),true);});
  const results=await Promise.all([0,1].map(()=>withPlayerLock(owner,p=>{
   const result=executeCanonicalYardAction(p,'yard.pickupGoodie',payload,{now,actionId});
   assert.equal(result.status,200,result.error);
@@ -33,6 +40,9 @@ for(const [minutes,seed] of [[45,null],[60,'long-stay:1703'],[65,'zero-row-hour:
  assert.equal(results.filter(result=>result.replayed).length,1);
  assert.equal(committed.status,'ready',JSON.stringify(committed));
  assert.deepEqual(committed.canonicalPlacements,[]);
+ assert.deepEqual(committed.itemPlacementCapabilities.pickupReadySlotIds,[]);
+ assert.equal(canonicalSavedPickupNewIntentAllowed(client(committed),'yard.pickupGoodie',payload),false);
+ assert.equal(canonicalSavedPickupReplayAllowed({accountId:owner,action:'yard.pickupGoodie',payload,clientActionId:actionId},client(committed)),true);
  assert.deepEqual(committed.canonicalVisits[0].plan,plan);
  await withPlayerLock(owner,p=>{
   assert.equal(p.yard.goodieInventory.leaf_pot,(before.yard.goodieInventory.leaf_pot||0)+1);

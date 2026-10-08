@@ -1,6 +1,7 @@
 import { isExpectedGardenTapCooldown } from '../games/garden-shelf/lib/gardenActionFeedback.js';
 import {canonicalSavedActionCapability as canonicalSavedFoodCapability,canonicalSavedActionPendingResult as canonicalSavedFoodPendingResult,canonicalSavedActionReplayAllowed as canonicalSavedFoodReplayAllowed,canonicalSavedActionResumeWitness as canonicalSavedFoodResumeWitness,canonicalSavedActionPermissionScope as canonicalSavedFoodPermissionScope} from './canonicalSavedActionProtocol.mjs';
 import { create } from "zustand";
+import {canonicalSavedPickupCapability,canonicalSavedPickupReplayAllowed,canonicalSavedPickupNewIntentAllowed} from './canonicalSavedPickupProtocol.mjs';
 import {CANONICAL_ACTION_NONCE_PREFIX,CANONICAL_PENDING_ERRORS,canonicalCapability,canonicalCommandScope,canonicalNoncePrefix,canonicalReplayCapability,canonicalSupersededReceipt,isCanonicalItemIntent,isCanonicalItemNonce} from "./canonicalYardProtocol.mjs";
 import { readYardOutbox, writeYardOutbox } from "./yardOutboxStorage.js";
 import { VISIBLE_GAME_IDS } from "../app/gameRegistry.js";
@@ -48,7 +49,7 @@ function canDrainOutboxItem(item, snapshot) {
   return item.status !== "failed" && !item.requiresCanonicalReview && (!isCanonicalItemIntent(item.payload,item.clientActionId) || (canonicalReplayCapability(snapshot,item.action,item.clientActionId)
       && (!(item.requiresYardResume || item.status === "canonical-blocked" || item.status === "rollout-paused") || canonicalOutboxResumeSession === snapshotAccountSession)))
     && (!(item.requiresYardResume || item.status === "rollout-paused" || item.status === "canonical-blocked")
-    || (yardOutboxResumeSession === snapshotAccountSession && writableYardSnapshot(snapshot)));
+    || (canonicalSavedPickupReplayAllowed(item,snapshot)?canonicalOutboxResumeSession===snapshotAccountSession:yardOutboxResumeSession === snapshotAccountSession && writableYardSnapshot(snapshot)));
 }
 
 export function normalizeActiveTab(value) {
@@ -245,7 +246,10 @@ export const useGameHub = create((set, get) => ({
           && Number.isSafeInteger(result.player?.syncSeq) && result.player.syncSeq >= 0
           && compareSnapshotFreshness(result, get().snapshot) >= 0 && writableYardSnapshot(result)
           ? requestSession : null;
-        canonicalOutboxResumeSession = yardOutboxResumeSession === requestSession && requestCanonicalPauseEpoch === canonicalOutboxPauseEpoch && canonicalCapability(result) ? requestSession : null;
+        const pickupResume=options.resumeYardOutbox!==false&&requestCanonicalPauseEpoch===canonicalOutboxPauseEpoch
+          &&Number.isSafeInteger(result.serverTime)&&result.serverTime>=0&&Number.isSafeInteger(result.player?.syncSeq)&&result.player.syncSeq>=0
+          &&compareSnapshotFreshness(result,get().snapshot)>=0&&canonicalSavedPickupCapability(result);
+        canonicalOutboxResumeSession = requestCanonicalPauseEpoch === canonicalOutboxPauseEpoch && (yardOutboxResumeSession === requestSession && canonicalCapability(result)||pickupResume) ? requestSession : null;
         savedFoodOutboxResumeSession = options.resumeYardOutbox !== false && requestSavedFoodPauseEpoch === savedFoodOutboxPauseEpoch
           && Number.isSafeInteger(result.serverTime) && result.serverTime >= 0
           && Number.isSafeInteger(result.player?.syncSeq) && result.player.syncSeq >= 0
@@ -365,6 +369,7 @@ export const useGameHub = create((set, get) => ({
     if (isCanonicalItemIntent(payload,options.clientActionId)) {
       if (options.clientActionId && !isCanonicalItemNonce(options.clientActionId)) return {error:"CANONICAL_NONCE_REQUIRED"};
       if (!canonicalCapability(get().snapshot,action)) return {error:"CANONICAL_ITEM_PLACEMENT_DISABLED"};
+      if(canonicalSavedPickupCapability(get().snapshot)&&!canonicalSavedPickupNewIntentAllowed(get().snapshot,action,payload))return {error:'CANONICAL_PICKUP_NOT_READY'};
       if (!Object.entries(canonicalCommandScope(get().snapshot)).every(([k,v])=>payload[k]===v)
         || options.clientActionId && !options.clientActionId.startsWith(canonicalNoncePrefix(get().snapshot))) return {error:"CANONICAL_NEW_INTENT_SCOPE_REQUIRED"};
     }
