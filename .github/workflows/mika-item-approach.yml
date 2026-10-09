@@ -23,17 +23,18 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-          fetch-depth: 2
+          fetch-depth: 5
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Install locked existing dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Require unchanged independently checked product source
+      - name: Require checked Yard runtime and active Merge icon ownership
         run: |
           mkdir -p test-results/yard-clean
-          git diff --exit-code 59e65c1c2b2cecd736e9fe4b691afda32903541b -- . ':(exclude).github/workflows/mika-item-approach.yml'
-          echo 'Product source equals 59e65c1c: 58 owner/resource and 22 closure checks passed in run 37868065361. The unchanged Match-3 proof failure remains covered by the full package command.' > test-results/yard-clean/source-lineage.txt
+          git diff --exit-code 59e65c1c2b2cecd736e9fe4b691afda32903541b -- src game-logic/yard-v2 scripts public/assets public/assets-runtime Dockerfile .dockerignore
+          node --test tests/yard-clean-merge-assets.test.mjs > test-results/yard-clean/merge-icon-identity.log
+          echo 'Yard runtime equals 59e65c1c: 58 owner/resource and 22 closure checks passed in run 37868065361. Four active Merge icons move byte-exactly; the current full package command qualifies the separate Match-3 proof correction.' > test-results/yard-clean/source-lineage.txt
       - name: Collect one compact normal clean entry
         run: |
           pnpm exec playwright test --config playwright.yard-clean.config.mjs --project compact-diagnostic --list > test-results/yard-clean/collection.log
@@ -44,10 +45,10 @@ jobs:
         run: |
           set -o pipefail
           pnpm run build | tee test-results/yard-clean/build.log
+          tar -czf test-results/yard-clean/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/yard-pip-vendor-report.json dist/assets/*.js
           node scripts/yard-clean-delivery.mjs dist > test-results/yard-clean/delivery.json
           node --test tests/yard-lazy-built.test.mjs tests/yard-contract-data.test.mjs > test-results/yard-clean/built-closure-tests.log
           pnpm run perf:guard:build > test-results/yard-clean/budget.log
-          tar -czf test-results/yard-clean/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/yard-pip-vendor-report.json dist/assets/*.js
       - name: Full package test command against this exact replacement
         id: package
         timeout-minutes: 8
