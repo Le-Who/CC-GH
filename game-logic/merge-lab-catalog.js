@@ -3850,7 +3850,7 @@ export const MERGE_LAB_CATALOG = {
         }
       ],
       "requiresYardV3": false,
-      "asset": "/games/companion-yard/goodies/moon_lamp.png"
+      "asset": "/games/merge-lab-v3/projects/moon_lamp.png"
     },
     {
       "id": "listening_fountain",
@@ -3925,7 +3925,7 @@ export const MERGE_LAB_CATALOG = {
         }
       ],
       "requiresYardV3": false,
-      "asset": "/games/companion-yard/goodies/fountain_bowl.png"
+      "asset": "/games/merge-lab-v3/projects/fountain_bowl.png"
     },
     {
       "id": "dream_nest",
@@ -3981,7 +3981,7 @@ export const MERGE_LAB_CATALOG = {
         }
       ],
       "requiresYardV3": false,
-      "asset": "/games/companion-yard/goodies/cloud_bed.png"
+      "asset": "/games/merge-lab-v3/projects/cloud_bed.png"
     },
     {
       "id": "living_arbor",
@@ -4190,7 +4190,7 @@ export const MERGE_LAB_CATALOG = {
         }
       ],
       "requiresYardV3": false,
-      "asset": "/games/companion-yard/goodies/book_nook.png"
+      "asset": "/games/merge-lab-v3/projects/book_nook.png"
     }
   ],
   "starterItemIds": [
