@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
-import { YARD_RENDERER_MODULES, YARD_RUNTIME_CORE_MODULES, yardRendererChunk } from '../scripts/yard-renderer-chunk.mjs';
+import { YARD_RENDERER_MODULES, YARD_RUNTIME_CORE_MODULES, YARD_CLEAN_DEPENDENCY_MODULES, yardRendererChunk } from '../scripts/yard-renderer-chunk.mjs';
 import { YARD_CONTRACT_DATA_MODULES } from '../scripts/yard-contract-data.mjs';
 import { gameLoadingGraph } from '../scripts/game-loading-graph.mjs';
 import { summarizeEmittedChunks } from '../scripts/summarize-emitted-chunks.mjs';
@@ -80,4 +80,13 @@ test('retained shared runtime classification stays executable with only the pure
   assert.equal(graph.chunks[0].dataOnly, false); assert.equal(graph.chunks[0].gameModules.length, 27);
   assert.equal(graph.chunks[1].dataOnly, false); assert.deepEqual(graph.chunks[1].gameModules, [hash]);
   assert.equal(DEFAULT_BUILD_BUDGETS.maxGameChunkRawBytes, 75_000);
+});
+
+
+test('observed clean shared dependencies cannot be owned by React or the startup wire protocol',()=>{
+  const required=['game-logic/yard-catalog.js','game-logic/yard-v2/canonical-location-geometry.json','game-logic/yard-v2/canonical-locations.mjs','game-logic/yard-v2/canonical-visit-placement-contract.mjs','game-logic/yard-v2/canonical-food-contract.mjs','src/game-state/canonicalYardItems.mjs','src/games/companion-yard-v2/pip-prototype/render-quality-profile.mjs','src/games/companion-yard-v2/pip-preview-gate.mjs'];
+  assert.deepEqual([...YARD_CLEAN_DEPENDENCY_MODULES],required);
+  for(const file of required){assert.equal(yardRendererChunk(path.join(root,file),root),'yard-clean-domain');assert.equal(YARD_CONTRACT_DATA_MODULES.has(file),false);}
+  assert.equal(yardRendererChunk(path.join(root,'src/game-state/canonicalYardProtocol.mjs'),root),undefined,'Boot wire protocol must not pull the lazy geometry/scene in');
+  assert.equal(DEFAULT_BUILD_BUDGETS.maxGameChunkRawBytes,75_000);
 });

@@ -5,7 +5,7 @@ import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import test from 'node:test';
 import { YARD_CONTRACT_DATA_MODULES, YARD_DATA_OUTPUT_PREFIX } from '../scripts/yard-contract-data.mjs';
-import { YARD_RENDERER_MODULES, YARD_RUNTIME_CORE_MODULES } from '../scripts/yard-renderer-chunk.mjs';
+import { YARD_RENDERER_MODULES, YARD_RUNTIME_CORE_MODULES, YARD_CLEAN_DEPENDENCY_MODULES } from '../scripts/yard-renderer-chunk.mjs';
 import { DEFAULT_BUILD_BUDGETS } from '../scripts/perf-build-guard.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -30,6 +30,12 @@ test('actual Vite Yard metadata stays out of startup/precache and executable chu
   assert.equal(closure([renderer.file]).has(graph.entries['companion-yard-v2']), false, 'renderer must not form a static cycle back into its React entry');
   assert.ok(renderer.modules.every(id => YARD_RENDERER_MODULES.has(id)), 'manual renderer chunk must not absorb other dependencies');
   assert.ok(renderer.gameModules.length > 0);
+  const domain=graph.chunks.find(chunk=>chunk.modules.includes('src/game-state/canonicalYardItems.mjs'));
+  assert.ok(domain&&domain.file!==graph.entries['companion-yard-v2']);
+  assert.equal(domain.dataOnly,false);assert.equal(startup.has(domain.file),false);
+  assert.ok(domain.modules.every(id=>YARD_CLEAN_DEPENDENCY_MODULES.has(id)));
+  assert.equal(closure([domain.file]).has(graph.entries['companion-yard-v2']),false);
+  assert.equal(closure([domain.file]).has(renderer.file),false,'Shared canonical domain must not depend on its scene consumer');
   const core = graph.chunks.find(chunk => chunk.modules.includes('game-logic/yard-v2/mika-media.mjs'));
   if(core) {
   assert.ok(core.file !== graph.entries['companion-yard-v2'] && core.file !== renderer.file, 'shared runtime must not be owned by either consumer');
