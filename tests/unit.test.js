@@ -62,11 +62,6 @@ import {
   isYardVisitUsingGoodie,
 } from "../game-logic.js";
 import {
-  getVisitorMotion,
-  isPointInsideObstacle,
-} from "../src/games/companion-yard/movement.js";
-import { resolveCompanionYardAsset } from "../src/games/companion-yard/assets.js";
-import {
   GARDEN_GOLD_DISPLAY_MULTIPLIER,
   PLANT_TYPES,
   formatGardenGoldAmount,
@@ -1077,28 +1072,10 @@ describe("Cozy Yard player contracts", () => {
   });
 
   it("preserves visual pose anchors for centered visitor-to-goodie alignment", () => {
-    const start = 1_800_000_000_000;
     const fountainActivities = getYardGoodieActivities(YARD_GOODIES.fountain_bowl);
     const soakLeft = fountainActivities.find((activity) => activity.id === "soak-left");
     assert.deepEqual(soakLeft.visualAnchor, { x: 48, y: 78 });
 
-    const motion = getVisitorMotion(
-      {
-        visitId: "visual-anchor-visit",
-        visitorId: "basil_turtle",
-        pose: "soak",
-        entryEdge: "left",
-        motionSeed: "visual-anchor",
-        arrivedAt: start,
-        leavesAt: start + 60 * 60 * 1000,
-      },
-      { x: 52, y: 62 },
-      soakLeft,
-      start + 30 * 60 * 1000,
-      { visitorInfo: YARD_VISITORS.basil_turtle, activityScale: 0.42 },
-    );
-
-    assert.deepEqual(motion.visualAnchor, { x: 48, y: 78 });
   });
 
   it("types Yard goodies as layable surfaces or movement blockers", () => {
@@ -1120,100 +1097,6 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.starlit_fox, "curl"), true);
     assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.willow_fox, "curl"), true);
     assert.equal(isYardVisitorPoseStationary(YARD_VISITORS.mika_cat, "pounce"), false);
-  });
-
-  it("keeps stationary visitor poses anchored while routing active movement around blockers", () => {
-    const start = 1_800_000_000_000;
-    const visit = {
-      visitId: "stationary-visit",
-      visitorId: "mochi_bunny",
-      pose: "nap",
-      entryEdge: "left",
-      motionSeed: "still",
-      arrivedAt: start,
-      leavesAt: start + 60 * 60 * 1000,
-    };
-    const activity = { id: "nap", pose: "nap", x: 0, y: -8, roam: 6, layer: "front", kind: "lie" };
-    const justArrived = getVisitorMotion(visit, { x: 50, y: 70 }, activity, start + 60_000, {
-      visitorInfo: YARD_VISITORS.mochi_bunny,
-    });
-    const first = getVisitorMotion(visit, { x: 50, y: 70 }, activity, start + 30 * 60 * 1000, {
-      visitorInfo: YARD_VISITORS.mochi_bunny,
-    });
-    const second = getVisitorMotion(visit, { x: 50, y: 70 }, activity, start + 31 * 60 * 1000, {
-      visitorInfo: YARD_VISITORS.mochi_bunny,
-    });
-
-    assert.equal(justArrived.phase, "active");
-    assert.equal(justArrived.pinned, true);
-    assert.equal(justArrived.x, 50);
-    assert.equal(justArrived.y, 62);
-    assert.equal(first.x, second.x);
-    assert.equal(first.y, second.y);
-
-    const moving = getVisitorMotion({
-      ...visit,
-      pose: "pounce",
-      arrivedAt: start,
-      leavesAt: start + 60 * 60 * 1000,
-    }, { x: 50, y: 50 }, { id: "chase", pose: "pounce", x: 0, y: 0, roam: 5 }, start + 5 * 60 * 1000, {
-      visitorInfo: YARD_VISITORS.mika_cat,
-      obstacles: [{ x: 20, y: 40, width: 40, height: 20 }],
-    });
-
-    assert.equal(isPointInsideObstacle(moving, { x: 20, y: 40, width: 40, height: 20 }), false);
-  });
-
-  it("keeps lie poses on their decor instead of snapping the pose to a distant playzone row", () => {
-    const start = 1_800_000_000_000;
-    const visit = {
-      visitId: "stationary-low-row",
-      visitorId: "mochi_bunny",
-      pose: "nap",
-      entryEdge: "left",
-      motionSeed: "still-low-row",
-      arrivedAt: start,
-      leavesAt: start + 60 * 60 * 1000,
-    };
-    const motion = getVisitorMotion(
-      visit,
-      { x: 50, y: 28 },
-      { id: "nap", pose: "nap", x: 0, y: -12, roam: 6, layer: "front", kind: "lie" },
-      start + 30 * 60 * 1000,
-      { visitorInfo: YARD_VISITORS.mochi_bunny, playzoneId: "meadow", activityScale: 0.42 },
-    );
-
-    assert.equal(motion.stationary, true);
-    assert.equal(motion.x, 50);
-    assert.equal(motion.y, 22.96);
-  });
-
-  it("scales Yard activity offsets before projecting visitor poses into the full stage", () => {
-    const start = 1_800_000_000_000;
-    const visit = {
-      visitId: "stationary-scaled-offset",
-      visitorId: "pip_hamster",
-      pose: "watch",
-      entryEdge: "right",
-      motionSeed: "scaled-offset",
-      arrivedAt: start,
-      leavesAt: start + 60 * 60 * 1000,
-    };
-    const activity = { id: "watch-right", pose: "watch", kind: "stationary", x: 13, y: -13, roam: 0 };
-    const unscaled = getVisitorMotion(visit, { x: 50, y: 50 }, activity, start + 30 * 60 * 1000, {
-      visitorInfo: YARD_VISITORS.pip_hamster,
-      activityScale: 1,
-    });
-    const scaled = getVisitorMotion(visit, { x: 50, y: 50 }, activity, start + 30 * 60 * 1000, {
-      visitorInfo: YARD_VISITORS.pip_hamster,
-      activityScale: 0.4,
-    });
-
-    assert.equal(unscaled.x, 63);
-    assert.equal(unscaled.y, 37);
-    assert.equal(scaled.x, 55.2);
-    assert.equal(scaled.y, 44.8);
-    assert.ok(Math.hypot(scaled.x - 50, scaled.y - 50) < Math.hypot(unscaled.x - 50, unscaled.y - 50));
   });
 
   it("lets leaving Yard visitors release their goodie before the visit fully expires", async () => {
@@ -1643,83 +1526,6 @@ describe("Cozy Yard player contracts", () => {
     assert.equal(first.status, 200);
     assert.equal(conflict.status, 409);
     assert.equal(conflict.body.error, "client action conflict");
-  });
-});
-
-describe("Cozy Yard asset resolver", () => {
-  it("uses manifest overrides for backgrounds and falls back to stable runtime paths", () => {
-    const manifest = {
-      graphics: {
-        games: {
-          companionYard: {
-            backgrounds: {
-              meadow: "/custom-yard/backgrounds/meadow.webp",
-            },
-            goodies: "/custom-yard/goodies/",
-          },
-        },
-      },
-    };
-
-    assert.equal(
-      resolveCompanionYardAsset(manifest, "backgrounds", "meadow"),
-      "/custom-yard/backgrounds/meadow.webp",
-    );
-    assert.equal(
-      resolveCompanionYardAsset(manifest, "backgrounds", "tea_house"),
-      "/games/companion-yard/backgrounds/tea_house.png",
-    );
-    assert.equal(
-      resolveCompanionYardAsset(manifest, "goodies", "yarn_mouse_worn"),
-      "/custom-yard/goodies/yarn_mouse_worn.png",
-    );
-  });
-
-  it("uses generated runtime assets between manual overrides and legacy fallbacks", () => {
-    const manualManifest = {
-      graphics: {
-        games: {
-          companionYard: {
-            backgrounds: {
-              meadow: "/custom-yard/backgrounds/meadow.webp",
-            },
-          },
-        },
-      },
-    };
-    const runtimeManifest = {
-      assets: {
-        "companionYard.backgrounds.meadow": {
-          type: "image",
-          src: "/assets-runtime/companion-yard/backgrounds/meadow.1234abcd.webp",
-        },
-        "companionYard.backgrounds.tea_house": {
-          type: "image",
-          src: "/assets-runtime/companion-yard/backgrounds/tea_house.1234abcd.webp",
-        },
-        "companionYard.visitors.mika_cat_pounce": {
-          type: "image",
-          src: "/assets-runtime/companion-yard/visitors/mika_cat_pounce.1234abcd.webp",
-        },
-      },
-    };
-
-    assert.equal(
-      resolveCompanionYardAsset(manualManifest, "backgrounds", "meadow", runtimeManifest),
-      "/custom-yard/backgrounds/meadow.webp",
-    );
-    assert.equal(
-      resolveCompanionYardAsset(manualManifest, "backgrounds", "tea_house", runtimeManifest),
-      "/assets-runtime/companion-yard/backgrounds/tea_house.1234abcd.webp",
-    );
-    assert.equal(
-      resolveCompanionYardAsset(manualManifest, "foods", "empty_bowl", runtimeManifest),
-      "/games/companion-yard/foods/empty_bowl.png",
-    );
-    assert.equal(
-      resolveCompanionYardAsset(manualManifest, "visitors", "mika_cat_pounce", runtimeManifest),
-      "/assets-runtime/companion-yard/visitors/mika_cat_pounce.1234abcd.webp",
-    );
   });
 });
 

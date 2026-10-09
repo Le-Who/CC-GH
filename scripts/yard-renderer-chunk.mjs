@@ -1,10 +1,8 @@
-/** Executable canvas-renderer boundary, loaded with the lazy Yard route.
+/** Clean scene owner/data boundary, loaded with the lazy Yard route.
  * This code is never data-only and retains the normal game chunk budget. */
 import path from 'node:path';
 export const YARD_RENDERER_MODULES = new Set([
-  'actor-media.mjs', 'atlas-policy.mjs', 'atlas.mjs', 'edge-opacity.mjs',
-  'pose-selection.mjs', 'presentation-clock.mjs', 'presentation.mjs',
-  'projection.mjs', 'scene.mjs', 'telemetry.mjs', 'scene-layout.mjs', 'legacy-m2-background.mjs',
+  'presentation-clock.mjs', 'canonical-presentation.mjs', 'scene-owner.mjs',
 ].map(name => `src/games/companion-yard-v2/${name}`));
 // Shared static runtime/calibration dependencies must not be owned by the
 // React entry: the renderer imports them too. Keep this executable closure
@@ -59,6 +57,6 @@ export function yardRendererChunk(id, root) {
   if (YARD_CANONICAL_MOTION_MODULES.has(source)) return 'yard-canonical-motion';
   if (['ui-image-inventory.json', 'ui-image-reserve.mjs', 'decoded-capacity.mjs', 'runtime-cells.mjs']
     .some(name => source === `src/games/companion-yard-v2/${name}`)) return 'yard-scene-resources';
-  if (YARD_RENDERER_MODULES.has(source)) return 'yard-renderer';
+  if (YARD_RENDERER_MODULES.has(source)) return 'yard-clean-core';
   return YARD_RUNTIME_CORE_MODULES.has(source) ? 'yard-runtime-core' : undefined;
 }

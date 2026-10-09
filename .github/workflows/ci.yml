@@ -710,7 +710,7 @@ jobs:
         run: docker build -t game-hub-ci .
 
       - name: Verify final container Yard HTTP delivery
-        run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-public-media-http.mjs
+        run: docker run --rm --network none --entrypoint node game-hub-ci scripts/yard-clean-delivery.mjs dist
 
   yard-closed-receipt:
     name: Verify reused CLOSED acceptance
@@ -785,7 +785,8 @@ jobs:
         env:
           NODE_ENV: test
         run: |
-          node --test tests/yard-renderer-chunk.test.mjs tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-public-media.test.mjs tests/yard-public-media-built.test.mjs
+          node --test tests/yard-renderer-chunk.test.mjs tests/yard-contract-data.test.mjs tests/yard-lazy-built.test.mjs tests/yard-clean-media-budget.test.mjs tests/yard-clean-vendor.test.mjs
+          node scripts/yard-clean-delivery.mjs dist
           pnpm run perf:guard:build
       - uses: actions/upload-artifact@v7
         if: always()

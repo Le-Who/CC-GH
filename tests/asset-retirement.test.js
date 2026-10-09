@@ -35,7 +35,7 @@ test('retired public paths stay closed and production source has no retired URLs
   assert.equal(entries.filter(entry => entry.key.startsWith('match3.')).length, 8);
   assert.ok(entries.some(entry => entry.key === 'gardenShelf.sheet.transparent'));
   assert.ok(entries.some(entry => entry.key.startsWith('gachaMerge.items.')));
-  assert.ok(entries.some(entry => entry.key.startsWith('companionYard.')));
+  assert.equal(entries.some(entry => entry.key.startsWith('companionYard.')), false);
   assert.equal(entries.some(entry => /^(?:blox|bubbo|farm)\./.test(entry.key)), false);
   const manifest = JSON.parse(await fs.readFile('public/assets-runtime/manifest.json', 'utf8'));
   for (const key of Object.keys(manifest.assets)) {
@@ -51,9 +51,10 @@ test('current renderers and real legacy fallbacks retain their asset closure', a
   for (const file of MATCH3_SEMANTIC_FILES) await fs.access(`public/games/puzzling-potions/images/${file}`);
   assert.equal(GAME_ASSET_BUNDLES.match3.length, 8);
   for (const url of Object.values(LEGACY_ASSET_PATHS)) await fs.access(path.join('public', url.slice(1)));
-  for (const file of ['public/games/bubbo-bubbo/LICENSE', 'public/games/puzzling-potions/LICENSE', 'src/games/merge/LegacyMergeGame.jsx', 'src/games/companion-yard/CompanionYardGame.jsx']) await fs.access(file);
-  for (const dir of ['companion-yard', 'gacha-merge/items', 'settlement']) assert.ok((await files(`public/games/${dir}`)).length > 0);
-  for (const pet of ['mika', 'mochi', 'pebble', 'pip']) assert.ok((await files(`public/assets/yard-${pet}`)).length > 0);
+  for (const file of ['public/games/bubbo-bubbo/LICENSE', 'public/games/puzzling-potions/LICENSE', 'src/games/merge/LegacyMergeGame.jsx']) await fs.access(file);
+  for (const dir of ['gacha-merge/items', 'settlement']) assert.ok((await files(`public/games/${dir}`)).length > 0);
+  for (const file of ['src/games/companion-yard-v2/pip-prototype/assets/clean-garden.png','src/games/companion-yard-v2/pip-prototype/assets/pip.glb','src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb']) await fs.access(file);
+  for (const pet of ['mika','mochi','pebble','pip']) await assert.rejects(fs.access(`public/assets/yard-${pet}`), {code:'ENOENT'});
   const loaders = await fs.readFile('src/game-runtime/LazyPixiSceneHost.jsx', 'utf8');
   assert.doesNotMatch(loaders, /farmScene|bubboScene/);
   assert.match(loaders, /mergeScene/);
@@ -79,7 +80,7 @@ test('build guard counts direct-copy public media and rejects retired files even
     await write('assets-runtime/manifest.json', JSON.stringify({ assets: { 'match3.special.row': '/assets-runtime/puzzling-potions/row.1234abcd.webp' } }));
     await write('assets-runtime/puzzling-potions/row.1234abcd.webp', '1234');
     await write('games/blox-v2/frame.webp', '12345');
-    await write('assets/yard-mika/actor.webp', '123456');
+    await write('assets/yard-clean/current.webp', '123456');
     let report = await analyzeDist({ distDir: dir, budgets: { publicGamesTotalRawBytes: 4, publicAssetsTotalRawBytes: 5, publicMediaTotalRawBytes: 14 } });
     assert.equal(report.metrics.publicGames.rawBytes, 5);
     assert.equal(report.metrics.publicAssets.rawBytes, 6);
@@ -105,6 +106,12 @@ test('unused upstream imports are removed and required source-only exports keep 
   assert.equal(moved.length, inventory.sourceOnlyMoves);
   for (const row of inventory.files) {
     await assert.rejects(fs.access(row.path), { code: 'ENOENT' }, row.path);
+    if (row.action === 'retired-after-source-only') {
+      assert.equal(row.path,'public/games/companion-yard/HUD.svg');
+      assert.equal(SOURCE_ONLY_PUBLIC_ASSETS[row.path],undefined);
+      await assert.rejects(fs.access(row.to),{code:'ENOENT'});
+      continue;
+    }
     if (row.action !== 'move-source-only') continue;
     assert.equal(SOURCE_ONLY_PUBLIC_ASSETS[row.path], row.to);
     const bytes = await fs.readFile(row.to);
@@ -116,9 +123,9 @@ test('unused upstream imports are removed and required source-only exports keep 
   }
   assert.deepEqual((await files('assets-source')).map(file => `assets-source/${file}`).filter(isObsoleteImportedAssetPath), []);
   for (const { source } of await loadAssetPipelineEntries()) await fs.access(source);
-  // All frozen delivery inputs stay available; this is independent of rollout state.
-  const frozen = JSON.parse(await fs.readFile('scripts/yard-public-media.json', 'utf8'));
-  for (const row of frozen.files) await fs.access(`recovery-tools/yard-family-frozen/${row.path}`);
+  // The obsolete sprite-family copier and its inputs are retired together.
+  await assert.rejects(fs.access('scripts/yard-public-media.json'), {code:'ENOENT'});
+  await assert.rejects(fs.access('recovery-tools/yard-family-frozen'), {code:'ENOENT'});
 });
 
 test('current source, manual manifest, and preload entry do not call source-only or deleted public art', async () => {
@@ -181,7 +188,7 @@ test('five unreachable entry HUD skins are archived byte-exactly and absent from
   assert.equal(inventory.removedFromPublicBytes, 371894);
   assert.deepEqual(proof.files.filter(asset => sourceOnlyAssetDestination(asset.runtimePath)).map(asset => asset.runtimePath).sort(), inventory.files.map(row => row.path).sort());
   const hud = await fs.readFile('src/app/hud-redesign.css', 'utf8');
-  const yard = await fs.readFile('src/games/companion-yard/companion-yard.css', 'utf8');
+  const yard = await fs.readFile('src/games/companion-yard-v2/courtyard.css', 'utf8');
   const manifest = JSON.parse(await fs.readFile('assets-source/imagegen/hud-redesign/hud-redesign-manifest.json', 'utf8'));
   const surfaces = JSON.parse(await fs.readFile('assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json', 'utf8'));
   for (const row of inventory.files) {
@@ -201,10 +208,7 @@ test('five unreachable entry HUD skins are archived byte-exactly and absent from
   }
   const panel = surfaces.outputs.find(row => row.name === 'yard-panel');
   assert.equal(panel.runtime, false); assert.equal(panel.path, sourceOnlyAssetDestination('public/games/ui-surfaces/yard-panel.webp'));
-  // Every supported Yard dialog provides an owned screen skin; no generic
-  // fallback is needed, including when the HUD editor changes geometry.
-  for (const id of ['food','goodies','shop','petbook','album','gifts','settings','repair','remodel','expansion','daily','companion']) {
-    assert.ok(yard.includes(`.yard-game-screen[data-yard-screen="${id}"] { --yard-screen-panel-art:`), id);
-  }
+  assert.match(yard, /\.cy-dialog/);
+  await assert.rejects(fs.access('src/games/companion-yard/companion-yard.css'), {code:'ENOENT'});
   assert.doesNotMatch(yard, /--yard-generated-dialog-art/);
 });

@@ -24,7 +24,7 @@ function contextStub(canvas){
 function environment({nativeRenderer=false,owned=false,failGhost=false,startupClockGap=0,foodPreview=true,groundingRecipe='baseline',delayFood=null,failFood=false}={}){
  const win=new EventTarget(),doc=new EventTarget();doc.hidden=false;doc.hasFocus=()=>true;
  globalThis.window=win;globalThis.document=doc;globalThis.devicePixelRatio=2;
- let observer,width=378,height=622,next=0,at=0,failureCount=0,clockStarted=false,interruptions=0;const frames=new Map(),failures=[],renders=[],notices=[],foodRequests=[],renderCanvases=[],restarts=[],legacyGhosts=[],views=[];
+ let observer,width=378,height=622,next=0,at=0,failureCount=0,clockStarted=false,interruptions=0;const frames=new Map(),failures=[],renders=[],notices=[],foodRequests=[],renderCanvases=[],restarts=[],views=[];
  globalThis.ResizeObserver=class{constructor(fn){observer=fn;}observe(){}disconnect(){}};
  const ctx={setTransform(a,b,c,d,e,f){this.transform={a,b,c,d,e,f};},getTransform(){return this.transform;},clearRect(){},fillRect(){},drawImage(){}};
  const rect=()=>({left:6,top:60,width,height}),canvas={style:{},width:0,height:0,getContext:()=>ctx,getBoundingClientRect:rect};
@@ -35,8 +35,8 @@ function environment({nativeRenderer=false,owned=false,failGhost=false,startupCl
   rendererFactory:args=>createOptionalPipRenderer({...args,canvasFactory:()=>{const c=new EventTarget();renderCanvases.push(c);c.style={};c.dataset={};c.remove=()=>{c.parentNode=null;};return c;},
    rendererFactory:({THREE,canvas})=>{const renderer=nativeRenderer?new THREE.WebGLRenderer({canvas,context:contextStub(canvas)}):({shadowMap:{},setClearColor(){},setPixelRatio(){},setSize(w,h){canvas.width=w;canvas.height=h;},dispose(){},forceContextLoss(){},render(world,camera){world.updateMatrixWorld(true);renders.push({children:world.children.map(o=>({name:o.name,visible:o.visible})),camera:camera.matrixWorld.toArray()});}});
     const render=renderer.render.bind(renderer);renderer.render=(world,camera)=>{render(world,camera);if(failGhost&&!failureCount&&world.children.some(group=>group.visible&&group.children.some(o=>o.visible&&o.userData.ghost))){failureCount++;throw new TypeError('Injected first ghost submission failure');}};return renderer;}})};
- const scene=owned?createSceneOwner(canvas,{...options,prototypeAllowed:true,onError:error=>notices.push(error.code),onSceneFailure:detail=>notices.push(detail.mode),createLegacy:()=>({update(){},setGhost:g=>legacyGhosts.push(g),dispose(){},diagnostics:()=>({ready:true})}),loadPrototype:async()=>({createPipYardScene})}):createPipYardScene(canvas,options);
- return{scene,canvas,host,options,failures,renders,notices,legacyGhosts,foodRequests,renderCanvases,restarts,views,get interruptions(){return interruptions;},tick(ms=0){at+=ms;const calls=[...frames.values()];frames.clear();calls.forEach(fn=>fn(at));},resize(w,h,{flush=true}={}){width=w;height=h;if(flush)observer();},flushResize(){observer();}};
+ const scene=owned?createSceneOwner(canvas,{...options,onError:error=>notices.push(error.code),onSceneFailure:detail=>notices.push(detail.mode),loadScene:async()=>({createPipYardScene})}):createPipYardScene(canvas,options);
+ return{scene,canvas,host,options,failures,renders,notices,foodRequests,renderCanvases,restarts,views,get interruptions(){return interruptions;},tick(ms=0){at+=ms;const calls=[...frames.values()];frames.clear();calls.forEach(fn=>fn(at));},resize(w,h,{flush=true}={}){width=w;height=h;if(flush)observer();},flushResize(){observer();}};
 }
 
 for(const groundingRecipe of['baseline','pip-garden-grounding-v1'])test(`real scene owns one shared bowl and exact full budget under ${groundingRecipe}`,async()=>{
@@ -113,12 +113,12 @@ test('food-aware proposal cannot obtain clearance from disabled or forged capabi
  }finally{await e.scene.dispose();}
 });
 test('food context recovery retires complete owner before replacement and redraws fresh current state',async()=>{
- const e=environment({owned:true});try{e.scene.update(snapshot,{accountSession:1});await e.scene.ready;await e.scene.setCanonicalItemsEnabled(true);await e.scene.ready;e.tick();assert.equal(e.foodRequests.length,1);
+ const e=environment({owned:true});try{e.scene.update(snapshot,{accountSession:1});await e.scene.ready;e.tick();assert.equal(e.foodRequests.length,1);
  const old=e.renderCanvases[0],lost=new Event('webglcontextlost',{cancelable:true});old.dispatchEvent(lost);assert.equal(lost.defaultPrevented,true);old.dispatchEvent(new Event('webglcontextrestored'));await e.scene.ready;await e.scene.ready;e.tick();
- const d=e.scene.diagnostics();assert.equal(e.foodRequests.length,2);assert.equal(d.retirements,2);assert.equal(d.lastRetired.foodResources.retiredOwners,0);assert.equal(d.scene.canonicalFood.render.state,'empty');assert.ok(d.scene.frameCount>0);assert.deepEqual(e.failures,[]);assert.deepEqual(e.notices,[]);
+ const d=e.scene.diagnostics();assert.equal(e.foodRequests.length,2);assert.equal(d.retirements,1);assert.equal(d.lastRetired.foodResources.retiredOwners,0);assert.equal(d.scene.canonicalFood.render.state,'empty');assert.ok(d.scene.frameCount>0);assert.deepEqual(e.failures,[]);assert.deepEqual(e.notices,[]);
  }finally{await e.scene.dispose();}
 });
-test('enabling the food socket under the actual former crossing pose stays hidden until explicit preview re-entry',async()=>{
+test('enabling the food socket under the actual former crossing pose stays hidden until explicit clean restart',async()=>{
  const e=environment(),saved=structuredClone(snapshot);saved.yardRuntime.foodLocationCapabilities.enabled=false;saved.yardRuntime.itemPlacementCapabilities=canonicalItemCapabilities({canonicalItemPlacementEnabled:true});saved.yardRuntime.canonicalPlacements=[{...CANONICAL_LOCATION,slotId:'canonical:north',goodieId:'leaf_pot',itemGeometryRevision:'yard-succulent-T2',x:80,y:60,condition:'new',uses:0,placedAt:1}];
  try{e.scene.update(saved);await e.scene.ready;assert.equal(e.scene.inspectCanonicalSlot('canonical:north'),true);await Promise.resolve();e.tick(7200);const before=e.scene.diagnostics();assert.ok(before.dynamicSample.world.root.y<94&&before.dynamicSample.world.root.y>90);assert.equal(e.foodRequests.length,0);
  saved.yardRuntime.foodLocationCapabilities.enabled=true;saved.yardRuntime.itemPlacementCapabilities=canonicalItemCapabilities({canonicalItemPlacementEnabled:true,canonicalFoodLocationEnabled:true});e.scene.update(saved);e.tick();assert.equal(e.restarts.length,0);const after=e.scene.diagnostics();assert.equal(after.canonicalFood.reentryRequired,true);assert.equal(after.phase,'reentry-required');assert.equal(e.foodRequests.length,0);assert.equal(after.frameCount,before.frameCount);assert.deepEqual(after.dynamicSample.world,before.dynamicSample.world);
@@ -138,15 +138,26 @@ const settle=async()=>{for(let i=0;i<20;i++)await Promise.resolve();};
 const waitForFood=async e=>{for(let i=0;i<100&&!e.foodRequests.length;i++)await new Promise(resolve=>setTimeout(resolve,5));assert.equal(e.foodRequests.length,1);};
 test('actual pending food load fences A-B-A replacement through the whole scene owner',async()=>{
  let release;const delayed=new Promise(resolve=>{release=resolve;}),e=environment({owned:true,delayFood:delayed}),session={};
- e.scene.update(snapshot,{accountSession:session});await e.scene.ready;await e.scene.setCanonicalItemsEnabled(true);await waitForFood(e);
+ e.scene.update(snapshot,{accountSession:session});await waitForFood(e);
  const b=structuredClone(snapshot);b.player.id='B';e.scene.update(b,{accountSession:{}});e.scene.update(snapshot,{accountSession:{}});await settle();assert.equal(e.foodRequests[0].signal.aborted,true);assert.equal(e.renderCanvases.length,1);assert.equal(e.foodRequests.length,1);assert.equal(e.scene.diagnostics().mode,'transition');
  release();await e.scene.ready;await e.scene.ready;e.tick();assert.equal(e.renderCanvases.length,2);assert.equal(e.foodRequests.length,2);assert.equal(e.scene.diagnostics().scene.canonicalFood.render.state,'empty');assert.equal(e.scene.diagnostics().lastRetired.foodResources.loadingOrLiveOwners,0);
  const stable={width:e.canvas.width,height:e.canvas.height,canvas:e.canvas.style.visibility,host:e.host.style.visibility};e.renderCanvases[0].dispatchEvent(new Event('webglcontextrestored'));await settle();assert.deepEqual({width:e.canvas.width,height:e.canvas.height,canvas:e.canvas.style.visibility,host:e.host.style.visibility},stable);await e.scene.dispose();
 });
 test('immediate React-style remount on the shared canvas cannot allocate before delayed old food retirement',async()=>{
- let release;const delayed=new Promise(resolve=>{release=resolve;}),e=environment({owned:true,delayFood:delayed});e.scene.update(snapshot,{accountSession:1});await e.scene.ready;await e.scene.setCanonicalItemsEnabled(true);await waitForFood(e);
- const old=e.scene.dispose();let newCreates=0;const next=createSceneOwner(e.canvas,{directHost:e.host,uiImageOwner:createUiImageReserve(),createLegacy:()=>{newCreates++;e.canvas.width=321;e.canvas.height=567;e.canvas.style.visibility='visible';e.host.style.visibility='visible';return{update(){},dispose(){}};},loadPrototype:async()=>({createPipYardScene})});next.update(snapshot);await settle();assert.equal(newCreates,0);assert.equal(e.foodRequests[0].signal.aborted,true);assert.equal(e.foodRequests.length,1);
- release();await old;await next.ready;assert.equal(newCreates,1);assert.equal(e.renderCanvases.length,1);await settle();e.renderCanvases[0].dispatchEvent(new Event('webglcontextrestored'));await settle();assert.equal(e.canvas.width,321);assert.equal(e.canvas.height,567);assert.equal(e.canvas.style.visibility,'visible');assert.equal(e.host.style.visibility,'visible');await next.dispose();
+ let release,next;const delayed=new Promise(resolve=>{release=resolve;}),e=environment({owned:true,delayFood:delayed});
+ try{
+  e.scene.update(snapshot,{accountSession:1});await waitForFood(e);
+  const old=e.scene.dispose();let newCreates=0;
+  next=createSceneOwner(e.canvas,{...e.options,uiImageOwner:createUiImageReserve(),loadScene:async()=>({createPipYardScene:(canvas,options)=>{newCreates++;return createPipYardScene(canvas,options);}})});
+  next.update(snapshot);await settle();assert.equal(newCreates,0);assert.equal(e.foodRequests[0].signal.aborted,true);assert.equal(e.foodRequests.length,1);
+  release();await old;await next.ready;e.tick();assert.equal(newCreates,1);assert.equal(e.renderCanvases.length,2);assert.equal(e.foodRequests.length,2);
+  const d=next.diagnostics();assert.equal(d.mode,'canonical-items');assert.equal(d.scene.canonicalFood.render.state,'empty');assert.equal(d.scene.foodResources.loadingOrLiveOwners,1);
+  assert.equal(e.scene.diagnostics().lastRetired.foodResources.loadingOrLiveOwners,0);
+  const stable={width:e.canvas.width,height:e.canvas.height,canvas:e.canvas.style.visibility,host:e.host.style.visibility};
+  e.renderCanvases[0].dispatchEvent(new Event('webglcontextrestored'));await settle();
+  assert.deepEqual({width:e.canvas.width,height:e.canvas.height,canvas:e.canvas.style.visibility,host:e.host.style.visibility},stable);
+  assert.equal(newCreates,1);assert.deepEqual(e.failures,[]);
+ }finally{release();await next?.dispose();await e.scene.dispose();}
 });
 
 // Replay of the 320px editor's DOM-rect ordering. The dimensions below model
@@ -197,22 +208,21 @@ test('a reserved collision-status row keeps food, actor and bounds refusals edit
  }
 });
 
-test('build-authorized owner stays legacy without optional media until explicit entry, and return retires it',async()=>{
+test('normal owner starts canonical, preserves pending intent through restart and retires every resource on exit',async()=>{
  const e=environment({owned:true}),saved=structuredClone(snapshot),before=structuredClone(snapshot);
  try{
-  e.scene.update(saved,{accountSession:1});await e.scene.ready;e.tick();
-  assert.equal(e.scene.diagnostics().mode,'legacy');assert.equal(e.scene.diagnostics().enabled,false);
-  assert.equal(e.foodRequests.length,0);assert.equal(e.renderCanvases.length,0);assert.equal(e.renders.length,0);
-  // The owner preserves the host's pending-intent signal across visual entry.
-  e.scene.setCanonicalActionPending(true);
-  await e.scene.setCanonicalItemsEnabled(true);await e.scene.ready;e.tick();
-  assert.equal(e.scene.diagnostics().mode,'canonical-items');assert.equal(e.foodRequests.length,1);
-  assert.equal(e.scene.diagnostics().scene.itemActionPending,true);
-  assert.equal(e.scene.diagnostics().scene.renderer.paused,true);
-  await e.scene.setPrototypeEnabled(false);await e.scene.ready;
-  assert.equal(e.scene.diagnostics().mode,'legacy');assert.equal(e.scene.diagnostics().enabled,false);
+  e.scene.update(saved,{accountSession:1});e.scene.setCanonicalActionPending(true);await e.scene.ready;e.tick();
+  assert.equal(e.scene.diagnostics().mode,'canonical-items');assert.equal(e.scene.diagnostics().enabled,true);
+  assert.equal(e.foodRequests.length,1);assert.equal(e.renderCanvases.length,1);
+  assert.equal(e.scene.diagnostics().scene.itemActionPending,true);assert.equal(e.scene.diagnostics().scene.renderer.paused,true);
+  assert.equal(e.scene.setPrototypeEnabled,undefined);assert.equal(await e.scene.setCanonicalItemsEnabled(false),false);
+  await e.scene.restart();await e.scene.ready;e.tick();
+  assert.equal(e.scene.diagnostics().mode,'canonical-items');assert.equal(e.foodRequests.length,2);
+  assert.equal(e.scene.diagnostics().scene.itemActionPending,true);assert.equal(e.scene.diagnostics().scene.renderer.paused,true);
   assert.equal(e.scene.diagnostics().lastRetired.renderer.disposed,true);
   assert.equal(e.scene.diagnostics().lastRetired.foodResources.loadingOrLiveOwners,0);
-  assert.deepEqual(saved,before);assert.deepEqual(e.failures,[]);
+  assert.deepEqual(saved,before);assert.deepEqual(e.failures,[]);assert.deepEqual(e.notices,[]);
  }finally{await e.scene.dispose();}
+ const d=e.scene.diagnostics();assert.equal(d.mode,'disposed');assert.equal(d.enabled,false);
+ assert.equal(d.lastRetired.renderer.disposed,true);assert.equal(d.lastRetired.foodResources.loadingOrLiveOwners,0);
 });

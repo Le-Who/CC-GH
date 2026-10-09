@@ -35,7 +35,6 @@ export const SOURCE_ONLY_PUBLIC_ASSETS = Object.freeze({
   "public/games/ui-surfaces/farm-panel.png": "assets-source/imagegen/hud-redesign/qa-exports/ui-surfaces/farm-panel.png",
   "public/games/ui-surfaces/screen-surface-extract-manifest.json": "assets-source/imagegen/hud-redesign/screen-surface-extract-manifest.json",
   "public/games/ui-surfaces/portrait-panel-extract-manifest.json": "assets-source/imagegen/hud-redesign/portrait-panel-extract-manifest.json",
-  "public/games/companion-yard/HUD.svg": "assets-source/games/companion-yard/source-svg/HUD.svg",
   "public/games/gacha-merge/ui/actionIconClose.png": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconClose.png",
   "public/games/gacha-merge/ui/actionIconFreeTaps.png": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFreeTaps.png",
   "public/games/gacha-merge/ui/actionIconFuel.png": "assets-source/imagegen/gacha-merge/semantic-inputs/actionIconFuel.png"

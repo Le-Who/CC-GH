@@ -1,5 +1,5 @@
 import { registerAppTranslations } from "../../app/i18n.jsx";
-import "../companion-yard/i18n.js";
+import "./base-i18n.js";
 
 export const PERSISTENT_YARD_TRANSLATIONS = {
   en: {

@@ -18,8 +18,7 @@ import{createCleanProjection,savedVisitViewportVolumes,assertCleanComposition,su
 import{makePlanterInspection,repeatPlanterInspection,samplePlanterInspection,PLANTER_INSPECTION_VERSION}from'./planter-interaction.mjs';
 import{acquirePipLease,admitPipResources,rgbaAdmission,KNOWN_CPU_BUFFER_PEAK,BACKGROUND_ENCODED_BYTES,ENCODED_BACKGROUND_CPU_BYTES,COMBINED_KNOWN_CPU_PEAK,LIMITS}from'./resources.mjs';
 import{uiImageLifetimeLedger}from'../ui-image-reserve.mjs';
-import{courtyardPresentation}from'../presentation.mjs';
-import{MIKA_CLIPS}from'../../../../game-logic/yard-v2/media/mika-clips.mjs';
+import{canonicalYardPresentation}from'../canonical-presentation.mjs';
 
 /** Real Yard scene interface, separate inactive location, no gameplay writes. */
 export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{},onPrototypeState=()=>{},onFailure=()=>{},onPointerInterrupt=()=>{},onRestartRequired=()=>{},now=()=>performance.now(),
@@ -49,7 +48,7 @@ export function createPipYardScene(canvas,{directHost,uiImageOwner,onView=()=>{}
  const notify=phase=>{if(disposed)return;if(phase)lastPhase=phase;onPrototypeState(state());};
  const reportFailure=(error,operation)=>{let renderer=null;try{renderer=api?.diagnostics??null;}catch(secondary){renderer={diagnosticsError:String(secondary?.message||secondary)};}
   onFailure(error,{operation,phase:phase(),canonicalItems,ghost:ghost?{slotId:ghost.slotId,x:ghost.x,y:ghost.y,placing:ghost.placing,valid:ghost.valid}:null,viewport:projection?{width:projection.width,height:projection.height,art:{...projection.art}}:null,backing:{width:canvas.width,height:canvas.height},lastVisibility:lastFrame?.visibility??null,renderer});};
- function publish(){if(snapshot&&!disposed)onView({...courtyardPresentation(snapshot,snapshot.yardRuntime?.serverNow||snapshot.serverTime||0,MIKA_CLIPS),mutable:false,
+ function publish(){if(snapshot&&!disposed)onView({...canonicalYardPresentation(snapshot),mutable:false,readOnly:true,canonicalItems,canonicalSavedVisits,
   ...(canonicalItems?{canonicalFood:canonicalFoodPreview?{...foodState(),render:foodSelection,loading:foodLoading,reentryRequired:foodReentryRequired}:null,props:currentRows(),renderCatalog:canonicalItemCatalog,canonicalItems:true,canonicalState:currentItemState(),itemMutable:!canonicalSavedVisits&&!!canonicalCapability(snapshot)&&Boolean(api)&&!viewportBlocked&&!restartPending&&!foodReentryRequired}:{}),
   ...(canonicalSavedVisits?{pets:savedClient.state.available&&lastFrame?.visibility==='both'&&lastFrame.visitId===savedClient.state.plan?.visitId?[{visitId:savedClient.state.plan?.visitId,visitorId:'pip_hamster',phase:lastFrame.savedPhase,role:lastFrame.savedPhase,savedVisitor:true,position:lastFrame.root}]:[],canonicalSavedVisits:true}:{}),
   mediaReady:Boolean(api)&&!viewportBlocked&&!restartPending&&!foodReentryRequired,visualPrototype:state()});}

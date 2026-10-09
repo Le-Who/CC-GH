@@ -16,7 +16,7 @@ const TRANSLATION_SOURCES = [
   { name: "trivia translations", path: ["src", "games", "trivia", "i18n.js"] },
   { name: "garden translations", path: ["src", "games", "garden-shelf", "lib", "gardenTranslations.ts"] },
   { name: "merge translations", path: ["src", "games", "merge", "i18n.js"] },
-  { name: "companion yard translations", path: ["src", "games", "companion-yard", "i18n.js"] },
+  { name: "yard base translations", path: ["src", "games", "companion-yard-v2", "base-i18n.js"] },
   { name: "persistent yard translations", path: ["src", "games", "companion-yard-v2", "i18n.js"] },
 ];
 
@@ -194,10 +194,10 @@ it("catalog and placement identifiers stay out of player-facing panels", () => {
   for (const key of ["stockKnowledge", "noStock", "cost", "result", "quoteExpired", "available", "sameProjectOutput", "cropHelp", "distillHelp"]) {
     assert.match(merge, new RegExp(`(?:p|M|v|g|A)\\("${key}"`), key);
   }
-  const yard = readRepoFile("src", "games", "companion-yard", "CompanionYardGame.jsx");
-  assert.doesNotMatch(yard, /Math\.round\(placementDraft\.[xy]\)/);
-  assert.match(yard, /yard\.cancelPlacement/);
-  assert.match(yard, /yard\.confirmPlacement/);
+  const yard = readRepoFile("src", "games", "companion-yard-v2", "CourtyardGame.jsx");
+  assert.doesNotMatch(yard, /Math\.round\((?:placementDraft|ghost)\.[xy]\)/);
+  assert.match(yard, /yard\.persistent\.cancel/);
+  assert.match(yard, /yard\.place/);
   const settlement = readSplitGameSource(new URL("../src/games/settlement/SettlementGame.jsx", import.meta.url));
   assert.doesNotMatch(settlement, /runtime-слоями|>field<|>buildings<|>props<|>vfx</);
 });
@@ -292,37 +292,34 @@ it("shared transport failures use current RU/EN copy without replacing domain wa
 });
 
 
-it("persistent courtyard status and feedback use the active translator, including dynamic roles", async () => {
+it("clean courtyard status and feedback use the active translator for current visitors and state", async () => {
   const raw = readRepoFile("src", "games", "companion-yard-v2", "i18n.js");
   const pure = raw.replace(/^import .*;\r?\n/gm, "").replace(/^registerAppTranslations\(PERSISTENT_YARD_TRANSLATIONS\);?$/gm, "");
   const { PERSISTENT_YARD_TRANSLATIONS: translations } = await import(`data:text/javascript;base64,${Buffer.from(pure).toString("base64")}`);
-  const commonRaw = readRepoFile("src", "games", "companion-yard", "i18n.js");
+  const commonRaw = readRepoFile("src", "games", "companion-yard-v2", "base-i18n.js");
   const commonPure = commonRaw.replace(/^import .*;\r?\n/gm, "").replace(/^registerAppTranslations\(COMPANION_YARD_TRANSLATIONS\);?$/gm, "");
   const { COMPANION_YARD_TRANSLATIONS: common } = await import(`data:text/javascript;base64,${Buffer.from(commonPure).toString("base64")}`);
   const { YARD_VISITORS } = await import("../game-logic/yard-catalog.js");
-  const { visibleStatus } = await import("../src/games/companion-yard-v2/presentation.mjs");
+  const { canonicalVisibleStatus: visibleStatus } = await import("../src/games/companion-yard-v2/canonical-presentation.mjs");
   const { yardFeedbackText, YARD_FEEDBACK_KEYS } = await import("../src/games/companion-yard-v2/feedback.mjs");
-  const view = { mutable:true, pendingGifts:[], legacy:[], pets:[], issues:[], props:[], yard:{remodel:"meadow"}, bowls:[] };
+  const view = { mutable:true, itemMutable:false, pendingGifts:[], pets:[], issues:[], bowls:[] };
   for (const language of ["en", "ru"]) {
     const dictionary = { ...common[language], ...translations[language] };
     const t = (key, values={}) => {
       assert.equal(typeof dictionary[key], "string", `${language}: ${key}`);
       return dictionary[key].replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? `{${name}}`));
     };
-    for (const role of ["rest", "settle", "wake", "play", "roam", "approach", "depart", "unknown"]) {
-      for (const visitor of Object.values(YARD_VISITORS)) {
-        const text = visibleStatus({...view, pets:[{visitorId:visitor.id,role}]}, t);
-        assert.ok(text.includes(visitor.name));
-        if (language === "en") assert.doesNotMatch(text, /[А-Яа-яЁё]/);
-      }
-      const unknown = visibleStatus({...view, pets:[{visitorId:"unlisted-visitor",role}]}, t);
-      assert.ok(unknown.includes(common[language]["yard.visitor"]));
+    for (const visitor of Object.values(YARD_VISITORS)) {
+      const text = visibleStatus({...view,pets:[{visitorId:visitor.id}]},t);
+      assert.ok(text.includes(visitor.name));
+      if (language === "en") assert.doesNotMatch(text, /[А-Яа-яЁё]/);
     }
-    for (const sample of [{mutable:false}, {pendingGifts:[{}]}, {legacy:[{}]}, {issues:[{}]},
-      {props:[{readiness:{status:"reposition-needed"}}]}, {yard:{remodel:"tea_house"}},
-      {props:[{supported:false}]}, {bowls:[{foodId:"kibble",servings:1}]}, {}]) {
+    const unknown = visibleStatus({...view,pets:[{visitorId:"unlisted-visitor"}]},t);
+    assert.ok(unknown.includes(common[language]["yard.visitor"]));
+    for (const sample of [{mutable:false,itemMutable:false}, {mutable:false,itemMutable:true},
+      {pendingGifts:[{}]}, {issues:[{}]}, {bowls:[{foodId:"kibble",servings:1}]}, {}]) {
       const text = visibleStatus({...view,...sample},t);
-      assert.ok(text); assert.doesNotMatch(text, /yard\.persistent|\{count\}/);
+      assert.ok(text); assert.doesNotMatch(text, /yard\.(?:persistent|canonical)|\{(?:count|name)\}/);
       if (language === "en") assert.doesNotMatch(text, /[А-Яа-яЁё]/);
     }
     for (const code of Object.keys(YARD_FEEDBACK_KEYS)) assert.equal(yardFeedbackText(code,t),t(YARD_FEEDBACK_KEYS[code]));

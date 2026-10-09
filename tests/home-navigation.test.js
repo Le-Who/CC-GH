@@ -86,40 +86,23 @@ test('saving Back retains Home; close/dispose remove their exact captured listen
 });
 
 
-import { shouldDismissYardSettingsAfterHome } from '../src/games/companion-yard/homeReturn.js';
-const readyYard = () => ({ ...state, activeTab: 'room', accountSession: {}, busy: {}, pendingActions: [] });
-const yardReturn = (current, patch = {}) => ({ previous: { open: true, accountSession: current.accountSession, accountId: current.snapshot?.player?.id }, homeOpen: false, activeScreen: 'settings', state: current, ...patch });
-test('settled same-account Home return dismisses only the retained Yard Settings launcher', () => {
- const current = readyYard(), input = yardReturn(current);
- assert.equal(shouldDismissYardSettingsAfterHome(input), true);
- for (const activeScreen of [null, 'food', 'goodies', 'companion']) assert.equal(shouldDismissYardSettingsAfterHome({ ...input, activeScreen }), false);
- assert.equal(shouldDismissYardSettingsAfterHome({ ...input, previous: { ...input.previous, open: false } }), false);
- assert.equal(shouldDismissYardSettingsAfterHome({ ...input, homeOpen: true }), false);
- assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: { ...current, activeTab: 'garden' } }), false);
-});
-test('failed switches, pending actions, failed storage and account changes preserve Yard Settings', () => {
- const current = readyYard(), input = yardReturn(current);
- for (const patch of [
-  { busy: { mutate: true } }, { pendingActions: [{ status: 'sending' }] }, { pendingActions: [{ status: 'failed' }] },
-  { outboxLoaded: false }, { outboxAccountId: 'B' }, { outboxStorageError: 'READ_FAILED' },
-  { retainedLegacyOutbox: [{ action: 'yard.buyFood' }] }, { accountSession: {} }, { snapshot: { player: { id: 'B' } } }, { snapshot: { player: { id: 'B' } }, outboxAccountId: 'B' },
- ]) assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: { ...current, ...patch } }), false);
- const before = structuredClone(current);
- assert.equal(shouldDismissYardSettingsAfterHome({ ...input, homeOpen: true }), false);
- assert.deepEqual(current, before);
-});
-test('dismissed pending return is not reinterpreted as a new Home return after acknowledgement', () => {
- const current = readyYard();
- assert.equal(shouldDismissYardSettingsAfterHome(yardReturn({ ...current, pendingActions: [{ status: 'sending' }] })), false);
- assert.equal(shouldDismissYardSettingsAfterHome(yardReturn(current, { previous: { open: false, accountSession: current.accountSession, accountId: current.snapshot.player.id } })), false);
- assert.equal(shouldDismissYardSettingsAfterHome(yardReturn(current)), true);
+import { readFileSync } from 'node:fs';
+test('current Courtyard opens shared Home from its accessible header', () => {
+ const source=readFileSync(new URL('../src/games/companion-yard-v2/CourtyardGame.jsx',import.meta.url),'utf8');
+ assert.match(source,/import\s*\{openHome\}\s*from '\.\.\/\.\.\/app\/homeNavigation\.js'/);
+ assert.match(source,/<button className="cy-home" aria-label=\{t\('yard\.persistent\.back'\)\} onClick=\{openHome\}/);
 });
 
-test('A-to-B-to-A Home return cannot reuse the first account session intent', () => {
- const first = readyYard(), input = yardReturn(first);
- const second = { ...first, snapshot: { player: { id: 'B' } }, outboxAccountId: 'B', accountSession: {} };
- const restored = { ...first, accountSession: {} };
- assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: second }), false);
- assert.equal(shouldDismissYardSettingsAfterHome({ ...input, state: restored }), false);
- assert.equal(shouldDismissYardSettingsAfterHome(yardReturn(restored)), true);
+test('current Yard Home leave retains settled storage and account guards', async () => {
+ const current={...state,activeTab:'room',accountSession:{}},controls={id:'room',activeRun:false};
+ assert.equal(await leaveGameForHome({state:current,accountId:'A',controls}),true);
+ for(const patch of [
+  {busy:{mutate:true}},{pendingActions:[{status:'sending'}]},{pendingActions:[{status:'failed'}]},
+  {outboxLoaded:false},{outboxAccountId:'B'},{outboxStorageError:'READ_FAILED'},
+  {retainedLegacyOutbox:[{action:'yard.buyFood'}]},{snapshot:{player:{id:'B'}}},
+  {snapshot:{player:{id:'B'}},outboxAccountId:'B'},
+ ])assert.equal(await leaveGameForHome({state:{...current,...patch},accountId:'A',controls}),false);
+ const before=structuredClone(current);
+ assert.equal(await leaveGameForHome({state:current,accountId:'A',controls:{...controls,canLeave:()=>false}}),false);
+ assert.deepEqual(current,before);
 });

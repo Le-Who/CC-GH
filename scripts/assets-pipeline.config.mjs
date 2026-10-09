@@ -107,29 +107,6 @@ async function collectGardenEntries(rootDir) {
   return existingEntries(rootDir, gardenEntries);
 }
 
-async function collectCompanionYardEntries(rootDir) {
-  const root = "public/games/companion-yard";
-  const files = await walkFiles(rootDir, root, PNG_EXTENSIONS);
-  const compactRuntimeImage = runtimeWebpOnly();
-  const entries = [];
-  if (await fileExists(rootDir, `${root}/HUD.png`)) {
-    entries.push(entry("companionYard.ui.hudSheet", `${root}/HUD.png`, "companion-yard/ui", null, compactRuntimeImage.formats, {
-      raster: compactRuntimeImage.raster,
-    }));
-  }
-  for (const file of files) {
-    const parts = file.slice(`${root}/`.length).split("/");
-    if (parts.length !== 2) continue;
-    const [type, fileName] = parts;
-    if (!["backgrounds", "foods", "goodies", "visitors", "companions", "expressions", "mementos", "ui", "fx"].includes(type)) continue;
-    const id = path.basename(fileName, path.extname(fileName));
-    entries.push(entry(`companionYard.${type}.${id}`, file, `companion-yard/${type}`, null, compactRuntimeImage.formats, {
-      raster: compactRuntimeImage.raster,
-    }));
-  }
-  return entries;
-}
-
 async function collectGachaMergeEntries(rootDir) {
   const root = "public/games/gacha-merge";
   const [pngFiles, svgFiles] = await Promise.all([
@@ -174,7 +151,6 @@ export async function loadAssetPipelineEntries(rootDir = process.cwd()) {
   const entriesPromise = Promise.all([
     collectPixiEntries(resolvedRoot),
     collectGardenEntries(resolvedRoot),
-    collectCompanionYardEntries(resolvedRoot),
     collectGachaMergeEntries(resolvedRoot),
   ]).then((groups) => groups.flat());
 

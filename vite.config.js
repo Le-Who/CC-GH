@@ -9,7 +9,6 @@ import { gameLoadingGraph } from "./scripts/game-loading-graph.mjs";
 import { yardRendererChunk } from "./scripts/yard-renderer-chunk.mjs";
 import { yardPipVendor } from "./scripts/yard-pip-vendor.mjs";
 import { yardContractData, yardContractChunk, yardChunkFileNames } from "./scripts/yard-contract-data.mjs";
-import { yardPublicMedia } from "./scripts/yard-public-media.mjs";
 import { retiredPublicAssets } from "./scripts/retired-public-assets.mjs";
 
 const shellPrecache = createShellPrecache();
@@ -22,7 +21,6 @@ export default defineConfig({
     "import.meta.env.VITE_YARD_PIP_PREVIEW": JSON.stringify(process.env.VITE_YARD_PIP_PREVIEW === "true" ? "true" : "false"),
   },
   plugins: [
-    yardPublicMedia(),
     retiredPublicAssets(),
     yardContractData(),
     yardPipVendor(),
