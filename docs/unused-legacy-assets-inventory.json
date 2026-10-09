@@ -2,7 +2,7 @@
   "baseCommit": "67dd04ebcacc46dabefe525614a6eb17dda44d5a",
   "deletedFiles": 163,
   "deletedBytes": 14128062,
-  "sourceOnlyMoves": 33,
+  "sourceOnlyMoves": 32,
   "removedFromPublicFiles": 48,
   "removedFromPublicBytes": 11227855,
   "files": [
@@ -1283,11 +1283,12 @@
     },
     {
       "path": "public/games/companion-yard/HUD.svg",
-      "action": "move-source-only",
+      "action": "retired-after-source-only",
       "to": "assets-source/games/companion-yard/source-svg/HUD.svg",
       "bytes": 983934,
       "sha256": "807d438cd87072f6ab6b32f59d40257e2a1e237bbfeb03877223bc72f0abdfe7",
-      "reason": "Required export QA/provenance or editable source; no runtime caller."
+      "reason": "Required export QA/provenance or editable source; no runtime caller.",
+      "retirement": "Clean-only Yard replacement removes the obsolete renderer and its archived HUD source; exact prior source remains recoverable in Git."
     },
     {
       "path": "public/games/gacha-merge/ui/actionIconBack.png",
@@ -1411,5 +1412,6 @@
       "action": "delete-unused",
       "reason": "Omitted by the current Merge asset-pipeline allowlist and absent from runtime IDs/manual manifest; original generation sheets retained."
     }
-  ]
+  ],
+  "laterRetirements": 1
 }

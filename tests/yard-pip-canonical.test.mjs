@@ -12,12 +12,6 @@ import {validPresentationPlan} from '../game-logic/yard-v2/simulation.mjs';
 import {createAdmissionPolicy} from '../game-logic/yard-v2/orchestrator.mjs';
 import {createPipAcceptanceOptions} from './fixtures/yard-pip-canonical/acceptance.mjs';
 import {createMochiAcceptanceOptions} from './fixtures/yard-mochi-canonical/acceptance.mjs';
-import {createPipActorMediaEntry} from '../src/games/companion-yard-v2/pip-actor-media.mjs';
-import {courtyardPresentation,checkPlacement} from '../src/games/companion-yard-v2/presentation.mjs';
-import {selectPetPose} from '../src/games/companion-yard-v2/pose-selection.mjs';
-import {MIKA_CLIPS} from '../game-logic/yard-v2/media/mika-clips.mjs';
-import {edgeOpacity} from '../src/games/companion-yard-v2/edge-opacity.mjs';
-import media from '../public/assets/yard-pip/runtime-media.json' with {type:'json'};
 const NOW=Date.UTC(2026,9,3,12),H=3600000,copy=structuredClone,accepted=createPipAcceptanceOptions();
 // Release defaults now admit Pip. Model a closed source explicitly through the
 // trusted server seam; never change the released profile, registry or manifest.
@@ -40,7 +34,6 @@ let fixed;
 function admitted(){if(fixed)return copy(fixed);const p=player();assert.equal(ensurePersistentPlayerYard(p,{now:NOW,...accepted}).status,200);
  assert.equal(ensurePersistentPlayerYard(p,{now:NOW+H,simulate:true,...accepted}).status,200);
  const visit=Object.values(p._yardV2.runtime.visits).find(r=>r.original.visitorId==='pip_hamster');assert.ok(visit);fixed={p,visit};return copy(fixed);}
-const entry=()=>createPipActorMediaEntry(media,{assetBaseURL:'https://qa.invalid/assets/yard-pip/',profiles:accepted.actorProfiles});
 const snapshot=(p,now,options=accepted)=>({yard:p.yard,yardRuntime:publicPersistentYard(p,{now,...options})});
 
 test('closed Pip preserves Mika, accepted Mochi, foods, catalog and every inventory field',()=>{
@@ -52,7 +45,6 @@ test('closed Pip preserves Mika, accepted Mochi, foods, catalog and every invent
  assert.equal(Object.keys(YARD_VISITORS).length,8);assert.equal(Object.keys(YARD_GOODIES).length,11);assert.equal(Object.keys(YARD_FOODS).length,3);
  const p=player(),before=copy(p.yard);assert.equal(ensurePersistentPlayerYard(p,{now:NOW,...options}).status,200);assert.equal(ensurePersistentPlayerYard(p,{now:NOW+H,simulate:true,...options}).status,200);
  assert.equal(Object.keys(p._yardV2.runtime.visits).length,0);assert.equal(p.yard.bowls[0].servings,5);assert.equal(p.yard.placedGoodies[0].uses,0);for(const key of['goodieInventory','foodInventory','helper','petbook'])assert.deepEqual(p.yard[key],before[key]);
- assert.throws(()=>createPipActorMediaEntry(media,{assetBaseURL:'https://qa.invalid/',profiles:options.actorProfiles}),/Registered exact/);
  const balance=copy(p.yard.currencies);assert.equal(executePersistentYardAction(p,'yard.buyGoodie',{goodieId:'snack_table'},{now:NOW+H,actionId:'yard-v2:closed-buy',...options}).status,409);assert.deepEqual(p.yard.currencies,balance);
 });
 test('real catalog probability admits an exact Pip schedule and spends only existing food/use',()=>{
@@ -62,27 +54,11 @@ test('real catalog probability admits an exact Pip schedule and spends only exis
  const row=publicPersistentYard(p,{now:visit.arrivedAt,...accepted}).placementReadiness.find(r=>r.slotId==='snack');assert.equal(row.status,'ready');assert.equal(row.visitors.find(v=>v.visitorId==='pip_hamster').status,'ready');
  console.log('PIP_PERSISTENT_VISIT',JSON.stringify({durationMs:visit.leavesAt-visit.arrivedAt,loops:plan.schedule.loop.cycles,incoming:plan.incoming.durationMs,outgoing:plan.outgoing.durationMs}));
 });
-test('shared presentation owns exact source frames, contacts and prop throughout every handoff',()=>{
- const {p,visit}=admitted(),plan=visit.mediaAdmission.plan,actor=entry(),actors={pip:actor},before=JSON.stringify(p);const times=new Set([plan.schedule.enterAt-1,plan.schedule.leavesAt]);
- for(const s of plan.schedule.segments){for(const at of[s.startAt,s.startAt+1,s.endAt-1,s.endAt])times.add(at);const end=s.kind==='loop'?Math.min(s.endAt,s.startAt+2560):s.endAt;for(let at=s.startAt;at<end;at+=40)times.add(at);}
- for(const at of times){const v=courtyardPresentation(snapshot(p,at),at,MIKA_CLIPS,{actorEntries:actors,actorProfiles:accepted.actorProfiles});assert.equal(v.props[0].supported,true);assert.equal(v.props[0].stillId,'pip:target-snack-table');
- if(at<plan.schedule.enterAt||at>=visit.leavesAt){assert.equal(v.pets.length,0);assert.equal(v.props[0].drawStandalone,true);continue;}
- assert.equal(v.pets.length,1);assert.equal(v.legacy.length,0);const pet=v.pets[0],pose=selectPetPose(actor.manifest,pet,{actorProfile:actor.profile});assert.equal(pet.visitorId,'pip_hamster');assert.match(pose.clip.assetBaseURL,/yard-pip/);assert.equal(pose.clip.sourceSampleMs,40);
- assert.equal(Number(v.props[0].drawStandalone)+v.pets.filter(p=>p.propOwnerSlotId==='snack').length,1);
- if(pet.phase==='active-clip')assert.deepEqual(pet.clipOrigin,plan.clipOrigin);else assert.ok(Number.isFinite(edgeOpacity(pet.route.points,pet.phase,pet.groundDistance)));
- assert.equal(v.props[0].transform.x,50);assert.equal(v.props[0].transform.y,50);assert.ok(actor.presentation.requests(plan,at).lookahead.length<=1);
- }
- assert.equal(JSON.stringify(p),before);const at=plan.schedule.combinedStart+4800,rest=plan.schedule.combinedStart+17920;
- for(const [time,n]of[[at,2],[rest,4]]){const pet=courtyardPresentation(snapshot(p,time),time,MIKA_CLIPS,{actorEntries:actors,actorProfiles:accepted.actorProfiles}).pets[0],pose=selectPetPose(actor.manifest,pet,{actorProfile:actor.profile});assert.equal(pose.clip.groundContacts[pose.index].length,n);}
- assert.deepEqual(actor.groundShadow,{radiusX:.09,radiusY:.04,opacity:.25});
- assert.deepEqual(courtyardPresentation(snapshot(JSON.parse(before),at),at,MIKA_CLIPS,{actorEntries:actors,actorProfiles:accepted.actorProfiles}),courtyardPresentation(snapshot(p,at),at,MIKA_CLIPS,{actorEntries:actors,actorProfiles:accepted.actorProfiles}));
-});
-test('stale, moved, worn or closed records preserve the save and never render as another species',()=>{
- const {p,visit}=admitted(),at=visit.mediaAdmission.plan.schedule.combinedStart+4800,before=JSON.stringify(p),actor=entry(),args={actorEntries:{pip:actor},actorProfiles:accepted.actorProfiles};
- const released=snapshot(p,at,getYardServerOptions());assert.equal(released.yardRuntime.visits[0].renderCompatible,true);assert.equal(courtyardPresentation(released,at,MIKA_CLIPS,args).pets[0].visitorId,'pip_hamster');
- const closed=snapshot(p,at,closedPipOptions());assert.equal(closed.yardRuntime.visits[0].renderCompatible,false);assert.ok(closed.yardRuntime.visits[0].presentationIssues.includes('INTERACTION_MEDIA_NOT_READY'));assert.equal(courtyardPresentation(closed,at,MIKA_CLIPS,args).pets.length,0);assert.equal(JSON.stringify(p),before);
+test('closed and stale public admission preserve the saved Pip identity and records',()=>{
+ const {p,visit}=admitted(),at=visit.mediaAdmission.plan.schedule.combinedStart+4800,before=JSON.stringify(p);
+ const released=snapshot(p,at,getYardServerOptions());assert.equal(released.yardRuntime.visits[0].renderCompatible,true);
+ const closed=snapshot(p,at,closedPipOptions());assert.equal(closed.yardRuntime.visits[0].renderCompatible,false);assert.ok(closed.yardRuntime.visits[0].presentationIssues.includes('INTERACTION_MEDIA_NOT_READY'));assert.equal(JSON.stringify(p),before);
  for(const mutate of[r=>r.mediaAdmission.plan.groundFootprintRevision='stale',r=>r.mediaAdmission.bindingCalibrationHash='stale',r=>r.mediaAdmission.actorProfile.revision='stale']){const q=copy(p);mutate(Object.values(q._yardV2.runtime.visits)[0]);assert.equal(snapshot(q,at).yardRuntime.visits[0].renderCompatible,false);}
- for(const mutate of[q=>q.x++,q=>q.condition='worn',q=>q.rotationZ=.1]){const snap=snapshot(p,at);snap.yard=copy(snap.yard);mutate(snap.yard.placedGoodies[0]);const view=courtyardPresentation(snap,at,MIKA_CLIPS,args);assert.equal(view.pets.length,0);assert.equal(view.props[0].drawStandalone,true);}
 });
 test('offline catch-up and reload remain partition-equivalent with one gift and no prop commits',()=>{
  const {p,visit}=admitted(),bulk=copy(p),parts=copy(p),end=visit.leavesAt+1,inventory=copy(p.yard.goodieInventory),outside=copy({resources:p.resources,garden:p.garden,merge:p.merge});
@@ -109,12 +85,4 @@ test('accepted Pip admission still rejects unsupported foods, worn transition an
  for(const [mutate,code]of[[q=>q.placement.uses=8,'POST_ADMISSION_PROP_STATE_UNSUPPORTED'],[q=>q.bowl.foodId='future_food','FOOD_PRESENTATION_UNAVAILABLE'],[q=>q.activity.id='sniff','ACTIVITY_MEDIA_UNAVAILABLE'],[q=>q.active.push({visitorId:'pip_hamster',leavesAt:NOW+2*H}),'PIP_ALREADY_VISITING'],[q=>q.yard.placedGoodies.push({slotId:'future',goodieId:'leaf_pot',x:80,y:80}),'PLACEMENT_CALIBRATION_UNAVAILABLE']]){const q=copy(base);mutate(q);const before=JSON.stringify(q);assert.equal(source.preflightCandidate(q).code,code);assert.equal(JSON.stringify(q),before);}
  const before=JSON.stringify(base),admission=createAdmissionPolicy(getYardServerOptions())(base);assert.equal(admission.ok,true,admission.code);assert.deepEqual(admission.binding.actorProfile,PIP_ACTOR_REFERENCE);assert.equal(validPresentationPlan(admission.binding.plan,{at:base.at,leavesAt:base.leavesAt,slotId:placement.slotId}),true);
  assert.deepEqual(createAdmissionPolicy(closedPipOptions())(base),{ok:false,code:'UNSUPPORTED_VISIT_MEDIA'});assert.equal(JSON.stringify(base),before);
-});
-test('canonical atlas bytes and manifest binding remain the frozen independent Pip source',async()=>{
- const {readFile}=await import('node:fs/promises'),{createHash}=await import('node:crypto');
- const seen=new Set();for(const clip of[...Object.values(media.clips),...Object.values(media.walk.facings),...Object.values(media.turns)])for(const page of clip.pages){if(seen.has(page.src))continue;seen.add(page.src);const bytes=await readFile(new URL('../public/assets/yard-pip/'+page.src,import.meta.url));assert.equal(bytes.length,page.encodedBytes);assert.equal(createHash('sha256').update(bytes).digest('hex'),page.sha256);}
- const logicalPages=[...Object.values(media.clips),...Object.values(media.walk.facings),...Object.values(media.turns)].reduce((n,clip)=>n+clip.pages.length,0);
- assert.equal(logicalPages,101);assert.equal(seen.size,87);assert.equal(media.deliveryAudit.logicalAtlasPages,101);assert.equal(media.deliveryAudit.uniqueAtlasFiles,87);
- assert.equal(media.renderBindings['pip-snack-combined-r1'].bindingCalibrationHash,'59fdee75e4bacae7bb65c869745c93fb6607cb67d5e7bd5e12dfe58d052f4492');
- assert.equal(media.playbackReady,false);assert.equal(media.runtimeActivated,false);
 });

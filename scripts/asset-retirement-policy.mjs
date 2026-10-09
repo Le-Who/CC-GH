@@ -3,7 +3,7 @@ import losslessAliases from './yard-lossless-delivery-aliases.json' with {type:'
 const retiredLosslessCopies=new Set(losslessAliases.files.map(row=>row.retire));
 
 // These are renderer-specific retirements, not a blanket ban on legacy art.
-// Yard, Merge schema fallbacks, Settlement and future canonical Yard media stay.
+// Current clean Yard media, Merge schema data and Settlement remain independently owned.
 export const MATCH3_SEMANTIC_FILES = Object.freeze([
   'special-row.png', 'special-column.png', 'special-blast.png', 'special-colour.png',
   'drop-gold.png', 'drop-seeds.png', 'drop-energy.png', 'fx-clear-burst.png',
@@ -17,6 +17,7 @@ const gardenFiles = new Set([
 const licenses = new Set(['games/bubbo-bubbo/LICENSE', 'games/puzzling-potions/LICENSE']);
 export function isRetiredAssetPath(value) {
   const file = String(value).replaceAll('\\', '/').replace(/^\/?(?:public\/)?/, '').split(/[?#]/)[0];
+  if (/^(?:games\/companion-yard\/|assets-runtime\/companion-yard\/|assets\/yard-(?:mika|mochi|pebble|pip|family|fox|turtles)\/)/.test(file)) return true;
   if(retiredLosslessCopies.has(`public/${file}`))return true;
   if (sourceOnlyAssetDestination(file) || RETIRED_UNUSED_PUBLIC_FILES.includes(`public/${file}`)) return true;
   if (licenses.has(file) || match3Files.has(file) || gardenFiles.has(file)) return false;

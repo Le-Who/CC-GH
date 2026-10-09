@@ -39,24 +39,6 @@
       "gardenShelf": {
         "sheet": "/games/garden-shelf/assets_transparent.png"
       },
-      "companionYard": {
-        "source": "assets-source/games/companion-yard/source-svg/ (editable SVG source, not served)",
-        "backgrounds": {
-          "meadow": "",
-          "tea_house": "",
-          "moon_garden": ""
-        },
-        "foods": {
-          "empty_bowl": "",
-          "kibble": "",
-          "berry_plate": "",
-          "bonito_bowl": ""
-        },
-        "goodies": "",
-        "visitors": "",
-        "companions": "",
-        "notes": "Goodies support base, _worn, and _broken PNG variants; visitors and companions use stable catalog ids."
-      },
       "gachaMerge": {
         "background": {
           "table": ""

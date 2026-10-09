@@ -1,11 +1,23 @@
-/** Executable canvas-renderer boundary, loaded with the lazy Yard route.
+/** Clean scene owner/data boundary, loaded with the lazy Yard route.
  * This code is never data-only and retains the normal game chunk budget. */
 import path from 'node:path';
 export const YARD_RENDERER_MODULES = new Set([
-  'actor-media.mjs', 'atlas-policy.mjs', 'atlas.mjs', 'edge-opacity.mjs',
-  'pose-selection.mjs', 'presentation-clock.mjs', 'presentation.mjs',
-  'projection.mjs', 'scene.mjs', 'telemetry.mjs', 'scene-layout.mjs', 'legacy-m2-background.mjs',
+  'presentation-clock.mjs', 'canonical-presentation.mjs', 'scene-owner.mjs',
 ].map(name => `src/games/companion-yard-v2/${name}`));
+// Pure canonical geometry, capability projection and render settings are shared
+// by the React controls and clean scene. Their previous automatic ownership in
+// CourtyardGame formed clean-core -> React -> clean-core and scene -> React.
+// Startup-safe wire protocols remain in their existing small shared owners.
+export const YARD_CLEAN_DEPENDENCY_MODULES = new Set([
+  'game-logic/yard-catalog.js',
+  'game-logic/yard-v2/canonical-location-geometry.json',
+  'game-logic/yard-v2/canonical-locations.mjs',
+  'game-logic/yard-v2/canonical-visit-placement-contract.mjs',
+  'game-logic/yard-v2/canonical-food-contract.mjs',
+  'src/game-state/canonicalYardItems.mjs',
+  'src/games/companion-yard-v2/pip-prototype/render-quality-profile.mjs',
+  'src/games/companion-yard-v2/pip-preview-gate.mjs',
+]);
 // Shared static runtime/calibration dependencies must not be owned by the
 // React entry: the renderer imports them too. Keep this executable closure
 // separate to prevent renderer -> React entry -> renderer initialization cycles.
@@ -59,6 +71,7 @@ export function yardRendererChunk(id, root) {
   if (YARD_CANONICAL_MOTION_MODULES.has(source)) return 'yard-canonical-motion';
   if (['ui-image-inventory.json', 'ui-image-reserve.mjs', 'decoded-capacity.mjs', 'runtime-cells.mjs']
     .some(name => source === `src/games/companion-yard-v2/${name}`)) return 'yard-scene-resources';
-  if (YARD_RENDERER_MODULES.has(source)) return 'yard-renderer';
+  if (YARD_RENDERER_MODULES.has(source)) return 'yard-clean-core';
+  if (YARD_CLEAN_DEPENDENCY_MODULES.has(source)) return 'yard-clean-domain';
   return YARD_RUNTIME_CORE_MODULES.has(source) ? 'yard-runtime-core' : undefined;
 }

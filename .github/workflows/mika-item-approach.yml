@@ -1,72 +1,71 @@
-name: Mika settled-checkpoint candidate
+name: Clean Yard replacement candidate
 on:
   push:
-    branches: ['qa/native-mika-checkpoint-20261008']
+    branches: ['qa/clean-yard-only-20261009']
 permissions:
   contents: read
 concurrency:
-  group: native-mika-checkpoint-20261008
+  group: clean-yard-only-20261009
   cancel-in-progress: false
 jobs:
   qualify:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     env:
       CI: 'true'
       NODE_ENV: test
       DATABASE_URL: ''
       REDIS_URL: ''
       NODE_OPTIONS: ''
-      VITE_YARD_PIP_PREVIEW: 'true'
       VITE_YARD_SAVED_VISITS: 'false'
       VITE_YARD_PAINTED_FOOD_TRIAL: 'false'
-      VITE_YARD_MIKA_QA: 'true'
-      VITE_YARD_MIKA_ITEM_QA: 'true'
-      MIKA_QA_EXPECT_ENABLED: 'true'
-      MIKA_QA_EXPECT_ITEM_APPROACH: 'true'
-      MIKA_QA_EXPECT_ARRIVAL: 'true'
-      VITE_YARD_MIKA_CONTINUATION_QA: 'true'
-      MIKA_QA_EXPECT_CONTINUATION: 'true'
-      MIKA_QA_EXPECT_SELECTED_UI: 'true'
-      MIKA_QA_EXPECT_CHECKPOINT: 'true'
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          fetch-depth: 3
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Install locked existing dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Check bounded recipe, checkpoint transaction and owner integration
+      - name: Require checked behavior and exact clean asset ownership
         run: |
-          mkdir -p test-results/mika-normal
-          node --test --test-concurrency=1 tests/yard-mika-native-settled-recipe.test.mjs tests/yard-native-checkpoint-command.test.mjs tests/yard-native-item-command.test.mjs tests/yard-mika-checkpoint-layer.test.mjs tests/yard-mika-qa-entry.test.mjs tests/yard-mika-qa-async-scene.test.mjs tests/yard-mika-native-contract.test.mjs > test-results/mika-normal/source-tests.log
-          node --import ./tests/yard-inventory-only-loader.mjs --test --test-concurrency=1 tests/yard-mika-native-checkpoint.test.mjs > test-results/mika-normal/server-checkpoint-tests.log
-      - name: Collect one compact save and reload diagnostic
+          mkdir -p test-results/yard-clean
+          git diff --exit-code 26dec53ada84aa8c211b68802bd7abf1dd9cd183 -- src game-logic/yard-v2 public/assets-runtime Dockerfile .dockerignore scripts/perf-build-guard.mjs scripts/yard-ui-media-budget.json scripts/yard-ui-media-budget.mjs ':(exclude)src/games/companion-yard-v2/ui-image-inventory.json'
+          node --test tests/yard-renderer-chunk.test.mjs tests/yard-clean-media-budget.test.mjs tests/yard-clean-vendor.test.mjs tests/yard-clean-merge-assets.test.mjs > test-results/yard-clean/closure-delta-tests.log
+          echo 'Yard behavior matches 26dec53 with provenance-only inventory text changes. Fresh chunk/media tests qualify shared lazy ownership and the complete public-copy cleanup; prior 58 owner/resource checks remain attributed to run 37868065361.' > test-results/yard-clean/source-lineage.txt
+      - name: Collect one compact normal clean entry
         run: |
-          MIKA_QA_PHASE=collection-checkpoint pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika checkpoint UI: RU acknowledged save' --list > test-results/mika-normal/collection-checkpoint.log
-          test "$(grep -c 'Mika checkpoint UI: RU acknowledged save' test-results/mika-normal/collection-checkpoint.log)" -eq 1
-      - name: Build explicit current-pose candidate, never deployment
+          pnpm exec playwright test --config playwright.yard-clean.config.mjs --project compact-diagnostic --list > test-results/yard-clean/collection.log
+          test "$(grep -c 'Clean Yard normal entry:' test-results/yard-clean/collection.log)" -eq 1
+      - name: Build ordinary clean route and verify exact emitted closure
         env:
           NODE_ENV: production
         run: |
           set -o pipefail
-          pnpm run build | tee test-results/mika-normal/build.log
-          tar -czf test-results/mika-normal/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/assets/*.js
+          pnpm run build | tee test-results/yard-clean/build.log
+          tar -czf test-results/yard-clean/built-module-diagnostic.tar.gz dist/index.html dist/game-loading-graph.json dist/yard-pip-vendor-report.json dist/assets/*.js
+          node scripts/yard-clean-delivery.mjs dist > test-results/yard-clean/delivery.json
+          node --test tests/yard-lazy-built.test.mjs tests/yard-contract-data.test.mjs > test-results/yard-clean/built-closure-tests.log
+          pnpm run perf:guard:build > test-results/yard-clean/budget.log
+      - name: Full package test command against this exact replacement
+        id: package
+        timeout-minutes: 8
+        continue-on-error: true
+        run: pnpm test > test-results/yard-clean/package-tests.log 2>&1
       - name: Install official Chromium
-        id: browser
         run: pnpm exec playwright install --with-deps chromium
-      - name: Actual footer save, reload and continue from the committed pose
-        env:
-          YARD_NATIVE_MIKA_CHECKPOINT_QA: 'true'
-        run: |
-          MIKA_QA_PHASE=checkpoint-compact pnpm exec playwright test yard-mika-normal-qa.spec.js --config playwright.mika-normal-qa.config.mjs --project compact-diagnostic --grep 'Mika checkpoint UI: RU acknowledged save'
-      - name: Preserve original bounded current-pose evidence
+      - name: Normal route with current canonical item, cancelled move and reload
+        run: pnpm exec playwright test --config playwright.yard-clean.config.mjs --project compact-diagnostic
+      - name: Require the full package test result
+        if: always() && steps.package.outcome == 'failure'
+        run: exit 1
+      - name: Preserve exact clean replacement diagnostic
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: mika-checkpoint-${{ github.sha }}
-          path: test-results/mika-normal/
+          name: yard-clean-${{ github.sha }}
+          path: test-results/yard-clean/
           retention-days: 7
           if-no-files-found: error

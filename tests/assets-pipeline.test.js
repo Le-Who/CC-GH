@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {createHash} from "node:crypto";
 import arcadeWebpProof from "./fixtures/arcade-webp-proof.json" with {type:"json"};
+import match3ReplacementPins from "./fixtures/match3-elemental-replacement-pins.json" with {type:"json"};
 import sharedHudWebpProof from "./fixtures/shared-hud-webp-proof.json" with {type:"json"};
 import { sourceOnlyAssetDestination } from "../scripts/asset-source-only-policy.mjs";
 
@@ -171,61 +172,6 @@ describe("asset runtime pipeline", () => {
     }
   });
 
-  it("keeps the Cozy Yard HUD atlas alpha-cropped without edge fragments", async () => {
-    const atlasPath = path.resolve("public/games/companion-yard/HUD.png");
-    const { data, info } = await sharp(atlasPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    const cols = 5;
-    const rows = 5;
-
-    assert.equal(info.width % cols, 0, "HUD atlas width should divide evenly into the declared grid");
-    assert.equal(info.height % rows, 0, "HUD atlas height should divide evenly into the declared grid");
-
-    const cellW = info.width / cols;
-    const cellH = info.height / rows;
-    const alphaAt = (x, y) => data[(y * info.width + x) * 4 + 3];
-
-    for (let row = 0; row < rows; row += 1) {
-      for (let col = 0; col < cols; col += 1) {
-        const x0 = col * cellW;
-        const y0 = row * cellH;
-        const seen = new Uint8Array(cellW * cellH);
-        const components = [];
-
-        for (let y = 0; y < cellH; y += 1) {
-          for (let x = 0; x < cellW; x += 1) {
-            const startIndex = y * cellW + x;
-            if (seen[startIndex]) continue;
-            seen[startIndex] = 1;
-            if (alphaAt(x0 + x, y0 + y) <= 16) continue;
-
-            const stack = [[x, y]];
-            let count = 0;
-            while (stack.length) {
-              const [cx, cy] = stack.pop();
-              count += 1;
-              for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
-                const nx = cx + dx;
-                const ny = cy + dy;
-                if (nx < 0 || ny < 0 || nx >= cellW || ny >= cellH) continue;
-                const index = ny * cellW + nx;
-                if (seen[index]) continue;
-                seen[index] = 1;
-                if (alphaAt(x0 + nx, y0 + ny) > 16) stack.push([nx, ny]);
-              }
-            }
-            components.push(count);
-          }
-        }
-
-        assert.equal(
-          components.filter((count) => count > 32).length,
-          1,
-          `HUD cell ${row}:${col} should contain one alpha component after mask-based slicing`,
-        );
-      }
-    }
-  });
-
   it("generates deterministic content-hashed raster assets and bundles", async () => {
     const root = await makeTempRoot();
     const entries = [
@@ -365,10 +311,10 @@ describe("asset runtime pipeline", () => {
     assert.equal(formatsByKey.has("farm.crops.strawberry_ready"), false);
     assert.equal(entriesByKey.has("farm.crops.strawberry_ready"), false);
     assert.equal(formatsByKey.has("trivia.panel-menu"), false);
-    assert.deepEqual(formatsByKey.get("companionYard.foods.kibble"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("companionYard.expressions.happy"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("companionYard.ui.hudSheet"), ["webp"]);
-    assert.deepEqual(formatsByKey.get("companionYard.ui.cozy-price-chip"), ["webp"]);
+    assert.equal(formatsByKey.has("companionYard.foods.kibble"), false);
+    assert.equal(formatsByKey.has("companionYard.expressions.happy"), false);
+    assert.equal(formatsByKey.has("companionYard.ui.hudSheet"), false);
+    assert.equal(formatsByKey.has("companionYard.ui.cozy-price-chip"), false);
     assert.equal(formatsByKey.has("gachaMerge.ui.actionIconBack"), false);
     assert.deepEqual(formatsByKey.get("gachaMerge.ui.hudBar"), ["webp"]);
     assert.equal(formatsByKey.has("icons.icon192"), false);
@@ -496,15 +442,46 @@ describe("asset runtime pipeline", () => {
   });
 });
 
-it('decodes all 39 arcade lossless WebP exports to exact original RGBA including transparent-edge RGB',async()=>{
+// The historical 39-row conversion receipt remains unchanged. Six filenames
+// were deliberately replaced by reviewed elemental art after that conversion.
+const MATCH3_REPLACEMENT_PATHS=['air','dark','earth','fire','light','water'].map(name=>
+  `public/games/match3-v2/gems/${name}.webp`);
+
+it('decodes the 33 unchanged arcade lossless exports to exact original RGBA including transparent-edge RGB',async()=>{
   assert.equal(arcadeWebpProof.files.length,39);
-  for(const asset of arcadeWebpProof.files){
+  const unchanged=arcadeWebpProof.files.filter(asset=>!MATCH3_REPLACEMENT_PATHS.includes(asset.runtimePath));
+  assert.equal(unchanged.length,33);
+  for(const asset of unchanged){
     const {data,info}=await sharp(path.resolve(asset.runtimePath)).ensureAlpha().raw().toBuffer({resolveWithObject:true});
     assert.equal(info.width,asset.width,asset.runtimePath);
     assert.equal(info.height,asset.height,asset.runtimePath);
     assert.equal(info.channels,4,asset.runtimePath);
     assert.equal(data.length,asset.rgbaBytes,asset.runtimePath);
     assert.equal(createHash('sha256').update(data).digest('hex'),asset.rgbaSha256,asset.runtimePath);
+  }
+});
+
+it('pins the six reviewed Match3 replacements and preserves exact 39-file arcade coverage',async()=>{
+  assert.equal(match3ReplacementPins.format,'match3-elemental-replacement-pins/v1');
+  assert.equal(match3ReplacementPins.sourceRevision,'a5f400efd524502b1178c7c61b2eda46db3fbc6f');
+  assert.equal(match3ReplacementPins.sourceClosure.gitBlob,'818ce7d5594f81cf83218d67dfbd163460f603c0');
+  const replacementPaths=match3ReplacementPins.files.map(asset=>asset.runtimePath);
+  assert.deepEqual([...replacementPaths].sort(),[...MATCH3_REPLACEMENT_PATHS].sort());
+  const historicalPaths=arcadeWebpProof.files.map(asset=>asset.runtimePath);
+  assert.equal(historicalPaths.length,39);
+  assert.equal(new Set(historicalPaths).size,39);
+  const unchanged=historicalPaths.filter(assetPath=>!MATCH3_REPLACEMENT_PATHS.includes(assetPath));
+  assert.equal(unchanged.length,33);
+  assert.deepEqual([...unchanged,...replacementPaths].sort(),[...historicalPaths].sort());
+  for(const asset of match3ReplacementPins.files){
+    const bytes=await fs.readFile(path.resolve(asset.runtimePath));
+    assert.equal(bytes.length,asset.encodedBytes,asset.runtimePath);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.encodedSha256,asset.runtimePath);
+    const {data,info}=await sharp(bytes).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+    assert.equal(info.width,asset.width,asset.runtimePath);
+    assert.equal(info.height,asset.height,asset.runtimePath);
+    assert.equal(info.channels,4,asset.runtimePath);
+    assert.equal(data.length,asset.width*asset.height*4,asset.runtimePath);
   }
 });
 

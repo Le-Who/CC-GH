@@ -388,13 +388,14 @@ describe("Telegram Mini App game UX foundations", () => {
 
   it("keeps Garden and Yard empty starts thematic instead of placeholder-empty", () => {
     const gardenCss = readFileSync(new URL("../src/games/garden-shelf/garden-presentation.css", import.meta.url), "utf8");
-    const yardGame = readFileSync(new URL("../src/games/companion-yard/CompanionYardGame.jsx", import.meta.url), "utf8");
-    const yardCss = readFileSync(new URL("../src/games/companion-yard/companion-yard.css", import.meta.url), "utf8");
+    const yardGame = readFileSync(new URL("../src/games/companion-yard-v2/CourtyardGame.jsx", import.meta.url), "utf8");
+    const yardCss = readFileSync(new URL("../src/games/companion-yard-v2/courtyard.css", import.meta.url), "utf8");
 
-    assert.match(yardGame, /starterGoodieHints/);
-    assert.match(yardGame, /className=\{`yard-starter-goodie/);
-    assert.match(yardGame, /startPlaceGoodie\(goodieId\)/);
-    assert.match(yardCss, /\.yard-starter-goodie\s*\{[\s\S]*min-height:\s*72px/);
+    assert.match(yardGame, /!decorRows\.length && !savedDecorRows\.length && <Empty src=\{YARD_UI_ART\.decor\}/);
+    assert.match(yardGame, /yard\.persistent\.emptyPlaced/);
+    assert.match(yardGame, /yard\.persistent\.emptyInventory/);
+    assert.match(yardGame, /<Empty src=\{YARD_UI_ART\.guests\}>\{t\('yard\.persistent\.noVisits'\)\}/);
+    assert.match(yardCss, /\.cy-empty\{[^}]*min-height:118px/);
   });
 
   it("keeps split Pixi scenes off private runtime module state", () => {

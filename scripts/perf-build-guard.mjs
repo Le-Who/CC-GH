@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 import fs from "node:fs/promises";
-import { createHash } from "node:crypto";
-import yardDelivery from "./yard-public-media.json" with { type: "json" };
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { gzipSync } from "node:zlib";
@@ -11,9 +9,6 @@ import { inspectYardAssetBudget } from './yard-ui-media-budget.mjs';
 
 const REPORT_PATH = path.resolve("artifacts", "perf", "perf-build-report.json");
 const DEFAULT_DIST_DIR = path.resolve("dist");
-
-// Reviewed 706-file expansion: deployment bytes only, never a startup/decode allowance.
-export const FROZEN_YARD_DELIVERY_RAW_BYTES = 192_653_433;
 
 export const DEFAULT_BUILD_BUDGETS = {
   initialScriptRawBytes: 575_000,
@@ -26,11 +21,10 @@ export const DEFAULT_BUILD_BUDGETS = {
   runtimeManifestGzipBytes: 5_000,
   runtimeAssetsTotalRawBytes: 12_000_000,
   runtimeAssetMaxRawBytes: 2_500_000,
-  // Preserve the previous slack and the previous non-family ceilings.
-  // Exactly 192,653,433 bytes of frozen family media may expand shipped totals.
+  // Retired family delivery earns no allowance. Generic ceilings are unchanged.
   publicGamesTotalRawBytes: 181_000_000,
-  publicAssetsTotalRawBytes: 75_000_000 + FROZEN_YARD_DELIVERY_RAW_BYTES,
-  publicMediaTotalRawBytes: 263_000_000 + FROZEN_YARD_DELIVERY_RAW_BYTES,
+  publicAssetsTotalRawBytes: 75_000_000,
+  publicMediaTotalRawBytes: 263_000_000,
   nonFamilyPublicAssetsTotalRawBytes: 75_000_000,
   nonFamilyPublicMediaTotalRawBytes: 263_000_000,
 };
@@ -185,41 +179,27 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = {}, re
     publicMedia: summarize([...publicGameFiles, ...publicAssetFiles, ...runtimePayloads]),
   };
 
-  // The allowance belongs only to the exact reviewed family files. Missing,
-  // modified or extra files fail; unrelated media retains the former ceilings.
-  const familyFiles = assetFiles.filter(file => /^assets\/yard-(?:family|fox|turtles)\//.test(file)).map(file => byPath.get(file));
-  const expectedFamily = new Map(yardDelivery.files.map(row => [row.path, row]));
-  const approvedFamily = new Set(), familyFailures = [];
-  for (const file of familyFiles) {
-    const expected = expectedFamily.get(file.path);
-    if (!expected || expected.bytes !== file.rawBytes || createHash('sha256').update(await fs.readFile(path.join(distDir, file.path))).digest('hex') !== expected.sha256) {
-      familyFailures.push(file.path);
-    } else approvedFamily.add(file.path);
-  }
-  if ((familyFiles.length || requireLoadingGraph) && (familyFailures.length || approvedFamily.size !== expectedFamily.size
-      || yardDelivery.totalBytes !== FROZEN_YARD_DELIVERY_RAW_BYTES)) graphFailures.push({
-    id: 'public-assets.frozen-yard-exact', actual: { approved: approvedFamily.size, invalid: familyFailures },
-    budget: { files: 706, bytes: FROZEN_YARD_DELIVERY_RAW_BYTES },
-    message: 'Frozen Yard delivery must contain exactly the reviewed 706 paths, sizes and SHA-256 hashes',
-  });
-  metrics.frozenYard = summarize(publicAssetFiles.filter(file => approvedFamily.has(file.path)));
-  metrics.nonFamilyPublicAssets = summarize(publicAssetFiles.filter(file => !approvedFamily.has(file.path)));
-  metrics.nonFamilyPublicMedia = summarize([...publicGameFiles, ...publicAssetFiles.filter(file => !approvedFamily.has(file.path)), ...runtimePayloads]);
+  // All shipped media now belongs to the non-family totals. No retired file
+  // receives delivery credit, even when its historical bytes were hash-pinned.
+  metrics.nonFamilyPublicAssets = summarize(publicAssetFiles);
+  metrics.nonFamilyPublicMedia = summarize([...publicGameFiles, ...publicAssetFiles, ...runtimePayloads]);
 
   // The historical generic ceilings remain visible below. Actual normal Yard
-  // builds use the reviewed exact UI/optional partition and a tighter aggregate
+  // builds use the reviewed exact UI/clean-source partition and a tighter aggregate
   // remainder. Synthetic non-Yard fixtures still exercise the generic guards.
   const usesYardPartition = requireLoadingGraph || Boolean(graph?.entries?.['companion-yard-v2'])
-    || assetFiles.some(file => file.startsWith('assets/yard-ui/')) || allFiles.includes('yard-pip-vendor-report.json');
+    || assetFiles.some(file => /^assets\/yard-(?:ui|mika-p2-qa)\//.test(file)) || allFiles.includes('yard-pip-vendor-report.json');
   const yardAssetPartition = usesYardPartition ? await inspectYardAssetBudget({ distDir, graph }) : null;
   if (yardAssetPartition) {
-    graphFailures.push(...yardAssetPartition.failures);
+    // Thresholds are applied below, including any tighter caller override.
+    graphFailures.push(...yardAssetPartition.failures.filter(failure =>
+      !['public-assets.other-non-family.raw', 'public-assets.total.raw'].includes(failure.id)));
     if (yardAssetPartition.aggregate.actualBytes !== metrics.publicAssets.rawBytes) graphFailures.push({
       id: 'public-assets.inventory-stable', actual: yardAssetPartition.aggregate.actualBytes, budget: metrics.publicAssets.rawBytes,
       message: 'Generated assets changed during fresh inventory; do not use a partial or cached report',
     });
     metrics.requiredYardUi = summarize(yardAssetPartition.requiredUi.files.map(row => byPath.get(row.path)).filter(Boolean));
-    metrics.optionalPipMedia = summarize(yardAssetPartition.optionalMedia.files.map(row => byPath.get(row.path)).filter(Boolean));
+    metrics.activeCleanYardMedia = summarize(yardAssetPartition.activeMedia.files.map(row => byPath.get(row.path)).filter(Boolean));
     metrics.otherNonFamilyPublicAssets = summarize(yardAssetPartition.otherNonFamilyAssets.files.map(row => byPath.get(row.path)).filter(Boolean));
   }
   const appliedPublicAssetsCeiling = yardAssetPartition
@@ -279,7 +259,7 @@ export async function analyzeDist({ distDir = DEFAULT_DIST_DIR, budgets = {}, re
   const retiredReferences = [];
   for (const file of assetFiles.filter(file => /\.(?:js|css)$/.test(file))) {
     const source = await fs.readFile(path.join(distDir, file), 'utf8');
-    for (const [url] of source.matchAll(/\/(?:games|assets-runtime)\/[^\s"'`(){};,]+/g)) {
+    for (const [url] of source.matchAll(/\/(?:games|assets-runtime|assets)\/[^\s"'`(){};,]+/g)) {
       if (isRetiredAssetPath(url)) retiredReferences.push({ file, url });
     }
   }

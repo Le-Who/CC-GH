@@ -5,7 +5,7 @@ import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 import test from 'node:test';
 import { YARD_CONTRACT_DATA_MODULES, YARD_DATA_OUTPUT_PREFIX } from '../scripts/yard-contract-data.mjs';
-import { YARD_RENDERER_MODULES, YARD_RUNTIME_CORE_MODULES } from '../scripts/yard-renderer-chunk.mjs';
+import { YARD_RENDERER_MODULES, YARD_RUNTIME_CORE_MODULES, YARD_CLEAN_DEPENDENCY_MODULES } from '../scripts/yard-renderer-chunk.mjs';
 import { DEFAULT_BUILD_BUDGETS } from '../scripts/perf-build-guard.mjs';
 
 const root = path.resolve(import.meta.dirname, '..');
@@ -24,19 +24,32 @@ test('actual Vite Yard metadata stays out of startup/precache and executable chu
   const yard = closure([graph.entries['companion-yard-v2']], true);
   const data = graph.chunks.filter(chunk => chunk.file.startsWith(YARD_DATA_OUTPUT_PREFIX));
   assert.ok(data.length > 0, 'immutable data must be separately reported, not embedded in executable chunks');
-  const renderer = graph.chunks.find(chunk => chunk.modules.includes('src/games/companion-yard-v2/scene.mjs'));
-  assert.ok(renderer && renderer.file !== graph.entries['companion-yard-v2'], 'canvas renderer must have its own executable boundary');
+  const renderer = graph.chunks.find(chunk => chunk.modules.includes('src/games/companion-yard-v2/canonical-presentation.mjs'));
+  assert.ok(renderer && renderer.file !== graph.entries['companion-yard-v2'], 'clean projection must have its own executable boundary');
   assert.equal(renderer.dataOnly, false); assert.equal(startup.has(renderer.file), false);
   assert.equal(closure([renderer.file]).has(graph.entries['companion-yard-v2']), false, 'renderer must not form a static cycle back into its React entry');
   assert.ok(renderer.modules.every(id => YARD_RENDERER_MODULES.has(id)), 'manual renderer chunk must not absorb other dependencies');
   assert.ok(renderer.gameModules.length > 0);
+  const domain=graph.chunks.find(chunk=>chunk.modules.includes('src/game-state/canonicalYardItems.mjs'));
+  assert.ok(domain&&domain.file!==graph.entries['companion-yard-v2']);
+  assert.equal(domain.dataOnly,false);assert.equal(startup.has(domain.file),false);
+  assert.ok(domain.modules.every(id=>YARD_CLEAN_DEPENDENCY_MODULES.has(id)));
+  assert.equal(closure([domain.file]).has(graph.entries['companion-yard-v2']),false);
+  assert.equal(closure([domain.file]).has(renderer.file),false,'Shared canonical domain must not depend on its scene consumer');
   const core = graph.chunks.find(chunk => chunk.modules.includes('game-logic/yard-v2/mika-media.mjs'));
-  assert.ok(core && core.file !== graph.entries['companion-yard-v2'] && core.file !== renderer.file, 'shared runtime must not be owned by either consumer');
+  if(core) {
+  assert.ok(core.file !== graph.entries['companion-yard-v2'] && core.file !== renderer.file, 'shared runtime must not be owned by either consumer');
   assert.equal(core.dataOnly, false); assert.equal(startup.has(core.file), false);
   assert.ok(core.modules.every(id => YARD_RUNTIME_CORE_MODULES.has(id)));
   const coreStatic = closure([core.file]);
   assert.equal(coreStatic.has(renderer.file), false, 'runtime core must not import its renderer consumer');
   assert.equal(coreStatic.has(graph.entries['companion-yard-v2']), false, 'runtime core must not import its React consumer');
+
+  }
+  assert.equal(graph.entries['companion-yard'],undefined);
+  const allModules=graph.chunks.flatMap(chunk=>chunk.modules);
+  assert.ok(allModules.includes('src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs'));
+  assert.equal(allModules.some(id=>id.startsWith('src/games/companion-yard/')||/companion-yard-v2\/(?:scene|legacy-m2-background|actor-media|atlas|presentation)\.mjs$/.test(id)),false);
 
   const report = { data: [], gameCode: [], startupYardData: [] };
   for (const chunk of data) {

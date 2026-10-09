@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { formatYardCurrencyBalance } from "../src/games/companion-yard/currencyDisplay.js";
+import { formatYardCurrencyBalance } from "../src/games/shared/currencyDisplay.js";
 import { VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
 import {
   EXACT_PREVIEW_PRESETS,

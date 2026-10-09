@@ -5,7 +5,6 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import test from "node:test";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { YARD_PANEL_REFERENCE, YARD_SCREEN_SLOT_MAPS } from "../src/games/companion-yard/yardPanelSlots.js";
 import { arcadeGames, arcadeArt, renderArcadePresentation, findElements, textContent } from "./helpers/arcadePresentationHarness.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -21,13 +20,6 @@ const requiredScreens = {
   trivia: ["menu", "question", "answerReveal", "pause", "results", "duelRoom"],
   cozyYard: ["hud", "bottomDock", "food", "goodies", "shop", "petbook", "album", "gifts", "repair", "remodel", "expansion", "daily", "companion", "settings"],
   farmLegacy: ["hud", "shop", "bag", "plotDetail", "journal", "season"],
-};
-
-const requiredInternalMenuPanels = {
-  cozyYard: {
-    publicDir: "/games/companion-yard/menu-panels",
-    screens: ["food", "goodies", "shop", "petbook", "album", "gifts", "repair", "remodel", "expansion", "daily", "companion", "settings"],
-  },
 };
 
 function resolvePublicAsset(assetPath) {
@@ -200,43 +192,6 @@ function assertFinalSelectorKeepsContentChromeFree(css, selector, filePath, disa
   );
 }
 
-test("Yard and Garden internal menus use one generated panel asset per screen", async () => {
-  const manifestPath = path.join(root, "assets-source", "imagegen", "menu-panels", "menu-panel-manifest.json");
-  const manifest = JSON.parse(await readFile(manifestPath, "utf8"));
-  const seenAssets = new Set();
-
-  for (const [gameId, config] of Object.entries(requiredInternalMenuPanels)) {
-    const game = manifest.games?.[gameId];
-    assert.ok(game, `${gameId} is missing from menu-panel-manifest.json`);
-
-    for (const screenId of config.screens) {
-      const entry = game.screens?.[screenId];
-      assert.ok(entry, `${gameId}.${screenId} is missing from menu-panel-manifest.json`);
-      assert.equal(
-        entry.publicPath,
-        `${config.publicDir}/${screenId}.png`,
-        `${gameId}.${screenId} should use its own public panel file`,
-      );
-      assert.ok(!seenAssets.has(entry.publicPath), `${entry.publicPath} is shared by more than one menu`);
-      seenAssets.add(entry.publicPath);
-      assert.ok(existsSync(resolvePublicAsset(entry.publicPath)), `${entry.publicPath} does not exist under public/`);
-      assert.equal(entry.generatedBy, "built-in image_gen", `${gameId}.${screenId} must come from the built-in image tool`);
-    }
-  }
-});
-
-test("Yard menu CSS binds screen-specific generated panels", async () => {
-  const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
-  for (const screenId of requiredInternalMenuPanels.cozyYard.screens) {
-    assert.match(
-      yardCss,
-      new RegExp(`data-yard-screen="${escapeRegExp(screenId)}"[\\s\\S]*\\/games\\/companion-yard\\/menu-panels\\/${escapeRegExp(screenId)}\\.png`),
-      `Yard ${screenId} should bind to its own generated menu panel`,
-    );
-  }
-
-});
-
 test("Garden living panels separate header chrome from scrollable runtime content", async () => {
   const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-presentation.css"), "utf8");
   const presentation = readSplitGameSource(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"));
@@ -275,66 +230,6 @@ test("Garden living panels separate header chrome from scrollable runtime conten
   assert.doesNotMatch(gardenCss, /\/games\/garden-shelf\/button_secondary\.png/, "Live controls must not reintroduce the old cropped button fringe");
 });
 
-test("Yard generated panels use asset slots and keep dismiss controls icon-only", async () => {
-  const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
-  assert.match(yardCss, /\.companion-yard-layout\s+\.companion-yard-stage\s*\{[^}]*container-type:\s*size/s);
-  assert.match(yardCss, /--yard-screen-available-height:\s*calc\(100cqh\s*-/);
-  assert.match(yardCss, /max-height:\s*calc\(100cqh\s*-\s*max\(72px/);
-
-  const yardGame = await readFile(path.join(root, "src", "games", "companion-yard", "CompanionYardGame.jsx"), "utf8");
-
-  assert.match(
-    yardCss,
-    /\.companion-yard-layout\s+\.yard-game-screen\s*\{[\s\S]*?aspect-ratio:\s*2\s*\/\s*3/s,
-    "Yard game screens should preserve the 2:3 generated menu-panel geometry",
-  );
-  assert.match(
-    yardCss,
-    /\.companion-yard-layout\s+\.yard-game-screen\s*\{[\s\S]*?--yard-screen-bottom-reserve:[\s\S]*?bottom:\s*var\(--yard-screen-bottom-reserve\)\s*!important/s,
-    "Yard game screens should reserve the bottom dock instead of extending generated panels underneath it",
-  );
-  assert.match(
-    yardCss,
-    /\.companion-yard-layout\s+\.yard-game-screen\s*\{[\s\S]*?width:\s*min\([^;]*var\(--yard-screen-available-height\)\s*\*\s*0\.6667/s,
-    "Yard game screens should size portrait panel width from the available height so 2:3 art is not squeezed",
-  );
-  assert.match(
-    yardCss,
-    /\.companion-yard-layout\s+\.yard-screen-header\s*\{[\s\S]*?position:\s*absolute[\s\S]*?top:\s*var\(--yard-panel-title-top\)/s,
-    "Yard screen titles should sit in the generated ribbon lane",
-  );
-  assert.match(
-    yardCss,
-    /\.companion-yard-layout\s+\.yard-screen-content\s*\{[\s\S]*?position:\s*absolute[\s\S]*?inset:\s*var\(--yard-panel-content-inset\)/s,
-    "Yard screen content should be constrained to the panel body lane",
-  );
-  assert.match(
-    yardCss,
-    /\.companion-yard-layout\s+\.yard-game-screen\[data-yard-screen="food"\]\s+\.yard-card\s*\{[\s\S]*?display:\s*contents/s,
-    "Yard food mechanics should flatten into the six authored food slots instead of nesting cards over the panel",
-  );
-  const yardCardBlocks = findCssBlocksForSelector(yardCss, ".companion-yard-layout .yard-card");
-  assert.ok(yardCardBlocks.length > 0, "Yard generated card CSS block must be present");
-  assert.ok(
-    yardCardBlocks.some((block) => /background:\s*transparent\s*!important/.test(block)),
-    "Yard menu rows/cards should not repaint opaque CSS rectangles over generated row art",
-  );
-  assert.ok(
-    yardCardBlocks.every((block) => !/background:\s*linear-gradient/.test(block)),
-    "Yard generated menus must not keep the old final-pass rectangular card fills",
-  );
-  assert.match(
-    yardCss,
-    /\.companion-yard-layout\s+\.yard-icon-button\[data-label-mode="hidden"\]\s+\.yard-icon-label\s*\{[\s\S]*?display:\s*none\s*!important/s,
-    "Yard icon-only dismiss buttons should not show press tooltip text over panel art",
-  );
-  assert.match(
-    yardGame,
-    /<YardIconButton compact icon="close" label=\{text\("yard\.close", "Close"\)\} labelMode="hidden" onClick=\{closeScreen\}/,
-    "Yard screen close button should remain accessible by aria-label while visually icon-only",
-  );
-});
-
 test("Garden living controls use responsive semantic rows instead of fixed painted slots", async () => {
   const gardenCss = await readFile(path.join(root, "src", "games", "garden-shelf", "garden-presentation.css"), "utf8");
   const presentation = readSplitGameSource(path.join(root, "src", "games", "garden-shelf", "GardenPresentation.tsx"));
@@ -368,93 +263,6 @@ test("Garden living controls use responsive semantic rows instead of fixed paint
   const buttons = rule(".gs2-button");
   assert.match(buttons, /min-width:44px;min-height:44px/, "Actions preserve accessible tap targets");
   assert.doesNotMatch(buttons, /font-size:0|color:transparent/, "Runtime action labels remain visible");
-});
-
-test("Yard generated management screens declare screen-specific slot maps", async () => {
-  const yardCss = await readFile(path.join(root, "src", "games", "companion-yard", "companion-yard.css"), "utf8");
-
-  const screens = ["food", "goodies", "shop", "petbook", "album", "gifts", "repair", "remodel", "expansion", "daily", "companion", "settings"];
-  for (const screen of screens) {
-    assert.match(
-      yardCss,
-      new RegExp(`\\.companion-yard-layout\\s+\\.yard-game-screen\\[data-yard-screen="${screen}"\\]\\s*\\{[\\s\\S]*?--yard-panel-content-inset:`),
-      `Yard ${screen} panel should define its own body inset instead of inheriting a generic overlay lane`,
-    );
-  }
-
-  const slotSelectors = [
-    ['goodies', 'yard-card', 'grid-template-rows:'],
-    ['settings', 'yard-card', 'position:\\s*relative'],
-    ['daily', 'yard-card', 'position:\\s*relative'],
-    ['companion', 'yard-species-grid', 'grid-template-columns:\\s*repeat\\(3'],
-    ['remodel', 'yard-screen-grid', 'grid-template-columns:\\s*repeat\\(2'],
-    ['repair', 'yard-shop-row', 'grid-template-columns:'],
-    ['expansion', 'yard-card', 'position:\\s*relative'],
-  ];
-
-  for (const [screen, selector, expectedRule] of slotSelectors) {
-    assert.match(
-      yardCss,
-      new RegExp(`\\.companion-yard-layout\\s+\\.yard-game-screen\\[data-yard-screen="${screen}"\\]\\s+\\.${selector}\\s*\\{[\\s\\S]*?${expectedRule}`, "s"),
-      `Yard ${screen} panel should map .${selector} into generated asset slots`,
-    );
-  }
-});
-
-test("Yard generated management screens use mechanical asset slot maps", async () => {
-  const yardGame = await readFile(path.join(root, "src", "games", "companion-yard", "CompanionYardGame.jsx"), "utf8");
-  const screens = requiredInternalMenuPanels.cozyYard.screens;
-
-  assert.match(
-    yardGame,
-    /data-asset-slot-surface=\{`yard-\$\{activeScreen\}`\}/,
-    "Yard generated panels must expose a screen-specific asset-slot surface",
-  );
-  assert.match(
-    yardGame,
-    /yardPanelSlotStyle/,
-    "Yard generated panels must use the shared slot style helper for fixed panel lanes",
-  );
-  assert.match(
-    yardGame,
-    /yardPanelGroupSlotStyle/,
-    "Yard generated panels must use the shared slot style helper for repeated row/card lanes",
-  );
-  const requiredRenderedGroups = {
-    goodies: ["inventory-row", "placed-row"],
-    shop: ["shop-food-row", "shop-goodies-row", "shop-background-row"],
-  };
-  for (const [screen, groupIds] of Object.entries(requiredRenderedGroups)) {
-    for (const groupId of groupIds) {
-      assert.match(
-        yardGame,
-        new RegExp(`yardGroupSlotAttrs\\("${screen}",\\s*"${groupId}"`),
-        `Yard ${screen}.${groupId} must be applied to rendered rows, not only declared in the slot map`,
-      );
-    }
-  }
-
-  for (const screen of screens) {
-    const map = YARD_SCREEN_SLOT_MAPS[screen];
-    assert.ok(map, `Yard ${screen} must have a mechanical panel slot map`);
-    assert.ok(map.slots["panel-title"], `Yard ${screen} must pin its title to the banner slot`);
-    assert.ok(map.slots["panel-close"], `Yard ${screen} must pin its close control to the painted close slot`);
-
-    for (const [slotId, slot] of Object.entries(map.slots)) {
-      assert.ok(slot.x >= 0 && slot.y >= 0, `Yard ${screen}.${slotId} must stay inside the panel origin`);
-      assert.ok(slot.x + slot.width <= YARD_PANEL_REFERENCE.width, `Yard ${screen}.${slotId} must not overflow panel width`);
-      assert.ok(slot.y + slot.height <= YARD_PANEL_REFERENCE.height, `Yard ${screen}.${slotId} must not overflow panel height`);
-    }
-
-    for (const [groupId, slots] of Object.entries(map.groups || {})) {
-      assert.ok(slots.length > 0, `Yard ${screen}.${groupId} must define at least one authored slot`);
-      for (const [index, slot] of slots.entries()) {
-        assert.ok(slot.x >= 0 && slot.y >= 0, `Yard ${screen}.${groupId}[${index}] must stay inside the panel origin`);
-        assert.ok(slot.x + slot.width <= YARD_PANEL_REFERENCE.width, `Yard ${screen}.${groupId}[${index}] must not overflow panel width`);
-        assert.ok(slot.y + slot.height <= YARD_PANEL_REFERENCE.height, `Yard ${screen}.${groupId}[${index}] must not overflow panel height`);
-      }
-    }
-  }
 });
 
 test("screen mockup reference manifest remains complete", async () => {
@@ -660,7 +468,7 @@ test("mini-game direct controls avoid native browser title tooltips", async () =
     "src/games/bubbo/BubboGame.jsx",
     "src/games/trivia/TriviaGame.jsx",
     "src/games/garden-shelf/GardenPresentation.tsx",
-    "src/games/companion-yard/CompanionYardGame.jsx",
+    "src/games/companion-yard-v2/CourtyardGame.jsx",
     "src/games/settlement/SettlementGame.jsx",
   ];
 
@@ -689,4 +497,19 @@ test("mini-game menus use neutral dialog art instead of blue slot panels", async
       assert.ok(existsSync(resolvePublicAsset(assetPath)), `${gameId} active asset ${assetPath} must exist`);
     }
   }
+});
+
+test("clean Courtyard panels retain named controls, viewport bounds and scrollable content", async () => {
+  const component=await readFile(path.join(root,"src/games/companion-yard-v2/CourtyardGame.jsx"),"utf8");
+  const css=await readFile(path.join(root,"src/games/companion-yard-v2/courtyard.css"),"utf8");
+  assert.match(component,/<dialog ref=\{dialog\} className="cy-dialog" aria-labelledby="cy-dialog-title" onCancel=\{closePanel\} onClose=\{closePanel\}/);
+  assert.match(component,/<button aria-label=\{t\('yard\.persistent\.closePanel'\)\} onClick=\{closePanel\}><Icon name="close"\/><\/button>/);
+  assert.match(component,/<div className="cy-panel">/);
+  assert.match(component,/aria-pressed=\{menuSelection===id\} aria-expanded=\{panel===id\}/);
+  assert.match(component,/aria-label=\{accessibleName\}/);
+  assert.match(css,/\.cy-dialog\{[^}]*max-width:calc\(100vw - 12px\);[^}]*max-height:calc\(min\(100dvh,var\(--tg-viewport-stable-height,100dvh\)\) - 28px\);[^}]*overflow:hidden/);
+  assert.match(css,/\.cy-panel\{[^}]*min-height:0;[^}]*overflow-y:auto;[^}]*overflow-x:hidden/);
+  assert.match(css,/\.cy-app button,\.cy-dialog button\{[^}]*min-height:44px;min-width:44px/);
+  assert.match(css,/\.cy-row\{[^}]*flex-wrap:wrap/);
+  assert.match(css,/\.cy-row-copy\{[^}]*overflow-wrap:anywhere/);
 });

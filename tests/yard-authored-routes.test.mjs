@@ -20,9 +20,7 @@ test('candidate identity resolves to the existing catalog bunny and stays unregi
  assert.equal(ground.runtimeActivated,false);assert.equal(ground.playbackReady,false);assert.deepEqual(Object.keys(ACTOR_PROFILES),['mika']);
  assert.equal(adapter().profile.playbackReady,false);
  for(const [path,expected]of [
-  ['game-logic/yard-v2/actor-profiles.mjs','3fcc220cdde1ec6189989ade0e21b025182f300abac13ed04af6ad17521570b2'],
-  ['src/games/companion-yard-v2/actor-media.mjs','aec79a30e129b70ab9f313bea91a22171c22d5a2f854fbb55e145f390c33f7e8'],
-  ['public/assets/yard-mika/runtime-media.json','44cefc25deef8284b91f6dd35bebe972b0f78bb91ed903337d871233da0b9cbb']]){
+  ['game-logic/yard-v2/actor-profiles.mjs','3fcc220cdde1ec6189989ade0e21b025182f300abac13ed04af6ad17521570b2']]){
   assert.equal(createHash('sha256').update(readFileSync(new URL('../'+path,import.meta.url))).digest('hex'),expected);
  }
 });

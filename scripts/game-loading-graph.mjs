@@ -20,7 +20,6 @@ const GAME_ENTRIES = {
   match3: 'src/games/match3/Match3Game.jsx',
   bubbo: 'src/games/bubbo/BubboGame.jsx',
   trivia: 'src/games/trivia/TriviaGame.jsx',
-  'companion-yard': 'src/games/companion-yard/CompanionYardGame.jsx',
   'companion-yard-v2': 'src/games/companion-yard-v2/CourtyardGame.jsx',
   'yard-player-entry': 'src/games/companion-yard-v2/YardReleaseGame.jsx',
 };
