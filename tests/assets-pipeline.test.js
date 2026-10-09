@@ -5,6 +5,7 @@ import os from "node:os";
 import path from "node:path";
 import {createHash} from "node:crypto";
 import arcadeWebpProof from "./fixtures/arcade-webp-proof.json" with {type:"json"};
+import match3ReplacementPins from "./fixtures/match3-elemental-replacement-pins.json" with {type:"json"};
 import sharedHudWebpProof from "./fixtures/shared-hud-webp-proof.json" with {type:"json"};
 import { sourceOnlyAssetDestination } from "../scripts/asset-source-only-policy.mjs";
 
@@ -441,15 +442,46 @@ describe("asset runtime pipeline", () => {
   });
 });
 
-it('decodes all 39 arcade lossless WebP exports to exact original RGBA including transparent-edge RGB',async()=>{
+// The historical 39-row conversion receipt remains unchanged. Six filenames
+// were deliberately replaced by reviewed elemental art after that conversion.
+const MATCH3_REPLACEMENT_PATHS=['air','dark','earth','fire','light','water'].map(name=>
+  `public/games/match3-v2/gems/${name}.webp`);
+
+it('decodes the 33 unchanged arcade lossless exports to exact original RGBA including transparent-edge RGB',async()=>{
   assert.equal(arcadeWebpProof.files.length,39);
-  for(const asset of arcadeWebpProof.files){
+  const unchanged=arcadeWebpProof.files.filter(asset=>!MATCH3_REPLACEMENT_PATHS.includes(asset.runtimePath));
+  assert.equal(unchanged.length,33);
+  for(const asset of unchanged){
     const {data,info}=await sharp(path.resolve(asset.runtimePath)).ensureAlpha().raw().toBuffer({resolveWithObject:true});
     assert.equal(info.width,asset.width,asset.runtimePath);
     assert.equal(info.height,asset.height,asset.runtimePath);
     assert.equal(info.channels,4,asset.runtimePath);
     assert.equal(data.length,asset.rgbaBytes,asset.runtimePath);
     assert.equal(createHash('sha256').update(data).digest('hex'),asset.rgbaSha256,asset.runtimePath);
+  }
+});
+
+it('pins the six reviewed Match3 replacements and preserves exact 39-file arcade coverage',async()=>{
+  assert.equal(match3ReplacementPins.format,'match3-elemental-replacement-pins/v1');
+  assert.equal(match3ReplacementPins.sourceRevision,'a5f400efd524502b1178c7c61b2eda46db3fbc6f');
+  assert.equal(match3ReplacementPins.sourceClosure.gitBlob,'818ce7d5594f81cf83218d67dfbd163460f603c0');
+  const replacementPaths=match3ReplacementPins.files.map(asset=>asset.runtimePath);
+  assert.deepEqual([...replacementPaths].sort(),[...MATCH3_REPLACEMENT_PATHS].sort());
+  const historicalPaths=arcadeWebpProof.files.map(asset=>asset.runtimePath);
+  assert.equal(historicalPaths.length,39);
+  assert.equal(new Set(historicalPaths).size,39);
+  const unchanged=historicalPaths.filter(assetPath=>!MATCH3_REPLACEMENT_PATHS.includes(assetPath));
+  assert.equal(unchanged.length,33);
+  assert.deepEqual([...unchanged,...replacementPaths].sort(),[...historicalPaths].sort());
+  for(const asset of match3ReplacementPins.files){
+    const bytes=await fs.readFile(path.resolve(asset.runtimePath));
+    assert.equal(bytes.length,asset.encodedBytes,asset.runtimePath);
+    assert.equal(createHash('sha256').update(bytes).digest('hex'),asset.encodedSha256,asset.runtimePath);
+    const {data,info}=await sharp(bytes).ensureAlpha().raw().toBuffer({resolveWithObject:true});
+    assert.equal(info.width,asset.width,asset.runtimePath);
+    assert.equal(info.height,asset.height,asset.runtimePath);
+    assert.equal(info.channels,4,asset.runtimePath);
+    assert.equal(data.length,asset.width*asset.height*4,asset.runtimePath);
   }
 });
 

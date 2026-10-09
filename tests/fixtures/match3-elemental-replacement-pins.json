@@ -1,0 +1,58 @@
+{
+  "format": "match3-elemental-replacement-pins/v1",
+  "kind": "reviewed-art-replacement",
+  "codec": "WebP with lossy VP8 color and alpha",
+  "sourceRevision": "a5f400efd524502b1178c7c61b2eda46db3fbc6f",
+  "sourceClosure": {
+    "path": "qa/match3-feedback/closure.json",
+    "gitBlob": "818ce7d5594f81cf83218d67dfbd163460f603c0",
+    "url": "https://github.com/Le-Who/CC-GH/blob/a5f400efd524502b1178c7c61b2eda46db3fbc6f/qa/match3-feedback/closure.json"
+  },
+  "introducedBy": "d5d5ba1db263cb4367af8dcb05c3199a394a0660",
+  "integratedBy": "4de9a6fd099c8a1779b72a969191d9b2697c7811",
+  "qualification": "Exact reviewed encoded bytes and image dimensions; these six assets do not claim equality to the historical PNG source pixels.",
+  "files": [
+    {
+      "runtimePath": "public/games/match3-v2/gems/air.webp",
+      "encodedBytes": 6450,
+      "encodedSha256": "4b7a27dafca52dfa87dd27363bd18e8c08ece03a6e3234e61459a68ab44ee7eb",
+      "width": 192,
+      "height": 114
+    },
+    {
+      "runtimePath": "public/games/match3-v2/gems/dark.webp",
+      "encodedBytes": 9252,
+      "encodedSha256": "f9de219533ec805bbe03eb42435a1422272029e419fcdc47406e7876b85f0985",
+      "width": 174,
+      "height": 192
+    },
+    {
+      "runtimePath": "public/games/match3-v2/gems/earth.webp",
+      "encodedBytes": 10118,
+      "encodedSha256": "5927d2e6973b1d3bf5078a193fbd0ed5e057b3acffd146129e0317eed9e98f6c",
+      "width": 165,
+      "height": 192
+    },
+    {
+      "runtimePath": "public/games/match3-v2/gems/fire.webp",
+      "encodedBytes": 9376,
+      "encodedSha256": "321c7befe78e5abee82fd966d5b6c15e0c40e3baed773b621cc4ba10ade5e877",
+      "width": 158,
+      "height": 192
+    },
+    {
+      "runtimePath": "public/games/match3-v2/gems/light.webp",
+      "encodedBytes": 8772,
+      "encodedSha256": "27157502fe9872d13cbff3ab9847020857281395878fc003295f332e6ec67234",
+      "width": 192,
+      "height": 192
+    },
+    {
+      "runtimePath": "public/games/match3-v2/gems/water.webp",
+      "encodedBytes": 7776,
+      "encodedSha256": "ce1e4568f33fc17fe9816b34b07f9f472754707a9aec1117a3814fc54ab2ee65",
+      "width": 151,
+      "height": 192
+    }
+  ]
+}
