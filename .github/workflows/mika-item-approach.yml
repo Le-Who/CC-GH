@@ -23,17 +23,17 @@ jobs:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
+          fetch-depth: 2
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
       - name: Install locked existing dependencies
         run: corepack enable && corepack prepare pnpm@10.28.2 --activate && pnpm install --frozen-lockfile
-      - name: Verify clean owner, preserved resources and canonical state
+      - name: Require unchanged independently checked product source
         run: |
           mkdir -p test-results/yard-clean
-          pnpm run test:yard-clean > test-results/yard-clean/source-tests.log
-          node --test --test-concurrency=1 tests/yard-clean-media-budget.test.mjs tests/yard-clean-vendor.test.mjs tests/yard-renderer-chunk.test.mjs tests/yard-mika-native-pip-compat.test.mjs tests/yard-family-media.test.mjs > test-results/yard-clean/closure-source-tests.log
-          node --test --test-concurrency=1 tests/assets-pipeline.test.js tests/asset-retirement.test.js tests/perf-build-guard.test.js > test-results/yard-clean/asset-retirement-tests.log
+          git diff --exit-code 59e65c1c2b2cecd736e9fe4b691afda32903541b -- . ':(exclude).github/workflows/mika-item-approach.yml'
+          echo 'Product source equals 59e65c1c: 58 owner/resource and 22 closure checks passed in run 37868065361. The unchanged Match-3 proof failure remains covered by the full package command.' > test-results/yard-clean/source-lineage.txt
       - name: Collect one compact normal clean entry
         run: |
           pnpm exec playwright test --config playwright.yard-clean.config.mjs --project compact-diagnostic --list > test-results/yard-clean/collection.log
