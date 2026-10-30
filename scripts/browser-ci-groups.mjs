@@ -14,7 +14,7 @@ export const BROWSER_GROUPS = Object.freeze({
   'cross-game-motion': ['casual-motion.spec.js'],
   'hud-layout': ['glass-ui.spec.js', 'hud-art-visual-regressions.spec.js', 'hud-editor.spec.js', 'hud-redesign-runtime-coverage.spec.js'],
   'mobile-ui': ['mobile-ui-extended.spec.js', 'mobile-ui-matrix.spec.js'],
-  'navigation-input': ['gestures.spec.js', 'home-navigation.spec.js', 'minigames.spec.js', 'pause-paint-regression.spec.js'],
+  'navigation-input': ['bentoku.spec.js', 'gestures.spec.js', 'home-navigation.spec.js', 'minigames.spec.js', 'pause-paint-regression.spec.js'],
   'assets-performance': ['asset-retirement.spec.js', 'game-entry-flash.spec.js', 'assets-runtime.spec.js', 'perf-guard.spec.js', 'split-game-loading.spec.js'],
   'auth-cache-smoke': ['auth.spec.js', 'multi-game-logic-smoke.spec.js', 'player-copy.spec.js', 'sw-api-cache.spec.js'],
 });

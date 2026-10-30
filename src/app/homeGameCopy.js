@@ -7,6 +7,7 @@ export const HOME_GAME_COPY = {
     merge: { description: 'Combine matching items to discover new ones.' },
     bubbo: { title: 'Bubbo', description: 'Aim and shoot. Match three bubbles of one color.' },
     trivia: { description: 'Pick one of four answers. Play solo or with a friend.' },
+    bentoku: { description: 'Arrange the bento using spatial clues.' },
     room: { description: 'Set out food and decorations. Welcome animal visitors.' },
   },
   ru: {
@@ -16,6 +17,7 @@ export const HOME_GAME_COPY = {
     merge: { description: 'Объединяйте одинаковые предметы и открывайте новые.' },
     bubbo: { title: 'Bubbo', description: 'Цельтесь и стреляйте. Собирайте по три пузыря одного цвета.' },
     trivia: { description: 'Выбирайте один из четырёх ответов. Играйте соло или с другом.' },
+    bentoku: { description: 'Соберите бенто по пространственным подсказкам.' },
     room: { description: 'Расставляйте корм и украшения. Принимайте зверят в гости.' },
   },
 };

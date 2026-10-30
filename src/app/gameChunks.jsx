@@ -12,6 +12,7 @@ const gameLoaders = {
   merge: () => import("../games/merge/MergeGame.jsx"),
   bubbo: () => import("../games/bubbo/BubboGame.jsx"),
   trivia: () => import("../games/trivia/TriviaGame.jsx"),
+  bentoku: () => import("../games/bentoku/BentokuGame.jsx"),
   room: () => import("../games/companion-yard-v2/YardReleaseGame.jsx"),
   settlement: () => import("../games/settlement/SettlementGame.jsx"),
 };

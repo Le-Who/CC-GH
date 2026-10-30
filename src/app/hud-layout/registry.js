@@ -195,6 +195,11 @@ const GAME_REGIONS = {
     triviaBackgroundAsset: assetRegion("triviaBackgroundAsset", "Trivia room background asset", "Trivia DOM assets"),
     triviaQuestionSurfaceAsset: assetRegion("triviaQuestionSurfaceAsset", "Trivia question panel surface asset", "Trivia DOM assets"),
   },
+  bentoku: {
+    bentokuToolbar: region("bentokuToolbar", "Bentoku navigation", "Bentoku host", { draggable: true }),
+    bentokuFrame: region("bentokuFrame", "Hosted Bentoku viewport", "Bentoku host", { canChangeVisibility: false }),
+    bentokuCoverAsset: assetRegion("bentokuCoverAsset", "Bentoku loading artwork", "Bentoku host"),
+  },
   room: {
     yardStage: region("yardStage", "Yard play stage", "Cozy Yard", { measured: true, affectsPixiSafeArea: false, mode: "custom" }, "Persistent Yard uses a reserved CSS grid. Canonical landscape at max-height 360px and aspect>=8/5 uses a 44px header, 28px status and 44px controls inside the shared shell gutter; the 280x192 scene admission floor is unchanged."),
     yardHudLayer: region("yardHudLayer", "Yard HUD layer", "Cozy Yard", { draggable: false, resizable: false, mode: "custom" }),
