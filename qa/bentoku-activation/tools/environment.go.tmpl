@@ -1,0 +1,12 @@
+{{- $production := false -}}{{- $devOff := true -}}{{- $noOptions := true -}}{{- $build := false -}}
+{{- $seenProduction := false -}}{{- $seenDev := false -}}{{- $seenOptions := false -}}{{- $seenBuild := false -}}{{- $ambiguous := false -}}
+{{- range .Config.Env -}}
+  {{- $key := index (split . "=") 0 -}}
+  {{- if eq $key "NODE_ENV" -}}{{- if $seenProduction -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenProduction = true -}}{{- $production = eq . "NODE_ENV=production" -}}{{- end -}}
+  {{- if eq $key "DEV_AUTH_ENABLED" -}}{{- if $seenDev -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenDev = true -}}{{- $devOff = or (eq . "DEV_AUTH_ENABLED=false") (eq . "DEV_AUTH_ENABLED=") -}}{{- end -}}
+  {{- if eq $key "NODE_OPTIONS" -}}{{- if $seenOptions -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenOptions = true -}}{{- $noOptions = eq . "NODE_OPTIONS=" -}}{{- end -}}
+  {{- if eq $key "APP_BUILD_ID" -}}{{- if $seenBuild -}}{{- $ambiguous = true -}}{{- end -}}{{- $seenBuild = true -}}{{- $build = eq . "APP_BUILD_ID=__EXPECTED_BUILD__" -}}{{- end -}}
+{{- end -}}
+{{- $command := eq (json .Config.Cmd) "[\"node\",\"server.js\"]" -}}
+{{- $entrypoint := or (eq (json .Config.Entrypoint) "[\"docker-entrypoint.sh\"]") (eq (json .Config.Entrypoint) "null") (eq (json .Config.Entrypoint) "[]") -}}
+{"nodeEnvProduction":{{$production}},"devAuthDisabled":{{$devOff}},"nodePreloadAbsent":{{and $noOptions $command $entrypoint}},"expectedBuildConfigured":{{$build}},"unambiguousKeys":{{not $ambiguous}}}

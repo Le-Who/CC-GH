@@ -1,0 +1,709 @@
+{
+  "status": "accepted",
+  "release": {
+    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+  },
+  "predecessor": {
+    "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+    "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+    "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+    "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+  },
+  "acceptance": {
+    "runId": 41014273072,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "headCommit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916"
+  },
+  "checks": [
+    {
+      "name": "reviewed-source-inventory",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "reviewed-source-and-mocked-release-guard",
+      "cases": [],
+      "evidence": [
+        {
+          "path": "source-inventory.json",
+          "bytes": 11316,
+          "sha256": "d0d9ab13aa25275c55f5df9bded813011b68733ad85b02c205b9af8632d2eb67"
+        }
+      ]
+    },
+    {
+      "name": "normal-production-image",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [],
+      "evidence": [
+        {
+          "path": "image-identity.json",
+          "bytes": 1526712,
+          "sha256": "341160a2a05bfd91bef23b2fd5157d5e069e7630f52c73cc81c330aba8671612"
+        }
+      ]
+    },
+    {
+      "name": "authenticated-capability-policy",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "api-and-warm"
+      ],
+      "evidence": [
+        {
+          "path": "api-proof.json",
+          "bytes": 13598,
+          "sha256": "4cebff2eb9fa8958ea16fe75806f4f2b2bd9ae88355d181bb9821f9698f8b7ce"
+        }
+      ]
+    },
+    {
+      "name": "canonical-placement-storage-v2",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "current-v2-pending"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "economy-inventory",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "current-v2-pending"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "lost-response-exactly-once",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "current-v2-pending"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "pending-intent-account-fences",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "current-v2-pending"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "receipt-security",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "current-v2-pending"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "occupied-food-socket",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "occupied-320x568",
+        "occupied-390x844",
+        "occupied-568x320"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "warm-client-update",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "api-and-warm"
+      ],
+      "evidence": [
+        {
+          "path": "api-proof.json",
+          "bytes": 13598,
+          "sha256": "4cebff2eb9fa8958ea16fe75806f4f2b2bd9ae88355d181bb9821f9698f8b7ce"
+        }
+      ]
+    },
+    {
+      "name": "mobile-functional",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "occupied-320x568",
+        "occupied-390x844",
+        "occupied-568x320"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "mobile-visual",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "unaltered-native-originals-await-independent-review",
+      "cases": [],
+      "evidence": [
+        {
+          "path": "occupied-320x568-food.png",
+          "bytes": 213838,
+          "sha256": "f23a8ee46c05ca73690c40daf0880490a3ba7930e902786fff5ec53691fbf403"
+        },
+        {
+          "path": "occupied-320x568-decor.png",
+          "bytes": 225681,
+          "sha256": "af34d1e2ccdf22f0001bda14c6cd8424700f89c627a08e5b0e8e2c2bd5bf8592"
+        },
+        {
+          "path": "occupied-320x568-escaped.png",
+          "bytes": 166828,
+          "sha256": "f4ec39ce22f4ae434a15c2d2c0de46e9552f5ba4f132bf8ac8573f2612629363"
+        },
+        {
+          "path": "occupied-390x844-food.png",
+          "bytes": 1031410,
+          "sha256": "c2c598862bfaa03b8ad742d29bc5fef3c2396060c25d5a91566cd52487fe98be"
+        },
+        {
+          "path": "occupied-390x844-decor.png",
+          "bytes": 1120264,
+          "sha256": "7ff64c2457e5978605054d781aff7041ca7ea0a478cabebbd8ac73a1f3ed944f"
+        },
+        {
+          "path": "occupied-390x844-escaped.png",
+          "bytes": 949652,
+          "sha256": "c1c37bdf2bb8a388cd0d8338fc2e5e409cffd57605174cf0552ab9e975826acd"
+        },
+        {
+          "path": "occupied-568x320-food.png",
+          "bytes": 202894,
+          "sha256": "0e1d6ce59e6c7b2281c297d9321cc99bbfc8fcaceb87bf8cac96fe3b8feb3429"
+        },
+        {
+          "path": "occupied-568x320-decor.png",
+          "bytes": 214415,
+          "sha256": "9e33ada2ce80cd11816cae5d377971cfe7b628fdd130a6522169512bd1c51b9b"
+        },
+        {
+          "path": "occupied-568x320-escaped.png",
+          "bytes": 110751,
+          "sha256": "461a6f38d5bba3ff413c1c431e0149f732b87792e176a86ed52c960f0a79334a"
+        },
+        {
+          "path": "current-v2-recovered-390x844.png",
+          "bytes": 955347,
+          "sha256": "eeb1ba87749840eec52c741d2e249d048a01ec001a66d1ec2bd82a97a0f50c4f"
+        }
+      ]
+    },
+    {
+      "name": "app-only-failure-rollback",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-rebound-controller-mechanism",
+      "cases": [],
+      "evidence": [
+        {
+          "path": "activation-controller.log",
+          "bytes": 12189,
+          "sha256": "01660713a4e6968efed639d612c5d7921cc1ca7445630de257a5ed41fedc2488"
+        },
+        {
+          "path": "activation-controller-proof.json",
+          "bytes": 3047,
+          "sha256": "cf2fb02610d3f3a05e3a53ca9d9630cf7dc0351ce417cede0a421c3be9759aba"
+        },
+        {
+          "path": "activation-controller-source.json",
+          "bytes": 2152,
+          "sha256": "11f3018ee26f5a307324ae25967f05676641982b6878fd1aa961a88aa050989e"
+        },
+        {
+          "path": "activation-controller-compose.json",
+          "bytes": 887,
+          "sha256": "23888f14e6f599d8e2d85b476ec9c2368e471ca156ff5cb40d72d2ac5d719269"
+        },
+        {
+          "path": "activation-controller-formatter.log",
+          "bytes": 127,
+          "sha256": "81f2dc0741fe68f0bd5d7c3694dc0b491148c906abbd771ce0c1ec8d8653cc13"
+        }
+      ]
+    },
+    {
+      "name": "prior-image-v2-compatible-replay-preserves-state",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-api-or-browser",
+      "cases": [
+        "current-v2-pending"
+      ],
+      "evidence": [
+        {
+          "path": "native-proof.json",
+          "bytes": 810459,
+          "sha256": "e89eeb6707e58cc0834fa63ba175762bcf1dbdf47ba4830d9e99942cf9f3b02e"
+        }
+      ]
+    },
+    {
+      "name": "bentoku-launch",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+      },
+      "predecessor": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "kind": "fresh-exact-image-and-live-Vercel-browser",
+      "cases": [
+        "320x568",
+        "390x844",
+        "568x320"
+      ],
+      "evidence": [
+        {
+          "path": "bentoku-proof.json",
+          "bytes": 1180,
+          "sha256": "6d4c8ed6a7da61a896ceef70eed110e4b562e3d06ca0e5e3a2602faac0f08e07"
+        },
+        {
+          "path": "bentoku-catalogue-320x568.png",
+          "bytes": 97190,
+          "sha256": "64b9f2c033af4168a53883ab852491a819427ff8220a703bd23bfad40c5dbfa7"
+        },
+        {
+          "path": "bentoku-320x568.png",
+          "bytes": 146100,
+          "sha256": "06dca0e49f1e3e35ca70f26e769292d55f6095fcd38d502d9ccc185dfc89e077"
+        },
+        {
+          "path": "bentoku-catalogue-390x844.png",
+          "bytes": 200802,
+          "sha256": "6a56d15184988316f057ff1b3e43e01920216bbc387b64a13e9a05e462f4c331"
+        },
+        {
+          "path": "bentoku-390x844.png",
+          "bytes": 282685,
+          "sha256": "a4dababafb99b4bd07939c14cb9c146b3b5fc336e4bb6fdd281eb0a4869e98f9"
+        },
+        {
+          "path": "bentoku-catalogue-568x320.png",
+          "bytes": 82945,
+          "sha256": "cf0cf557ec53ed37a9589acaf63a050306aba0f3a77f3779ddf922730f553b82"
+        },
+        {
+          "path": "bentoku-568x320.png",
+          "bytes": 142473,
+          "sha256": "bdff7fdfcae764db5c8dcab9b6f2cc068720d0104c95a7f8415a23c5c8736eac"
+        }
+      ]
+    }
+  ],
+  "visualReview": {
+    "verdict": "accepted",
+    "independent": true,
+    "reviewer": "/root/review_bentoku",
+    "observations": {
+      "scope": "Independent visual GO for the mobile layout, readable state text and visible controls in all 22 original PNGs from successful run 41014273072, candidate 01fb01b3ca92f239682a5c63021e002d41a1f685. Each original was opened separately at its native resolution, without a contact sheet or pixel transformation. Every file hash and byte length was checked against the original evidence manifest.",
+      "coverage": [
+        "Bentoku: three initial catalogue frames and three gameplay frames at 320x568, 390x844 and 568x320.",
+        "Yard: food dialog, decor dialog and escaped state at each of 320x568, 390x844 and 568x320; Russian and English collision states at each size; current-v2 recovered state at 390x844. Yard 390x844 originals are 780x1688 pixels at device scale factor 2."
+      ],
+      "findings": [
+        "All three catalogue frames place Garden first and Bentoku second. The Bentoku poster and title are fully visible in the initial viewport. Portrait descriptions fit their cards; the short landscape catalogue remains an intentionally scrolling list, with the identifying poster and title visible above its lower edge.",
+        "The 390x844 catalogue frame captures the explained initial navigation-pending state, with disabled cards and its waiting message. The poster and title remain visible. This is a guarded transient state, not an obscured entry; subsequent enabled tap/navigation belongs to the separately passed functional case.",
+        "All three Bentoku gameplay frames retain a complete nine-cell board, the piece trays, clues, game settings/difficulty controls, host Home/reload controls and lower Undo/Hint controls. No clipped primary controls, horizontal overflow, obstructing overlay, broken image or unreadable primary label was observed. The short landscape composition keeps the host navigation in its left rail and the game controls inside the frame.",
+        "Yard portrait food/decor dialogs retain a visible heading and close control, readable occupied-bowl explanation and recognizable disabled/enabled states. Selected decor actions remain visible and legible. The compact food list extends through its declared scrolling content area; content beyond that area is not treated as accidental viewport clipping.",
+        "Yard landscape food/decor dialogs retain readable occupied-state instructions and visible close/navigation controls. The decor action column fits Move, Pick up and Inspect controls without overlap. The food dialog is an intentionally scrolling panel; this static review does not claim that all food-list controls appear simultaneously in the initial viewport.",
+        "All six Yard collision frames show readable Russian/English refusal text and separately readable Cancel/Place controls. The disabled Place state remains visually distinguishable. Text wraps within the status surface without covering the scene or action row.",
+        "The escaped Yard states and current-v2 recovered frame retain visible currency, scene, status, action and navigation surfaces. No layout blocker, inaccessible visible primary action or new cross-surface overlap was observed in the reviewed frames."
+      ],
+      "limitations": [
+        "This is layout/mobile visual acceptance for these exact 22 originals only. Existing Yard development art, model proportions, animation quality, sparse scene composition and food-card illustration areas are not granted new production-art acceptance by this review.",
+        "Static PNGs do not independently establish gesture behavior, save/replay correctness, timing or absence of first-frame flashes. Those claims require their separate functional/continuous evidence.",
+        "The captures cover the three stated phone viewport sizes, not a new full tablet/desktop matrix or physical Telegram Android/iOS/Desktop session. Publication and final host preflight remain separate gates."
+      ]
+    },
+    "files": [
+      {
+        "path": "bentoku-320x568.png",
+        "sha256": "06dca0e49f1e3e35ca70f26e769292d55f6095fcd38d502d9ccc185dfc89e077"
+      },
+      {
+        "path": "bentoku-390x844.png",
+        "sha256": "a4dababafb99b4bd07939c14cb9c146b3b5fc336e4bb6fdd281eb0a4869e98f9"
+      },
+      {
+        "path": "bentoku-568x320.png",
+        "sha256": "bdff7fdfcae764db5c8dcab9b6f2cc068720d0104c95a7f8415a23c5c8736eac"
+      },
+      {
+        "path": "bentoku-catalogue-320x568.png",
+        "sha256": "64b9f2c033af4168a53883ab852491a819427ff8220a703bd23bfad40c5dbfa7"
+      },
+      {
+        "path": "bentoku-catalogue-390x844.png",
+        "sha256": "6a56d15184988316f057ff1b3e43e01920216bbc387b64a13e9a05e462f4c331"
+      },
+      {
+        "path": "bentoku-catalogue-568x320.png",
+        "sha256": "cf0cf557ec53ed37a9589acaf63a050306aba0f3a77f3779ddf922730f553b82"
+      },
+      {
+        "path": "current-v2-recovered-390x844.png",
+        "sha256": "eeb1ba87749840eec52c741d2e249d048a01ec001a66d1ec2bd82a97a0f50c4f"
+      },
+      {
+        "path": "occupied-320x568-collision-en.png",
+        "sha256": "36409cea7dff9ca2b54fc4027d98a4cab5d7a54233d380df463037556b01523b"
+      },
+      {
+        "path": "occupied-320x568-collision-ru.png",
+        "sha256": "29495109e640197345351cccaea8ae78ee007ecf03e7edd3bcd31982b444ec2d"
+      },
+      {
+        "path": "occupied-320x568-decor.png",
+        "sha256": "af34d1e2ccdf22f0001bda14c6cd8424700f89c627a08e5b0e8e2c2bd5bf8592"
+      },
+      {
+        "path": "occupied-320x568-escaped.png",
+        "sha256": "f4ec39ce22f4ae434a15c2d2c0de46e9552f5ba4f132bf8ac8573f2612629363"
+      },
+      {
+        "path": "occupied-320x568-food.png",
+        "sha256": "f23a8ee46c05ca73690c40daf0880490a3ba7930e902786fff5ec53691fbf403"
+      },
+      {
+        "path": "occupied-390x844-collision-en.png",
+        "sha256": "134a5c8ad1e504d63b22235313891cde394e34d1479d630b682e6d19d4e7e436"
+      },
+      {
+        "path": "occupied-390x844-collision-ru.png",
+        "sha256": "589b71a4349c43bf7db20b44a11bbc4607a2ac0138ee8f5ab25ffdb2fab2dd11"
+      },
+      {
+        "path": "occupied-390x844-decor.png",
+        "sha256": "7ff64c2457e5978605054d781aff7041ca7ea0a478cabebbd8ac73a1f3ed944f"
+      },
+      {
+        "path": "occupied-390x844-escaped.png",
+        "sha256": "c1c37bdf2bb8a388cd0d8338fc2e5e409cffd57605174cf0552ab9e975826acd"
+      },
+      {
+        "path": "occupied-390x844-food.png",
+        "sha256": "c2c598862bfaa03b8ad742d29bc5fef3c2396060c25d5a91566cd52487fe98be"
+      },
+      {
+        "path": "occupied-568x320-collision-en.png",
+        "sha256": "5edc75162f40292426587ece8520ef3ec130abfe9f2afcdf455fba7ab1ea3e5f"
+      },
+      {
+        "path": "occupied-568x320-collision-ru.png",
+        "sha256": "c5a8c3de08fc645522f9703bf847c0569fd4d6a0b23bbfb20d315ec0b301f720"
+      },
+      {
+        "path": "occupied-568x320-decor.png",
+        "sha256": "9e33ada2ce80cd11816cae5d377971cfe7b628fdd130a6522169512bd1c51b9b"
+      },
+      {
+        "path": "occupied-568x320-escaped.png",
+        "sha256": "461a6f38d5bba3ff413c1c431e0149f732b87792e176a86ed52c960f0a79334a"
+      },
+      {
+        "path": "occupied-568x320-food.png",
+        "sha256": "0e1d6ce59e6c7b2281c297d9321cc99bbfc8fcaceb87bf8cac96fe3b8feb3429"
+      }
+    ]
+  },
+  "qualification": {
+    "jobId": 123926925271,
+    "workflowSha256": "02904f33861309e18645fd43a116e0cf6c1c6f334f0dc87c1efc085f8b0341a7",
+    "runMetadataSha256": "eeaae88679a4ac3ebe39309465232729fd8061945b1f2b918c06b6b3b7aab605",
+    "jobsMetadataSha256": "9b8b8818cc8e4eaa01e90821fc23f651b93abac33e12117110332351e16cabee",
+    "artifact": {
+      "id": 12958669270,
+      "name": "bentoku-development-image-01fb01b3ca92f239682a5c63021e002d41a1f685-1",
+      "bytes": 8826819,
+      "sha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916",
+      "githubDigest": "sha256:9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916"
+    },
+    "innerArchiveSha256": "f86a87958990b56e70dbb010955c822be83a1839b20a92920cfcc38bc2165706",
+    "originalManifestSha256": "c0cc238ba48f1f874525c863228b0aece6eaed9ebdef228246d1655f6be982ad",
+    "sourceInventorySha256": "d0d9ab13aa25275c55f5df9bded813011b68733ad85b02c205b9af8632d2eb67",
+    "controllerProofSha256": "cf2fb02610d3f3a05e3a53ca9d9630cf7dc0351ce417cede0a421c3be9759aba",
+    "counts": {
+      "source": 79,
+      "interaction": 19,
+      "releaseSmoke": 5,
+      "controller": 64,
+      "browser": 6
+    },
+    "physicalTelegramClientTested": false
+  }
+}
