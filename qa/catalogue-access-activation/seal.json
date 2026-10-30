@@ -1,0 +1,71 @@
+{
+  "format": "cc-gh-bentoku-exact-activation-seal/v1",
+  "sourceController": "74869cfd1a29e28e71c018103a3e15b9733ceddb",
+  "sourceWorkflowSha256": "b81125b9d38e74a570509b7b714684547b788cefdfe09e3b2bce78b0fe744d01",
+  "approvedRecordSha256": "ad12c20803c795d544f7a5583cd1eb3f1e362edb629e8109ce08bd9fa50017b5",
+  "predecessor": {
+    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+  },
+  "candidate": {
+    "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+    "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
+    "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
+    "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
+  },
+  "files": [
+    {
+      "path": "packet/development-record.json",
+      "bytes": 1911,
+      "sha256": "ad12c20803c795d544f7a5583cd1eb3f1e362edb629e8109ce08bd9fa50017b5"
+    },
+    {
+      "path": "packet/predecessor-receipt.json",
+      "bytes": 2110,
+      "sha256": "b0a64e9180f0f729910b37b62978c4a3be9b6cbe8cff55a271e43d0fb5f35a4f"
+    },
+    {
+      "path": "packet/candidate-receipt.json",
+      "bytes": 33408,
+      "sha256": "957651a59f40e138f321d90fe337dbda97cb71a269b24719ca3a24880b74e4ea"
+    },
+    {
+      "path": "tools/ccgh-app-development-release.sh",
+      "bytes": 18548,
+      "sha256": "dc705de397a2a266012b41ba05447b6b14e4af4e0a5e3f77f1fd1dd16f7da6b4"
+    },
+    {
+      "path": "tools/yard-development-contract.mjs",
+      "bytes": 14989,
+      "sha256": "1a016b65b3f828eb4659a9644372fc42eae80779a23f42c12cdd62fc45bd2e96"
+    },
+    {
+      "path": "tools/environment.go.tmpl",
+      "bytes": 1500,
+      "sha256": "6be4f89236ae91ddd41b106206c279c43cdc61abe0e88e7c73d551c317b6f979"
+    },
+    {
+      "path": "worker.sh",
+      "bytes": 15773,
+      "sha256": "0a3f56bd2161da2aa66c3dd495eb108479ce4feafa5f37ae49a3133372d2aa36"
+    },
+    {
+      "path": "transport.sh",
+      "bytes": 131007,
+      "sha256": "82793a528bc7121d5ff9863e008a8608ef2c988508497d6e56bcfd280aa3e68d"
+    },
+    {
+      "path": "ssh-stdin.py",
+      "bytes": 9393,
+      "sha256": "02bf2248e2782d005963527e05dfeaf2e9d451612f6903436052f85b7a132696"
+    },
+    {
+      "path": "test-ssh-stdin.py",
+      "bytes": 7375,
+      "sha256": "30be37ddef204b69165a40b7b7c0f9f52eb10a2cab4664867b451727c88ebfdf"
+    }
+  ],
+  "scope": "Only predecessor/candidate identities, exact accepted packet and helper hashes rebound. Existing lock, backup, app-only override, effective Compose hash, environment/neighbor guards, pinned SSH/stdin boundary and sole-helper rollback retained."
+}

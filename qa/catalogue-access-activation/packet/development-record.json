@@ -1,0 +1,57 @@
+{
+  "format": "cc-gh-yard-development-release/v1",
+  "repository": "le-who/cc-gh",
+  "mode": "development-protocol-evolution",
+  "predecessor": {
+    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806",
+    "receiptSha256": "b0a64e9180f0f729910b37b62978c4a3be9b6cbe8cff55a271e43d0fb5f35a4f"
+  },
+  "candidate": {
+    "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+    "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
+    "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
+    "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c",
+    "receiptSha256": "957651a59f40e138f321d90fe337dbda97cb71a269b24719ca3a24880b74e4ea"
+  },
+  "storage": {
+    "format": "yard-persistent/v1",
+    "readVersions": [
+      1,
+      2
+    ],
+    "writeVersions": [
+      1,
+      2
+    ],
+    "transition": "first-successful-canonical-placement-writes-v2",
+    "rollback": "prior-image-compatible-replay-preserves-v2",
+    "compatibilityRequired": true,
+    "reset": "none"
+  },
+  "capabilities": {
+    "authority": "source-owned-authenticated-policy",
+    "clientGraph": true,
+    "itemKinds": [
+      "leaf_pot"
+    ],
+    "placementLimit": 2,
+    "foodSocket": "bowl-1",
+    "canonicalVisitorAdmission": false,
+    "fixtureLoader": false,
+    "devAuth": false
+  },
+  "runtime": {
+    "composeSha256": "d5e6e1e6afef6733ce340ccc9b3eefb45630ac2dba14ac9810a9af1676293a4f",
+    "localUrl": "http://127.0.0.1:18080/",
+    "publicUrl": "https://games.tri.mom/",
+    "dbUser": "appuser",
+    "dbName": "gamehub",
+    "protectedServices": [
+      "caddy.service"
+    ],
+    "neighborPublicHealth": "not-proven"
+  }
+}
