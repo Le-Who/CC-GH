@@ -1,19 +1,19 @@
 {
-  "scope": "Exact predecessor rebind and additional Bentoku acceptance, with unchanged app-only mechanisms",
+  "scope": "Exact current Bentoku predecessor rebind; unchanged app-only release mechanisms and all 15 acceptance requirements",
   "files": [
     {
       "path": "controller/scripts/ccgh-app-development-release.sh",
       "originalCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
       "originalPath": "qa/development-controller/scripts/ccgh-app-development-release.sh",
       "originalSha256": "bd60ffd1d2321d4100e233339e5061553838c20fd3a38e9f8a62861b898bd812",
-      "sha256": "cc4f9633033b64d6cf1826d4f1b7ef6c0a52664c507e2313f94504f28e69591a"
+      "sha256": "dc705de397a2a266012b41ba05447b6b14e4af4e0a5e3f77f1fd1dd16f7da6b4"
     },
     {
       "path": "controller/scripts/yard-development-contract.mjs",
       "originalCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
       "originalPath": "qa/development-controller/scripts/yard-development-contract.mjs",
       "originalSha256": "d39fee6a48c582871e80d9f2f146cceda219623ba36b6e0d4183397ba95eb95a",
-      "sha256": "71d28a36c290b8342f98267a3ac2a250b7c16b153766581d4df6a1557c434909"
+      "sha256": "1a016b65b3f828eb4659a9644372fc42eae80779a23f42c12cdd62fc45bd2e96"
     },
     {
       "path": "controller/tests/yard-development-release.test.mjs",

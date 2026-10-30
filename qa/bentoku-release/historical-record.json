@@ -3,18 +3,18 @@
   "repository": "le-who/cc-gh",
   "mode": "development-protocol-evolution",
   "predecessor": {
-    "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
-    "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
-    "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
-    "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d",
-    "receiptSha256": "071c26348be772fb59d39a7425fc5745b359c175521872e11dc7731f686c5a1a"
-  },
-  "candidate": {
     "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
     "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
     "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
     "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26",
-    "receiptSha256": "2ad5d175413c819b1b0d7eec0216d19d2857a21e1bd0986a62d53bef9d5e99b2"
+    "receiptSha256": "2577f9cf653aae806e7e8c975303dc6a8f367c9c44c85c6d9761e8951bb41bbb"
+  },
+  "candidate": {
+    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806",
+    "receiptSha256": "e5bdfd465b8d94fa9367bdfe4d364d02299b4ec3d55597d664a5da44bb5deb89"
   },
   "storage": {
     "format": "yard-persistent/v1",

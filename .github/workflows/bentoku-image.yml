@@ -1,13 +1,13 @@
-name: Bentoku on current live development image
+name: Catalogue access on current live development image
 on:
   push:
-    branches: ['qa/bentoku-image-20261030-r7']
+    branches: ['qa/catalogue-access-image-20261030']
 permissions:
   contents: read
   actions: read
   packages: write
 concurrency:
-  group: bentoku-image-20261030
+  group: catalogue-access-image-20261030
   cancel-in-progress: false
 jobs:
   acceptance:
@@ -45,8 +45,8 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch --no-tags --depth=1 origin 56b9062955d60c76bf9430c898d3cec1231ca524
-          git fetch --no-tags --depth=1 origin 718d4540e81e35ab73047ddb08c158f0041e84eb
+          git fetch --no-tags --depth=1 origin 01fb01b3ca92f239682a5c63021e002d41a1f685
+          git fetch --no-tags --depth=1 origin 74869cfd1a29e28e71c018103a3e15b9733ceddb
           node qa/bentoku-release/image-acceptance.mjs preflight
       - name: Install locked test dependencies
         run: |
@@ -64,6 +64,10 @@ jobs:
           timeout 20s node --test qa/bentoku-release/tests/binding.test.mjs
           timeout 30s python3 qa/bentoku-release/controller/tests/probe-compose-repeat-release.py > test-results/yard-development/activation-controller-compose.json
           timeout 30s go run qa/bentoku-release/controller/inspect-format.go > test-results/yard-development/activation-controller-formatter.log
+      - name: Catalogue access and account regression checks
+        run: |
+          set -o pipefail
+          timeout 30s node --test --test-reporter=tap --test-concurrency=1 tests/bentoku-bridge.test.js tests/hub-account-boundaries.test.mjs tests/realtime-account-boundaries.test.mjs tests/home-navigation.test.js tests/gameStore.test.js tests/api-network-cache.test.mjs tests/private-api-cache-lifecycle.test.mjs | tee test-results/yard-development/catalogue-access.tap
       - name: Lossless enlarged evidence envelope
         run: timeout 30s node --test qa/bentoku-release/tests/evidence-cap.test.mjs
       - uses: docker/login-action@v4

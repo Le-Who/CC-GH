@@ -13,21 +13,21 @@ function recordFixture() {
   return record;
 }
 
-test('the app-only controller binds exactly the currently deployed 56b906 predecessor', () => {
-  assert.equal(PREDECESSOR, '56b9062955d60c76bf9430c898d3cec1231ca524');
-  assert.equal(PREDECESSOR_TREE, '1f8dfdd199602099f7bf6716194e1ff67725885d');
-  assert.equal(PREDECESSOR_IMAGE_DIGEST, 'sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d');
-  assert.equal(PREDECESSOR_IMAGE_ID, 'sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26');
+test('the app-only controller binds exactly the currently deployed 01fb01b predecessor', () => {
+  assert.equal(PREDECESSOR, '01fb01b3ca92f239682a5c63021e002d41a1f685');
+  assert.equal(PREDECESSOR_TREE, 'd9ff3cdb016f9958900b0c71b80ff4f8679e2d93');
+  assert.equal(PREDECESSOR_IMAGE_DIGEST, 'sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195');
+  assert.equal(PREDECESSOR_IMAGE_ID, 'sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806');
   assert.equal(CHECKS.length, 15);
   assert.ok(CHECKS.includes('bentoku-launch'));
   const oldChecks = JSON.parse(readFileSync(new URL('../historical-candidate-receipt.json', import.meta.url))).checks.map(check => check.name);
-  assert.deepEqual(CHECKS.slice().sort(), [...oldChecks, 'bentoku-launch'].sort());
+  assert.deepEqual(CHECKS.slice().sort(), oldChecks.sort());
 });
 
-test('a valid record for 56b906 cannot select the historical ec815 predecessor or a different image', () => {
+test('a valid record for 01fb01b cannot select the historical 56b906 predecessor or a different image', () => {
   const record = recordFixture();
   let bytes = encode(record);
-  assert.equal(parseDevelopmentRecord(bytes, hash(bytes)).predecessor.commit, '56b9062955d60c76bf9430c898d3cec1231ca524');
+  assert.equal(parseDevelopmentRecord(bytes, hash(bytes)).predecessor.commit, '01fb01b3ca92f239682a5c63021e002d41a1f685');
   record.predecessor = historical.predecessor;
   bytes = encode(record);
   assert.throws(() => parseDevelopmentRecord(bytes, hash(bytes)), /different predecessor/);
@@ -46,7 +46,7 @@ test('the accepted image receipt must include fresh Bentoku evidence as well as 
     format: 'cc-gh-yard-accepted-development/v1', repository: 'le-who/cc-gh', repositoryId: 1162268629, status: 'accepted',
     release: identity(record.candidate), predecessor: identity(record.predecessor), mode: record.mode, storage: record.storage, capabilities: record.capabilities,
     acceptance: { runId: 1, runAttempt: 1, status: 'completed', conclusion: 'success', headCommit: record.candidate.commit, artifactSha256: '1'.repeat(64) },
-    checks: [...oldChecks, 'bentoku-launch'].map(name => ({ name, attempts: 1, status: 'completed', conclusion: 'success', release: identity(record.candidate), predecessor: identity(record.predecessor), artifactSha256: '2'.repeat(64) })),
+    checks: oldChecks.map(name => ({ name, attempts: 1, status: 'completed', conclusion: 'success', release: identity(record.candidate), predecessor: identity(record.predecessor), artifactSha256: '2'.repeat(64) })),
   };
   let candidateBytes = encode(candidate);
   record.candidate.receiptSha256 = hash(candidateBytes);

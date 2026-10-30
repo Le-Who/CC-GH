@@ -28,7 +28,7 @@ export async function preflight(){
   const match=line.match(/^:(\d+) (\d+) ([a-f0-9]+) ([a-f0-9]+) (\w)\t(.+)$/);assert(match);
   return {path:match[6],before:{mode:match[1],objectId:match[3]},after:{mode:match[2],objectId:match[4]},status:match[5]};
  });assert.deepEqual(product,s.sourceChanges);
- assert.equal(sha(execFileSync('git',['show',s.historical.controller+':.github/workflows/yard-development-activate.yml'])),s.historical.workflowSha256);
+ assert.equal(sha(execFileSync('git',['show',s.historical.controller+':'+s.historical.workflowPath])),s.historical.workflowSha256);
  assert.equal(sha(await fs.readFile('qa/bentoku-release/historical-candidate-receipt.json')),s.historical.candidateReceiptSha256);
  assert.equal(sha(await fs.readFile('qa/bentoku-release/predecessor-receipt.json')),s.predecessorReceiptSha256);
  const pins=await load('controller-source.json');for(const row of pins.files)
@@ -58,7 +58,9 @@ export async function verifyFreshControllerProof(){
 export async function bentokuClaim(head){
  const p=await loadEvidence('bentoku-proof.json');assert.equal(p.status,'passed');assert.equal(p.head,head);
  assert.deepEqual(p.cases.map(c=>c.viewport),['320x568','390x844','568x320']);
- assert(p.cases.every(c=>c.status==='passed'&&c.placed&&c.paused&&c.resumed));assert.equal(p.reloadPreserved,true);
- return {name:'bentoku-launch',status:'passed',kind:'fresh-exact-image-and-live-Vercel-browser',attempts:1,cases:p.cases.map(c=>c.viewport),evidence:['bentoku-proof.json',...p.captures]};
+ assert.deepEqual(p.desktopCatalogue,{viewport:'1280x720',status:'passed',allGamesEnabled:true,emptyJournalsPreserved:true});
+ assert(p.cases.every(c=>c.status==='passed'&&c.placed&&c.paused&&c.resumed&&c.allGamesEnabled&&c.emptyJournalsPreserved));assert.equal(p.reloadPreserved,true);
+ assertTap(await fs.readFile(path.join(OUT,'catalogue-access.tap')),120);
+ return {name:'bentoku-launch',status:'passed',kind:'fresh-exact-image-and-live-Vercel-browser',attempts:1,cases:p.cases.map(c=>c.viewport),evidence:['bentoku-proof.json','catalogue-access.tap',...p.captures]};
 }
 async function loadEvidence(name){return JSON.parse(await fs.readFile(path.join(OUT,name),'utf8'));}

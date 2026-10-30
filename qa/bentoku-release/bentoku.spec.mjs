@@ -15,15 +15,23 @@ test('Bentoku catalogue, live iframe, mobile placement and lifecycle',async({bro
  try{
   const [db]=await sql`SELECT current_database() AS name`;assert.equal(db.name,'ccgh_yard_production_ci');
   const f=fixture();await insertFixture(sql,f,runId);const initData=await auth(f);
-  for(const [width,height]of [[320,568],[390,844],[568,320]]){
-   const context=await browser.newContext({viewport:{width,height},isMobile:true,hasTouch:true,deviceScaleFactor:1,serviceWorkers:'block'});
+  for(const [width,height]of [[320,568],[390,844],[568,320],[1280,720]]){
+   const context=await browser.newContext({viewport:{width,height},isMobile:width<800,hasTouch:true,deviceScaleFactor:1,serviceWorkers:'block'});
    try{
     const p=await context.newPage();
     await p.addInitScript(({initData,id,parentOrigin})=>{if(location.origin!==parentOrigin)return;window.Telegram={WebApp:{initData,initDataUnsafe:{user:{id,first_name:'Disposable development fixture'}}}};localStorage.setItem('garden_shelf_language','ru');},{initData,id:Number(f.externalId),parentOrigin:origin('origin')});
+    await p.addInitScript(async parentOrigin=>{
+     if(location.origin!==parentOrigin)return;
+     localStorage.setItem('game_hub_yard_outbox_v1',' [ \n ] ');
+     const r=indexedDB.open('keyval-store');r.onupgradeneeded=()=>r.result.createObjectStore('keyval');
+     await new Promise((resolve,reject)=>{r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result,tx=db.transaction('keyval','readwrite');tx.objectStore('keyval').put([],'game_hub_yard_outbox_v1');tx.oncomplete=()=>{db.close();resolve();};tx.onerror=()=>reject(tx.error);};});
+    },origin('origin'));
     await p.goto(origin('origin')+'/#tgWebAppPlatform=android&tgWebAppVersion=8.0',{waitUntil:'domcontentloaded'});
     await expect.poll(()=>p.evaluate(()=>window.__APP_BUILD_ID__)).toBe(runtime.inputs.candidate.commit);
     await expect(p.locator('main[data-active-tab]')).toHaveAttribute('data-active-tab','garden');await p.keyboard.press('Escape');await expect(p.getByTestId('home-catalogue')).toBeVisible();
     expect(await p.locator('[data-home-game]').evaluateAll(nodes=>nodes.slice(0,2).map(n=>n.dataset.homeGame))).toEqual(['garden','bentoku']);
+    for(const id of ['garden','bentoku','blox','match3','merge','bubbo','trivia','room'])await expect(p.locator(`[data-home-game="${id}"]`)).toBeEnabled();
+    await expect(p.locator('.home-waiting')).toHaveCount(0);
     const card=p.locator('[data-home-game="bentoku"]');await expect(card).toHaveAccessibleName('Bentoku');
     // The catalogue is a scrollable list. Its artwork, title and initial tap
     // target must be visible; other cards may stretch the row's description area.
@@ -31,6 +39,12 @@ test('Bentoku catalogue, live iframe, mobile placement and lifecycle',async({bro
     expect(await p.getByTestId('home-catalogue').evaluate(n=>n.scrollTop)).toBe(0);
     await expect(card.locator('img')).toHaveJSProperty('naturalWidth',512);
     {const name=`bentoku-catalogue-${width}x${height}.png`;await p.screenshot({path:path.join(OUT,name)});proof.captures.push(name);}
+    if(width===1280){
+     expect(await p.evaluate(()=>localStorage.getItem('game_hub_yard_outbox_v1'))).toBe(' [ \n ] ');
+     expect(await p.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('keyval-store');r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result,q=db.transaction('keyval').objectStore('keyval').get('game_hub_yard_outbox_v1');q.onsuccess=()=>{db.close();resolve(q.result);};q.onerror=()=>reject(q.error);};}))).toEqual([]);
+     proof.desktopCatalogue={viewport:'1280x720',status:'passed',allGamesEnabled:true,emptyJournalsPreserved:true};
+     continue;
+    }
     await card.locator('.home-thumbnail').tap();
     const ready=async()=>{await expect(p.locator('[data-game-shell="bentoku"]')).toHaveAttribute('data-status','ready',{timeout:20000});const frame=p.frames().find(f=>f.url().startsWith('https://bentoku-nine.vercel.app/'));assert(frame);await expect(frame.locator('.mobile-theme-loading')).toBeHidden({timeout:15000});await expect(frame.locator('.mobile-shell')).toBeVisible();return frame;};
     let frame=await ready();
@@ -53,7 +67,9 @@ test('Bentoku catalogue, live iframe, mobile placement and lifecycle',async({bro
     const inner=await frame.evaluate(()=>{const r=document.querySelector('.mobile-shell'),t=document.querySelector('.mobile-toolbar').getBoundingClientRect();return{overflow:r.scrollHeight-r.clientHeight,bottom:t.bottom,height:innerHeight};});expect(inner.overflow).toBeLessThanOrEqual(1);expect(inner.bottom).toBeLessThanOrEqual(inner.height+1);
     if(width===390){await p.reload({waitUntil:'domcontentloaded'});frame=await ready();expect(await frame.evaluate(()=>localStorage.getItem('bentoku.save.v1'))).toBe(save);proof.reloadPreserved=true;}
     const capture=`bentoku-${width}x${height}.png`;await p.screenshot({path:path.join(OUT,capture),scale:'device'});proof.captures.push(capture);
-    proof.cases.push({viewport:`${width}x${height}`,status:'passed',placed:true,paused:true,resumed:true,geometry:inner,documentPreserved:true});
+    expect(await p.evaluate(()=>localStorage.getItem('game_hub_yard_outbox_v1'))).toBe(' [ \n ] ');
+    expect(await p.evaluate(()=>new Promise((resolve,reject)=>{const r=indexedDB.open('keyval-store');r.onerror=()=>reject(r.error);r.onsuccess=()=>{const db=r.result,q=db.transaction('keyval').objectStore('keyval').get('game_hub_yard_outbox_v1');q.onsuccess=()=>{db.close();resolve(q.result);};q.onerror=()=>reject(q.error);};}))).toEqual([]);
+    proof.cases.push({allGamesEnabled:true,emptyJournalsPreserved:true,viewport:`${width}x${height}`,status:'passed',placed:true,paused:true,resumed:true,geometry:inner,documentPreserved:true});
    }catch(error){
     proof.error=String(error).slice(0,3000);const p=context.pages()[0];
     if(p){try{const name=`bentoku-${width}x${height}-failure.png`;await p.screenshot({path:path.join(OUT,name),timeout:2500});proof.captures.push(name);proof.failureObservation=await p.evaluate(()=>({url:location.origin+location.pathname,queryKeys:[...new URL(location.href).searchParams.keys()],gameShell:document.querySelector('[data-game-shell="bentoku"]')?.dataset.status,homeVisible:!!document.querySelector('[data-testid="home-catalogue"]')}));}catch(captureError){proof.captureError=String(captureError).slice(0,800);}}

@@ -8,12 +8,12 @@ import {readFileSync, writeFileSync, statSync} from 'node:fs';
 import {resolve} from 'node:path';
 import {pathToFileURL} from 'node:url';
 export const REPOSITORY = 'le-who/cc-gh';
-export const PREDECESSOR = '56b9062955d60c76bf9430c898d3cec1231ca524';
-export const PREDECESSOR_TREE = '1f8dfdd199602099f7bf6716194e1ff67725885d';
-export const PREDECESSOR_IMAGE_DIGEST = 'sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d';
-export const PREDECESSOR_IMAGE_ID = 'sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26';
-export const PREDECESSOR_ACCEPTANCE = Object.freeze({"runId":37735444758,"runAttempt":1,"status":"completed","conclusion":"success","headCommit":"56b9062955d60c76bf9430c898d3cec1231ca524","artifactSha256":"fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"});
-export const PREDECESSOR_DEPLOYMENT = Object.freeze({"runId":37737361112,"runAttempt":1,"status":"completed","conclusion":"success","controllerHeadCommit":"718d4540e81e35ab73047ddb08c158f0041e84eb","targetCommit":"56b9062955d60c76bf9430c898d3cec1231ca524","jobId":113179848188,"workflowSha256":"787904aef39c07d21bd0fbb6063cd827ee4c0f237c8948e12650bfbc7aabfa00","recordSha256":"31976a941351c824537d2e1fd3cfe72cb5c203e703347591c0b53f384416977b","evidence":{"provenance":"immutable-public-workflow-packet-and-successful-GitHub-run-jobs-metadata","candidateReceiptSha256":"2ad5d175413c819b1b0d7eec0216d19d2857a21e1bd0986a62d53bef9d5e99b2","expiredActivationLogsRecovered":false}});
+export const PREDECESSOR = '01fb01b3ca92f239682a5c63021e002d41a1f685';
+export const PREDECESSOR_TREE = 'd9ff3cdb016f9958900b0c71b80ff4f8679e2d93';
+export const PREDECESSOR_IMAGE_DIGEST = 'sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195';
+export const PREDECESSOR_IMAGE_ID = 'sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806';
+export const PREDECESSOR_ACCEPTANCE = Object.freeze({"runId":41014273072,"runAttempt":1,"status":"completed","conclusion":"success","headCommit":"01fb01b3ca92f239682a5c63021e002d41a1f685","artifactSha256":"9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916"});
+export const PREDECESSOR_DEPLOYMENT = Object.freeze({"runId":41015607071,"runAttempt":1,"status":"completed","conclusion":"success","controllerHeadCommit":"74869cfd1a29e28e71c018103a3e15b9733ceddb","targetCommit":"01fb01b3ca92f239682a5c63021e002d41a1f685","jobId":123931134942,"workflowSha256":"b81125b9d38e74a570509b7b714684547b788cefdfe09e3b2bce78b0fe744d01","recordSha256":"8af3bf5634ea22c7a05b27d32bb8ced8424ce239b887e47f0f8fcf8a06c3907a","evidence":{"provenance":"immutable-public-workflow-packet-and-successful-GitHub-run-jobs-metadata","candidateReceiptSha256":"e5bdfd465b8d94fa9367bdfe4d364d02299b4ec3d55597d664a5da44bb5deb89","publicHealthBuildConfirmed":true}});
 export const CHECKS = Object.freeze([
   'reviewed-source-inventory', 'normal-production-image', 'authenticated-capability-policy',
   'canonical-placement-storage-v2', 'economy-inventory', 'lost-response-exactly-once',
