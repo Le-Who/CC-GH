@@ -17,16 +17,28 @@ function validEnvelope(value, accountId) {
       && shouldUseDurableOutbox(item.action) && item.payload && typeof item.payload === "object" && !Array.isArray(item.payload)));
 }
 
+function isEmptyLegacyJournal(value) {
+  return Array.isArray(value) && value.length === 0;
+}
+
 export async function readYardOutbox(accountId) {
   await writes;
   let idbValue, fallbackValue, idbUnavailable = false;
   try { idbValue = await idbGet(key(accountId)); } catch { idbUnavailable = true; }
   try { fallbackValue = localValue(key(accountId)); } catch { return { error: "OUTBOX_STORAGE_INVALID" }; }
-  // A legacy journal has no reliable owner. Retain both copies unchanged for
-  // explicit recovery; never adopt it merely because an account logged in.
+  // A legacy journal has no reliable owner. Leave both copies unchanged and
+  // retain unresolved contents for explicit recovery. An empty v1 array has
+  // no intents to recover and must not lock the entire game catalogue.
   const retainedLegacyOutbox = [];
-  try { const legacy = await idbGet(LEGACY_KEY); if (legacy != null) retainedLegacyOutbox.push({ storage: "idb", value: legacy }); } catch {}
-  try { const raw = globalThis.localStorage?.getItem(LEGACY_KEY); if (raw != null) retainedLegacyOutbox.push({ storage: "local", raw }); } catch {}
+  try { const legacy = await idbGet(LEGACY_KEY); if (legacy != null && !isEmptyLegacyJournal(legacy)) retainedLegacyOutbox.push({ storage: "idb", value: legacy }); } catch {}
+  try {
+    const raw = globalThis.localStorage?.getItem(LEGACY_KEY);
+    if (raw != null) {
+      let legacy;
+      try { legacy = JSON.parse(raw); } catch {}
+      if (!isEmptyLegacyJournal(legacy)) retainedLegacyOutbox.push({ storage: "local", raw });
+    }
+  } catch {}
   const values = [idbValue, fallbackValue].filter(value => value != null);
   // An unreadable IDB journal may already contain intents. An empty fallback
   // is not evidence that it is safe to replace that journal with a new one.

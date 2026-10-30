@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { createDefaultPlayer } from '../game-logic/player.js';
 import { ensurePersistentPlayerYard, executePersistentYardAction, publicPersistentYard } from '../game-logic/yard-v2/service.mjs';
+import { isHomeLeaveReady, leaveGameForHome } from '../src/app/homeNavigation.js';
 
 // Root tests use real Zustand and the API client. Browser IDB and HTTP are
 // replaced; loss/replay runs the actual persistent Yard domain with JSON reload.
@@ -133,6 +134,29 @@ test('legacy ownerless journals remain byte-for-byte retained and are never drai
   await hub.getState().drainOutbox();
   assert.equal(sends, 0); assert.deepEqual(storage.values.get(LEGACY_KEY), [legacy]); assert.equal(localStorage.getItem(LEGACY_KEY), raw);
   assert.equal(hub.getState().pendingActions.length, 0); assert.ok(hub.getState().retainedLegacyOutbox.length);
+});
+
+for (const location of ['idb', 'local', 'both']) test(`empty legacy ${location} journal permits catalogue navigation without erasing storage`, async () => {
+  const raw = ' [ \n ] ';
+  if (location !== 'local') storage.values.set(LEGACY_KEY, []);
+  if (location !== 'idb') localStorage.setItem(LEGACY_KEY, raw);
+  hub.setState({ activeTab: 'garden', outboxLoaded: false });
+  await hub.getState().hydrateOutbox();
+  assert.equal(isHomeLeaveReady(hub.getState(), 'account-a'), true);
+  assert.equal(await leaveGameForHome({ state: hub.getState(), accountId: 'account-a', controls: null }), true);
+  if (location !== 'local') assert.deepEqual(storage.values.get(LEGACY_KEY), []);
+  if (location !== 'idb') assert.equal(localStorage.getItem(LEGACY_KEY), raw);
+});
+
+for (const value of [[item()], { version: 77, items: [] }, null, 'unknown']) test(`nonempty or unknown legacy journal still protects navigation: ${JSON.stringify(value)}`, async () => {
+  storage.values.set(LEGACY_KEY, []);
+  const raw = JSON.stringify(value);
+  localStorage.setItem(LEGACY_KEY, raw);
+  hub.setState({ activeTab: 'garden', outboxLoaded: false });
+  await hub.getState().hydrateOutbox();
+  assert.equal(isHomeLeaveReady(hub.getState(), 'account-a'), false);
+  assert.deepEqual(storage.values.get(LEGACY_KEY), []);
+  assert.equal(localStorage.getItem(LEGACY_KEY), raw);
 });
 
 test('a new intent is durably bound to its verified account before sending', async () => {
