@@ -1,0 +1,311 @@
+{
+  "liveBase": {
+    "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+    "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+    "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+    "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+  },
+  "qualifiedSource": "1287406d0e4ad023bf6016f6b063babc9432f2df",
+  "sourceChanges": [
+    {
+      "path": "README.md",
+      "before": {
+        "mode": "100644",
+        "objectId": "b995e25d8c93dd121d8c5586e5f0079fb0587735"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "556bf84054a8d5e24a8749b9ea7408a7eb5f14cb"
+      },
+      "status": "M"
+    },
+    {
+      "path": "docs/bentoku-integration.md",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "2e178b2830396bbac3f3aa42a3c36a1aae4321c8"
+      },
+      "status": "A"
+    },
+    {
+      "path": "package.json",
+      "before": {
+        "mode": "100644",
+        "objectId": "d653fc5579b4f43b915b5759bb7c79efdf6d0247"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "95029ffdeff4dfaf0d59c3797d4682785d43b728"
+      },
+      "status": "M"
+    },
+    {
+      "path": "public/games/home-thumbnails/bentoku.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "b727c556f2bb2434eb9d10c874924f2de649a52b"
+      },
+      "status": "A"
+    },
+    {
+      "path": "scripts/browser-ci-groups.mjs",
+      "before": {
+        "mode": "100644",
+        "objectId": "08ec2963eecabd5bdaf650e54ad68694aee23397"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "5b24c2a1e9617a7efac54ff890794d4d834a7e3b"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/gameChunks.jsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "ad95209318e89b7c28885d6935875208b6919769"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "5d0d0fe24a9d6ca81eb19c0633e799ad35b4cfa1"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/gameRegistry.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "dbea73c228ffc9c645cf37487f136eb3be40f81a"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "8c04f8110851cceed5f870ffc8c6add666d31231"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/home-catalogue.css",
+      "before": {
+        "mode": "100644",
+        "objectId": "c777aec9e2c871df589c3d502a16068e14375f99"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "f3a731a75b78ac41f9a72452975ebbb86873f385"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/homeGameCopy.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "b39dce5e87b83d087f3080d4e2990ef5872cf432"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "0539bea17c15e30f313ba049b347c8f135e0d5de"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/hud-layout/defaultLayouts/bentoku.json",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "5aedb067367b77a3f0d8aae48e63ccbacea8fb55"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/app/hud-layout/defaultLayouts/index.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "5ec22241158d125507affa0dce2be0bed6c72a89"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "ac10911dfcdb6af3f3f1dd2fca737db5fd6cb49d"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/hud-layout/registry.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "b74fca10198a021859bce5aa7e2fa91ac5ac7547"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "fb726953646585feece090b2b83c86c6229d8682"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/i18n.jsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "f7bc9c7bdd05e45c6ad5518105fff7ce4bcf9f55"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "1c0b5e52d2a7f831f8c8d0d9bd1497be6a6b2b32"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/bentoku/BentokuGame.jsx",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "fe6eb58725b4b1ce00380f8d9b0a2c667e20b7d8"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/games/bentoku/bentoku.css",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "6e343b65235d9d80333325039123e9d751c68f7b"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/games/bentoku/bentokuBridge.js",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "ebf1e1306577a20d8c9777a62c088ea47e566f00"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/index.css",
+      "before": {
+        "mode": "100644",
+        "objectId": "001d4a331e084aefd260a82496c210c94ef8685b"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "9ff3906b6d57ab7d07ada3b2c56b37065fdace7d"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/bentoku-bridge.test.js",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "fe3366dc152378d39cb502e36bb13c43b6b6c51f"
+      },
+      "status": "A"
+    },
+    {
+      "path": "tests/e2e/bentoku.spec.js",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "8e875e0087bc3c700a99da315148bb9baa79a6ef"
+      },
+      "status": "A"
+    },
+    {
+      "path": "tests/game-ux-foundations.test.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "81a67db38f118915c1f2d883a7fe0e6e28e96d32"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "92122181c58929888d8ea3e28350801801c33362"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/hud-redesign-pack.test.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "dc52d63568f8c3d6b680375bf99085d9398938da"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "4d3fff65fd02cb6e383c02a13b82d5d6a14419da"
+      },
+      "status": "M"
+    }
+  ],
+  "historical": {
+    "controller": "718d4540e81e35ab73047ddb08c158f0041e84eb",
+    "workflowSha256": "787904aef39c07d21bd0fbb6063cd827ee4c0f237c8948e12650bfbc7aabfa00",
+    "recordSha256": "31976a941351c824537d2e1fd3cfe72cb5c203e703347591c0b53f384416977b",
+    "candidateReceiptSha256": "2ad5d175413c819b1b0d7eec0216d19d2857a21e1bd0986a62d53bef9d5e99b2",
+    "imageRun": 37735444758,
+    "activationRun": 37737361112,
+    "activationJob": 113179848188
+  },
+  "runtime": {
+    "composeSha256": "d5e6e1e6afef6733ce340ccc9b3eefb45630ac2dba14ac9810a9af1676293a4f",
+    "localUrl": "http://127.0.0.1:18080/",
+    "publicUrl": "https://games.tri.mom/",
+    "dbUser": "appuser",
+    "dbName": "gamehub",
+    "protectedServices": [
+      "caddy.service"
+    ],
+    "neighborPublicHealth": "not-proven"
+  },
+  "storage": {
+    "format": "yard-persistent/v1",
+    "readVersions": [
+      1,
+      2
+    ],
+    "writeVersions": [
+      1,
+      2
+    ],
+    "transition": "first-successful-canonical-placement-writes-v2",
+    "rollback": "prior-image-compatible-replay-preserves-v2",
+    "compatibilityRequired": true,
+    "reset": "none"
+  },
+  "capabilities": {
+    "authority": "source-owned-authenticated-policy",
+    "clientGraph": true,
+    "itemKinds": [
+      "leaf_pot"
+    ],
+    "placementLimit": 2,
+    "foodSocket": "bowl-1",
+    "canonicalVisitorAdmission": false,
+    "fixtureLoader": false,
+    "devAuth": false
+  },
+  "predecessorReceiptSha256": "2577f9cf653aae806e7e8c975303dc6a8f367c9c44c85c6d9761e8951bb41bbb"
+}
