@@ -1,0 +1,696 @@
+{
+  "format": "cc-gh-yard-accepted-development/v1",
+  "repository": "le-who/cc-gh",
+  "repositoryId": 1162268629,
+  "status": "accepted",
+  "release": {
+    "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+    "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+    "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+    "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+  },
+  "predecessor": {
+    "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+    "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+    "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+    "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+  },
+  "mode": "development-protocol-evolution",
+  "storage": {
+    "format": "yard-persistent/v1",
+    "readVersions": [
+      1,
+      2
+    ],
+    "writeVersions": [
+      1,
+      2
+    ],
+    "transition": "first-successful-canonical-placement-writes-v2",
+    "rollback": "prior-image-compatible-replay-preserves-v2",
+    "compatibilityRequired": true,
+    "reset": "none"
+  },
+  "capabilities": {
+    "authority": "source-owned-authenticated-policy",
+    "clientGraph": true,
+    "itemKinds": [
+      "leaf_pot"
+    ],
+    "placementLimit": 2,
+    "foodSocket": "bowl-1",
+    "canonicalVisitorAdmission": false,
+    "fixtureLoader": false,
+    "devAuth": false
+  },
+  "acceptance": {
+    "runId": 37735444758,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "headCommit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+    "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+  },
+  "interactionQualification": {
+    "sha256": "af90dea423e7ed3735a86a4dbc7d4a98a2805b201c3b06074adc3ddfeb60cad8",
+    "source": {
+      "format": "cc-gh-live-interaction-qualification/v1",
+      "repository": "le-who/cc-gh",
+      "repositoryId": 1162268629,
+      "base": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+      "candidate": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
+      "status": "accepted",
+      "runId": 37733412001,
+      "runAttempt": 1,
+      "workflow": ".github/workflows/live-interaction-feedback.yml",
+      "branch": "qa/live-interaction-feedback-20261008",
+      "artifact": {
+        "id": 11529879276,
+        "sha256": "f8874240d7c93d55a7f83bbcdebb448cbea602b9b0e768453324dc33cdd9fa20",
+        "libraryFileId": "libfile_3a8771066b6481918c88fcd7997c7f9a"
+      },
+      "source": {
+        "passed": 19,
+        "failed": 0,
+        "cancelled": 0,
+        "skipped": 0,
+        "reportSha256": "19a6aec262ce37b13824b1b04a6e865c90d794a250f9f3583a435c7ff4541b70"
+      },
+      "build": {
+        "passed": true,
+        "reportSha256": "0c829a86085fa2d7dc51f01c70893e637288a6c9827e13586e0a054edfdc90e1",
+        "flags": {
+          "VITE_YARD_PIP_PREVIEW": "true",
+          "VITE_YARD_SAVED_VISITS": "false",
+          "VITE_YARD_PAINTED_FOOD_TRIAL": "false"
+        }
+      },
+      "boundary": {
+        "base": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "commit": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
+        "productPaths": [
+          "src/game-state/yardPlacementFeedback.mjs",
+          "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "src/games/garden-shelf/lib/GardenR2Provider.tsx",
+          "src/games/garden-shelf/lib/gardenCommandArbiter.js"
+        ],
+        "flags": {
+          "preview": true,
+          "saved": false,
+          "painted": false
+        },
+        "backendSchemaAssetsAndDependencies": "unchanged",
+        "deployment": false
+      },
+      "phases": {
+        "compact": {
+          "passed": 1,
+          "failed": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "attempts": 1,
+          "cases": [
+            "yard-live-placement-feedback.spec.js > diagnostic compact320 > normal-release Courtyard journal, ordering, rollback and account recovery"
+          ],
+          "reportSha256": "bed7cc637e6297d8d1c4edfb4562b33218eccfdb22008e1ef5caca4b57a5aa08"
+        },
+        "garden": {
+          "passed": 1,
+          "failed": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "attempts": 1,
+          "cases": [
+            "garden-live-heartbeat.spec.js > Garden foreground priority diagnostic > one water during delayed heartbeat remains an explicit intent"
+          ],
+          "reportSha256": "cd0f5c22676bb238d551b9905a4a2147bd3bd6bac58b0e9626289e2f90e6922f"
+        },
+        "matrix": {
+          "passed": 9,
+          "failed": 0,
+          "flaky": 0,
+          "skipped": 0,
+          "attempts": 1,
+          "cases": [
+            "yard-live-placement-feedback.spec.js > acceptance 320x568 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 360x800 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 390x844 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 414x896 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 568x320 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 844x390 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 768x1024 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 1024x768 > normal-release Courtyard journal, ordering, rollback and account recovery",
+            "yard-live-placement-feedback.spec.js > acceptance 1280x720 > normal-release Courtyard journal, ordering, rollback and account recovery"
+          ],
+          "reportSha256": "4f62dbfad774ae0a2588e146cdb9074fc311eae662624d34ad01768a8237d7be"
+        }
+      },
+      "github": {
+        "runSha256": "38973c973a6b64053fe40cca849c884964a8886b193be87483338104b219358e",
+        "jobsSha256": "453a9c2c9518d7ecec37e0b8a76d5a752e882c0b053943368ef526b5dea36a76",
+        "jobId": 113167464020
+      },
+      "visualReview": {
+        "verdict": "accepted",
+        "independent": true,
+        "scope": "Independent visual GO for original compact, Garden and nine-viewport parity evidence, reported by the integration owner; does not accept new image originals."
+      },
+      "deployment": false,
+      "limitations": [
+        "Source-built normal-route interaction fixture with real source command logic; not an immutable-image or deployed PostgreSQL claim.",
+        "New image requires its own five-case actual-image lane and independent review of every original image capture.",
+        "Historical controller qualification establishes mechanisms only; no ec815-bound activation readiness."
+      ]
+    }
+  },
+  "activationReady": false,
+  "predecessorActiveReceiptSha256": "071c26348be772fb59d39a7425fc5745b359c175521872e11dc7731f686c5a1a",
+  "activationControllerQualification": {
+    "controllerCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+    "controllerTree": "1c0dbd5417882cee46ac8043df93be7be0a6e7f9",
+    "runId": 37734766484,
+    "runAttempt": 1,
+    "jobId": 113171691898,
+    "artifactId": 11530808894,
+    "artifactSha256": "f06ce7294ffa081f82bcd2a99fd892d19e8d766448eba8949ccb960aa5fde94b",
+    "cases": {
+      "passed": 75,
+      "failed": 0,
+      "skipped": 0
+    },
+    "compose": {
+      "bareBaseRejected": true,
+      "composeCommands": "config --hash app only",
+      "containerOperations": 0,
+      "daemonContactAttempted": false,
+      "format": "cc-gh-synthetic-repeat-release-compose-probe/v1",
+      "hashes": {
+        "bareBase": "9ac90c0acb1855d1c5d78f21877ea49b8f3ba895882e08b864f6c51c40112c24",
+        "imageIdOverride": "6280d42d41387d82360804cbb9e5294140bdc9fdf66f40715cdc794a382df766",
+        "portDrift": "4d92b5ff863f0110cb3300f5f12a8296a9ceab746bc7747a5e5862827f350c67",
+        "priorCandidate": "80431fa5b6028636ec223c4890ecc02cc6178fb213de3327567cc3f858c1fc41",
+        "reconstructedPredecessor": "80431fa5b6028636ec223c4890ecc02cc6178fb213de3327567cc3f858c1fc41",
+        "unrelatedEnvironmentDrift": "b63c101bf5102e6ca29e2a98b02d95bc6e8e326ff1079a014413b7358c760578"
+      },
+      "imageIdFormRejected": true,
+      "portDriftRejected": true,
+      "sameEffectivePredecessor": true,
+      "syntheticOnly": true,
+      "unrelatedEnvironmentDriftRejected": true
+    },
+    "formatter": "Typed fallback + old formatter regression, 14 strict Health cases and 7 database boolean cases passed; no raw secrets emitted.",
+    "sourceClosureVerified": true,
+    "runtimeChanged": false,
+    "format": "cc-gh-reviewed-external-controller-qualification/v1",
+    "conclusion": "success",
+    "predecessor": {
+      "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+      "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+      "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+      "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+    },
+    "source": {
+      "commit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+      "parent": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+      "scope": "Inactive exact ec815 predecessor app-only controller; synthetic qualification only",
+      "activationEnabled": false,
+      "candidateImageDigest": null,
+      "files": [
+        {
+          "path": "qa/development-controller/inspect-format.go",
+          "sha256": "e1934543430a88ddfeaf7d91a29439eb7cbbc2a4a942928838e959247f750926"
+        },
+        {
+          "path": "qa/development-controller/predecessor-binding.json",
+          "sha256": "7ca64de354185b10f6905e0bfed06982e48ffe4d1268190f5295958f8611f445"
+        },
+        {
+          "path": "qa/development-controller/predecessor-receipt.json",
+          "sha256": "071c26348be772fb59d39a7425fc5745b359c175521872e11dc7731f686c5a1a"
+        },
+        {
+          "path": "qa/development-controller/scripts/ccgh-app-development-release.sh",
+          "sha256": "bd60ffd1d2321d4100e233339e5061553838c20fd3a38e9f8a62861b898bd812"
+        },
+        {
+          "path": "qa/development-controller/scripts/yard-development-contract.mjs",
+          "sha256": "d39fee6a48c582871e80d9f2f146cceda219623ba36b6e0d4183397ba95eb95a"
+        },
+        {
+          "path": "qa/development-controller/tests/ec815-predecessor-binding.test.mjs",
+          "sha256": "44ac492481b860d48ce73ddf184fb30dc4a0c3d49852d1109db450e349004b4a"
+        },
+        {
+          "path": "qa/development-controller/tests/probe-compose-repeat-release.py",
+          "sha256": "78391ae7857d4f6fc9b6d33cda481e363e2eab320939d6eae657f092790bd9c4"
+        },
+        {
+          "path": "qa/development-controller/tests/yard-development-release.test.mjs",
+          "sha256": "f6efe14d8dfe4961f6c356248a8275b4d1bc62a78c468f00850581c7408ae10e"
+        }
+      ]
+    },
+    "scope": "Fresh exact ec815 app-only mechanism qualification; no new host preflight or activation claim"
+  },
+  "visualReviewSha256": "cf7c0613f8580213ab4bb444c75932ceee9598d6d8133333db3fc004a47ad995",
+  "checks": [
+    {
+      "name": "reviewed-source-inventory",
+      "status": "completed",
+      "kind": "reviewed-source-and-mocked-release-guard",
+      "evidence": [
+        "source-inventory.json"
+      ],
+      "cases": [],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "normal-production-image",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "image-identity.json"
+      ],
+      "cases": [],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "authenticated-capability-policy",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "api-proof.json"
+      ],
+      "cases": [
+        "api-and-warm"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "canonical-placement-storage-v2",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "current-v2-pending"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "economy-inventory",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "current-v2-pending"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "lost-response-exactly-once",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "current-v2-pending"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "pending-intent-account-fences",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "current-v2-pending"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "receipt-security",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "current-v2-pending"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "occupied-food-socket",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "occupied-320x568",
+        "occupied-390x844",
+        "occupied-568x320"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "warm-client-update",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "api-proof.json"
+      ],
+      "cases": [
+        "api-and-warm"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "mobile-functional",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "occupied-320x568",
+        "occupied-390x844",
+        "occupied-568x320"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "mobile-visual",
+      "status": "completed",
+      "kind": "manual-independent-exact-original-review",
+      "evidence": [
+        "occupied-320x568-food.png",
+        "occupied-320x568-decor.png",
+        "occupied-320x568-escaped.png",
+        "occupied-390x844-food.png",
+        "occupied-390x844-decor.png",
+        "occupied-390x844-escaped.png",
+        "occupied-568x320-food.png",
+        "occupied-568x320-decor.png",
+        "occupied-568x320-escaped.png",
+        "current-v2-recovered-390x844.png"
+      ],
+      "cases": [],
+      "attempts": 1,
+      "visualReviewSha256": "cf7c0613f8580213ab4bb444c75932ceee9598d6d8133333db3fc004a47ad995",
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    {
+      "name": "app-only-failure-rollback",
+      "status": "completed",
+      "kind": "reviewed-external-exact-predecessor-controller",
+      "evidence": [
+        "controller-qualification.json",
+        "controller.tap",
+        "compose.json",
+        "formatter.log",
+        "source.json"
+      ],
+      "cases": [],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "f06ce7294ffa081f82bcd2a99fd892d19e8d766448eba8949ccb960aa5fde94b",
+      "controllerQualification": {
+        "headCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+        "runId": 37734766484,
+        "runAttempt": 1,
+        "artifactSha256": "f06ce7294ffa081f82bcd2a99fd892d19e8d766448eba8949ccb960aa5fde94b",
+        "sha256": "958618b689d96fd62ca66913da3c0d16fa420f843a0110b6e9f90a0079a2049b"
+      }
+    },
+    {
+      "name": "prior-image-v2-compatible-replay-preserves-state",
+      "status": "completed",
+      "kind": "fresh-exact-image-api-or-browser",
+      "evidence": [
+        "native-proof.json"
+      ],
+      "cases": [
+        "current-v2-pending"
+      ],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    }
+  ],
+  "limitations": [
+    "Development mode, not production art acceptance",
+    "App-only fault guard has mocked/source evidence; host preflight remains separate",
+    "Exact4dde normal-route qualification uses source command fixtures; new image evidence is the separate five-case lane",
+    "Interaction slice changes no Yard protocol; exactec815 compatibility only, not general legacy support",
+    "Historical64-case controller qualification proves mechanisms only; ec815-bound controller and fresh host checks remain mandatory before activation",
+    "GitHub hosted runner and official vendor actions at existing repository major tags. Exact workflow bytes are pinned; major-tag action implementation is not represented as immutable."
+  ],
+  "controllerReceiptDerivation": {
+    "format": "cc-gh-controller-receipt-derivation/v1",
+    "originalImageReceiptSha256": "58876233e851172f00f2b1410849be3f37d4a74ae7c165fddc78c4bab1fd39f1",
+    "originalImageReceiptBase64": "ewogICJmb3JtYXQiOiAiY2MtZ2gteWFyZC1hY2NlcHRlZC1kZXZlbG9wbWVudC92MSIsCiAgInJlcG9zaXRvcnkiOiAibGUtd2hvL2NjLWdoIiwKICAicmVwb3NpdG9yeUlkIjogMTE2MjI2ODYyOSwKICAic3RhdHVzIjogImFjY2VwdGVkIiwKICAicmVsZWFzZSI6IHsKICAgICJjb21taXQiOiAiNTZiOTA2Mjk1NWQ2MGM3NmJmOTQzMGM4OThkM2NlYzEyMzFjYTUyNCIsCiAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6OTQ0MmU4NTNkOGJmNzY3MzYzNDc1ZDgxOWE0ZDM5ODgxMzVkZTIxOTBmMDcxZDlkMGJiZmVmYjg0NTU4MTgwZCIsCiAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6NmM4NmZiOTE4M2UwM2E3NTkxMGFlODU0MTk5YWU3OWJmZWFhN2E3NmRiZDllNDMzOGYyYWUwMWE2NDMwYmMyNiIKICB9LAogICJwcmVkZWNlc3NvciI6IHsKICAgICJjb21taXQiOiAiZWM4MTUwNjVmNmFkYjdjMzZkODFmOTdiNDFkNDdhZDE2ZTYxNGIwNyIsCiAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6MzQ5YjlkMjA2Y2MxYjVjMjJjMzQ2MDc2MGQ0ZWE5YTk2MjU1Mjg4OTQyYTZlNTM2ZjkxMGIxMjIyNzIxY2RhYSIsCiAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6ZjFiNDljZjIzODg1YWZjZjNjYTdhYWIzMzAzZDM5MDE0Zjc0NDM0M2E5MGFkMGRkZDgxZTg5YTVkYTNiZTQzZCIKICB9LAogICJtb2RlIjogImRldmVsb3BtZW50LXByb3RvY29sLWV2b2x1dGlvbiIsCiAgInN0b3JhZ2UiOiB7CiAgICAiZm9ybWF0IjogInlhcmQtcGVyc2lzdGVudC92MSIsCiAgICAicmVhZFZlcnNpb25zIjogWwogICAgICAxLAogICAgICAyCiAgICBdLAogICAgIndyaXRlVmVyc2lvbnMiOiBbCiAgICAgIDEsCiAgICAgIDIKICAgIF0sCiAgICAidHJhbnNpdGlvbiI6ICJmaXJzdC1zdWNjZXNzZnVsLWNhbm9uaWNhbC1wbGFjZW1lbnQtd3JpdGVzLXYyIiwKICAgICJyb2xsYmFjayI6ICJwcmlvci1pbWFnZS1jb21wYXRpYmxlLXJlcGxheS1wcmVzZXJ2ZXMtdjIiLAogICAgImNvbXBhdGliaWxpdHlSZXF1aXJlZCI6IHRydWUsCiAgICAicmVzZXQiOiAibm9uZSIKICB9LAogICJjYXBhYmlsaXRpZXMiOiB7CiAgICAiYXV0aG9yaXR5IjogInNvdXJjZS1vd25lZC1hdXRoZW50aWNhdGVkLXBvbGljeSIsCiAgICAiY2xpZW50R3JhcGgiOiB0cnVlLAogICAgIml0ZW1LaW5kcyI6IFsKICAgICAgImxlYWZfcG90IgogICAgXSwKICAgICJwbGFjZW1lbnRMaW1pdCI6IDIsCiAgICAiZm9vZFNvY2tldCI6ICJib3dsLTEiLAogICAgImNhbm9uaWNhbFZpc2l0b3JBZG1pc3Npb24iOiBmYWxzZSwKICAgICJmaXh0dXJlTG9hZGVyIjogZmFsc2UsCiAgICAiZGV2QXV0aCI6IGZhbHNlCiAgfSwKICAiYWNjZXB0YW5jZSI6IHsKICAgICJydW5JZCI6IDM3NzM1NDQ0NzU4LAogICAgInJ1bkF0dGVtcHQiOiAxLAogICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgImNvbmNsdXNpb24iOiAic3VjY2VzcyIsCiAgICAiaGVhZENvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICJhcnRpZmFjdFNoYTI1NiI6ICJmYTc2OTlkMDBlNjFlYWI1ZDViY2E1MjJiNzcwOWU4NGU4NjhlYjAyNGViYWQ0NWI4NzdhOGVjZjE5MzNlYjA4IgogIH0sCiAgImludGVyYWN0aW9uUXVhbGlmaWNhdGlvbiI6IHsKICAgICJzaGEyNTYiOiAiYWY5MGRlYTQyM2U3ZWQzNzM1YTg2YTRkYmM3ZDRhOThhMjgwNWIyMDFjM2IwNjA3NGFkYzNkZGZlYjYwY2FkOCIsCiAgICAic291cmNlIjogewogICAgICAiZm9ybWF0IjogImNjLWdoLWxpdmUtaW50ZXJhY3Rpb24tcXVhbGlmaWNhdGlvbi92MSIsCiAgICAgICJyZXBvc2l0b3J5IjogImxlLXdoby9jYy1naCIsCiAgICAgICJyZXBvc2l0b3J5SWQiOiAxMTYyMjY4NjI5LAogICAgICAiYmFzZSI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgImNhbmRpZGF0ZSI6ICI0ZGRlODM1NGExNjc5MDEyYzFhMDFmZTdiZDM1YjdjMzZhNjQ3ZDQyIiwKICAgICAgInN0YXR1cyI6ICJhY2NlcHRlZCIsCiAgICAgICJydW5JZCI6IDM3NzMzNDEyMDAxLAogICAgICAicnVuQXR0ZW1wdCI6IDEsCiAgICAgICJ3b3JrZmxvdyI6ICIuZ2l0aHViL3dvcmtmbG93cy9saXZlLWludGVyYWN0aW9uLWZlZWRiYWNrLnltbCIsCiAgICAgICJicmFuY2giOiAicWEvbGl2ZS1pbnRlcmFjdGlvbi1mZWVkYmFjay0yMDI2MTAwOCIsCiAgICAgICJhcnRpZmFjdCI6IHsKICAgICAgICAiaWQiOiAxMTUyOTg3OTI3NiwKICAgICAgICAic2hhMjU2IjogImY4ODc0MjQwZDdjOTNkNTVhN2Y4M2JiY2RlYmI0NDhjYmVhNjAyYjliMGU3Njg0NTMzMjRkYzMzY2RkOWZhMjAiLAogICAgICAgICJsaWJyYXJ5RmlsZUlkIjogImxpYmZpbGVfM2E4NzcxMDY2YjY0ODE5MThjODhmY2Q3OTk3YzdmOWEiCiAgICAgIH0sCiAgICAgICJzb3VyY2UiOiB7CiAgICAgICAgInBhc3NlZCI6IDE5LAogICAgICAgICJmYWlsZWQiOiAwLAogICAgICAgICJjYW5jZWxsZWQiOiAwLAogICAgICAgICJza2lwcGVkIjogMCwKICAgICAgICAicmVwb3J0U2hhMjU2IjogIjE5YTZhZWMyNjJjZTM3YjEzODI0YjFiMDRhNmU4NjVjOTBkNzk0YTI1MGY5ZjM1ODNhNDM1YzdmZjQ1NDFiNzAiCiAgICAgIH0sCiAgICAgICJidWlsZCI6IHsKICAgICAgICAicGFzc2VkIjogdHJ1ZSwKICAgICAgICAicmVwb3J0U2hhMjU2IjogIjBjODI5YTg2MDg1ZmEyZDdkYzUxZjAxYzcwODkzZTYzNzI4OGE2Yzk4MjdlMTM1ODZlMGEwNTRlZGZkYzkwZTEiLAogICAgICAgICJmbGFncyI6IHsKICAgICAgICAgICJWSVRFX1lBUkRfUElQX1BSRVZJRVciOiAidHJ1ZSIsCiAgICAgICAgICAiVklURV9ZQVJEX1NBVkVEX1ZJU0lUUyI6ICJmYWxzZSIsCiAgICAgICAgICAiVklURV9ZQVJEX1BBSU5URURfRk9PRF9UUklBTCI6ICJmYWxzZSIKICAgICAgICB9CiAgICAgIH0sCiAgICAgICJib3VuZGFyeSI6IHsKICAgICAgICAiYmFzZSI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAiY29tbWl0IjogIjRkZGU4MzU0YTE2NzkwMTJjMWEwMWZlN2JkMzViN2MzNmE2NDdkNDIiLAogICAgICAgICJwcm9kdWN0UGF0aHMiOiBbCiAgICAgICAgICAic3JjL2dhbWUtc3RhdGUveWFyZFBsYWNlbWVudEZlZWRiYWNrLm1qcyIsCiAgICAgICAgICAic3JjL2dhbWVzL2NvbXBhbmlvbi15YXJkLXYyL0NvdXJ0eWFyZEdhbWUuanN4IiwKICAgICAgICAgICJzcmMvZ2FtZXMvZ2FyZGVuLXNoZWxmL2xpYi9HYXJkZW5SMlByb3ZpZGVyLnRzeCIsCiAgICAgICAgICAic3JjL2dhbWVzL2dhcmRlbi1zaGVsZi9saWIvZ2FyZGVuQ29tbWFuZEFyYml0ZXIuanMiCiAgICAgICAgXSwKICAgICAgICAiZmxhZ3MiOiB7CiAgICAgICAgICAicHJldmlldyI6IHRydWUsCiAgICAgICAgICAic2F2ZWQiOiBmYWxzZSwKICAgICAgICAgICJwYWludGVkIjogZmFsc2UKICAgICAgICB9LAogICAgICAgICJiYWNrZW5kU2NoZW1hQXNzZXRzQW5kRGVwZW5kZW5jaWVzIjogInVuY2hhbmdlZCIsCiAgICAgICAgImRlcGxveW1lbnQiOiBmYWxzZQogICAgICB9LAogICAgICAicGhhc2VzIjogewogICAgICAgICJjb21wYWN0IjogewogICAgICAgICAgInBhc3NlZCI6IDEsCiAgICAgICAgICAiZmFpbGVkIjogMCwKICAgICAgICAgICJmbGFreSI6IDAsCiAgICAgICAgICAic2tpcHBlZCI6IDAsCiAgICAgICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAgICAgImNhc2VzIjogWwogICAgICAgICAgICAieWFyZC1saXZlLXBsYWNlbWVudC1mZWVkYmFjay5zcGVjLmpzID4gZGlhZ25vc3RpYyBjb21wYWN0MzIwID4gbm9ybWFsLXJlbGVhc2UgQ291cnR5YXJkIGpvdXJuYWwsIG9yZGVyaW5nLCByb2xsYmFjayBhbmQgYWNjb3VudCByZWNvdmVyeSIKICAgICAgICAgIF0sCiAgICAgICAgICAicmVwb3J0U2hhMjU2IjogImJlZDdjYzYzN2U2Mjk3ZDhkMWM0ZWRmYjQ1NjJiMzMyMThlY2NmZGIyMjAwOGUxZWY1Y2FjYTRiNTdhNWFhMDgiCiAgICAgICAgfSwKICAgICAgICAiZ2FyZGVuIjogewogICAgICAgICAgInBhc3NlZCI6IDEsCiAgICAgICAgICAiZmFpbGVkIjogMCwKICAgICAgICAgICJmbGFreSI6IDAsCiAgICAgICAgICAic2tpcHBlZCI6IDAsCiAgICAgICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAgICAgImNhc2VzIjogWwogICAgICAgICAgICAiZ2FyZGVuLWxpdmUtaGVhcnRiZWF0LnNwZWMuanMgPiBHYXJkZW4gZm9yZWdyb3VuZCBwcmlvcml0eSBkaWFnbm9zdGljID4gb25lIHdhdGVyIGR1cmluZyBkZWxheWVkIGhlYXJ0YmVhdCByZW1haW5zIGFuIGV4cGxpY2l0IGludGVudCIKICAgICAgICAgIF0sCiAgICAgICAgICAicmVwb3J0U2hhMjU2IjogImNkMGY1YzIyNjc2YmIyMzhkNTUxYjk5MDVhNGEyMTQ3YmQzYmQ2YmFjNThiMGU5NjI2Mjg5ZTJmOTBlNjkyMmYiCiAgICAgICAgfSwKICAgICAgICAibWF0cml4IjogewogICAgICAgICAgInBhc3NlZCI6IDksCiAgICAgICAgICAiZmFpbGVkIjogMCwKICAgICAgICAgICJmbGFreSI6IDAsCiAgICAgICAgICAic2tpcHBlZCI6IDAsCiAgICAgICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAgICAgImNhc2VzIjogWwogICAgICAgICAgICAieWFyZC1saXZlLXBsYWNlbWVudC1mZWVkYmFjay5zcGVjLmpzID4gYWNjZXB0YW5jZSAzMjB4NTY4ID4gbm9ybWFsLXJlbGVhc2UgQ291cnR5YXJkIGpvdXJuYWwsIG9yZGVyaW5nLCByb2xsYmFjayBhbmQgYWNjb3VudCByZWNvdmVyeSIsCiAgICAgICAgICAgICJ5YXJkLWxpdmUtcGxhY2VtZW50LWZlZWRiYWNrLnNwZWMuanMgPiBhY2NlcHRhbmNlIDM2MHg4MDAgPiBub3JtYWwtcmVsZWFzZSBDb3VydHlhcmQgam91cm5hbCwgb3JkZXJpbmcsIHJvbGxiYWNrIGFuZCBhY2NvdW50IHJlY292ZXJ5IiwKICAgICAgICAgICAgInlhcmQtbGl2ZS1wbGFjZW1lbnQtZmVlZGJhY2suc3BlYy5qcyA+IGFjY2VwdGFuY2UgMzkweDg0NCA+IG5vcm1hbC1yZWxlYXNlIENvdXJ0eWFyZCBqb3VybmFsLCBvcmRlcmluZywgcm9sbGJhY2sgYW5kIGFjY291bnQgcmVjb3ZlcnkiLAogICAgICAgICAgICAieWFyZC1saXZlLXBsYWNlbWVudC1mZWVkYmFjay5zcGVjLmpzID4gYWNjZXB0YW5jZSA0MTR4ODk2ID4gbm9ybWFsLXJlbGVhc2UgQ291cnR5YXJkIGpvdXJuYWwsIG9yZGVyaW5nLCByb2xsYmFjayBhbmQgYWNjb3VudCByZWNvdmVyeSIsCiAgICAgICAgICAgICJ5YXJkLWxpdmUtcGxhY2VtZW50LWZlZWRiYWNrLnNwZWMuanMgPiBhY2NlcHRhbmNlIDU2OHgzMjAgPiBub3JtYWwtcmVsZWFzZSBDb3VydHlhcmQgam91cm5hbCwgb3JkZXJpbmcsIHJvbGxiYWNrIGFuZCBhY2NvdW50IHJlY292ZXJ5IiwKICAgICAgICAgICAgInlhcmQtbGl2ZS1wbGFjZW1lbnQtZmVlZGJhY2suc3BlYy5qcyA+IGFjY2VwdGFuY2UgODQ0eDM5MCA+IG5vcm1hbC1yZWxlYXNlIENvdXJ0eWFyZCBqb3VybmFsLCBvcmRlcmluZywgcm9sbGJhY2sgYW5kIGFjY291bnQgcmVjb3ZlcnkiLAogICAgICAgICAgICAieWFyZC1saXZlLXBsYWNlbWVudC1mZWVkYmFjay5zcGVjLmpzID4gYWNjZXB0YW5jZSA3Njh4MTAyNCA+IG5vcm1hbC1yZWxlYXNlIENvdXJ0eWFyZCBqb3VybmFsLCBvcmRlcmluZywgcm9sbGJhY2sgYW5kIGFjY291bnQgcmVjb3ZlcnkiLAogICAgICAgICAgICAieWFyZC1saXZlLXBsYWNlbWVudC1mZWVkYmFjay5zcGVjLmpzID4gYWNjZXB0YW5jZSAxMDI0eDc2OCA+IG5vcm1hbC1yZWxlYXNlIENvdXJ0eWFyZCBqb3VybmFsLCBvcmRlcmluZywgcm9sbGJhY2sgYW5kIGFjY291bnQgcmVjb3ZlcnkiLAogICAgICAgICAgICAieWFyZC1saXZlLXBsYWNlbWVudC1mZWVkYmFjay5zcGVjLmpzID4gYWNjZXB0YW5jZSAxMjgweDcyMCA+IG5vcm1hbC1yZWxlYXNlIENvdXJ0eWFyZCBqb3VybmFsLCBvcmRlcmluZywgcm9sbGJhY2sgYW5kIGFjY291bnQgcmVjb3ZlcnkiCiAgICAgICAgICBdLAogICAgICAgICAgInJlcG9ydFNoYTI1NiI6ICI0ZjYyZGJmYWQ3NzRhZTBhMjU4OGUxNDZjZGI5MDc0ZmMzMTFlYWU2NjI2MjRkMzRhZDAxNzY4YTgyMzdkN2JlIgogICAgICAgIH0KICAgICAgfSwKICAgICAgImdpdGh1YiI6IHsKICAgICAgICAicnVuU2hhMjU2IjogIjM4OTczYzk3M2E2YjY0MDUzZmU0MGNjYTg0OWM4ODQ5NjRhODg4NmIxOTNiZTg3NDgzMzM4MTA0YjIxOTM1OGUiLAogICAgICAgICJqb2JzU2hhMjU2IjogIjQ1M2E5YzJjOTUxOGQ3ZWNlYzM3ZTBiOGE3NmQ1YTc1MmU4ODJjMGIwNTM5NDMzNjhlZjUyNmI1ZGVhMzZhNzYiLAogICAgICAgICJqb2JJZCI6IDExMzE2NzQ2NDAyMAogICAgICB9LAogICAgICAidmlzdWFsUmV2aWV3IjogewogICAgICAgICJ2ZXJkaWN0IjogImFjY2VwdGVkIiwKICAgICAgICAiaW5kZXBlbmRlbnQiOiB0cnVlLAogICAgICAgICJzY29wZSI6ICJJbmRlcGVuZGVudCB2aXN1YWwgR08gZm9yIG9yaWdpbmFsIGNvbXBhY3QsIEdhcmRlbiBhbmQgbmluZS12aWV3cG9ydCBwYXJpdHkgZXZpZGVuY2UsIHJlcG9ydGVkIGJ5IHRoZSBpbnRlZ3JhdGlvbiBvd25lcjsgZG9lcyBub3QgYWNjZXB0IG5ldyBpbWFnZSBvcmlnaW5hbHMuIgogICAgICB9LAogICAgICAiZGVwbG95bWVudCI6IGZhbHNlLAogICAgICAibGltaXRhdGlvbnMiOiBbCiAgICAgICAgIlNvdXJjZS1idWlsdCBub3JtYWwtcm91dGUgaW50ZXJhY3Rpb24gZml4dHVyZSB3aXRoIHJlYWwgc291cmNlIGNvbW1hbmQgbG9naWM7IG5vdCBhbiBpbW11dGFibGUtaW1hZ2Ugb3IgZGVwbG95ZWQgUG9zdGdyZVNRTCBjbGFpbS4iLAogICAgICAgICJOZXcgaW1hZ2UgcmVxdWlyZXMgaXRzIG93biBmaXZlLWNhc2UgYWN0dWFsLWltYWdlIGxhbmUgYW5kIGluZGVwZW5kZW50IHJldmlldyBvZiBldmVyeSBvcmlnaW5hbCBpbWFnZSBjYXB0dXJlLiIsCiAgICAgICAgIkhpc3RvcmljYWwgY29udHJvbGxlciBxdWFsaWZpY2F0aW9uIGVzdGFibGlzaGVzIG1lY2hhbmlzbXMgb25seTsgbm8gZWM4MTUtYm91bmQgYWN0aXZhdGlvbiByZWFkaW5lc3MuIgogICAgICBdCiAgICB9CiAgfSwKICAiYWN0aXZhdGlvblJlYWR5IjogZmFsc2UsCiAgInByZWRlY2Vzc29yQWN0aXZlUmVjZWlwdFNoYTI1NiI6ICJmZGExZmRmZTNkYjAxZGFlYzkxNWM5OGVlYzE2MDAyOWRmYzhjMDA1NjM4NmE5OTRhYmFlZjFiNjUxOTBhYzRiIiwKICAiYWN0aXZhdGlvbkNvbnRyb2xsZXJRdWFsaWZpY2F0aW9uIjogewogICAgInByb29mU2hhMjU2IjogImZjMjUyODk4NmQ1MDgwYTI3YTNmZmJiNmUzZGY2YTIwYTRkMWFjNDE3ZDVhY2MzYTk4ZWVlMmFjNzNkYjY1NmQiLAogICAgInNvdXJjZVBpbnMiOiBbCiAgICAgIHsKICAgICAgICAicGF0aCI6ICJzY3JpcHRzL2NjZ2gtYXBwLWRldmVsb3BtZW50LXJlbGVhc2Uuc2giLAogICAgICAgICJzaGEyNTYiOiAiOGJlNDlmNjA2ZjZjNDY4ZjAyNGM5ZDFiOWY2NjhiZTVkYWU1OTljMTQ2OTgxNmVmMmI2ZGJlYTQwZWI5MDdmNCIKICAgICAgfSwKICAgICAgewogICAgICAgICJwYXRoIjogInNjcmlwdHMveWFyZC1kZXZlbG9wbWVudC1jb250cmFjdC5tanMiLAogICAgICAgICJzaGEyNTYiOiAiNjRkOWQ5NTc4OTE4ZGY4Y2YxNWY4N2JlOWVjZjM3ZTA1YThiZTczZjFiY2ZlNTI4N2VmMzdlMmM0NjFjZjFjYiIKICAgICAgfSwKICAgICAgewogICAgICAgICJwYXRoIjogInRlc3RzL3lhcmQtZGV2ZWxvcG1lbnQtcmVsZWFzZS50ZXN0Lm1qcyIsCiAgICAgICAgInNoYTI1NiI6ICJmZDc4ZTk0MmMyNzEzYzdlMzViMWY4YmJmZDExYTAzMjNiYzVkMTc0YzFiYmI4ODVmYTVjNzJiNDhlZjFlYjU0IgogICAgICB9CiAgICBdLAogICAgInRlc3RzIjogNjQsCiAgICAib3JpZ2luYWxSZXBvcnRlciI6ICJub2RlLXRhcCIsCiAgICAibG9nU2hhMjU2IjogIjYzODJmOTZiYjJhMDIyMDIzODg1ZGNjZmUzZjczOGFkZDVhMjQ2MTRmZjkwMGRjYWI1YTE1YjYwOGYyN2MwOWYiLAogICAgInNjb3BlIjogIkhpc3RvcmljYWwgZXhhY3QgY29udHJvbGxlciBtZWNoYW5pc21zIG9ubHk7IG5vIGVjODE1LWJvdW5kIGFjdGl2YXRpb24gcmVhZGluZXNzIiwKICAgICJxdWFsaWZpY2F0aW9uIjogewogICAgICAiZm9ybWF0IjogImNjLWdoLXlhcmQtY29udHJvbGxlci1uYXRpdmUtcWEvdjEiLAogICAgICAicmVwb3NpdG9yeSI6ICJsZS13aG8vY2MtZ2giLAogICAgICAicmVwb3NpdG9yeUlkIjogMTE2MjI2ODYyOSwKICAgICAgInN0YXR1cyI6ICJhY2NlcHRlZCIsCiAgICAgICJjb250cm9sbGVySGVhZENvbW1pdCI6ICJkMGM1N2I4NTQwMWFjNzdlMGY1YTdlNDExNDFlYWIxMzRhYmIxYWMxIiwKICAgICAgImNvbnRyb2xsZXJUcmVlIjogIjZjMWVjNTgwZDc1MzUyNzk5NTNiYTFlYTJkNjQwMDkxZmI2NDU4MTAiLAogICAgICAiY29udHJvbGxlclNvdXJjZUJhc2UiOiAiYWI0YmQ5NWRmODhhYzZhMjNmZmFiMTUxNjkxNjk0ZDRiNTU3MDY0MyIsCiAgICAgICJydW5JZCI6IDM3NjE5NTkxOTE0LAogICAgICAicnVuQXR0ZW1wdCI6IDEsCiAgICAgICJqb2JJZCI6IDExMjc4NjIwNTc2NywKICAgICAgImNvbmNsdXNpb24iOiAic3VjY2VzcyIsCiAgICAgICJ3b3JrZmxvdyI6ICIuZ2l0aHViL3dvcmtmbG93cy9kZXZlbG9wbWVudC1jb250cm9sbGVyLXFhLnltbCIsCiAgICAgICJ3b3JrZmxvd1NoYTI1NiI6ICJhNWQwNDZjNjVmZmM0OTZhMjNkNzEyMmYxOTBhN2ZmYTU3YWIyNWQ1NThlMTNmOTQyZjYxZGU0YmIzMjI1NWFmIiwKICAgICAgInNvdXJjZU1hbmlmZXN0U2hhMjU2IjogIjE5MWZjNWZkYzQ4MjU0MWE4MzY1ODM1MzdhZGY1Y2VjYTFjNGY0OTE5NzhhNmQxNzQ4YzA2ZmYwZDA5MDAwNzMiLAogICAgICAiYXJ0aWZhY3QiOiB7CiAgICAgICAgImlkIjogMTE0ODEwNTk5OTgsCiAgICAgICAgIm5hbWUiOiAiZGV2ZWxvcG1lbnQtY29udHJvbGxlci1kMGM1N2I4NTQwMWFjNzdlMGY1YTdlNDExNDFlYWIxMzRhYmIxYWMxIiwKICAgICAgICAic2hhMjU2IjogIjgxNGUyMjY3YjFkOTA3NDZjMzE2MzFmZjE1NzhiMGRhMTA5MjIxYzMzMDIwNjBlYmIwZjNlNWMwNGYwNDBlNGYiLAogICAgICAgICJieXRlcyI6IDM4NjEKICAgICAgfSwKICAgICAgInNvdXJjZVBpbnMiOiBbCiAgICAgICAgewogICAgICAgICAgInBhdGgiOiAic2NyaXB0cy9jY2doLWFwcC1kZXZlbG9wbWVudC1yZWxlYXNlLnNoIiwKICAgICAgICAgICJzaGEyNTYiOiAiOGJlNDlmNjA2ZjZjNDY4ZjAyNGM5ZDFiOWY2NjhiZTVkYWU1OTljMTQ2OTgxNmVmMmI2ZGJlYTQwZWI5MDdmNCIKICAgICAgICB9LAogICAgICAgIHsKICAgICAgICAgICJwYXRoIjogInNjcmlwdHMveWFyZC1kZXZlbG9wbWVudC1jb250cmFjdC5tanMiLAogICAgICAgICAgInNoYTI1NiI6ICI2NGQ5ZDk1Nzg5MThkZjhjZjE1Zjg3YmU5ZWNmMzdlMDVhOGJlNzNmMWJjZmU1Mjg3ZWYzN2UyYzQ2MWNmMWNiIgogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgInBhdGgiOiAidGVzdHMveWFyZC1kZXZlbG9wbWVudC1yZWxlYXNlLnRlc3QubWpzIiwKICAgICAgICAgICJzaGEyNTYiOiAiZmQ3OGU5NDJjMjcxM2M3ZTM1YjFmOGJiZmQxMWEwMzIzYmM1ZDE3NGMxYmJiODg1ZmE1YzcyYjQ4ZWYxZWI1NCIKICAgICAgICB9CiAgICAgIF0sCiAgICAgICJ0ZXN0cyI6IHsKICAgICAgICAiY29udHJvbGxlciI6IDY0LAogICAgICAgICJjb250cm9sbGVyUmVwb3J0ZXIiOiAibm9kZS10YXAiLAogICAgICAgICJjb21wb3NlIjogImFjdHVhbCBjb25maWcgb25seTsgc3ludGhldGljIGZpbGVzOyBubyBkYWVtb24iLAogICAgICAgICJmb3JtYXR0ZXIiOiB7CiAgICAgICAgICAic3RyaWN0SGVhbHRoQ2FzZXMiOiAxNCwKICAgICAgICAgICJkYXRhYmFzZUNhc2VzIjogNwogICAgICAgIH0KICAgICAgfSwKICAgICAgIm9yaWdpbmFsRmlsZXMiOiBbCiAgICAgICAgewogICAgICAgICAgInBhdGgiOiAic291cmNlLmpzb24iLAogICAgICAgICAgImJ5dGVzIjogODc3LAogICAgICAgICAgInNoYTI1NiI6ICI1NjYwZmViMTExMTQ2NTU3OTRlZTUwMTlmZjc4MzIxNzlmYzRlYjAzMTljNzQyNjYzZjUzMzYwNjI5ZGE2MWEyIgogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgInBhdGgiOiAiY29udHJvbGxlci50YXAiLAogICAgICAgICAgImJ5dGVzIjogMTIxNzgsCiAgICAgICAgICAic2hhMjU2IjogIjYzODJmOTZiYjJhMDIyMDIzODg1ZGNjZmUzZjczOGFkZDVhMjQ2MTRmZjkwMGRjYWI1YTE1YjYwOGYyN2MwOWYiCiAgICAgICAgfSwKICAgICAgICB7CiAgICAgICAgICAicGF0aCI6ICJjb21wb3NlLmpzb24iLAogICAgICAgICAgImJ5dGVzIjogODg3LAogICAgICAgICAgInNoYTI1NiI6ICJkODJhOGNiMTJiZjE3OTBmY2Y0NjJiM2VjMzFkN2FiMGIzOWQ5ZGQyMGFiMmJlYTlkMTU5ODI2NTM1MGMyZWMyIgogICAgICAgIH0sCiAgICAgICAgewogICAgICAgICAgInBhdGgiOiAiZm9ybWF0dGVyLmxvZyIsCiAgICAgICAgICAiYnl0ZXMiOiAxMjcsCiAgICAgICAgICAic2hhMjU2IjogIjgxZjJkYzA3NDFmZTY4ZjBiZDVkN2MzNjk0ZGMwYjQ5MTE0OGM5MDZhYmJkNzcxY2UwYzFlYzhkODY1M2NjMTMiCiAgICAgICAgfQogICAgICBdLAogICAgICAicnVudGltZUNoYW5nZWQiOiBmYWxzZSwKICAgICAgImltYWdlUmVidWlsdCI6IGZhbHNlLAogICAgICAiaG9zdEFjdGl2YXRpb25QZXJmb3JtZWQiOiBmYWxzZSwKICAgICAgInNjb3BlIjogIkZpbmFsIGV4dGVybmFsIGNvbnRyb2xsZXIgUUE7IGluZGVwZW5kZW50IG9mIGdhbWVwbGF5LWltYWdlIHNvdXJjZS4gTm8gY2xhaW0gdGhhdCB0aGVzZSBjb250cm9sbGVyIGJ5dGVzIHdlcmUgaW4gdGhlIGltYWdlIGFydGlmYWN0LiIKICAgIH0KICB9LAogICJ2aXN1YWxSZXZpZXdTaGEyNTYiOiAiY2Y3YzA2MTNmODU4MDIxM2FiNGJiNDQ0Yzc1OTMyY2VlZTk1OThkNmQ4MTMzMzMzZGIzZmMwMDRhNDdhZDk5NSIsCiAgImNoZWNrcyI6IFsKICAgIHsKICAgICAgIm5hbWUiOiAicmV2aWV3ZWQtc291cmNlLWludmVudG9yeSIsCiAgICAgICJzdGF0dXMiOiAiY29tcGxldGVkIiwKICAgICAgImtpbmQiOiAicmV2aWV3ZWQtc291cmNlLWFuZC1tb2NrZWQtcmVsZWFzZS1ndWFyZCIsCiAgICAgICJldmlkZW5jZSI6IFsKICAgICAgICAic291cmNlLWludmVudG9yeS5qc29uIgogICAgICBdLAogICAgICAiY2FzZXMiOiBbXSwKICAgICAgImF0dGVtcHRzIjogMSwKICAgICAgImNvbmNsdXNpb24iOiAic3VjY2VzcyIsCiAgICAgICJyZWxlYXNlIjogewogICAgICAgICJjb21taXQiOiAiNTZiOTA2Mjk1NWQ2MGM3NmJmOTQzMGM4OThkM2NlYzEyMzFjYTUyNCIsCiAgICAgICAgInRyZWUiOiAiMWY4ZGZkZDE5OTYwMjA5OWY3YmY2NzE2MTk0ZTFmZjY3NzI1ODg1ZCIsCiAgICAgICAgImltYWdlRGlnZXN0IjogInNoYTI1Njo5NDQyZTg1M2Q4YmY3NjczNjM0NzVkODE5YTRkMzk4ODEzNWRlMjE5MGYwNzFkOWQwYmJmZWZiODQ1NTgxODBkIiwKICAgICAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6NmM4NmZiOTE4M2UwM2E3NTkxMGFlODU0MTk5YWU3OWJmZWFhN2E3NmRiZDllNDMzOGYyYWUwMWE2NDMwYmMyNiIKICAgICAgfSwKICAgICAgInByZWRlY2Vzc29yIjogewogICAgICAgICJjb21taXQiOiAiZWM4MTUwNjVmNmFkYjdjMzZkODFmOTdiNDFkNDdhZDE2ZTYxNGIwNyIsCiAgICAgICAgInRyZWUiOiAiYjBiODVmNzEyNjQ1Zjc3MmJmYzEzOGNkZGFiYzg2YTQ5ZDAxYWMwNyIsCiAgICAgICAgImltYWdlRGlnZXN0IjogInNoYTI1NjozNDliOWQyMDZjYzFiNWMyMmMzNDYwNzYwZDRlYTlhOTYyNTUyODg5NDJhNmU1MzZmOTEwYjEyMjI3MjFjZGFhIiwKICAgICAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6ZjFiNDljZjIzODg1YWZjZjNjYTdhYWIzMzAzZDM5MDE0Zjc0NDM0M2E5MGFkMGRkZDgxZTg5YTVkYTNiZTQzZCIKICAgICAgfSwKICAgICAgImFydGlmYWN0U2hhMjU2IjogImZhNzY5OWQwMGU2MWVhYjVkNWJjYTUyMmI3NzA5ZTg0ZTg2OGViMDI0ZWJhZDQ1Yjg3N2E4ZWNmMTkzM2ViMDgiCiAgICB9LAogICAgewogICAgICAibmFtZSI6ICJub3JtYWwtcHJvZHVjdGlvbi1pbWFnZSIsCiAgICAgICJzdGF0dXMiOiAiY29tcGxldGVkIiwKICAgICAgImtpbmQiOiAiZnJlc2gtZXhhY3QtaW1hZ2UtYXBpLW9yLWJyb3dzZXIiLAogICAgICAiZXZpZGVuY2UiOiBbCiAgICAgICAgImltYWdlLWlkZW50aXR5Lmpzb24iCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFtdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogImF1dGhlbnRpY2F0ZWQtY2FwYWJpbGl0eS1wb2xpY3kiLAogICAgICAic3RhdHVzIjogImNvbXBsZXRlZCIsCiAgICAgICJraW5kIjogImZyZXNoLWV4YWN0LWltYWdlLWFwaS1vci1icm93c2VyIiwKICAgICAgImV2aWRlbmNlIjogWwogICAgICAgICJhcGktcHJvb2YuanNvbiIKICAgICAgXSwKICAgICAgImNhc2VzIjogWwogICAgICAgICJhcGktYW5kLXdhcm0iCiAgICAgIF0sCiAgICAgICJhdHRlbXB0cyI6IDEsCiAgICAgICJjb25jbHVzaW9uIjogInN1Y2Nlc3MiLAogICAgICAicmVsZWFzZSI6IHsKICAgICAgICAiY29tbWl0IjogIjU2YjkwNjI5NTVkNjBjNzZiZjk0MzBjODk4ZDNjZWMxMjMxY2E1MjQiLAogICAgICAgICJ0cmVlIjogIjFmOGRmZGQxOTk2MDIwOTlmN2JmNjcxNjE5NGUxZmY2NzcyNTg4NWQiLAogICAgICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6OTQ0MmU4NTNkOGJmNzY3MzYzNDc1ZDgxOWE0ZDM5ODgxMzVkZTIxOTBmMDcxZDlkMGJiZmVmYjg0NTU4MTgwZCIsCiAgICAgICAgImltYWdlSWQiOiAic2hhMjU2OjZjODZmYjkxODNlMDNhNzU5MTBhZTg1NDE5OWFlNzliZmVhYTdhNzZkYmQ5ZTQzMzhmMmFlMDFhNjQzMGJjMjYiCiAgICAgIH0sCiAgICAgICJwcmVkZWNlc3NvciI6IHsKICAgICAgICAiY29tbWl0IjogImVjODE1MDY1ZjZhZGI3YzM2ZDgxZjk3YjQxZDQ3YWQxNmU2MTRiMDciLAogICAgICAgICJ0cmVlIjogImIwYjg1ZjcxMjY0NWY3NzJiZmMxMzhjZGRhYmM4NmE0OWQwMWFjMDciLAogICAgICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6MzQ5YjlkMjA2Y2MxYjVjMjJjMzQ2MDc2MGQ0ZWE5YTk2MjU1Mjg4OTQyYTZlNTM2ZjkxMGIxMjIyNzIxY2RhYSIsCiAgICAgICAgImltYWdlSWQiOiAic2hhMjU2OmYxYjQ5Y2YyMzg4NWFmY2YzY2E3YWFiMzMwM2QzOTAxNGY3NDQzNDNhOTBhZDBkZGQ4MWU4OWE1ZGEzYmU0M2QiCiAgICAgIH0sCiAgICAgICJhcnRpZmFjdFNoYTI1NiI6ICJmYTc2OTlkMDBlNjFlYWI1ZDViY2E1MjJiNzcwOWU4NGU4NjhlYjAyNGViYWQ0NWI4NzdhOGVjZjE5MzNlYjA4IgogICAgfSwKICAgIHsKICAgICAgIm5hbWUiOiAiY2Fub25pY2FsLXBsYWNlbWVudC1zdG9yYWdlLXYyIiwKICAgICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgICAia2luZCI6ICJmcmVzaC1leGFjdC1pbWFnZS1hcGktb3ItYnJvd3NlciIsCiAgICAgICJldmlkZW5jZSI6IFsKICAgICAgICAibmF0aXZlLXByb29mLmpzb24iCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFsKICAgICAgICAiY3VycmVudC12Mi1wZW5kaW5nIgogICAgICBdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogImVjb25vbXktaW52ZW50b3J5IiwKICAgICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgICAia2luZCI6ICJmcmVzaC1leGFjdC1pbWFnZS1hcGktb3ItYnJvd3NlciIsCiAgICAgICJldmlkZW5jZSI6IFsKICAgICAgICAibmF0aXZlLXByb29mLmpzb24iCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFsKICAgICAgICAiY3VycmVudC12Mi1wZW5kaW5nIgogICAgICBdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogImxvc3QtcmVzcG9uc2UtZXhhY3RseS1vbmNlIiwKICAgICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgICAia2luZCI6ICJmcmVzaC1leGFjdC1pbWFnZS1hcGktb3ItYnJvd3NlciIsCiAgICAgICJldmlkZW5jZSI6IFsKICAgICAgICAibmF0aXZlLXByb29mLmpzb24iCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFsKICAgICAgICAiY3VycmVudC12Mi1wZW5kaW5nIgogICAgICBdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogInBlbmRpbmctaW50ZW50LWFjY291bnQtZmVuY2VzIiwKICAgICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgICAia2luZCI6ICJmcmVzaC1leGFjdC1pbWFnZS1hcGktb3ItYnJvd3NlciIsCiAgICAgICJldmlkZW5jZSI6IFsKICAgICAgICAibmF0aXZlLXByb29mLmpzb24iCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFsKICAgICAgICAiY3VycmVudC12Mi1wZW5kaW5nIgogICAgICBdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogInJlY2VpcHQtc2VjdXJpdHkiLAogICAgICAic3RhdHVzIjogImNvbXBsZXRlZCIsCiAgICAgICJraW5kIjogImZyZXNoLWV4YWN0LWltYWdlLWFwaS1vci1icm93c2VyIiwKICAgICAgImV2aWRlbmNlIjogWwogICAgICAgICJuYXRpdmUtcHJvb2YuanNvbiIKICAgICAgXSwKICAgICAgImNhc2VzIjogWwogICAgICAgICJjdXJyZW50LXYyLXBlbmRpbmciCiAgICAgIF0sCiAgICAgICJhdHRlbXB0cyI6IDEsCiAgICAgICJjb25jbHVzaW9uIjogInN1Y2Nlc3MiLAogICAgICAicmVsZWFzZSI6IHsKICAgICAgICAiY29tbWl0IjogIjU2YjkwNjI5NTVkNjBjNzZiZjk0MzBjODk4ZDNjZWMxMjMxY2E1MjQiLAogICAgICAgICJ0cmVlIjogIjFmOGRmZGQxOTk2MDIwOTlmN2JmNjcxNjE5NGUxZmY2NzcyNTg4NWQiLAogICAgICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6OTQ0MmU4NTNkOGJmNzY3MzYzNDc1ZDgxOWE0ZDM5ODgxMzVkZTIxOTBmMDcxZDlkMGJiZmVmYjg0NTU4MTgwZCIsCiAgICAgICAgImltYWdlSWQiOiAic2hhMjU2OjZjODZmYjkxODNlMDNhNzU5MTBhZTg1NDE5OWFlNzliZmVhYTdhNzZkYmQ5ZTQzMzhmMmFlMDFhNjQzMGJjMjYiCiAgICAgIH0sCiAgICAgICJwcmVkZWNlc3NvciI6IHsKICAgICAgICAiY29tbWl0IjogImVjODE1MDY1ZjZhZGI3YzM2ZDgxZjk3YjQxZDQ3YWQxNmU2MTRiMDciLAogICAgICAgICJ0cmVlIjogImIwYjg1ZjcxMjY0NWY3NzJiZmMxMzhjZGRhYmM4NmE0OWQwMWFjMDciLAogICAgICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6MzQ5YjlkMjA2Y2MxYjVjMjJjMzQ2MDc2MGQ0ZWE5YTk2MjU1Mjg4OTQyYTZlNTM2ZjkxMGIxMjIyNzIxY2RhYSIsCiAgICAgICAgImltYWdlSWQiOiAic2hhMjU2OmYxYjQ5Y2YyMzg4NWFmY2YzY2E3YWFiMzMwM2QzOTAxNGY3NDQzNDNhOTBhZDBkZGQ4MWU4OWE1ZGEzYmU0M2QiCiAgICAgIH0sCiAgICAgICJhcnRpZmFjdFNoYTI1NiI6ICJmYTc2OTlkMDBlNjFlYWI1ZDViY2E1MjJiNzcwOWU4NGU4NjhlYjAyNGViYWQ0NWI4NzdhOGVjZjE5MzNlYjA4IgogICAgfSwKICAgIHsKICAgICAgIm5hbWUiOiAib2NjdXBpZWQtZm9vZC1zb2NrZXQiLAogICAgICAic3RhdHVzIjogImNvbXBsZXRlZCIsCiAgICAgICJraW5kIjogImZyZXNoLWV4YWN0LWltYWdlLWFwaS1vci1icm93c2VyIiwKICAgICAgImV2aWRlbmNlIjogWwogICAgICAgICJuYXRpdmUtcHJvb2YuanNvbiIKICAgICAgXSwKICAgICAgImNhc2VzIjogWwogICAgICAgICJvY2N1cGllZC0zMjB4NTY4IiwKICAgICAgICAib2NjdXBpZWQtMzkweDg0NCIsCiAgICAgICAgIm9jY3VwaWVkLTU2OHgzMjAiCiAgICAgIF0sCiAgICAgICJhdHRlbXB0cyI6IDEsCiAgICAgICJjb25jbHVzaW9uIjogInN1Y2Nlc3MiLAogICAgICAicmVsZWFzZSI6IHsKICAgICAgICAiY29tbWl0IjogIjU2YjkwNjI5NTVkNjBjNzZiZjk0MzBjODk4ZDNjZWMxMjMxY2E1MjQiLAogICAgICAgICJ0cmVlIjogIjFmOGRmZGQxOTk2MDIwOTlmN2JmNjcxNjE5NGUxZmY2NzcyNTg4NWQiLAogICAgICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6OTQ0MmU4NTNkOGJmNzY3MzYzNDc1ZDgxOWE0ZDM5ODgxMzVkZTIxOTBmMDcxZDlkMGJiZmVmYjg0NTU4MTgwZCIsCiAgICAgICAgImltYWdlSWQiOiAic2hhMjU2OjZjODZmYjkxODNlMDNhNzU5MTBhZTg1NDE5OWFlNzliZmVhYTdhNzZkYmQ5ZTQzMzhmMmFlMDFhNjQzMGJjMjYiCiAgICAgIH0sCiAgICAgICJwcmVkZWNlc3NvciI6IHsKICAgICAgICAiY29tbWl0IjogImVjODE1MDY1ZjZhZGI3YzM2ZDgxZjk3YjQxZDQ3YWQxNmU2MTRiMDciLAogICAgICAgICJ0cmVlIjogImIwYjg1ZjcxMjY0NWY3NzJiZmMxMzhjZGRhYmM4NmE0OWQwMWFjMDciLAogICAgICAgICJpbWFnZURpZ2VzdCI6ICJzaGEyNTY6MzQ5YjlkMjA2Y2MxYjVjMjJjMzQ2MDc2MGQ0ZWE5YTk2MjU1Mjg4OTQyYTZlNTM2ZjkxMGIxMjIyNzIxY2RhYSIsCiAgICAgICAgImltYWdlSWQiOiAic2hhMjU2OmYxYjQ5Y2YyMzg4NWFmY2YzY2E3YWFiMzMwM2QzOTAxNGY3NDQzNDNhOTBhZDBkZGQ4MWU4OWE1ZGEzYmU0M2QiCiAgICAgIH0sCiAgICAgICJhcnRpZmFjdFNoYTI1NiI6ICJmYTc2OTlkMDBlNjFlYWI1ZDViY2E1MjJiNzcwOWU4NGU4NjhlYjAyNGViYWQ0NWI4NzdhOGVjZjE5MzNlYjA4IgogICAgfSwKICAgIHsKICAgICAgIm5hbWUiOiAid2FybS1jbGllbnQtdXBkYXRlIiwKICAgICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgICAia2luZCI6ICJmcmVzaC1leGFjdC1pbWFnZS1hcGktb3ItYnJvd3NlciIsCiAgICAgICJldmlkZW5jZSI6IFsKICAgICAgICAiYXBpLXByb29mLmpzb24iCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFsKICAgICAgICAiYXBpLWFuZC13YXJtIgogICAgICBdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogIm1vYmlsZS1mdW5jdGlvbmFsIiwKICAgICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgICAia2luZCI6ICJmcmVzaC1leGFjdC1pbWFnZS1hcGktb3ItYnJvd3NlciIsCiAgICAgICJldmlkZW5jZSI6IFsKICAgICAgICAibmF0aXZlLXByb29mLmpzb24iCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFsKICAgICAgICAib2NjdXBpZWQtMzIweDU2OCIsCiAgICAgICAgIm9jY3VwaWVkLTM5MHg4NDQiLAogICAgICAgICJvY2N1cGllZC01Njh4MzIwIgogICAgICBdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogIm1vYmlsZS12aXN1YWwiLAogICAgICAic3RhdHVzIjogImNvbXBsZXRlZCIsCiAgICAgICJraW5kIjogIm1hbnVhbC1pbmRlcGVuZGVudC1leGFjdC1vcmlnaW5hbC1yZXZpZXciLAogICAgICAiZXZpZGVuY2UiOiBbCiAgICAgICAgIm9jY3VwaWVkLTMyMHg1NjgtZm9vZC5wbmciLAogICAgICAgICJvY2N1cGllZC0zMjB4NTY4LWRlY29yLnBuZyIsCiAgICAgICAgIm9jY3VwaWVkLTMyMHg1NjgtZXNjYXBlZC5wbmciLAogICAgICAgICJvY2N1cGllZC0zOTB4ODQ0LWZvb2QucG5nIiwKICAgICAgICAib2NjdXBpZWQtMzkweDg0NC1kZWNvci5wbmciLAogICAgICAgICJvY2N1cGllZC0zOTB4ODQ0LWVzY2FwZWQucG5nIiwKICAgICAgICAib2NjdXBpZWQtNTY4eDMyMC1mb29kLnBuZyIsCiAgICAgICAgIm9jY3VwaWVkLTU2OHgzMjAtZGVjb3IucG5nIiwKICAgICAgICAib2NjdXBpZWQtNTY4eDMyMC1lc2NhcGVkLnBuZyIsCiAgICAgICAgImN1cnJlbnQtdjItcmVjb3ZlcmVkLTM5MHg4NDQucG5nIgogICAgICBdLAogICAgICAiY2FzZXMiOiBbXSwKICAgICAgImF0dGVtcHRzIjogMSwKICAgICAgInZpc3VhbFJldmlld1NoYTI1NiI6ICJjZjdjMDYxM2Y4NTgwMjEzYWI0YmI0NDRjNzU5MzJjZWVlOTU5OGQ2ZDgxMzMzMzNkYjNmYzAwNGE0N2FkOTk1IiwKICAgICAgImNvbmNsdXNpb24iOiAic3VjY2VzcyIsCiAgICAgICJyZWxlYXNlIjogewogICAgICAgICJjb21taXQiOiAiNTZiOTA2Mjk1NWQ2MGM3NmJmOTQzMGM4OThkM2NlYzEyMzFjYTUyNCIsCiAgICAgICAgInRyZWUiOiAiMWY4ZGZkZDE5OTYwMjA5OWY3YmY2NzE2MTk0ZTFmZjY3NzI1ODg1ZCIsCiAgICAgICAgImltYWdlRGlnZXN0IjogInNoYTI1Njo5NDQyZTg1M2Q4YmY3NjczNjM0NzVkODE5YTRkMzk4ODEzNWRlMjE5MGYwNzFkOWQwYmJmZWZiODQ1NTgxODBkIiwKICAgICAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6NmM4NmZiOTE4M2UwM2E3NTkxMGFlODU0MTk5YWU3OWJmZWFhN2E3NmRiZDllNDMzOGYyYWUwMWE2NDMwYmMyNiIKICAgICAgfSwKICAgICAgInByZWRlY2Vzc29yIjogewogICAgICAgICJjb21taXQiOiAiZWM4MTUwNjVmNmFkYjdjMzZkODFmOTdiNDFkNDdhZDE2ZTYxNGIwNyIsCiAgICAgICAgInRyZWUiOiAiYjBiODVmNzEyNjQ1Zjc3MmJmYzEzOGNkZGFiYzg2YTQ5ZDAxYWMwNyIsCiAgICAgICAgImltYWdlRGlnZXN0IjogInNoYTI1NjozNDliOWQyMDZjYzFiNWMyMmMzNDYwNzYwZDRlYTlhOTYyNTUyODg5NDJhNmU1MzZmOTEwYjEyMjI3MjFjZGFhIiwKICAgICAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6ZjFiNDljZjIzODg1YWZjZjNjYTdhYWIzMzAzZDM5MDE0Zjc0NDM0M2E5MGFkMGRkZDgxZTg5YTVkYTNiZTQzZCIKICAgICAgfSwKICAgICAgImFydGlmYWN0U2hhMjU2IjogImZhNzY5OWQwMGU2MWVhYjVkNWJjYTUyMmI3NzA5ZTg0ZTg2OGViMDI0ZWJhZDQ1Yjg3N2E4ZWNmMTkzM2ViMDgiCiAgICB9LAogICAgewogICAgICAibmFtZSI6ICJhcHAtb25seS1mYWlsdXJlLXJvbGxiYWNrIiwKICAgICAgInN0YXR1cyI6ICJjb21wbGV0ZWQiLAogICAgICAia2luZCI6ICJoaXN0b3JpY2FsLWV4YWN0LWNvbnRyb2xsZXItbWVjaGFuaXNtIiwKICAgICAgImV2aWRlbmNlIjogWwogICAgICAgICJhY3RpdmF0aW9uLWNvbnRyb2xsZXIubG9nIiwKICAgICAgICAiYWN0aXZhdGlvbi1jb250cm9sbGVyLXByb29mLmpzb24iLAogICAgICAgICJhY3RpdmF0aW9uLWNvbnRyb2xsZXItc291cmNlLmpzb24iLAogICAgICAgICJhY3RpdmF0aW9uLWNvbnRyb2xsZXItY29tcG9zZS5qc29uIiwKICAgICAgICAiYWN0aXZhdGlvbi1jb250cm9sbGVyLWZvcm1hdHRlci5sb2ciCiAgICAgIF0sCiAgICAgICJjYXNlcyI6IFtdLAogICAgICAiYXR0ZW1wdHMiOiAxLAogICAgICAiY29uY2x1c2lvbiI6ICJzdWNjZXNzIiwKICAgICAgInJlbGVhc2UiOiB7CiAgICAgICAgImNvbW1pdCI6ICI1NmI5MDYyOTU1ZDYwYzc2YmY5NDMwYzg5OGQzY2VjMTIzMWNhNTI0IiwKICAgICAgICAidHJlZSI6ICIxZjhkZmRkMTk5NjAyMDk5ZjdiZjY3MTYxOTRlMWZmNjc3MjU4ODVkIiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2Ojk0NDJlODUzZDhiZjc2NzM2MzQ3NWQ4MTlhNGQzOTg4MTM1ZGUyMTkwZjA3MWQ5ZDBiYmZlZmI4NDU1ODE4MGQiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1Njo2Yzg2ZmI5MTgzZTAzYTc1OTEwYWU4NTQxOTlhZTc5YmZlYWE3YTc2ZGJkOWU0MzM4ZjJhZTAxYTY0MzBiYzI2IgogICAgICB9LAogICAgICAicHJlZGVjZXNzb3IiOiB7CiAgICAgICAgImNvbW1pdCI6ICJlYzgxNTA2NWY2YWRiN2MzNmQ4MWY5N2I0MWQ0N2FkMTZlNjE0YjA3IiwKICAgICAgICAidHJlZSI6ICJiMGI4NWY3MTI2NDVmNzcyYmZjMTM4Y2RkYWJjODZhNDlkMDFhYzA3IiwKICAgICAgICAiaW1hZ2VEaWdlc3QiOiAic2hhMjU2OjM0OWI5ZDIwNmNjMWI1YzIyYzM0NjA3NjBkNGVhOWE5NjI1NTI4ODk0MmE2ZTUzNmY5MTBiMTIyMjcyMWNkYWEiLAogICAgICAgICJpbWFnZUlkIjogInNoYTI1NjpmMWI0OWNmMjM4ODVhZmNmM2NhN2FhYjMzMDNkMzkwMTRmNzQ0MzQzYTkwYWQwZGRkODFlODlhNWRhM2JlNDNkIgogICAgICB9LAogICAgICAiYXJ0aWZhY3RTaGEyNTYiOiAiZmE3Njk5ZDAwZTYxZWFiNWQ1YmNhNTIyYjc3MDllODRlODY4ZWIwMjRlYmFkNDViODc3YThlY2YxOTMzZWIwOCIKICAgIH0sCiAgICB7CiAgICAgICJuYW1lIjogInByaW9yLWltYWdlLXYyLWNvbXBhdGlibGUtcmVwbGF5LXByZXNlcnZlcy1zdGF0ZSIsCiAgICAgICJzdGF0dXMiOiAiY29tcGxldGVkIiwKICAgICAgImtpbmQiOiAiZnJlc2gtZXhhY3QtaW1hZ2UtYXBpLW9yLWJyb3dzZXIiLAogICAgICAiZXZpZGVuY2UiOiBbCiAgICAgICAgIm5hdGl2ZS1wcm9vZi5qc29uIgogICAgICBdLAogICAgICAiY2FzZXMiOiBbCiAgICAgICAgImN1cnJlbnQtdjItcGVuZGluZyIKICAgICAgXSwKICAgICAgImF0dGVtcHRzIjogMSwKICAgICAgImNvbmNsdXNpb24iOiAic3VjY2VzcyIsCiAgICAgICJyZWxlYXNlIjogewogICAgICAgICJjb21taXQiOiAiNTZiOTA2Mjk1NWQ2MGM3NmJmOTQzMGM4OThkM2NlYzEyMzFjYTUyNCIsCiAgICAgICAgInRyZWUiOiAiMWY4ZGZkZDE5OTYwMjA5OWY3YmY2NzE2MTk0ZTFmZjY3NzI1ODg1ZCIsCiAgICAgICAgImltYWdlRGlnZXN0IjogInNoYTI1Njo5NDQyZTg1M2Q4YmY3NjczNjM0NzVkODE5YTRkMzk4ODEzNWRlMjE5MGYwNzFkOWQwYmJmZWZiODQ1NTgxODBkIiwKICAgICAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6NmM4NmZiOTE4M2UwM2E3NTkxMGFlODU0MTk5YWU3OWJmZWFhN2E3NmRiZDllNDMzOGYyYWUwMWE2NDMwYmMyNiIKICAgICAgfSwKICAgICAgInByZWRlY2Vzc29yIjogewogICAgICAgICJjb21taXQiOiAiZWM4MTUwNjVmNmFkYjdjMzZkODFmOTdiNDFkNDdhZDE2ZTYxNGIwNyIsCiAgICAgICAgInRyZWUiOiAiYjBiODVmNzEyNjQ1Zjc3MmJmYzEzOGNkZGFiYzg2YTQ5ZDAxYWMwNyIsCiAgICAgICAgImltYWdlRGlnZXN0IjogInNoYTI1NjozNDliOWQyMDZjYzFiNWMyMmMzNDYwNzYwZDRlYTlhOTYyNTUyODg5NDJhNmU1MzZmOTEwYjEyMjI3MjFjZGFhIiwKICAgICAgICAiaW1hZ2VJZCI6ICJzaGEyNTY6ZjFiNDljZjIzODg1YWZjZjNjYTdhYWIzMzAzZDM5MDE0Zjc0NDM0M2E5MGFkMGRkZDgxZTg5YTVkYTNiZTQzZCIKICAgICAgfSwKICAgICAgImFydGlmYWN0U2hhMjU2IjogImZhNzY5OWQwMGU2MWVhYjVkNWJjYTUyMmI3NzA5ZTg0ZTg2OGViMDI0ZWJhZDQ1Yjg3N2E4ZWNmMTkzM2ViMDgiCiAgICB9CiAgXSwKICAibGltaXRhdGlvbnMiOiBbCiAgICAiRGV2ZWxvcG1lbnQgbW9kZSwgbm90IHByb2R1Y3Rpb24gYXJ0IGFjY2VwdGFuY2UiLAogICAgIkFwcC1vbmx5IGZhdWx0IGd1YXJkIGhhcyBtb2NrZWQvc291cmNlIGV2aWRlbmNlOyBob3N0IHByZWZsaWdodCByZW1haW5zIHNlcGFyYXRlIiwKICAgICJFeGFjdDRkZGUgbm9ybWFsLXJvdXRlIHF1YWxpZmljYXRpb24gdXNlcyBzb3VyY2UgY29tbWFuZCBmaXh0dXJlczsgbmV3IGltYWdlIGV2aWRlbmNlIGlzIHRoZSBzZXBhcmF0ZSBmaXZlLWNhc2UgbGFuZSIsCiAgICAiSW50ZXJhY3Rpb24gc2xpY2UgY2hhbmdlcyBubyBZYXJkIHByb3RvY29sOyBleGFjdGVjODE1IGNvbXBhdGliaWxpdHkgb25seSwgbm90IGdlbmVyYWwgbGVnYWN5IHN1cHBvcnQiLAogICAgIkhpc3RvcmljYWw2NC1jYXNlIGNvbnRyb2xsZXIgcXVhbGlmaWNhdGlvbiBwcm92ZXMgbWVjaGFuaXNtcyBvbmx5OyBlYzgxNS1ib3VuZCBjb250cm9sbGVyIGFuZCBmcmVzaCBob3N0IGNoZWNrcyByZW1haW4gbWFuZGF0b3J5IGJlZm9yZSBhY3RpdmF0aW9uIiwKICAgICJHaXRIdWIgaG9zdGVkIHJ1bm5lciBhbmQgb2ZmaWNpYWwgdmVuZG9yIGFjdGlvbnMgYXQgZXhpc3RpbmcgcmVwb3NpdG9yeSBtYWpvciB0YWdzLiBFeGFjdCB3b3JrZmxvdyBieXRlcyBhcmUgcGlubmVkOyBtYWpvci10YWcgYWN0aW9uIGltcGxlbWVudGF0aW9uIGlzIG5vdCByZXByZXNlbnRlZCBhcyBpbW11dGFibGUuIgogIF0KfQo=",
+    "originalImageAcceptance": {
+      "runId": 37735444758,
+      "runAttempt": 1,
+      "status": "completed",
+      "conclusion": "success",
+      "headCommit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    "originalImageArtifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08",
+    "originalHistoricalControllerCheck": {
+      "name": "app-only-failure-rollback",
+      "status": "completed",
+      "kind": "historical-exact-controller-mechanism",
+      "evidence": [
+        "activation-controller.log",
+        "activation-controller-proof.json",
+        "activation-controller-source.json",
+        "activation-controller-compose.json",
+        "activation-controller-formatter.log"
+      ],
+      "cases": [],
+      "attempts": 1,
+      "conclusion": "success",
+      "release": {
+        "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+        "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+        "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+        "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+      },
+      "predecessor": {
+        "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+        "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+        "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+        "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+      },
+      "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+    },
+    "originalPredecessorEnvelopeSha256": "fda1fdfe3db01daec915c98eec160029dfc8c0056386a994abaef1b65190ac4b",
+    "controllerCompatiblePredecessorReceiptSha256": "071c26348be772fb59d39a7425fc5745b359c175521872e11dc7731f686c5a1a",
+    "controllerQualificationSha256": "958618b689d96fd62ca66913da3c0d16fa420f843a0110b6e9f90a0079a2049b",
+    "replacedCheck": "app-only-failure-rollback",
+    "gameplayImageRebuilt": false,
+    "imageCasesRerun": false,
+    "scope": "Only controller mechanism qualification and predecessor envelope binding superseded; exact image, original image proof and thirteen other checks preserved. Activation remains pending."
+  }
+}
