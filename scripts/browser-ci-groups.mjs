@@ -8,15 +8,15 @@ import { spawnSync } from 'node:child_process';
 export const BROWSER_GROUPS = Object.freeze({
   match3: ['match3-motion.spec.js'],
   bubbo: ['bubbo-casual-motion.spec.js', 'bubbo-marine-art.spec.js', 'qa-bubbo-interruption.spec.js'],
-  garden: ['garden-accounting.spec.js', 'garden-r2.spec.js', 'garden-shelf.spec.js'],
+  garden: ['garden-accounting.spec.js', 'garden-live-heartbeat.spec.js', 'garden-r2.spec.js', 'garden-shelf.spec.js'],
   merge: ['merge-v3.spec.js'],
-  yard: ['companion-yard.spec.js'],
+  yard: ['companion-yard.spec.js', 'yard-live-placement-feedback.spec.js'],
   'cross-game-motion': ['casual-motion.spec.js'],
   'hud-layout': ['glass-ui.spec.js', 'hud-art-visual-regressions.spec.js', 'hud-editor.spec.js', 'hud-redesign-runtime-coverage.spec.js'],
   'mobile-ui': ['mobile-ui-extended.spec.js', 'mobile-ui-matrix.spec.js'],
   'navigation-input': ['bentoku.spec.js', 'gestures.spec.js', 'home-navigation.spec.js', 'minigames.spec.js', 'pause-paint-regression.spec.js'],
   'assets-performance': ['asset-retirement.spec.js', 'game-entry-flash.spec.js', 'assets-runtime.spec.js', 'perf-guard.spec.js', 'split-game-loading.spec.js'],
-  'auth-cache-smoke': ['auth.spec.js', 'multi-game-logic-smoke.spec.js', 'player-copy.spec.js', 'sw-api-cache.spec.js'],
+  'auth-cache-smoke': ['auth.spec.js', 'multi-game-logic-smoke.spec.js', 'player-copy.spec.js', 'sw-api-cache.spec.js', 'update-lifecycle.spec.js'],
 });
 const specPattern = /\.(spec|test)\.[cm]?[jt]sx?$/;
 export function discoverBrowserSpecs(directory) {

@@ -9,6 +9,8 @@
 .home-catalogue button:focus-visible,.home-catalogue summary:focus-visible{outline:3px solid var(--home-focus);outline-offset:3px}
 .home-catalogue button:disabled{cursor:default;opacity:.65}
 .home-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:18px}
+.home-header-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.home-update{border:1px solid var(--home-line);border-radius:12px;background:var(--home-soft);color:var(--home-accent);padding:8px 12px;font-weight:800!important}
 .home-wordmark{margin:0;font-family:inherit;display:flex;align-items:center;gap:9px;font-size:16px;font-weight:900;letter-spacing:-.3px}
 .home-wordmark i{width:8px;height:8px;background:#46765d;border-radius:50%}
 .home-icon{display:grid;place-items:center;width:44px;border:1px solid var(--home-line);border-radius:50%;background:transparent;color:inherit}

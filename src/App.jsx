@@ -16,7 +16,7 @@ import {
   Zap,
 } from "lucide-react";
 import { getPublicConfig } from "./services/apiClient.js";
-import { installUpdateManager } from "./services/updateManager.js";
+import { checkForAppUpdate, installUpdateManager } from "./services/updateManager.js";
 import { audioManager } from "./services/audioManager.js";
 import { getTelegramUser, haptic, initTelegramPlatform } from "./platform/telegram.js";
 import {
@@ -36,7 +36,7 @@ import { Stat, formatCount, semanticHudIconPath } from "./app/shell.jsx";
 import { useGameHudDescriptors } from "./app/useGameHudDescriptors.js";
 import { useEscapeDismiss } from "./app/useDismissableLayer.js";
 import { HomeCatalogue } from './app/HomeCatalogue.jsx';
-import { OPEN_HOME_EVENT, isHomeLeaveReady, leaveGameForHome } from './app/homeNavigation.js';
+import { OPEN_HOME_EVENT, isHomeLeaveReady, isAppUpdateReady, leaveGameForHome } from './app/homeNavigation.js';
 import { createHomeHistoryLayer, installHomeHistoryGuard, markHomeHistoryEntry } from './app/homeHistory.js';
 import { UiThemeContext } from "./app/uiThemeContext.js";
 import { HomeVisibilityContext } from './app/homeContext.js';
@@ -145,10 +145,15 @@ export default function App() {
   const [homeOpen, setHomeOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const [switchError, setSwitchError] = useState('');
+  const [availableUpdate, setAvailableUpdate] = useState(null);
+  const [updating, setUpdating] = useState(false);
+  const [updateError, setUpdateError] = useState(false);
+  const [updateGame, setUpdateGame] = useState(null);
   const switchLock = useRef(false);
   const homeHistory = useRef(null);
   const accountSession = useGameHub(state => state.accountSession);
   const navigationReady = useGameHub(state => isHomeLeaveReady(state, state.snapshot?.player?.id));
+  const updateReady = useGameHub(state => isAppUpdateReady(state, state.snapshot?.player?.id));
   const [gardenLevelUpPending, setGardenLevelUpPending] = useState(false);
   const gardenLevelUpPendingRef = useRef(false);
 
@@ -182,10 +187,13 @@ export default function App() {
       setHomeOpen(false);
     }, () => switchLock.current);
     setSwitchError('');
+    setUpdateGame(null);
     setHomeOpen(true);
   }, []);
   useEscapeDismiss(!homeOpen, openCatalogue, { priority: -100 });
   useEffect(() => { setSwitchError(''); }, [accountSession]);
+  useEffect(() => { setUpdateError(false); if (!availableUpdate) setUpdateGame(null); }, [accountSession, availableUpdate]);
+  useEffect(() => { setUpdateGame(null); }, [accountSession]);
   useEffect(() => installHomeHistoryGuard(window, () => useGameHub.getState().activeTab), []);
   useEffect(() => () => homeHistory.current?.dispose(), []);
   const selectHomeGame = useCallback(async id => {
@@ -197,8 +205,13 @@ export default function App() {
     setSwitchError('');
     const owner = state.accountSession;
     try {
-      const controls = typeof state.activeGameShell === 'object' ? state.activeGameShell : null;
-      const allowed = await leaveGameForHome({ state, controls, accountId: state.snapshot?.player?.id });
+      const update = await checkForAppUpdate();
+      const checked = useGameHub.getState();
+      if (checked.accountSession !== owner || checked.activeTab !== state.activeTab) return;
+      if (update) { setUpdateGame(id); return; }
+      const controls = typeof checked.activeGameShell === 'object' ? checked.activeGameShell : null;
+      if (controls?.activeRun && !state.activeGameShell?.activeRun) { setSwitchError('leave-failed'); return; }
+      const allowed = await leaveGameForHome({ state: checked, controls, accountId: checked.snapshot?.player?.id });
       const current = useGameHub.getState();
       if (current.accountSession !== owner || current.activeTab !== state.activeTab) return;
       if (!allowed || !isHomeLeaveReady(current, state.snapshot?.player?.id)) { setSwitchError('leave-failed'); return; }
@@ -215,6 +228,26 @@ export default function App() {
     } catch { if (useGameHub.getState().accountSession === owner) setSwitchError('leave-failed'); }
     finally { switchLock.current = false; setSwitching(false); }
   }, [closeHome, openCatalogue, setActiveTab]);
+  const requestAppUpdate = useCallback(async (targetTab = null) => {
+    if (!availableUpdate || switchLock.current) return;
+    const state = useGameHub.getState(), owner = state.accountSession, accountId = state.snapshot?.player?.id;
+    const canReload = () => {
+      const current = useGameHub.getState();
+      return current.accountSession === owner && current.activeTab === state.activeTab
+        && isAppUpdateReady(current, accountId);
+    };
+    if (!canReload()) return;
+    switchLock.current = true;
+    setSwitching(true); setUpdating(true); setUpdateError(false);
+    try {
+      const controls = typeof state.activeGameShell === 'object' ? state.activeGameShell : null;
+      const saved = await leaveGameForHome({ state, controls, accountId });
+      const tab = VISIBLE_GAME_IDS.includes(targetTab) ? targetTab : undefined;
+      const applied = saved && canReload() && await availableUpdate.apply({ canReload, tab });
+      if (!applied && useGameHub.getState().accountSession === owner) setUpdateError(true);
+    } catch { if (useGameHub.getState().accountSession === owner) setUpdateError(true); }
+    finally { switchLock.current = false; setSwitching(false); setUpdating(false); }
+  }, [availableUpdate]);
   useEffect(() => {
     const request = event => {
       openCatalogue();
@@ -248,7 +281,7 @@ export default function App() {
   }, [uiThemePreference.explicit]);
 
   useEffect(() => {
-    const cleanupUpdates = installUpdateManager();
+    const cleanupUpdates = installUpdateManager({ onUpdateAvailable: setAvailableUpdate });
     let cleanupRealtime = () => {};
     let cancelled = false;
     async function boot() {
@@ -449,7 +482,7 @@ export default function App() {
               </HudRegion>
             )}
           </main>
-          {homeOpen && <HomeCatalogue accountSession={accountSession} language={gardenLanguage} t={t} activeTab={activeTab} hasActiveRun={!!activeGameControls?.activeRun} readyToSwitch={navigationReady && (activeTab === "garden" || !!activeGameControls) && !activeGameControls?.hasPendingActions} switching={switching} error={switchError} onClose={closeHome} onSelect={selectHomeGame} profileName={profileName} profileBotName={profileBotName} resources={resources} settings={<><ThemeToggle theme={uiTheme} onToggle={toggleUiTheme}/><AudioToggle/></>}/>}
+          {homeOpen && <HomeCatalogue accountSession={accountSession} language={gardenLanguage} t={t} activeTab={activeTab} hasActiveRun={!!activeGameControls?.activeRun} readyToSwitch={navigationReady && (activeTab === "garden" || !!activeGameControls) && !activeGameControls?.hasPendingActions} switching={switching} error={switchError} onClose={closeHome} onSelect={selectHomeGame} profileName={profileName} profileBotName={profileBotName} resources={resources} appUpdate={availableUpdate ? { request: requestAppUpdate, ready: updateReady, busy: updating, error: updateError, target: updateGame, cancel: () => setUpdateGame(null) } : null} settings={<><ThemeToggle theme={uiTheme} onToggle={toggleUiTheme}/><AudioToggle/></>}/>}
         </HudPreviewSurface>
         {!homeOpen && <HudEditorOverlay />}
       </HudLayoutProvider>

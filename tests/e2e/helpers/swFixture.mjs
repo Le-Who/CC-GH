@@ -16,9 +16,10 @@ const root=fileURLToPath(new URL('../../../',import.meta.url));
 const require=createRequire(import.meta.url);
 const {generateSW}=createRequire(require.resolve('vite-plugin-pwa'))('workbox-build');
 
-export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
+export async function startSwFixture({gameActions=false,gardenMode='r2',initialDist=null,initialBuildId='sw-proof'}={}){
   const temporary=await mkdtemp(resolve(tmpdir(),'ccgh-sw-proof-'));
   const dist=resolve(root,'dist');
+  let servingDist=initialDist ? resolve(initialDist) : dist;
   const productionWorker=await readFile(resolve(dist,'sw.js'),'utf8');
   await generateSW({swDest:resolve(temporary,'legacy-sw.js'),globDirectory:dist,globPatterns:[],navigateFallback:null,skipWaiting:true,clientsClaim:true,mode:'production',runtimeCaching:[{
     urlPattern:/\/api\/(?!config)/,handler:'NetworkFirst',method:'GET',options:{cacheName:'api-get-cache',networkTimeoutSeconds:5,expiration:{maxEntries:50,maxAgeSeconds:300},cacheableResponse:{statuses:[0,200]}},
@@ -41,7 +42,7 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
     });
     b.onLoad({filter:/.*/,namespace:'proof-fs'},args=>({contents:readFileSync(args.path,'utf8'),loader:extname(args.path)==='.json'?'json':extname(args.path)==='.jsx'?'jsx':'js'}));
   }}]});
-  let apiFailure=false,delayA=0,delayB=0,httpFresh=false;
+  let apiFailure=false,delayA=0,delayB=0,httpFresh=false,buildId=initialBuildId;
   const requests=[],delayedResponses=[],timers=new Set(),players=new Map();
   const resourceGate=createResourceGate(),artRequests=[];
   function currentPlayer(account){
@@ -67,7 +68,7 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
       const auth=req.headers.authorization||'',account=auth.endsWith('fixture-b')?'account-b':'account-a';
       const record={path:url.pathname,query:url.search,auth,account};requests.push(record);
       if(url.pathname==='/api/config'){
-        res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');return res.end(JSON.stringify({buildId:'sw-proof',devAuthEnabled:true}));
+        res.setHeader('Content-Type','application/json');res.setHeader('Cache-Control','no-store');return res.end(JSON.stringify({buildId,devAuthEnabled:true}));
       }
       if(apiFailure)return req.socket.destroy();
       if(req.method!=='GET'){
@@ -98,13 +99,15 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
     }
     let file;
     if(url.pathname==='/'||url.pathname==='/index.html'){
-      const html=(await readFile(resolve(dist,'index.html'),'utf8')).replace('<!--APP_VERSION_INJECT-->','<script>window.__APP_BUILD_ID__="sw-proof";window.__APP_VERSION__="proof";</script>');
+      const html=(await readFile(resolve(servingDist,'index.html'),'utf8')).replace('<!--APP_VERSION_INJECT-->',`<script>window.__APP_BUILD_ID__=${JSON.stringify(buildId)};window.__APP_VERSION__="proof";</script>`);
       res.setHeader('Content-Type','text/html');res.setHeader('Cache-Control','no-store');return res.end(html);
     }
     const local=resolve(temporary,'.'+url.pathname);
-    const built=resolve(dist,'.'+url.pathname);
+    const built=resolve(servingDist,'.'+url.pathname);
+    const shared=resolve(dist,'.'+url.pathname);
     if(local.startsWith(temporary+sep)&&existsSync(local))file=local;
-    else if(built.startsWith(dist+sep)&&existsSync(built))file=built;
+    else if(built.startsWith(servingDist+sep)&&existsSync(built))file=built;
+    else if(!url.pathname.startsWith('/assets/')&&shared.startsWith(dist+sep)&&existsSync(shared))file=shared;
     if(!file){res.statusCode=404;return res.end('missing');}
     const types={'.js':'application/javascript','.css':'text/css','.json':'application/json','.webmanifest':'application/manifest+json','.woff2':'font/woff2','.png':'image/png','.webp':'image/webp'};
     res.setHeader('Content-Type',types[extname(file)]||'application/octet-stream');res.setHeader('Cache-Control','no-store');res.end(await readFile(file));
@@ -117,6 +120,8 @@ export async function startSwFixture({gameActions=false,gardenMode='r2'}={}){
     origin:`http://127.0.0.1:${server.address().port}`,productionWorker,dist,requests,delayedResponses,artRequests,
     holdResources:resourceGate.hold,holdArtResources:resourceGate.holdArt,releaseResources:resourceGate.release,pendingResources:resourceGate.pending,
     player:currentPlayer,
+    setBuildId(value){buildId=String(value);},
+    deployBuild(value){buildId=String(value);servingDist=dist;},
     // Test-only delivery of an authoritative fixture payload through the real socket client.
     emitPlayerSync(payload){realtime.emit('player_sync',{seq:payload.syncSeq||payload.player?.syncSeq||0,payload});},
     realtimeConnections(){return realtime.engine.clientsCount;},

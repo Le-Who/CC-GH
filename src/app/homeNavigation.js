@@ -10,6 +10,16 @@ export function isHomeLeaveReady(state, accountId) {
   return true;
 }
 
+/** A version change must never settle or discard a round on the player's behalf. */
+export function isAppUpdateReady(state, accountId) {
+  if (!isHomeLeaveReady(state, accountId)) return false;
+  const controls = typeof state.activeGameShell === 'object' ? state.activeGameShell : null;
+  if (state.activeTab !== 'garden' && controls?.id !== state.activeTab) return false;
+  const run = state.snapshot?.[state.activeTab];
+  return !controls?.activeRun && !controls?.hasPendingActions
+    && !run?.activeGame && !run?.savedState?.gameActive && !run?.currentGame;
+}
+
 /** Only an acknowledged leave may unmount a game. The caller serializes requests. */
 export async function leaveGameForHome({ state, controls, accountId }) {
   if (!isHomeLeaveReady(state, accountId)) return false;

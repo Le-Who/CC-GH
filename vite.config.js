@@ -30,7 +30,7 @@ export default defineConfig({
     gameLoadingGraph(),
     shellPrecache.plugin,
     VitePWA({
-      registerType: "autoUpdate",  // Auto-updates SW on new deploy
+      registerType: "autoUpdate",  // Cache worker updates in the background.
       injectRegister: null,         // Registered by src/services/updateManager.js
       includeManifestIcons: false, // Install artwork is fetched on demand.
 
@@ -47,7 +47,8 @@ export default defineConfig({
         globPatterns: [
           "assets/*.{js,css,woff,woff2,ttf,otf,png,webp,avif,svg}",
         ],
-        // Skip waiting + claim clients = instant activation on deploy
+        // Activate the network-only API policy promptly; the app owns explicit
+        // document updates and never reloads merely because a worker activates.
         skipWaiting: true,
         clientsClaim: true,
         // Clean old caches on SW update

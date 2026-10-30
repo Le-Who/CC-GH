@@ -1,7 +1,17 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {leaveGameForHome} from '../src/app/homeNavigation.js';
+import {leaveGameForHome,isAppUpdateReady} from '../src/app/homeNavigation.js';
 const state={activeTab:'garden',snapshot:{player:{id:'A'}},busy:{},pendingActions:[],outboxLoaded:true,outboxAccountId:'A'};
+test('app updates require a settled owned account and no active or restored round',()=>{
+ assert.equal(isAppUpdateReady(state,'A'),true);
+ for(const patch of [{pendingActions:[{status:'failed'}]},{busy:{save:true}},{outboxLoaded:false},{outboxAccountId:'B'},
+  {activeTab:'blox',activeGameShell:null},
+  {activeTab:'blox',activeGameShell:{id:'blox',activeRun:true}},
+  {activeTab:'blox',activeGameShell:{id:'blox',hasPendingActions:true}},
+  {activeTab:'blox',activeGameShell:{id:'blox'},snapshot:{...state.snapshot,blox:{activeGame:true}}}])assert.equal(isAppUpdateReady({...state,...patch},'A'),false);
+ assert.equal(isAppUpdateReady(state,'B'),false);
+ assert.equal(isAppUpdateReady({...state,activeTab:'blox',activeGameShell:{id:'blox',activeRun:false}},'A'),true);
+});
 test('a game must acknowledge leave before its caller can switch',async()=>{
  let acknowledge,settled=false;const receipt=new Promise(resolve=>acknowledge=resolve);
  const leave=leaveGameForHome({state,accountId:'A',controls:{activeRun:true,safeLeave:()=>receipt}}).then(result=>{settled=true;return result});
@@ -37,6 +47,39 @@ test('successful Home switch waits for acknowledgement and Forward/reload retain
  release(true);await switching;assert.equal(workflow.selectionCount,1);assert.equal(workflow.homeOpen,false);assertMountedUrl(workflow);
  workflow.target.history.forward();await tick();assertMountedUrl(workflow);assert.equal(workflow.homeOpen,false);assert.equal(workflow.selectionCount,1);
  workflow.target.history.back();await tick();assertMountedUrl(workflow);workflow.stopGuard();assert.equal(workflow.target.listeners.length,0);
+});
+
+test('a newer build keeps the mounted game and asks before importing the chosen route',async()=>{
+ let leaves=0;
+ const workflow=homeWorkflow({state:ownedState(),checkUpdate:async()=>({buildId:'next'}),controls:{id:'blox',activeRun:true,safeLeave:async()=>{leaves++;return true;}}});
+ workflow.open();await workflow.select('trivia');assert.equal(workflow.selectionCount,0);assert.equal(workflow.updateGame,'trivia');assert.equal(leaves,0);assert.equal(workflow.homeOpen,true);assertMountedUrl(workflow);workflow.stopGuard();
+});
+
+test('an account change during the version preflight cannot present a foreign update target',async()=>{
+ let release;const check=new Promise(resolve=>release=resolve);
+ const workflow=homeWorkflow({state:ownedState(),checkUpdate:()=>check,controls:{id:'blox',activeRun:false}});
+ workflow.open();const pending=workflow.select('trivia');await tick();workflow.update({accountSession:{}});release({buildId:'next'});await pending;
+ assert.equal(workflow.updateGame,null);assert.equal(workflow.selectionCount,0);assertMountedUrl(workflow);workflow.stopGuard();
+});
+
+test('a restored run during the version preflight must use its current leave controls',async()=>{
+ let release,staleLeaves=0,currentLeaves=0;const check=new Promise(resolve=>release=resolve);
+ const initial={...ownedState(),snapshot:{player:{id:'A'},blox:{activeGame:false}}};
+ const workflow=homeWorkflow({state:initial,checkUpdate:()=>check,controls:{id:'blox',activeRun:false,safeLeave:async()=>{staleLeaves++;return true;}}});
+ workflow.open();const pending=workflow.select('trivia');await tick();
+ workflow.update({snapshot:{player:{id:'A'},blox:{activeGame:true}},activeGameShell:{id:'blox',activeRun:true,canLeave:()=>false,safeLeave:async()=>{currentLeaves++;return true;}}});
+ release(null);await pending;
+ assert.equal(workflow.selectionCount,0);assert.equal(staleLeaves,0);assert.equal(currentLeaves,0);assert.equal(workflow.state.activeTab,'blox');assert.equal(workflow.homeOpen,true);assert.equal(workflow.error,'leave-failed');workflow.stopGuard();
+});
+
+test('a new active round during version checking needs fresh player confirmation even if it can leave',async()=>{
+ let release,ends=0;const check=new Promise(resolve=>release=resolve);
+ const initial={...ownedState(),snapshot:{player:{id:'A'},blox:{activeGame:false}}};
+ const workflow=homeWorkflow({state:initial,checkUpdate:()=>check,controls:{id:'blox',activeRun:false,safeLeave:async()=>true}});
+ workflow.open();const pending=workflow.select('trivia');await tick();
+ workflow.update({snapshot:{player:{id:'A'},blox:{activeGame:true}},activeGameShell:{id:'blox',activeRun:true,canLeave:()=>true,safeLeave:async()=>{ends++;return true;}}});
+ release(null);await pending;
+ assert.equal(ends,0);assert.equal(workflow.selectionCount,0);assert.equal(workflow.state.activeTab,'blox');assert.equal(workflow.homeOpen,true);workflow.stopGuard();
 });
 test('failed or rejected leave preserves the game, and dismissed Home Forward cannot select a target',async()=>{
  for(const safeLeave of [async()=>false,async()=>{throw Error('SAVE_FAILED');}]) {

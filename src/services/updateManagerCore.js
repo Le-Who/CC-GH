@@ -27,8 +27,9 @@ export function markReloadForBuild(storage, buildId, now = Date.now(), ttlMs = D
   return true;
 }
 
-export function buildCacheBustingUrl(href, buildId) {
+export function buildCacheBustingUrl(href, buildId, { tab } = {}) {
   const url = new URL(href, "http://localhost/");
+  if (typeof tab === "string" && tab) url.searchParams.set("tab", tab);
   url.searchParams.set("build", normalizeBuildId(buildId) || String(Date.now()));
   return url.pathname + url.search + url.hash;
 }
