@@ -1,0 +1,46 @@
+{
+  "format": "cc-gh-yard-accepted-active-controller/v1",
+  "repository": "le-who/cc-gh",
+  "repositoryId": 1162268629,
+  "status": "accepted",
+  "release": {
+    "commit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+    "tree": "1f8dfdd199602099f7bf6716194e1ff67725885d",
+    "imageDigest": "sha256:9442e853d8bf767363475d819a4d3988135de2190f071d9d0bbfefb84558180d",
+    "imageId": "sha256:6c86fb9183e03a75910ae854199ae79bfeaa7a76dbd9e4338f2ae01a6430bc26"
+  },
+  "acceptance": {
+    "runId": 37735444758,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "headCommit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+    "artifactSha256": "fa7699d00e61eab5d5bca522b7709e84e868eb024ebad45b877a8ecf1933eb08"
+  },
+  "deployment": {
+    "runId": 37737361112,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "controllerHeadCommit": "718d4540e81e35ab73047ddb08c158f0041e84eb",
+    "targetCommit": "56b9062955d60c76bf9430c898d3cec1231ca524",
+    "jobId": 113179848188,
+    "workflowSha256": "787904aef39c07d21bd0fbb6063cd827ee4c0f237c8948e12650bfbc7aabfa00",
+    "recordSha256": "31976a941351c824537d2e1fd3cfe72cb5c203e703347591c0b53f384416977b",
+    "evidence": {
+      "provenance": "immutable-public-workflow-packet-and-successful-GitHub-run-jobs-metadata",
+      "candidateReceiptSha256": "2ad5d175413c819b1b0d7eec0216d19d2857a21e1bd0986a62d53bef9d5e99b2",
+      "expiredActivationLogsRecovered": false
+    }
+  },
+  "provenance": {
+    "controller": "718d4540e81e35ab73047ddb08c158f0041e84eb",
+    "workflowSha256": "787904aef39c07d21bd0fbb6063cd827ee4c0f237c8948e12650bfbc7aabfa00",
+    "recordSha256": "31976a941351c824537d2e1fd3cfe72cb5c203e703347591c0b53f384416977b",
+    "candidateReceiptSha256": "2ad5d175413c819b1b0d7eec0216d19d2857a21e1bd0986a62d53bef9d5e99b2",
+    "imageRun": 37735444758,
+    "activationRun": 37737361112,
+    "activationJob": 113179848188,
+    "note": "Historical activation inferred from exact public packet and successful guarded workflow; fresh host verification remains mandatory."
+  }
+}
