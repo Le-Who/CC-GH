@@ -6,6 +6,10 @@ screen and opens `https://bentoku-nine.vercel.app/?embed=ccgh` in a sandboxed,
 cross-origin iframe inside the existing Telegram Mini App. This does not
 require another BotFather app registration or a bot command change.
 
+Garden remains the default opening game. Bentoku is the second catalogue
+card, immediately after Garden, with its own porcelain-cat illustration;
+both cards share the first row on phones without scrolling.
+
 The Hub owns Telegram initialization, Back/Home navigation, safe-area padding,
 swipe suppression and loading/retry controls. Its navigation uses a horizontal
 toolbar in portrait and a left rail in short landscape viewports. Registered

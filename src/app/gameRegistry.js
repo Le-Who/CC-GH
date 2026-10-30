@@ -7,6 +7,15 @@ export const GAME_REGISTRY = {
     pixiScene: false,
     shell: "hub",
   },
+  bentoku: {
+    id: "bentoku",
+    labelKey: "tabs.bentoku",
+    icon: "Grid3X3",
+    visible: true,
+    pixiScene: false,
+    shell: "game",
+    hostedUrl: "https://bentoku-nine.vercel.app/?embed=ccgh",
+  },
   blox: {
     id: "blox",
     labelKey: "tabs.blox",
@@ -46,15 +55,6 @@ export const GAME_REGISTRY = {
     visible: true,
     pixiScene: false,
     shell: "game",
-  },
-  bentoku: {
-    id: "bentoku",
-    labelKey: "tabs.bentoku",
-    icon: "Grid3X3",
-    visible: true,
-    pixiScene: false,
-    shell: "game",
-    hostedUrl: "https://bentoku-nine.vercel.app/?embed=ccgh",
   },
   room: {
     id: "room",

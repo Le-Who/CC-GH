@@ -19,7 +19,7 @@ describe("Telegram Mini App game UX foundations", () => {
     assert.ok(!VISIBLE_GAME_IDS.includes("farm"));
     assert.ok(PIXI_GAME_IDS.includes("farm"));
     assert.equal(GAME_REGISTRY.settlement.visible, false);
-    assert.deepEqual(VISIBLE_GAME_IDS, ["garden", "blox", "match3", "merge", "bubbo", "trivia", "bentoku", "room"]);
+    assert.deepEqual(VISIBLE_GAME_IDS, ["garden", "bentoku", "blox", "match3", "merge", "bubbo", "trivia", "room"]);
     assert.ok(PIXI_GAME_IDS.includes("settlement"));
   });
 
