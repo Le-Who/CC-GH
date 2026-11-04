@@ -40,6 +40,36 @@ function Button({
   return <button type="button" className={`gs2-button${primary ? ' gs2-primary' : ''} ${className}`} {...props}><span className="gs2-button-content">{children}</span></button>;
 }
 
+function MenuTabs({ id, label, items, value, onChange }: any) {
+  const choose = (next: string, node: HTMLElement, focus = false) => {
+    onChange(next);
+    if (focus) node.parentElement?.querySelector<HTMLElement>(`[data-menu-tab="${next}"]`)?.focus();
+    const scroller = node.closest('[role="dialog"]')?.querySelector('.gs2-dialog-scroll');
+    if (scroller) scroller.scrollTop = 0;
+  };
+  return <div className="gs2-tabs gs2-menu-tabs" role="tablist" aria-label={label}>{items.map((item: any, index: number) => <Button
+    key={item.id} id={`${id}-${item.id}`} role="tab" data-menu-tab={item.id}
+    aria-controls={item.panelId || `${id}-panel`} aria-selected={value === item.id}
+    tabIndex={value === item.id ? 0 : -1} primary={value === item.id}
+    onClick={(event: any) => choose(item.id, event.currentTarget)}
+    onKeyDown={(event: any) => {
+      const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : step ? (index + step + items.length) % items.length : null;
+      if (next === null) return;
+      event.preventDefault(); choose(items[next].id, event.currentTarget, true);
+    }}>{item.icon}{item.label}</Button>)}</div>;
+}
+
+function MenuPrice({ gold, substrate }: { gold?: string; substrate?: number }) {
+  const { t } = useGardenI18n();
+  const label = gold !== undefined && substrate !== undefined ? t('r2.price', { gold, substrate })
+    : gold !== undefined ? `${gold} ${t('hud.gold')}` : `${substrate} ${t('menu.substrate')}`;
+  return <span className="gs2-menu-cost" role="img" aria-label={label}>
+    {gold !== undefined && <span aria-hidden="true"><Art name="coin" /><b>{gold}</b></span>}
+    {substrate !== undefined && <span aria-hidden="true"><Art name="pot" /><b>{substrate}</b></span>}
+  </span>;
+}
+
 function Progress({
   value,
   label
@@ -141,7 +171,8 @@ function Dialog({
   title,
   kind,
   onClose,
-  children
+  children,
+  navigation
 }: any) {
   const feedback = useContext(FeedbackContext);
   const ref = useRef<HTMLDivElement>(null),
@@ -157,7 +188,7 @@ function Dialog({
   }, []);
   useEscapeDismiss(true, onClose);
   useEffect(() => installPresentationMotion(ref.current?.parentElement), []);
-  return createPortal(<div className="gs2-modal-layer"><button type="button" tabIndex={-1} className="gs2-scrim" data-menu-blocker="true" aria-label={t('ui.close')} onClick={onClose} /><section ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="gs2-dialog" data-garden-panel={kind} data-hud-region={kind === 'quests' ? 'gardenQuestSheet' : 'gardenSheet'}><header className="gs2-dialog-heading"><div className="gs2-dialog-title"><h2>{title}</h2><span className="gs2-pending" role="status" aria-live="polite">{feedback.busy ? t('ui.pending') : ''}</span></div><Button className="gs2-close" onClick={onClose} aria-label={t('ui.close')}><X size={22} /></Button></header><div className="gs2-dialog-scroll">{children}</div>{feedback.error && <div className="gs2-error-banner gs2-dialog-error" role="alert"><span tabIndex={0}>{feedback.error}</span><Button aria-label={t('ui.close')} onClick={feedback.onDismiss}><X size={18} /></Button></div>}</section></div>, document.body);
+  return createPortal(<div className="gs2-modal-layer"><button type="button" tabIndex={-1} className="gs2-scrim" data-menu-blocker="true" aria-label={t('ui.close')} onClick={onClose} /><section ref={ref} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title} className="gs2-dialog" data-garden-panel={kind} data-hud-region={kind === 'quests' ? 'gardenQuestSheet' : 'gardenSheet'}><header className="gs2-dialog-heading"><div className="gs2-dialog-title"><h2>{title}</h2><span className="gs2-pending" role="status" aria-live="polite">{feedback.busy ? t('ui.pending') : ''}</span></div><Button className="gs2-close" onClick={onClose} aria-label={t('ui.close')}><X size={22} /></Button></header>{navigation && <nav className="gs2-dialog-navigation">{navigation}</nav>}<div className="gs2-dialog-scroll">{children}</div>{feedback.error && <div className="gs2-error-banner gs2-dialog-error" role="alert"><span tabIndex={0}>{feedback.error}</span><Button aria-label={t('ui.close')} onClick={feedback.onDismiss}><X size={18} /></Button></div>}</section></div>, document.body);
 }
 
-export { Art, Button, Dialog, FeedbackContext, PlantArt, Progress, art, remaining, usePlantTapAcknowledgement, PlantTapFeedback };
+export { Art, Button, Dialog, MenuTabs, MenuPrice, FeedbackContext, PlantArt, Progress, art, remaining, usePlantTapAcknowledgement, PlantTapFeedback };

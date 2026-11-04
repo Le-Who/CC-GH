@@ -1,4 +1,5 @@
 import repoLayout from '../../app/hud-layout/defaultLayouts/garden.json' with { type: 'json' };
+import { shelfHangingSpace } from './living/plant-art-placement.mjs';
 const finite = (value, fallback) => Number.isFinite(Number(value)) ? Number(value) : fallback;
 export function resolveGardenComposition({
   width,
@@ -29,8 +30,14 @@ export function resolveGardenComposition({
     landscape = w >= h && (w >= spec.landscapeMinWidth || (h < spec.compactHeight && w >= sideFitWidth));
   const rail = landscape ? Math.max(spec.railMin, Math.min(spec.railMax, aw * spec.railRatio)) : aw;
   const shelfWidth = landscape ? Math.max(1, aw - rail - gap) : aw,
-    rackWidth = Math.min(spec.rackMax, shelfWidth);
+    rackWidth = Math.min(spec.rackMax, Math.max(1, shelfWidth - spec.glassInset * 2));
   const headerHeight = spec.nameHeight + spec.metricHeight + spec.headerGap;
+  // The separately exported plank keeps its natural ratio. Its brackets need
+  // more room at tablet widths; labels must follow the painted object.
+  const plankHeight = rackWidth * 251 / 1200;
+  const plantHeight = Math.max(compact ? spec.compactPlantHeight : spec.plantHeight, Math.min(spec.plantMaxHeight, rackWidth * spec.plantHeightRatio));
+  const shelfOverlap = plankHeight * 0.30;
+  const shelfClearance = Math.max(20, plankHeight - shelfOverlap + 4);
   return {
     width,
     height,
@@ -43,8 +50,13 @@ export function resolveGardenComposition({
     rackWidth,
     spotWidth: Math.max(1, (rackWidth - 2 * spec.spotGap) / 3),
     spotGap: spec.spotGap,
-    rowHeight: compact ? spec.compactRowHeight : spec.rowHeight,
-    plantHeight: compact ? spec.compactPlantHeight : spec.plantHeight,
+    rowHeight: 44 + plantHeight + Math.max(shelfClearance, shelfHangingSpace((rackWidth - 2 * spec.spotGap) / 3, plantHeight)),
+    plantHeight,
+    glassInset: spec.glassInset,
+    shelfClearance,
+    shelfOverlap,
+    crownClearance: Math.max(spec.crownClearance, (rackWidth + spec.glassInset * 2) * 180 / 1024),
+    footClearance: Math.max(spec.footClearance, (rackWidth + spec.glassInset * 2) * 36 / 1024),
     headerHeight,
     shelfHeight: landscape ? ah : Math.max(1, ah - headerHeight - gap),
     shelfWidth,

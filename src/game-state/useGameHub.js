@@ -281,7 +281,7 @@ export const useGameHub = create((set, get) => ({
         return {
           busy,
           snapshot: errorView === state.snapshot ? state.snapshot : { ...errorView, receivedAt: Date.now() },
-          message: isExpectedGardenTapCooldown(action, payload, result.error) ? '' : result.error,
+          message: options.suppressGlobalError === true || isExpectedGardenTapCooldown(action, payload, result.error) ? '' : result.error,
           lastResult: result,
         };
       }

@@ -548,3 +548,17 @@ for (const [command, code, quiet] of [
   assert.deepEqual(useGameHub.getState().busy,{});
   assert.equal(useGameHub.getState().message,quiet ? '' : code);
 });
+
+test('locally presented Garden failures retain their error and receipt without a duplicate global notice', async () => {
+  const initial=useGameHub.getState().snapshot;
+  const request=deferredRequest();
+  const pending=useGameHub.getState().performReliableAction('garden.r2',{accountId:'account-a',command:'tend'},{clientActionId:'local-garden-error',silent:true,feedback:false,suppressGlobalError:true});
+  await request.ready;
+  request.finish({error:'GARDEN_R2_PLANT_MISSING'});
+  const result=await pending;
+  assert.equal(result.error,'GARDEN_R2_PLANT_MISSING');
+  assert.equal(useGameHub.getState().lastResult.error,result.error);
+  assert.equal(useGameHub.getState().snapshot,initial);
+  assert.deepEqual(useGameHub.getState().busy,{});
+  assert.equal(useGameHub.getState().message,'');
+});

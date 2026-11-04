@@ -1,0 +1,271 @@
+/* Optical surround and shelf composition. Game actions and modal skins stay
+   with the existing presentation; this scene never encodes a shelf count. */
+.gs2-stage {
+  grid-template-rows: minmax(0, 1fr);
+  background: #142e29;
+  border-radius: 18px;
+  color: #fff2d5;
+  --gs2-focus: #baf5dc;
+}
+.gs2-backdrop > .gs2-art { opacity: 1; }
+.gs2-backdrop::after {
+  background: linear-gradient(180deg, #0c251b33, #0c251b00 35%, #071b1655);
+}
+.gs2-name-row { align-items: center; min-height: 64px; }
+.gs2-name {
+  width: 100%;
+  min-height: 64px;
+  aspect-ratio: 1100 / 370;
+  max-height: none;
+  max-width: var(--hud-region-max-width, 340px);
+  justify-self: center;
+  background: none;
+  border-radius: 0;
+  overflow: visible;
+}
+.gs2-name-art {
+  border: 0;
+  border-image: none;
+  background: url('/games/garden-v2/terrarium/sign.webp') center / 100% auto no-repeat;
+  filter: drop-shadow(0 5px 5px #07170e88);
+}
+.gs2-name button, .gs2-name form {
+  padding: 10px 18%;
+  font-size: clamp(15px, 4.5vw, 20px);
+  line-height: 1.15;
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-shadow: 0 2px 2px #211007;
+}
+.gs2-name form { padding: 0 12%; }
+.gs2-name-row .gs2-home, .gs2-name-row .gs2-settings {
+  height: 48px;
+  min-height: 48px;
+  border-image: none;
+  border: 1px solid #c6ca9d99 !important;
+  background: #193e34ed !important;
+  color: #f8edc9;
+  border-radius: 12px;
+}
+.gs2-stage[data-gs2-arrangement=side] .gs2-header {
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 0;
+  gap: 10px;
+}
+.gs2-stage[data-gs2-arrangement=side] .gs2-name-row {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  grid-template-rows: 48px auto;
+}
+.gs2-stage[data-gs2-arrangement=side] .gs2-name { grid-column: 1 / -1; grid-row: 2; min-height: 0; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-name button { padding: 10px 18%; font-size: 17px; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-home { grid-row: 1; grid-column: 1; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-settings { grid-row: 1; grid-column: 3; }
+.gs2-metrics {
+  position: relative;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(64px, .85fr);
+  gap: 4px;
+  padding: 6px;
+  min-height: 56px;
+}
+.gs2-metrics-art {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border: 8px solid transparent;
+  border-image: url('/games/garden-v2/terrarium/hud-rail.webp') 64 fill / 8px stretch;
+}
+.gs2-metrics .gs2-metric {
+  display: grid;
+  grid-template-rows: 24px 12px;
+  align-content: center;
+  justify-items: center;
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  border: 0;
+  border-image: none;
+  background: none;
+  border-radius: 6px;
+  color: #fff2d3;
+  padding: 2px 5px;
+  gap: 0;
+  text-shadow: 0 1px 2px #140a05;
+}
+.gs2-metrics .gs2-metric:disabled { color: #fff2d3 !important; background: none !important; filter: none; }
+.gs2-metrics .gs2-metric > strong, .gs2-metrics .gs2-metric strong { font-size: 14px; font-weight: 800; line-height: 1.2; letter-spacing: -.02em; }
+.gs2-metrics .gs2-metric > small { grid-row: 2; font-size: 11px; color: #dccb9f; line-height: 12px; white-space: nowrap; }
+.gs2-metrics .gs2-metric .gs2-art { width: 17px; height: 17px; }
+.gs2-metrics .gs2-metric > span, .gs2-metrics .gs2-metric > strong { grid-row: 1; display: flex; align-items: center; align-self: center; gap: 4px; }
+.gs2-metrics .gs2-xp, .gs2-metrics .gs2-progression { border-left: 1px solid #d7bf7533; }
+.gs2-metrics .gs2-xp { align-items: center; }
+.gs2-metrics .gs2-metric > .gs2-progress-row { grid-row: 2; width: min(100%, 72px); margin: 0; align-self: center; }
+.gs2-metrics .gs2-progress { height: 4px; background: #13271c99; }
+.gs2-metrics .gs2-progress > i { background: linear-gradient(90deg, #7bbd8a, #dfca7e); }
+.gs2-metrics .gs2-progression { align-items: center; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-metrics { grid-template-columns: minmax(0, 1fr); }
+.gs2-stage[data-gs2-arrangement=side] .gs2-metric { min-height: 44px; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-metric > strong { font-size: 14px; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-xp, .gs2-stage[data-gs2-arrangement=side] .gs2-progression { border-left: 0; border-top: 1px solid #d7bf7533; }
+.gs2-terrarium {
+  container-type: inline-size;
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 0;
+  width: min(100%, calc(var(--gs2-rack) + 2 * var(--gs2-glass-inset)));
+  justify-self: center;
+  border-radius: 42px 42px 16px 16px;
+  background: none;
+}
+.gs2-glass-surround {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-style: solid;
+  border-color: transparent;
+  border-width: calc(100cqw * 180 / 1024) calc(100cqw * 100 / 1024) calc(100cqw * 110 / 1024);
+  border-image: url('/games/garden-v2/terrarium/glass-frame.webp') 180 100 110 100 / 1 stretch;
+}
+.gs2-shelf-viewport {
+  position: absolute;
+  inset: var(--gs2-crown-clearance) var(--gs2-glass-inset) var(--gs2-foot-clearance);
+  z-index: 1;
+  height: auto;
+  padding: 0;
+  scroll-padding: 4px 0 calc(4px + var(--gs2-notice-height, 0px));
+  border-radius: 0;
+  scrollbar-color: #b4bf9255 transparent;
+  overflow-x: hidden;
+}
+.gs2-rack { gap: 16px; padding: 0 0 calc(8px + var(--gs2-notice-height, 0px)); overflow-x: clip; overflow-y: visible; }
+.gs2-shelf-row { grid-template-rows: 1fr; isolation: isolate; }
+.gs2-spot:not(.gs2-empty) {
+  position: relative;
+  z-index: 1;
+  border: 0;
+  background: transparent;
+  overflow: visible;
+}
+.gs2-plant-target {
+  position: relative;
+  order: 0;
+  height: var(--gs2-plant-height);
+  flex: none;
+  isolation: isolate;
+}
+.gs2-plant-target::before {
+  content: '';
+  position: absolute;
+  inset: 8% 0 2%;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 65%, #c8db7240, #92d29b15 40%, transparent 70%);
+}
+.gs2-spot > .gs2-details {
+  position: relative;
+  z-index: 2;
+  order: -2;
+  margin-top: 0;
+  min-height: 44px;
+  border-image: none;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #f4f0cf;
+  padding: 5px 2px;
+  align-items: flex-end;
+  padding-bottom: 2px;
+  font-size: 13px !important;
+  text-shadow: 0 2px 4px #071b12;
+  translate: 0 var(--gs2-name-offset, 0px);
+}
+.gs2-spot > .gs2-details .gs2-button-content { gap: 0; }
+.gs2-plant-name { min-width: 0; overflow-wrap: normal; text-decoration: underline; text-decoration-color: #d6d7b155; text-underline-offset: 4px; }
+.gs2-details .gs2-button-content > svg { width: 13px; height: 13px; opacity: .7; }
+.gs2-spot > .gs2-details::before { display: none; }
+.gs2-spot > .gs2-details:disabled, .gs2-empty > .gs2-empty-target:disabled {
+  background: none;
+  color: #f4f0cf;
+  filter: none;
+}
+.gs2-spot .gs2-water-ready {
+  top: auto;
+  bottom: 8px;
+  right: 0;
+  background: #183e34e8;
+  border: 1px solid #acd6aa99;
+  box-shadow: 0 2px 6px #06180d88;
+}
+.gs2-shelf-art {
+  position: absolute;
+  top: calc(44px + var(--gs2-plant-height) - var(--gs2-shelf-overlap));
+  left: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1200 / 251;
+  margin: 0;
+  z-index: 0;
+  filter: drop-shadow(0 10px 8px #06120dbb);
+}
+.gs2-empty { position: relative; z-index: 1; justify-content: start; padding: 0; gap: 4px; }
+.gs2-empty-target {
+  display: grid;
+  grid-template-rows: 44px var(--gs2-plant-height);
+  justify-items: center;
+  align-items: end;
+  gap: 0;
+  min-height: 0;
+  height: auto;
+  width: 100%;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: #f7edc9;
+}
+.gs2-empty-target > .gs2-empty-pot { position: relative; display: block; grid-row: 2; width: 100%; height: var(--gs2-plant-height); }
+.gs2-empty-target > .gs2-empty-name { display: flex; align-items: flex-end; justify-content: center; min-height: 44px; grid-row: 1; width: 100%; border: 0; background: none; padding: 4px 2px 2px; font-size: 13px; translate: 0 var(--gs2-name-offset, 0px); }
+.gs2-empty > p { color: #dae4c9; font-size: 12px; }
+.gs2-expansion {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  padding: 12px;
+  text-align: left;
+  color: #f7edcf;
+  background: #0c302766;
+  border: 1px solid #c9b97866;
+  border-radius: 12px;
+}
+.gs2-expansion > svg { width: 20px; color: #d9c88f; }
+.gs2-expansion h3 { font-size: 14px; line-height: 1.25; }
+.gs2-expansion p, .gs2-expansion small { font-size: 12px; color: #d8e1c7; line-height: 1.3; }
+.gs2-expansion p { margin-top: 4px; }
+.gs2-expansion .gs2-button { width: auto; min-width: 64px; max-width: 96px; padding: 4px; font-size: 13px !important; }
+.gs2-expansion .gs2-button .gs2-art { width: 18px; height: 18px; }
+.gs2-expansion small { grid-column: 2 / -1; }
+.gs2-status {
+  position: absolute;
+  z-index: 10;
+  left: 12px;
+  right: 12px;
+  bottom: var(--gs2-foot-clearance);
+  min-height: 52px;
+  max-height: min(160px, 45%);
+  padding: 4px 8px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px #071b1266;
+}
+.gs2-status-content { position: relative; inset: auto; min-height: 44px; }
+.gs2-status-error { max-height: 120px; overflow: auto; }
+.gs2-status[role=status] { width: 1px; height: 1px; min-height: 0; padding: 0; border: 0; overflow: hidden; clip-path: inset(50%); pointer-events: none; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-rail-help { color: #dae4c9; }
+.telegram-app[data-active-tab="garden"][data-garden-presentation="living"] { background: #142e29; }
+.telegram-app[data-active-tab="garden"][data-garden-presentation="living"] .active-game-frame { background: #142e29; }
+@media (prefers-reduced-motion: reduce) {
+  .gs2-terrarium { scroll-behavior: auto; }
+}

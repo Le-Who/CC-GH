@@ -17,8 +17,8 @@ export default function GardenR2Provider({ accountId }: { accountId: string }) {
   const busy = useRef(false), mounted = useRef(true), recovery = useRef<ReturnType<typeof setTimeout> | null>(null);
   const current = useCallback(() => useGameHub.getState().snapshot?.player?.id === accountId, [accountId]);
   const coordinator = useMemo(() => getGardenR2Coordinator(accountId,
-    (action, payload, options) => useGameHub.getState().performReliableAction(action, payload, { ...options, silent: true, feedback: false }),
-    payload => useGameHub.getState().performAction('garden.r2.reconcile', payload, { silent: true, feedback: false }),
+    (action, payload, options) => useGameHub.getState().performReliableAction(action, payload, { ...options, silent: true, feedback: false, suppressGlobalError: true }),
+    payload => useGameHub.getState().performAction('garden.r2.reconcile', payload, { silent: true, feedback: false, suppressGlobalError: true }),
     current, () => useGameHub.getState().snapshot?.serverTime
   ), [accountId, current]);
   const commandArbiter = useMemo(() => createGardenCommandArbiter({
@@ -26,8 +26,8 @@ export default function GardenR2Provider({ accountId }: { accountId: string }) {
     canDrain: () => !!coordinator && !coordinator.inspect().pending,
   }), [coordinator, current]);
   const legacy = useMemo(() => getGardenTransactionCoordinator(accountId,
-    (action, payload, options) => useGameHub.getState().performReliableAction(action, payload, { ...options, silent: true, feedback: false }),
-    pending => useGameHub.getState().performAction('garden.reconcileIntent', pending, { silent: true, feedback: false }),
+    (action, payload, options) => useGameHub.getState().performReliableAction(action, payload, { ...options, silent: true, feedback: false, suppressGlobalError: true }),
+    pending => useGameHub.getState().performAction('garden.reconcileIntent', pending, { silent: true, feedback: false, suppressGlobalError: true }),
     current, () => useGameHub.getState().snapshot?.serverTime
   ), [accountId, current]);
   const view = snapshot?.gardenR2;
@@ -42,7 +42,7 @@ export default function GardenR2Provider({ accountId }: { accountId: string }) {
       if (!result?.error && !result?.pending && !useGameHub.getState().snapshot?.gardenR2) {
         if (!useGameHub.getState().snapshot?.gardenR2Available) result = { error: 'GARDEN_R2_NOT_ENABLED' };
         else {
-          const prepared = await prepareGardenR2Adoption({ accountId, storage: globalThis.localStorage, legacyCoordinator: legacy, readSnapshot: () => useGameHub.getState().snapshot, request: (...args) => current() ? useGameHub.getState().performAction(...args) : Promise.resolve({ error: 'GARDEN_R2_ACCOUNT_CHANGED' }), isCurrentAccount: current });
+          const prepared = await prepareGardenR2Adoption({ accountId, storage: globalThis.localStorage, legacyCoordinator: legacy, readSnapshot: () => useGameHub.getState().snapshot, request: (action, payload, options) => current() ? useGameHub.getState().performAction(action, payload, { ...options, suppressGlobalError: true }) : Promise.resolve({ error: 'GARDEN_R2_ACCOUNT_CHANGED' }), isCurrentAccount: current });
           result = prepared.error ? prepared : prepared.alreadyAdopted ? { success: true } : await coordinator.execute('adopt', prepared.input, 0);
         }
       }

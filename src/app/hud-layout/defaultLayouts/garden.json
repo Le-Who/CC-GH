@@ -38,7 +38,8 @@
       },
       "gardenSign": {
         "mode": "custom",
-        "visible": true
+        "visible": true,
+        "maxWidth": 340
       },
       "gardenShelf": {
         "mode": "custom",
@@ -77,14 +78,17 @@
         "railRatio": 0.26,
         "rackMax": 660,
         "spotGap": 8,
-        "rowHeight": 236,
-        "compactRowHeight": 206,
-        "plantHeight": 136,
-        "compactPlantHeight": 106,
-        "nameHeight": 48,
-        "metricHeight": 76,
+        "plantHeight": 160,
+        "compactPlantHeight": 146,
+        "glassInset": 12,
+        "crownClearance": 34,
+        "footClearance": 12,
+        "nameHeight": 64,
+        "metricHeight": 56,
         "headerGap": 8,
-        "dialogMax": 620
+        "dialogMax": 620,
+        "plantMaxHeight": 270,
+        "plantHeightRatio": 0.4
       },
       "gardenStatusRail": {
         "mode": "custom",
@@ -110,6 +114,24 @@
       },
       "gardenShelfAsset": {
         "mode": "custom",
+        "visible": true
+      },
+      "gardenGlassAsset": {
+        "mode": "freeform",
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "rotation": 0,
+        "opacity": 1,
+        "visible": true
+      },
+      "gardenHudRailAsset": {
+        "mode": "freeform",
+        "x": 0,
+        "y": 0,
+        "scale": 1,
+        "rotation": 0,
+        "opacity": 1,
         "visible": true
       }
     }
@@ -179,6 +201,6 @@
     }
   },
   "editor": {
-    "notes": "Garden v2 measured local-area adapter owns portrait/landscape, rack and slot geometry through gardenComposition. Host applies safe areas once; Home does not reserve a global navigation dock. Background/sign are tunable visual-only regions; text/control geometry never scales with art. Shelf art repeats at a fixed row anchor with natural flow; gardenShelfAsset is a documented repeated fixed-aspect asset exception. Modal flow is measured with one scroll body. No legacy artwork coordinate slots."
+    "notes": "Garden measured adapter owns portrait/landscape, rack, glass opening and plant sizing through gardenComposition. Safe areas apply once; no global dock or idle help bar. Background/sign/glass are tunable visual-only regions. One coherent nine-slice glass source preserves corners and ornaments while straight middle rails stretch. The scroller is clipped inside that closed opening. Repeated shelves preserve aspect; plant baseline follows the front plane. Name and Care share one44px action. Actionable errors use measured temporary trailing content space without moving the viewport. Shelf art remains a repeated flow-asset exception."
   }
 }

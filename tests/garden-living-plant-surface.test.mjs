@@ -1,5 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PlantSurface,makeLivingPlantArt,getLivingPlantMotionState,listenToMotionPreference,requestPlantArtNearShelf} from '../src/games/garden-shelf/living/living-plant-art.mjs';
+import { plantGeometry, artworkForNode, unionArtwork } from '../src/games/garden-shelf/living/plant-art-placement.mjs';
 function environment(){
  const listeners=new Map(),deleted=[],draws=[],uniforms=[],vertices=[];let id=0;
  const events={addEventListener(name,fn){listeners.set(name,fn);},removeEventListener(name){listeners.delete(name);}};
@@ -7,7 +8,7 @@ function environment(){
  for(const name of ['createShader','createProgram','createBuffer','createTexture'])gl[name]=()=>({id:++id});
  for(const name of ['shaderSource','compileShader','attachShader','linkProgram','useProgram','uniform1i','bindBuffer','bufferData','enableVertexAttribArray','vertexAttribPointer','enable','blendFunc','bindTexture','texParameteri','texImage2D','disable','clearColor','clear','viewport','scissor','bufferSubData','activeTexture','deleteBuffer','deleteProgram','deleteShader'])gl[name]=()=>{};
  gl.bufferSubData=(_target,_offset,data)=>vertices.push(Float32Array.from(data));
- gl.getShaderParameter=gl.getProgramParameter=()=>true;gl.getAttribLocation=()=>0;gl.getUniformLocation=(_p,n)=>n;gl.uniform1f=(key,value)=>uniforms.push([key,value]);gl.drawElements=()=>draws.push(1);gl.deleteTexture=t=>deleted.push(t);
+ gl.getShaderParameter=gl.getProgramParameter=()=>true;gl.getAttribLocation=()=>0;gl.getUniformLocation=(_p,n)=>n;gl.uniform1f=(key,value)=>uniforms.push([key,value]);gl.uniform4f=(key,...value)=>uniforms.push([key,value]);gl.drawElements=()=>draws.push(1);gl.deleteTexture=t=>deleted.push(t);
  const media={matches:false,...events};
  globalThis.document={hidden:false,...events,createElement(){return {style:{},setAttribute(){},remove(){this.removed=true;},getContext(){return gl;},...events};}};
  globalThis.window={...events};globalThis.matchMedia=()=>media;globalThis.devicePixelRatio=2;globalThis.requestAnimationFrame=()=>++id;globalThis.cancelAnimationFrame=()=>{};globalThis.ResizeObserver=class{observe(){}disconnect(){}};globalThis.getComputedStyle=()=>({overflow:'visible',overflowX:'visible',overflowY:'visible'});
@@ -28,12 +29,52 @@ test('pending growth image never overwrites the new cache key with old texture',
  for(let n=0;n<50;n++)s.draw(200+n*40);
  assert.equal(e.uniforms.at(-1)[1],1);assert.equal(item.previousKey,null);s.dispose();
 });
+test('the exact first growth frame keeps the previous pot on its support point',async()=>{
+ const e=environment();e.node.closest=selector=>selector==='.gs2-plant-target'?{}:null;
+ const surface=new PlantSurface(e.root),item=surface.add(e.node,{id:'basil',type:'basil',phase:2});
+ const oldKey='basil-developing-r1.webp',newKey='basil-mature-r1.webp';
+ await surface.load(oldKey);await Promise.all(surface.pending.values());surface.draw(100);
+ surface.update(item,{id:'basil',type:'basil',phase:3});
+ await surface.load(newKey);await Promise.all(surface.pending.values());surface.draw(200);
+ assert.equal(item.growthMix,0,'the texture-ready first frame begins with the previous art');
+ const previous=e.uniforms.findLast(([key])=>key==='previousFrame')[1];
+ const bounds=unionArtwork(artworkForNode(e.node,oldKey),artworkForNode(e.node,newKey));
+ const pot=plantGeometry[oldKey].pot;
+ const x=bounds.left+(previous[0]+pot.centerX*previous[2])*bounds.width;
+ const y=bounds.top+(previous[1]+pot.baseY*previous[3])*bounds.height;
+ assert.ok(Math.abs(x-70)<1e-9,'previous pot stays centered in the100px slot');
+ assert.ok(Math.abs(y-120)<1e-9,'previous pot remains on the120px standing plane');
+ surface.draw(600);assert.ok(item.growthMix>0&&item.growthMix<1);
+ surface.dispose();
+});
+
 test('context disposal restores fallback and releases textures',async()=>{
  const e=environment(),s=new PlantSurface(e.root);s.add(e.node,{id:'p',type:'daisy',phase:3});await s.load('daisy-mature-r2.webp');await Promise.all(s.pending.values());s.draw(100);assert.ok(e.draws.length);s.dispose();assert.equal(e.fallback.style.visibility,undefined);assert.equal(e.deleted.length,1);assert.equal(s.canvas.removed,true);s.dispose();assert.equal(e.deleted.length,1);
 });
 test('reduced motion skips growth blend without awarding anything',async()=>{
  const e=environment();e.media.matches=true;const s=new PlantSurface(e.root),item=s.add(e.node,{id:'p',type:'daisy',phase:0});
  await s.load('daisy-seedling-r1.webp');await s.load('daisy-young-r1.webp');await Promise.all(s.pending.values());s.draw(100);s.update(item,{id:'p',type:'daisy',phase:1});s.draw(150);assert.equal(e.uniforms.at(-1)[1],1);assert.equal(item.previousKey,null);s.dispose();
+});
+
+test('reduced motion redraws a moved plant after its scrollport changes without a root resize',async()=>{
+ const e=environment();e.media.matches=true;
+ let callback,queued,top=20,disconnected=false;
+ const observed=new Set(),scrollport={};
+ globalThis.ResizeObserver=class{constructor(fn){callback=fn;}observe(node){observed.add(node);}unobserve(node){observed.delete(node);}disconnect(){disconnected=true;observed.clear();}};
+ globalThis.requestAnimationFrame=fn=>{queued=fn;return 1;};
+ e.root.querySelector=()=>scrollport;
+ e.node.getBoundingClientRect=()=>({left:20,top,right:120,bottom:top+100,width:100,height:100});
+ const surface=new PlantSurface(e.root),item=surface.add(e.node,{id:'resized',type:'daisy',phase:3});
+ await surface.load('daisy-mature-r2.webp');await Promise.all(surface.pending.values());
+ surface.draw(100);queued=null;
+ assert.equal(item.slot.top,20);
+ top=48;
+ // A browser ResizeObserver only calls its callback for observed elements.
+ if(observed.has(scrollport))callback([{target:scrollport}]);
+ assert.equal(typeof queued,'function');queued(150);
+ assert.equal(item.slot.top,48);
+ assert.equal(item.drawRect.top>=48,true);
+ surface.remove(item);assert.equal(disconnected,true);assert.equal(observed.size,0);
 });
 test('changing plant identity cannot inherit another plant visual events',()=>{
  const e=environment(),s=new PlantSurface(e.root),item=s.add(e.node,{id:'a',type:'daisy',phase:0,lastWatered:0});

@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import sharp from 'sharp';
 import { measurePlantTranslation } from './helpers/plantPixelMotion.js';
-import { fitArtwork } from '../../src/games/garden-shelf/living/plant-presentation-contract.mjs';
+import plantGeometry from '../../src/games/garden-shelf/living/plant-geometry.json' with { type: 'json' };
 import { PLANT_TYPES } from '../../game-logic/garden-shelf-plants.js';
 import { createDefaultPlayer, createGardenEconomyState, getGardenXpRequired } from '../../game-logic.js';
 import { migrateGardenR2 } from '../../game-logic/garden-r2/domain.js';
@@ -41,6 +41,18 @@ async function boot(page) {
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).some(key => key.startsWith('game_hub_garden_r2_intents_v1:') && JSON.parse(localStorage.getItem(key)).nextSequence >= 2))).toBe(true);
 }
 async function close(page) { await page.locator('.gs2-dialog .gs2-close').click(); await expect(page.locator('.gs2-dialog')).toHaveCount(0); }
+async function progressTab(page, value) {
+  const dialog = panel(page, 'progression'), tab = dialog.locator(`[data-menu-tab="${value}"]`);
+  await tab.click(); await expect(tab).toHaveAttribute('aria-selected', 'true');
+  const selected = dialog.locator(`#garden-progress-${value}`);
+  await expect(selected).toBeVisible();
+  for (const other of ['overview', 'research', 'collections'].filter(item => item !== value)) await expect(dialog.locator(`#garden-progress-${other}`)).toBeHidden();
+  return selected;
+}
+async function questTab(page, value) {
+  const tab = panel(page, 'quests').locator(`#garden-quests-tabs-${value}`);
+  await tab.click(); await expect(tab).toHaveAttribute('aria-selected', 'true');
+}
 async function fit(page, dialog = null) {
   if (dialog) {
     await expect(dialog).toBeVisible();
@@ -66,15 +78,21 @@ async function fit(page, dialog = null) {
     if (!home || home.getBoundingClientRect().width < 43.9 || home.getBoundingClientRect().height < 43.9) errors.push('Home target does not fit');
     const dialog = document.querySelector('.gs2-dialog');
     if (dialog) {
+      const visible = node => { const r = node.getBoundingClientRect(); return node.getClientRects().length > 0 && r.width > 0 && r.height > 0 && getComputedStyle(node).visibility !== 'hidden'; };
       if (!dialog.contains(document.activeElement)) errors.push('focus left dialog');
       if (!document.querySelector('.telegram-app').closest('[inert]')) errors.push('background remains interactive');
-      for (const button of dialog.querySelectorAll('button')) { const r = button.getBoundingClientRect(); if (r.width < 43.9 || r.height < 43.9) errors.push('small dialog touch target'); }
-      for (const row of dialog.querySelectorAll('.gs2-r2-card,.gs2-catalog-row')) { if (row.scrollWidth > row.clientWidth + 1) errors.push('row overflow'); }
+      for (const button of [...dialog.querySelectorAll('button,summary')].filter(visible)) { const r = button.getBoundingClientRect(); if (r.width < 43.9 || r.height < 43.9) errors.push('small dialog touch target'); }
+      for (const row of [...dialog.querySelectorAll('.gs2-r2-card,.gs2-catalog-row,.gs2-quest-card')].filter(visible)) { if (row.scrollWidth > row.clientWidth + 1) errors.push('row overflow'); }
+      for (const badge of [...dialog.querySelectorAll('[data-r2-research] h3 i')].filter(visible)) {
+        const range = document.createRange(); range.selectNodeContents(badge);
+        const lines = new Set([...range.getClientRects()].filter(rect => rect.width > 0).map(rect => Math.round(rect.top * 2) / 2));
+        if (lines.size !== 1) errors.push(`research tier ${badge.textContent} wraps`);
+      }
     }
     return errors;
   });
   expect(errors).toEqual([]);
-  if (dialog) { await dialog.locator('.gs2-dialog-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; }); await expect(dialog.locator('.gs2-close')).toBeInViewport(); }
+  if (dialog) { await dialog.locator('.gs2-dialog-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; }); await expect(dialog.locator('.gs2-close')).toBeInViewport(); await dialog.locator('.gs2-dialog-scroll').evaluate(node => { node.scrollTop = 0; }); }
 }
 for (const [width, height] of MATRIX) test.describe(`Garden R2 ${width}x${height}`, () => {
   // Page-routed synthetic players must remain the source across reloads.
@@ -86,17 +104,26 @@ for (const [width, height] of MATRIX) test.describe(`Garden R2 ${width}x${height
     const p = player(); await initialize(page); const { requests } = await fixture(page, p); await boot(page);
     await page.locator('.active-game-frame').evaluate(async node => { await Promise.all(node.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished.catch(() => {}))); });
     await fit(page); await expect(page.locator('[data-garden-gold]')).toContainText('10,000');
-    await expect(page.locator('[data-garden-gold]')).toContainText('8 gold/min');
+    await expect(page.locator('[data-garden-gold]')).toContainText('8/min');
+    await expect(page.locator('[data-garden-gold]')).toHaveAttribute('aria-label', /8 gold\/min/);
     await expect(page.locator('.gs2-stage')).not.toContainText(/migration|migrated|переход на|миграц/i);
     await page.locator('[data-plant-id="saved-daisy"] [data-plant-details-button]').click();
     const detail = panel(page, 'plant-detail'); await fit(page, detail); await expect(detail).toContainText('5/5'); await expect(detail).toContainText('Species mastery 3/3');
-    await expect(detail.getByRole('button', { name: /Increase income/ })).toHaveCount(0); await expect(detail).toContainText('5.52 gold/min');
+    await expect(detail.getByRole('button', { name: /Increase income/ })).toHaveCount(0); await expect(detail.locator('.gs2-care-income')).toHaveAttribute('aria-label', '5.52 gold/min');
     await testInfo.attach('r2-terminal-detail', { body: await page.screenshot(), contentType: 'image/png' }); await close(page);
     await page.locator('[data-plant-id="saved-daisy"] [data-plant-details-button]').click(); await page.keyboard.press('Escape'); await expect(detail).toHaveCount(0);
     await page.getByRole('button', { name: 'Garden progress', exact: true }).click(); const progress = panel(page, 'progression');
     await fit(page, progress); await expect(progress.locator('[data-r2-research]')).toHaveCount(9); await expect(progress.locator('[data-r2-project]')).toHaveCount(5);
-    await expect(progress).toContainText('150 gold + 6 substrate'); await expect(progress).toContainText('Substrate 0/60');
-    await testInfo.attach('r2-progress-sheet', { body: await page.screenshot(), contentType: 'image/png' }); await close(page);
+    await expect(progress.locator('.gs2-resource-pair > div').filter({ hasText: 'Substrate' })).toContainText('0/60');
+    await testInfo.attach('r2-progress-overview', { body: await page.screenshot(), contentType: 'image/png' });
+    await progressTab(page, 'research');
+    await expect(progress.locator('[data-r2-research="care_1"]').getByRole('button')).toHaveAccessibleName('150 gold + 6 substrate');
+    for (const branch of ['idle', 'collection']) await progress.locator(`[data-research-branch="${branch}"] > summary`).click();
+    await expect(progress.locator('[data-r2-research]:visible')).toHaveCount(9); await fit(page, progress);
+    await expect(progress.locator('#garden-progress-research')).not.toContainText(/Garden level \d+ required/);
+    await testInfo.attach('r2-progress-research', { body: await page.screenshot(), contentType: 'image/png' });
+    await progressTab(page, 'collections'); await expect(progress.locator('[data-r2-project]:visible')).toHaveCount(5); await fit(page, progress);
+    await testInfo.attach('r2-progress-collections', { body: await page.screenshot(), contentType: 'image/png' }); await close(page);
     await page.locator('.gs2-empty-target').first().click(); const shop = panel(page, 'seed-shop-inventory');
     await fit(page, shop); await expect(shop.locator('.gs2-catalog-row').first().getByRole('button')).toHaveText('25');
     await testInfo.attach('r2-shop', { body: await page.screenshot(), contentType: 'image/png' }); await close(page);
@@ -193,8 +220,217 @@ test.describe('Garden R2 receipt and account flows', () => {
   });
   test('Russian rates and progression copy use actual gold units', async ({ page }) => {
     await initialize(page, 'ru'); const p = player(); await fixture(page, p); await page.goto('/');
-    await expect(page.getByRole('button', { name: 'Развитие сада', exact: true })).toBeVisible(); await expect(page.locator('[data-garden-gold]')).toContainText('8 золота/мин');
-    await page.getByRole('button', { name: 'Развитие сада', exact: true }).click(); await expect(panel(page, 'progression')).toContainText('150 золота + 6 субстрата'); await fit(page, panel(page, 'progression'));
+    await expect(page.getByRole('button', { name: 'Развитие сада', exact: true })).toBeVisible(); await expect(page.locator('[data-garden-gold]')).toContainText('8/мин');
+    await expect(page.locator('[data-garden-gold]')).toHaveAttribute('aria-label', /8 золота\/мин/);
+    await page.getByRole('button', { name: 'Развитие сада', exact: true }).click();
+    await expect(panel(page, 'progression').locator('.gs2-resource-pair > div').filter({ hasText: 'Субстрат' })).toContainText('0/60');
+    await progressTab(page, 'research');
+    await expect(panel(page, 'progression').locator('[data-r2-research="care_1"]').getByRole('button')).toHaveAccessibleName('150 золота + 6 субстрата'); await fit(page, panel(page, 'progression'));
+  });
+  test('keyboard moves through expandable help within the active overview', async ({ page }) => {
+    await initialize(page); const p = player(); p._gardenProgression.introClaimed = true; await fixture(page, p); await boot(page);
+    await page.getByRole('button', { name: 'Garden progress', exact: true }).click();
+    const progress = panel(page, 'progression');
+    await expect.poll(() => progress.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    const help = progress.locator('summary').first(); await help.focus();
+    await page.keyboard.press('Enter'); await expect(help.locator('..')).toHaveAttribute('open', '');
+    await page.keyboard.press('Tab');
+    await expect(progress.locator('#garden-progress-overview .gs2-study-card summary')).toBeFocused();
+  });
+  test('menu tabs use arrow navigation and skip inactive progress controls', async ({ page }) => {
+    await initialize(page); const p = player(); p._gardenProgression.introClaimed = true; await fixture(page, p); await boot(page);
+    await page.getByRole('button', { name: 'Garden progress', exact: true }).click();
+    const progress = panel(page, 'progression'), overview = progress.locator('[data-menu-tab="overview"]');
+    await expect.poll(() => progress.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    await overview.focus(); await page.keyboard.press('ArrowRight');
+    await expect(progress.locator('[data-menu-tab="research"]')).toBeFocused();
+    await expect(progress.locator('#garden-progress-research')).toBeVisible();
+    await expect(progress.locator('#garden-progress-overview')).toBeHidden();
+    await page.keyboard.press('End');
+    const collections = progress.locator('[data-menu-tab="collections"]'); await expect(collections).toBeFocused();
+    await expect(collections).toHaveAttribute('aria-selected', 'true');
+    await expect(progress.locator('#garden-progress-research')).toBeHidden();
+    await page.keyboard.press('Tab');
+    await expect(progress.locator('#garden-progress-collections summary').first()).toBeFocused();
+    await page.keyboard.press('Shift+Tab'); await expect(collections).toBeFocused();
+    await page.keyboard.press('Home'); await expect(overview).toBeFocused();
+    await expect(overview).toHaveAttribute('aria-selected', 'true');
+    await page.keyboard.press('Tab');
+    await expect(progress.getByRole('button', { name: 'Garden quests', exact: true })).toBeFocused();
+    await page.keyboard.press('Shift+Tab'); await expect(overview).toBeFocused();
+    await page.keyboard.press('ArrowLeft'); await expect(collections).toBeFocused();
+    await expect(progress.locator('[role="tab"][tabindex="0"]')).toHaveCount(1);
+    await expect(progress.locator('[data-r2-research]')).toHaveCount(9); await expect(progress.locator('[data-r2-project]')).toHaveCount(5);
+    await fit(page, progress);
+  });
+  test('keyboard quest reward keeps focus in the dialog and announces confirmed completion', async ({ page }) => {
+    await initialize(page); const p = player(); const { requests } = await fixture(page, p); await boot(page);
+    await page.getByRole('button', { name: 'Garden progress', exact: true }).click();
+    await panel(page, 'progression').getByRole('button', { name: 'Garden quests', exact: true }).click();
+    await questTab(page, 'story');
+    const quests = panel(page, 'quests'), claim = quests.getByRole('button', { name: 'Claim', exact: true }).first();
+    await expect.poll(() => quests.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    await expect(claim).toBeEnabled();
+    const questId = await claim.evaluate(node => node.closest('[data-quest-id]').dataset.questId);
+    await claim.focus(); await page.keyboard.press('Enter');
+    await expect(quests.locator(`[data-quest-id="${questId}"]`)).toHaveAttribute('data-quest-claimed', 'true');
+    await expect.poll(() => quests.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    await expect(quests.getByRole('status').filter({ hasText: /Claimed/ })).toBeVisible();
+    expect(requests.filter(r => r.payload?.command === 'claimQuest' && r.payload?.input?.questId === questId)).toHaveLength(1);
+  });
+  test('keyboard research completion preserves focus and announces the confirmed result', async ({ page }) => {
+    await initialize(page); const p = player(); p._gardenProgression.substrate = 60; p._gardenProgression.introClaimed = true;
+    const { requests } = await fixture(page, p); await boot(page);
+    await page.getByRole('button', { name: 'Garden progress', exact: true }).click();
+    const progress = panel(page, 'progression');
+    await progressTab(page, 'research');
+    await expect.poll(() => progress.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    const research = progress.locator('[data-r2-research="care_1"]');
+    const purchase = research.getByRole('button'); await expect(purchase).toBeEnabled(); await purchase.focus(); await page.keyboard.press('Enter');
+    await expect(research.getByText('Complete', { exact: true })).toBeVisible();
+    await expect.poll(() => progress.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    await expect(progress.getByRole('status').filter({ hasText: /Complete/ })).toBeVisible();
+    expect(p._gardenProgression.researchIds).toContain('care_1');
+    expect(requests.filter(r => r.payload?.command === 'research' && r.payload?.input?.researchId === 'care_1')).toHaveLength(1);
+  });
+  test('saved Dark appearance keeps the authored menu materials', async ({ page }) => {
+    await initialize(page); await fixture(page, player()); await boot(page);
+    await page.locator('.gs2-settings').click();
+    await panel(page, 'settings').getByRole('button', { name: 'Dark theme', exact: true }).click();
+    await expect(page.locator('html')).toHaveAttribute('data-ui-theme', 'dark');
+    await expect(panel(page, 'settings')).toHaveCSS('border-image-source', /terrarium\/menu-panel\.webp/);
+    await expect(panel(page, 'settings').getByRole('button', { name: 'Done', exact: true })).toHaveCSS('border-image-source', /terrarium\/menu-button\.webp/);
+    await close(page); await page.reload(); await boot(page);
+    await page.locator('[data-plant-id="saved-daisy"] [data-plant-details-button]').click();
+    await expect(panel(page, 'plant-detail')).toHaveCSS('border-image-source', /terrarium\/menu-panel\.webp/);
+  });
+  test('compact Russian Care actions fit without redundant currency or loading copy', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    await initialize(page, 'ru'); const legacy = player({ adopted: false, plantLevel: 12 }); legacy.garden.plants[0].type = 'rosemary';
+    Object.assign(legacy.garden.plants[1], { shelfIndex: 0, spotIndex: 2 });
+    legacy.garden.plants.push({ id: 'ru-lavender', type: 'lavender', level: 12, phase: 3, phaseProgress: 0, shelfIndex: 0, spotIndex: 1, lastTapped: 0 });
+    const p = migrateGardenR2(legacy, { now: Date.now(), legacyRevision: 0, acknowledgedTotal: 0 });
+    await fixture(page, p); await page.goto('/');
+    await expect(page.locator('.gs2-plant-target').first()).toBeEnabled();
+    await page.locator('.active-game-frame').evaluate(async node => { await document.fonts.ready; await Promise.all(node.getAnimations().filter(a => a.effect?.getTiming().iterations !== Infinity).map(a => a.finished.catch(() => {}))); });
+    await testInfo.attach('russian-main', { body: await page.screenshot(), contentType: 'image/png' });
+    await page.locator('[data-plant-id="saved-daisy"] [data-plant-details-button]').click();
+    const detail = panel(page, 'plant-detail'), sale = detail.getByRole('button', { name: /Продать/ });
+    await expect(sale).toHaveAttribute('aria-label', /325 Золото/);
+    await expect(sale).toContainText('325'); await expect(sale).not.toContainText('Золото');
+    await detail.locator('.gs2-dialog-scroll').evaluate(node => { node.scrollTop = node.scrollHeight; });
+    await expect(sale).toBeInViewport();
+    await testInfo.attach('compact-russian-care', { body: await page.screenshot(), contentType: 'image/png' });
+    await close(page); await page.locator('.gs2-settings').click();
+    await expect(panel(page, 'settings')).not.toContainText('Подготавливаем движение');
+    await testInfo.attach('quiet-russian-settings', { body: await page.screenshot(), contentType: 'image/png' });
+    await close(page); await page.getByRole('button', { name: 'Развитие сада', exact: true }).click();
+    await panel(page, 'progression').getByRole('button', { name: 'Квесты сада', exact: true }).click();
+    await expect(panel(page, 'quests').locator('.gs2-quest-card').first()).toBeVisible();
+    await testInfo.attach('russian-quests', { body: await page.screenshot(), contentType: 'image/png' });
+  });
+  test('320 Russian goal tabs preserve ready rewards, collapsed archives and one confirmed claim', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width: 320, height: 568 }); await initialize(page, 'ru');
+    const legacy = player({ adopted: false });
+    legacy.garden.claimedQuests = ['first_plant'];
+    legacy.garden.dailyQuests = { date: new Date().toISOString().slice(0, 10), claimed: [], stats: { taps: 12, waters: 12, plantsBought: 4, upgrades: 3, goldEarned: 80, xpEarned: 80, levelUps: 2 } };
+    const p = migrateGardenR2(legacy, { now: Date.now(), legacyRevision: 0, acknowledgedTotal: 0 });
+    const { requests } = await fixture(page, p); await page.goto('/');
+    await page.getByRole('button', { name: 'Развитие сада', exact: true }).click();
+    const progression = panel(page, 'progression');
+    for (const value of ['overview', 'research', 'collections']) {
+      await progressTab(page, value); await fit(page, progression);
+      await testInfo.attach(`russian-progress-${value}`, { body: await page.screenshot(), contentType: 'image/png' });
+      if (value === 'research') {
+        const thirdTier = progression.locator('[data-r2-research="care_3"]');
+        await thirdTier.scrollIntoViewIfNeeded(); await expect(thirdTier.locator('h3 i')).toHaveText('III');
+        await testInfo.attach('russian-research-tier-III', { body: await page.screenshot(), contentType: 'image/png' });
+      }
+    }
+    await progressTab(page, 'overview');
+    await panel(page, 'progression').getByRole('button', { name: 'Квесты сада', exact: true }).click();
+    const quests = panel(page, 'quests'), snapshot = buildSnapshot(p).gardenR2;
+    await expect(quests.getByRole('tab', { name: 'Сегодня', exact: true })).toHaveAttribute('aria-selected', 'true');
+    await expect(quests.getByRole('tab', { name: 'Достижения', exact: true })).toBeVisible();
+    const expected = snapshot.quests.flatMap(section => section.quests).find(q => q.kind === 'daily' && q.unlocked && q.complete && !q.claimed);
+    expect(expected).toBeTruthy();
+    const card = quests.locator(`[data-quest-id="${expected.id}"]`), claim = card.getByRole('button', { name: 'Забрать', exact: true });
+    await expect(claim).toBeEnabled(); await expect(claim.locator('.gs2-quest-reward strong')).toHaveText(String(expected.reward));
+    for (const quest of snapshot.quests.flatMap(section => section.quests).filter(q => q.kind === 'daily' && q.unlocked && !q.claimed)) {
+      const goal = quests.locator(`[data-quest-id="${quest.id}"]`);
+      await expect(goal.locator('.gs2-quest-meters > .gs2-progress-row [role="progressbar"]')).toHaveAttribute('aria-valuenow', String(Math.min(100, Math.round(quest.current / quest.target * 100))));
+      if (quest.careAlternative) await expect(goal.locator('.gs2-quest-alternative [role="progressbar"]')).toHaveAttribute('aria-valuenow', String(Math.min(100, Math.round(quest.careAlternative.current / quest.careAlternative.target * 100))));
+    }
+    const locked = quests.locator('.gs2-quest-archive').filter({ has: page.locator('[data-quest-locked="true"]') }).first();
+    await expect(locked).not.toHaveAttribute('open', '');
+    await fit(page, quests); await testInfo.attach('russian-today-ready', { body: await page.screenshot(), contentType: 'image/png' });
+    await claim.focus(); await page.keyboard.press('Enter');
+    await expect(card).toHaveAttribute('data-quest-claimed', 'true'); await expect(card).toBeHidden();
+    await expect.poll(() => quests.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    await expect(quests.getByRole('status')).toContainText('Получено');
+    await testInfo.attach('russian-today-claimed-collapsed', { body: await page.screenshot(), contentType: 'image/png' });
+    const archive = card.locator('xpath=ancestor::details[1]'); await archive.locator('summary').click();
+    await expect(card.locator('.gs2-quest-state')).toHaveText('Получено');
+    await testInfo.attach('russian-today-claimed-expanded', { body: await page.screenshot(), contentType: 'image/png' });
+    await questTab(page, 'story'); await fit(page, quests);
+    await expect(quests.locator('.gs2-quest-card:visible')).not.toHaveCount(0);
+    expect(await quests.locator('.gs2-quest-card:visible').evaluateAll(cards => cards.every(card => card.dataset.questKind === 'story'))).toBe(true);
+    await testInfo.attach('russian-milestones', { body: await page.screenshot(), contentType: 'image/png' });
+    expect(p.garden.dailyQuests.claimed.filter(id => id === expected.id)).toHaveLength(1);
+    expect(requests.filter(r => r.payload?.command === 'claimQuest' && r.payload?.input?.questId === expected.id)).toHaveLength(1);
+    expect(requests.some(r => /creditEarned|resetEconomy|garden\.sync/.test(r.action))).toBe(false);
+    await close(page); await page.locator('.gs2-empty-target').first().click(); await fit(page, panel(page, 'seed-shop-inventory'));
+    await testInfo.attach('russian-shop-gallery', { body: await page.screenshot(), contentType: 'image/png' });
+    await close(page); await page.locator('.gs2-settings').click(); await fit(page, panel(page, 'settings'));
+    await testInfo.attach('russian-settings', { body: await page.screenshot(), contentType: 'image/png' });
+  });
+  test('keyboard mastery purchase keeps visible focus when the next tier is locked', async ({ page }) => {
+    await initialize(page); const p = player({ terminal: false, plantLevel: 5 });
+    p._gardenProgression.substrate = 60; p._gardenProgression.researchIds = ['care_1'];
+    const { requests } = await fixture(page, p); await boot(page);
+    await page.locator('[data-plant-id="saved-daisy"] [data-plant-details-button]').click();
+    const detail = panel(page, 'plant-detail');
+    await expect.poll(() => detail.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    const mastery = detail.getByRole('button', { name: 'Mastery 1 · 3 substrate', exact: true });
+    await expect(mastery).toBeEnabled(); await mastery.focus(); await page.keyboard.press('Enter');
+    await expect(detail).toContainText('Species mastery 1/3');
+    await expect(mastery).toHaveCount(0);
+    await expect(detail.locator('.gs2-close')).toBeFocused();
+    await expect(detail.getByRole('status').filter({ hasText: /Species mastery 1/ })).toBeVisible();
+    expect(p._gardenProgression.masteryByType.daisy).toBe(1);
+    expect(requests.filter(r => r.payload?.command === 'upgradeMastery')).toHaveLength(1);
+  });
+  test('keyboard final income rank keeps focus and announces the confirmed rank', async ({ page }) => {
+    await initialize(page); const p = player({ terminal: false, plantLevel: 4 });
+    const { requests } = await fixture(page, p); await boot(page);
+    await page.locator('[data-plant-id="saved-daisy"] [data-plant-details-button]').click();
+    const detail = panel(page, 'plant-detail');
+    await expect.poll(() => detail.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    const upgrade = detail.getByRole('button', { name: /Increase income/ });
+    await expect(upgrade).toBeEnabled(); await upgrade.focus(); await page.keyboard.press('Enter');
+    await expect(detail.getByTestId('garden-care-level')).toContainText('5/5');
+    await expect(upgrade).toHaveCount(0); await expect(detail.locator('.gs2-close')).toBeFocused();
+    await expect(detail.getByRole('status').filter({ hasText: /Gold rank 5\/5/ })).toBeVisible();
+    expect(p._gardenProgression.plants['saved-daisy'].goldRank).toBe(5);
+    expect(requests.filter(r => r.payload?.command === 'upgradePlant')).toHaveLength(1);
+  });
+  test('keyboard project start keeps visible focus when its action becomes a timer', async ({ page }) => {
+    await initialize(page); const legacy = player({ adopted: false, plantLevel: 12 });
+    for (const [index, type] of ['lavender', 'orchid'].entries()) legacy.garden.plants.push({ id: `project-${type}`, type, level: 1, phase: 3, phaseProgress: 0, shelfIndex: 0, spotIndex: index + 1, lastTapped: 0 });
+    const p = migrateGardenR2(legacy, { now: Date.now(), legacyRevision: 0, acknowledgedTotal: 0 });
+    p._gardenProgression.substrate = 60; p._gardenProgression.researchIds = ['collection_1']; p._gardenProgression.introClaimed = true;
+    const { requests } = await fixture(page, p); await boot(page);
+    await page.getByRole('button', { name: 'Garden progress', exact: true }).click();
+    const progress = panel(page, 'progression');
+    await progressTab(page, 'collections');
+    await expect.poll(() => progress.evaluate(node => node.contains(document.activeElement))).toBe(true);
+    const project = progress.locator('[data-r2-project="flower_collection"]'), start = project.getByRole('button');
+    await expect(start).toBeEnabled(); await start.focus(); await page.keyboard.press('Enter');
+    await expect(start).toHaveCount(0);
+    await expect(progress.locator('.gs2-close')).toBeFocused();
+    await expect(progress.getByRole('status').filter({ hasText: /Flower collection/ })).toBeVisible();
+    expect(p._gardenProgression.activeProject?.projectId).toBe('flower_collection');
+    expect(requests.filter(r => r.payload?.command === 'startProject')).toHaveLength(1);
   });
 });
 
@@ -254,10 +490,12 @@ test.describe('Garden R2 enabled-default visible motion',()=>{
     return art;
   }
   async function regions(page,art){
-    const box=await art.boundingBox(),aspect=await art.locator('img').evaluate(img=>img.naturalWidth/img.naturalHeight);
-    const fit=fitArtwork({left:box.x,top:box.y,right:box.x+box.width,bottom:box.y+box.height,width:box.width,height:box.height},aspect);
+    const image=art.locator('img'),box=await image.boundingBox();
+    const key=await image.evaluate(img=>new URL(img.src).pathname.split('/').pop());
+    const source=plantGeometry.assets[key];
+    const fit={left:box.x,top:box.y,width:box.width,height:box.height};
     const rect=(x,y,w,h)=>({x:fit.left+fit.width*x,y:fit.top+fit.height*y,width:fit.width*w,height:fit.height*h});
-    const crops={blossom:rect(.34,0,.4,.32),foliage:rect(.12,.05,.76,.55),pot:rect(.43,.78,.14,.08),control:await page.getByRole('button',{name:'Garden settings',exact:true}).boundingBox()};
+    const crops={blossom:rect(.34,Math.max(0,source.paintedBounds.y),.4,.30),foliage:rect(.12,Math.max(.05,source.paintedBounds.y),.76,.55),pot:rect(source.pot.centerX-.07,source.pot.baseY-.13,.14,.08),control:await page.getByRole('button',{name:'Garden settings',exact:true}).boundingBox()};
     const shelf=await page.locator('.gs2-shelf-viewport').boundingBox(),viewport=page.viewportSize();
     for(const [name,crop] of Object.entries(crops)){
       const bounds=name==='control'?{x:0,y:0,width:viewport.width,height:viewport.height}:shelf;
@@ -315,7 +553,7 @@ test.describe('Garden R2 enabled-default visible motion',()=>{
     expect(await regions(page,art),'tap must not move the plant or UI sampling rectangles').toEqual(crops);
     const tapped=await capture(page,testInfo,'normal-after-tap',crops);
     expect(changedPixels(idle.foliage,tapped.foliage),'foliage still moves after the actual plant tap').toBeGreaterThan(5);stableReference(idle,tapped);expect(errors).toEqual([]);
-    await page.getByRole('button',{name:'Garden settings',exact:true}).click();await expect(page.locator('[data-garden-motion="on"]')).toContainText('Plant motion is on.');
+    await page.getByRole('button',{name:'Garden settings',exact:true}).click();await expect(page.locator('.gs2-motion-setting')).toHaveCount(0);
    });
   });
   for(const fallback of [false,true])test(`${fallback?'failed WebGL initialization':'device reduced motion'} keeps art still, explains it in Settings and acknowledges working taps`,async({page},testInfo)=>{

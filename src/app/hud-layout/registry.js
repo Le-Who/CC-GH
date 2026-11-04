@@ -117,8 +117,10 @@ const GAME_REGIONS = {
     gardenComposition:region("gardenComposition","Garden responsive composition","Garden Shelf",{measured:true,mode:"custom"},"Measured local-area adapter owns both orientations and exactly three plant spots per shelf."),
     gardenStatusRail:region("gardenStatusRail","Garden resource and action rail","Garden Shelf",{measured:true,mode:"custom"}),
     gardenBackgroundAsset:region("gardenBackgroundAsset","Garden greenhouse background","Garden Shelf assets",{draggable:true,resizable:true,asset:true,mode:"freeform"}),
+    gardenGlassAsset:region("gardenGlassAsset","Garden continuous glass surround","Garden Shelf assets",{draggable:true,resizable:true,asset:true,mode:"freeform"},"One coherent source uses nine-slice optical rails to enclose the viewport independently of shelf count. Visual-only tuning never moves plant controls."),
+    gardenHudRailAsset:region("gardenHudRailAsset","Garden compact metric rail art","Garden Shelf assets",{draggable:true,resizable:true,asset:true,mode:"freeform"},"One quiet surface behind live metrics; art tuning never changes metric targets or the shelf reserve."),
     gardenShelfAsset:region("gardenShelfAsset","Garden repeated shelf art","Garden Shelf assets",{measured:true,asset:true,mode:"custom"},"Repeated fixed-aspect decorative planks belong to each flow shelf, not freely moved gameplay anchors."),
-    gardenSheet:region("gardenSheet","Garden detail/shop sheet","Garden Shelf",{measured:true,mode:"custom"},"Bounded modal flow adapter; sticky dismissal and content scrolling stay owned by Garden rather than transformed artwork slots."),
+    gardenSheet:region("gardenSheet","Garden detail/shop sheet","Garden Shelf",{measured:true,mode:"custom"},"Bounded modal flow adapter; sticky dismissal and content scrolling stay owned by Garden rather than transformed artwork slots. Shared menu-panel/menu-button are fixed theme skins, sliced around measured content rather than independently positioned gameplay art."),
     gardenQuestSheet:region("gardenQuestSheet","Garden quest sheet","Garden Shelf",{measured:true,mode:"custom"},"Bounded modal flow adapter for localized quest lists; content and dismissal remain reachable at every profile."),
 
     gardenRoot: region("gardenRoot", "Garden root", "Garden Shelf", { measured: true, mode: "custom" }),

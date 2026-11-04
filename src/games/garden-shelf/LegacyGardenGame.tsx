@@ -16,7 +16,7 @@ export default function LegacyGarden() {
     if (reloadRequired.current) return { error: 'CLIENT_UPDATE_REQUIRED' };
     if (!accountId || useGameHub.getState().snapshot?.player?.id !== accountId) return { error: 'GARDEN_ACCOUNT_MISMATCH' };
     try {
-      const result = await useGameHub.getState().performAction(...args);
+      const result = await useGameHub.getState().performAction(args[0], args[1], { ...args[2], suppressGlobalError: true });
       if (result?.error) reportError(String(result.error));
       return result;
     } catch (error) {
@@ -25,8 +25,8 @@ export default function LegacyGarden() {
     }
   }, [accountId]);
   const coordinator = useMemo(() => getGardenTransactionCoordinator(accountId,
-    (action, payload, options) => useGameHub.getState().performReliableAction(action, payload, { ...options, silent: true, feedback: false }),
-    pending => useGameHub.getState().performAction('garden.reconcileIntent', pending, { silent: true, feedback: false }),
+    (action, payload, options) => useGameHub.getState().performReliableAction(action, payload, { ...options, silent: true, feedback: false, suppressGlobalError: true }),
+    pending => useGameHub.getState().performAction('garden.reconcileIntent', pending, { silent: true, feedback: false, suppressGlobalError: true }),
     () => useGameHub.getState().snapshot?.player?.id === accountId,
     () => useGameHub.getState().snapshot?.serverTime
   ), [accountId]);
@@ -48,7 +48,7 @@ export default function LegacyGarden() {
   }, [coordinator, recoveryEpoch]);
   const onEconomicAction = useCallback(async (action, payload, state) => {
     if (!coordinator || !accountingReady || reloadRequired.current) return { error: 'GARDEN_ACCOUNTING_NOT_READY' };
-    const sync = await request('garden.sync', { state }, { silent: true, feedback: false, key: 'garden.sync', timeoutMs: 12000 });
+    const sync = await request('garden.sync', { state }, { silent: true, feedback: false, suppressGlobalError: true, key: 'garden.sync', timeoutMs: 12000 });
     if (sync?.error) return sync;
     const result = await coordinator.execute(action, { ...payload, expectedRevision: sync.snapshot?.garden?.economicRevision ?? state.economicRevision ?? 0 });
     if (result?.error) {

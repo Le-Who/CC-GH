@@ -257,7 +257,7 @@ test("Garden living panels separate header chrome from scrollable runtime conten
   assert.match(dialog, /border-image:var\(--gs2-panel-image\)/, "Generated border art remains outside the runtime content lane");
   assert.match(rule(".gs2-dialog-heading"), /flex:none/, "Header and close controls must not shrink into scroll content");
   assert.match(rule(".gs2-dialog-scroll"), /min-height:0;overflow:auto/, "Long runtime content remains scrollable below the header");
-  assert.match(presentation, /<header className="gs2-dialog-heading">[\s\S]*?<\/header><div className="gs2-dialog-scroll">/, "Header and content must be sibling lanes");
+  assert.match(presentation, /<header className="gs2-dialog-heading">[\s\S]*?<\/header>\{navigation && <nav className="gs2-dialog-navigation">\{navigation\}<\/nav>\}<div className="gs2-dialog-scroll">/, "Header, optional navigation and scroll content must remain sibling lanes");
   assert.match(presentation, /className="gs2-close" onClick=\{onClose\} aria-label=\{t\('ui.close'\)\}/, "Dismiss remains a labelled header control");
   assert.match(rule(".gs2-detail-stage"), /display:flex/, "Plant art has a separate Care stage");
   assert.match(rule(".gs2-detail-stat"), /justify-content:space-between/, "Care labels and runtime metric values occupy separate lanes");
@@ -354,11 +354,15 @@ test("Garden living controls use responsive semantic rows instead of fixed paint
   assert.match(presentation, /aria-pressed=\{language === lang\}[^>]*onClick=\{\(\) => setLanguage\(lang\)\}/, "Language buttons select the requested language");
   assert.match(rule(".gs2-action-row"), /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/, "Paired actions must fit the available panel width");
   assert.match(rule(".gs2-quest-card"), /display:grid/, "Quest labels, reward, progress and action use separate flow rows");
-  assert.match(presentation, /data-quest-id=\{q.id\}[\s\S]*?className="gs2-quest-reward"[\s\S]*?<Progress value=\{q.careAlternative \? Math.max\(q.percent, q.careAlternative.current \/ q.careAlternative.target \* 100\) : q.percent\}[\s\S]*?claimQuest\(q.id, q.reward\)/, "Quest cards retain legacy progress, the R2 care alternative, reward and claim wiring");
+  assert.match(presentation, /data-quest-id=\{q.id\}/, "Quest cards retain their stable identity");
+  assert.match(presentation, /<Progress value=\{q.current \/ q.target \* 100\}/, "Primary quest progress reflects the actual counter, including zero");
+  assert.match(presentation, /q.careAlternative &&[\s\S]*?<Progress value=\{q.careAlternative.current \/ q.careAlternative.target \* 100\}/, "The R2 alternative retains its own truthful counter and progress");
+  assert.match(presentation, /claimQuest\(q.id,\s*q.reward\)/, "Claim wiring retains the exact quest and economy reward");
   assert.match(presentation, /quests = useMemo\(\(\) => orderGardenQuests\(r2 \? r2.quests : buildGardenQuestSections\(state\)\), \[state, r2\]\)/, "Quest data comes from its active economy contract");
-  assert.match(presentation, /className="gs2-quest-reward"><Art name="coin" \/><strong>\{r2 \? formatR2Gold\(q.reward\) : formatGardenGoldAmount\(q.reward\)\}<\/strong>/, "Quest reward amounts retain their matching economy units");
-  assert.match(presentation, /disabled=\{busy \|\| !accountingReady \|\| !q.unlocked \|\| !q.complete \|\| q.claimed\}/, "Incomplete or already-claimed quests cannot be submitted");
-  assert.match(presentation, /role="tabpanel" className="gs2-catalog"/, "Shop and inventory content retain their semantic tab panel");
+  assert.match(presentation, /className="gs2-quest-reward"[^>]*><Art name="coin" \/><strong>\{r2 \? formatR2Gold\(q.reward\) : formatGardenGoldAmount\(q.reward\)\}<\/strong>/, "Quest reward amounts retain their matching economy units");
+  assert.match(presentation, /const ready = q.unlocked && q.complete && !q.claimed/, "Only unlocked, complete and unclaimed quests are ready to claim");
+  assert.match(presentation, /ready \? <Button[^>]*disabled=\{busy \|\| !accountingReady\}/, "Accounting and busy states still block ready quest submissions");
+  assert.match(presentation, /role="tabpanel"[^>]*className="gs2-catalog"/, "Shop and inventory content retain their semantic tab panel");
   assert.match(presentation, /onClick=\{\(\) => run\(\(\) => buyPlant\(def.id, spot.shelfIndex, spot.spotIndex\)\)\}/);
   assert.match(presentation, /onClick=\{\(\) => onPlace\(p, spot\)\}/, "Inventory placement must preserve the chosen plant and shelf spot");
   const rows = rule(".gs2-catalog-row");
