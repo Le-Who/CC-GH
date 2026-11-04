@@ -1,0 +1,1031 @@
+{
+  "schemaVersion": 1,
+  "assets": {
+    "basil-developing-r1.webp": {
+      "type": "basil",
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.498613,
+        "baseY": 0.940104,
+        "width": 0.481276
+      },
+      "paintedBounds": {
+        "x": 0.113731,
+        "y": 0.148438,
+        "width": 0.816921,
+        "height": 0.794271
+      }
+    },
+    "basil-mature-r1.webp": {
+      "type": "basil",
+      "sourceSize": {
+        "width": 720,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.49752,
+        "baseY": 0.977865,
+        "width": 0.473611
+      },
+      "paintedBounds": {
+        "x": 0.033333,
+        "y": 0.023438,
+        "width": 0.943056,
+        "height": 0.957031
+      }
+    },
+    "basil-seedling-r1.webp": {
+      "type": "basil",
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.49574,
+        "baseY": 0.977865,
+        "width": 0.478502
+      },
+      "paintedBounds": {
+        "x": 0.259362,
+        "y": 0.402344,
+        "width": 0.48405,
+        "height": 0.578125
+      }
+    },
+    "basil-young-r1.webp": {
+      "type": "basil",
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.495443,
+        "baseY": 0.976563,
+        "width": 0.479889
+      },
+      "paintedBounds": {
+        "x": 0.212205,
+        "y": 0.294271,
+        "width": 0.638003,
+        "height": 0.684896
+      }
+    },
+    "bonsai-developing-r1.webp": {
+      "type": "bonsai",
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "pot": {
+        "centerX": 0.543453,
+        "baseY": 0.942113,
+        "width": 0.513021
+      },
+      "paintedBounds": {
+        "x": 0.178385,
+        "y": 0.073806,
+        "width": 0.678385,
+        "height": 0.874096
+      }
+    },
+    "bonsai-mature-r1.webp": {
+      "type": "bonsai",
+      "sourceSize": {
+        "width": 768,
+        "height": 692
+      },
+      "pot": {
+        "centerX": 0.543907,
+        "baseY": 0.939306,
+        "width": 0.509115
+      },
+      "paintedBounds": {
+        "x": 0.063802,
+        "y": 0.050578,
+        "width": 0.885417,
+        "height": 0.894509
+      }
+    },
+    "bonsai-seedling-r1.webp": {
+      "type": "bonsai",
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "pot": {
+        "centerX": 0.544254,
+        "baseY": 0.942113,
+        "width": 0.513021
+      },
+      "paintedBounds": {
+        "x": 0.285156,
+        "y": 0.447178,
+        "width": 0.516927,
+        "height": 0.500724
+      }
+    },
+    "bonsai-young-r1.webp": {
+      "type": "bonsai",
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "pot": {
+        "centerX": 0.547996,
+        "baseY": 0.949349,
+        "width": 0.503906
+      },
+      "paintedBounds": {
+        "x": 0.28776,
+        "y": 0.248915,
+        "width": 0.514323,
+        "height": 0.706223
+      }
+    },
+    "daisy-budding-r1.webp": {
+      "type": "daisy",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.512207,
+        "baseY": 0.972656,
+        "width": 0.533203
+      },
+      "paintedBounds": {
+        "x": 0.072266,
+        "y": 0.092448,
+        "width": 0.878906,
+        "height": 0.88151
+      }
+    },
+    "daisy-mature-r2.webp": {
+      "type": "daisy",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.511393,
+        "baseY": 0.972656,
+        "width": 0.533203
+      },
+      "paintedBounds": {
+        "x": 0.060547,
+        "y": 0.033854,
+        "width": 0.894531,
+        "height": 0.940104
+      }
+    },
+    "daisy-seedling-r1.webp": {
+      "type": "daisy",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.511556,
+        "baseY": 0.971354,
+        "width": 0.535156
+      },
+      "paintedBounds": {
+        "x": 0.246094,
+        "y": 0.565104,
+        "width": 0.539063,
+        "height": 0.408854
+      }
+    },
+    "daisy-young-r1.webp": {
+      "type": "daisy",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.512044,
+        "baseY": 0.951823,
+        "width": 0.533203
+      },
+      "paintedBounds": {
+        "x": 0.080078,
+        "y": 0.380208,
+        "width": 0.841797,
+        "height": 0.574219
+      }
+    },
+    "fern-developing-r1.webp": {
+      "type": "fern",
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "pot": {
+        "centerX": 0.523546,
+        "baseY": 0.972504,
+        "width": 0.34375
+      },
+      "paintedBounds": {
+        "x": 0.158854,
+        "y": 0.156295,
+        "width": 0.757813,
+        "height": 0.817656
+      }
+    },
+    "fern-mature-r1.webp": {
+      "type": "fern",
+      "sourceSize": {
+        "width": 768,
+        "height": 692
+      },
+      "pot": {
+        "centerX": 0.521484,
+        "baseY": 0.969653,
+        "width": 0.342448
+      },
+      "paintedBounds": {
+        "x": 0.035156,
+        "y": 0.028902,
+        "width": 0.946615,
+        "height": 0.943642
+      }
+    },
+    "fern-seedling-r1.webp": {
+      "type": "fern",
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "pot": {
+        "centerX": 0.522786,
+        "baseY": 0.969609,
+        "width": 0.34375
+      },
+      "paintedBounds": {
+        "x": 0.315104,
+        "y": 0.499276,
+        "width": 0.40625,
+        "height": 0.473227
+      }
+    },
+    "fern-young-r1.webp": {
+      "type": "fern",
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "pot": {
+        "centerX": 0.52322,
+        "baseY": 0.991317,
+        "width": 0.34375
+      },
+      "paintedBounds": {
+        "x": 0.264323,
+        "y": 0.337192,
+        "width": 0.575521,
+        "height": 0.657019
+      }
+    },
+    "lavender-developing-r1.webp": {
+      "type": "lavender",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.493327,
+        "baseY": 0.96875,
+        "width": 0.576172
+      },
+      "paintedBounds": {
+        "x": 0.095703,
+        "y": 0.0625,
+        "width": 0.847656,
+        "height": 0.908854
+      }
+    },
+    "lavender-mature-r1.webp": {
+      "type": "lavender",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.49056,
+        "baseY": 0.96875,
+        "width": 0.576172
+      },
+      "paintedBounds": {
+        "x": 0.068359,
+        "y": 0.02474,
+        "width": 0.886719,
+        "height": 0.945313
+      }
+    },
+    "lavender-seedling-r2.webp": {
+      "type": "lavender",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.492676,
+        "baseY": 0.947917,
+        "width": 0.580078
+      },
+      "paintedBounds": {
+        "x": 0.207031,
+        "y": 0.460938,
+        "width": 0.583984,
+        "height": 0.488281
+      }
+    },
+    "lavender-young-r1.webp": {
+      "type": "lavender",
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.490397,
+        "baseY": 0.947917,
+        "width": 0.576172
+      },
+      "paintedBounds": {
+        "x": 0.115234,
+        "y": 0.257813,
+        "width": 0.78125,
+        "height": 0.692708
+      }
+    },
+    "monstera-developing-r1.webp": {
+      "type": "monstera",
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.512681,
+        "baseY": 0.967448,
+        "width": 0.378641
+      },
+      "paintedBounds": {
+        "x": 0.171983,
+        "y": 0.119792,
+        "width": 0.705964,
+        "height": 0.85026
+      }
+    },
+    "monstera-mature-r1.webp": {
+      "type": "monstera",
+      "sourceSize": {
+        "width": 720,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.507242,
+        "baseY": 0.972656,
+        "width": 0.380556
+      },
+      "paintedBounds": {
+        "x": 0.029167,
+        "y": 0.018229,
+        "width": 0.9375,
+        "height": 0.955729
+      }
+    },
+    "monstera-seedling-r1.webp": {
+      "type": "monstera",
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.50634,
+        "baseY": 0.970052,
+        "width": 0.380028
+      },
+      "paintedBounds": {
+        "x": 0.271845,
+        "y": 0.404948,
+        "width": 0.558946,
+        "height": 0.567708
+      }
+    },
+    "monstera-young-r1.webp": {
+      "type": "monstera",
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.50961,
+        "baseY": 0.970052,
+        "width": 0.385576
+      },
+      "paintedBounds": {
+        "x": 0.18724,
+        "y": 0.264323,
+        "width": 0.664355,
+        "height": 0.708333
+      }
+    },
+    "moon-cactus-developing-r1.webp": {
+      "type": "moon_cactus",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.500521,
+        "baseY": 0.973958,
+        "width": 0.5875
+      },
+      "paintedBounds": {
+        "x": 0.207813,
+        "y": 0.102865,
+        "width": 0.590625,
+        "height": 0.873698
+      }
+    },
+    "moon-cactus-mature-r1.webp": {
+      "type": "moon_cactus",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.498003,
+        "baseY": 0.973958,
+        "width": 0.582813
+      },
+      "paintedBounds": {
+        "x": 0.20625,
+        "y": 0.041667,
+        "width": 0.609375,
+        "height": 0.934896
+      }
+    },
+    "moon-cactus-seedling-r1.webp": {
+      "type": "moon_cactus",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.498351,
+        "baseY": 0.97526,
+        "width": 0.585938
+      },
+      "paintedBounds": {
+        "x": 0.20625,
+        "y": 0.223958,
+        "width": 0.589063,
+        "height": 0.753906
+      }
+    },
+    "moon-cactus-young-r1.webp": {
+      "type": "moon_cactus",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.500608,
+        "baseY": 0.97526,
+        "width": 0.585938
+      },
+      "paintedBounds": {
+        "x": 0.209375,
+        "y": 0.152344,
+        "width": 0.589063,
+        "height": 0.824219
+      }
+    },
+    "orchid-developing-r1.webp": {
+      "type": "orchid",
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "pot": {
+        "centerX": 0.466688,
+        "baseY": 0.952991,
+        "width": 0.338542
+      },
+      "paintedBounds": {
+        "x": 0.135417,
+        "y": 0.07265,
+        "width": 0.813802,
+        "height": 0.883191
+      }
+    },
+    "orchid-mature-r1.webp": {
+      "type": "orchid",
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "pot": {
+        "centerX": 0.466471,
+        "baseY": 0.952991,
+        "width": 0.33724
+      },
+      "paintedBounds": {
+        "x": 0.135417,
+        "y": 0.027066,
+        "width": 0.822917,
+        "height": 0.928775
+      }
+    },
+    "orchid-seedling-r1.webp": {
+      "type": "orchid",
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "pot": {
+        "centerX": 0.487956,
+        "baseY": 0.958689,
+        "width": 0.358073
+      },
+      "paintedBounds": {
+        "x": 0.174479,
+        "y": 0.441595,
+        "width": 0.61849,
+        "height": 0.519943
+      }
+    },
+    "orchid-young-r1.webp": {
+      "type": "orchid",
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "pot": {
+        "centerX": 0.494978,
+        "baseY": 0.970085,
+        "width": 0.395833
+      },
+      "paintedBounds": {
+        "x": 0.098958,
+        "y": 0.200855,
+        "width": 0.816406,
+        "height": 0.77208
+      }
+    },
+    "pothos-developing-r1.webp": {
+      "type": "pothos",
+      "sourceSize": {
+        "width": 768,
+        "height": 742
+      },
+      "pot": {
+        "centerX": 0.526042,
+        "baseY": 0.911051,
+        "width": 0.372396
+      },
+      "paintedBounds": {
+        "x": 0.11849,
+        "y": 0.080863,
+        "width": 0.751302,
+        "height": 0.831536
+      }
+    },
+    "pothos-mature-r1.webp": {
+      "type": "pothos",
+      "sourceSize": {
+        "width": 768,
+        "height": 743
+      },
+      "pot": {
+        "centerX": 0.525112,
+        "baseY": 0.909825,
+        "width": 0.36849
+      },
+      "paintedBounds": {
+        "x": 0.042969,
+        "y": 0.043069,
+        "width": 0.924479,
+        "height": 0.869448
+      }
+    },
+    "pothos-seedling-r1.webp": {
+      "type": "pothos",
+      "sourceSize": {
+        "width": 768,
+        "height": 742
+      },
+      "pot": {
+        "centerX": 0.525391,
+        "baseY": 0.912399,
+        "width": 0.371094
+      },
+      "paintedBounds": {
+        "x": 0.298177,
+        "y": 0.300539,
+        "width": 0.417969,
+        "height": 0.613208
+      }
+    },
+    "pothos-young-r1.webp": {
+      "type": "pothos",
+      "sourceSize": {
+        "width": 768,
+        "height": 742
+      },
+      "pot": {
+        "centerX": 0.525112,
+        "baseY": 0.911051,
+        "width": 0.373698
+      },
+      "paintedBounds": {
+        "x": 0.227865,
+        "y": 0.184636,
+        "width": 0.61849,
+        "height": 0.729111
+      }
+    },
+    "rosemary-developing-r1.webp": {
+      "type": "rosemary",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.524107,
+        "baseY": 0.983073,
+        "width": 0.49375
+      },
+      "paintedBounds": {
+        "x": 0.1625,
+        "y": 0.014323,
+        "width": 0.757813,
+        "height": 0.971354
+      }
+    },
+    "rosemary-mature-r1.webp": {
+      "type": "rosemary",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.524554,
+        "baseY": 0.984375,
+        "width": 0.490625
+      },
+      "paintedBounds": {
+        "x": 0.035938,
+        "y": 0.014323,
+        "width": 0.93125,
+        "height": 0.971354
+      }
+    },
+    "rosemary-seedling-r1.webp": {
+      "type": "rosemary",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.523326,
+        "baseY": 0.983073,
+        "width": 0.49375
+      },
+      "paintedBounds": {
+        "x": 0.276563,
+        "y": 0.35026,
+        "width": 0.496875,
+        "height": 0.635417
+      }
+    },
+    "rosemary-young-r1.webp": {
+      "type": "rosemary",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.524888,
+        "baseY": 0.983073,
+        "width": 0.495313
+      },
+      "paintedBounds": {
+        "x": 0.242188,
+        "y": 0.208333,
+        "width": 0.573438,
+        "height": 0.777344
+      }
+    },
+    "strawberry-developing-r1.webp": {
+      "type": "strawberry",
+      "sourceSize": {
+        "width": 768,
+        "height": 690
+      },
+      "pot": {
+        "centerX": 0.511312,
+        "baseY": 0.971014,
+        "width": 0.488281
+      },
+      "paintedBounds": {
+        "x": 0.066406,
+        "y": 0.026087,
+        "width": 0.907552,
+        "height": 0.947826
+      }
+    },
+    "strawberry-mature-r1.webp": {
+      "type": "strawberry",
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "pot": {
+        "centerX": 0.510417,
+        "baseY": 0.969609,
+        "width": 0.483073
+      },
+      "paintedBounds": {
+        "x": 0.053385,
+        "y": 0.023155,
+        "width": 0.927083,
+        "height": 0.949349
+      }
+    },
+    "strawberry-seedling-r1.webp": {
+      "type": "strawberry",
+      "sourceSize": {
+        "width": 768,
+        "height": 690
+      },
+      "pot": {
+        "centerX": 0.510579,
+        "baseY": 0.968116,
+        "width": 0.486979
+      },
+      "paintedBounds": {
+        "x": 0.266927,
+        "y": 0.301449,
+        "width": 0.490885,
+        "height": 0.669565
+      }
+    },
+    "strawberry-young-r1.webp": {
+      "type": "strawberry",
+      "sourceSize": {
+        "width": 768,
+        "height": 690
+      },
+      "pot": {
+        "centerX": 0.511149,
+        "baseY": 0.972464,
+        "width": 0.488281
+      },
+      "paintedBounds": {
+        "x": 0.139323,
+        "y": 0.104348,
+        "width": 0.80599,
+        "height": 0.869565
+      }
+    },
+    "string-of-pearls-developing-r1.webp": {
+      "type": "string_of_pearls",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.506186,
+        "baseY": 0.708333,
+        "width": 0.432813
+      },
+      "paintedBounds": {
+        "x": 0.176563,
+        "y": 0.002604,
+        "width": 0.667188,
+        "height": 0.954427
+      }
+    },
+    "string-of-pearls-mature-r1.webp": {
+      "type": "string_of_pearls",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.505498,
+        "baseY": 0.709635,
+        "width": 0.43125
+      },
+      "paintedBounds": {
+        "x": 0.153125,
+        "y": 0.003906,
+        "width": 0.745313,
+        "height": 0.989583
+      }
+    },
+    "string-of-pearls-seedling-r1.webp": {
+      "type": "string_of_pearls",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.509071,
+        "baseY": 0.709635,
+        "width": 0.432813
+      },
+      "paintedBounds": {
+        "x": 0.275,
+        "y": 0.002604,
+        "width": 0.45,
+        "height": 0.709635
+      }
+    },
+    "string-of-pearls-young-r1.webp": {
+      "type": "string_of_pearls",
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "pot": {
+        "centerX": 0.502814,
+        "baseY": 0.708333,
+        "width": 0.429688
+      },
+      "paintedBounds": {
+        "x": 0.259375,
+        "y": 0.002604,
+        "width": 0.498438,
+        "height": 0.753906
+      }
+    },
+    "succulent-developing-r1.webp": {
+      "type": "succulent",
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "pot": {
+        "centerX": 0.497675,
+        "baseY": 0.970861,
+        "width": 0.671875
+      },
+      "paintedBounds": {
+        "x": 0.138021,
+        "y": 0.144371,
+        "width": 0.739583,
+        "height": 0.831788
+      }
+    },
+    "succulent-mature-r1.webp": {
+      "type": "succulent",
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "pot": {
+        "centerX": 0.505353,
+        "baseY": 0.97351,
+        "width": 0.677083
+      },
+      "paintedBounds": {
+        "x": 0.053385,
+        "y": 0.042384,
+        "width": 0.893229,
+        "height": 0.933775
+      }
+    },
+    "succulent-seedling-r1.webp": {
+      "type": "succulent",
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "pot": {
+        "centerX": 0.497675,
+        "baseY": 0.97351,
+        "width": 0.669271
+      },
+      "paintedBounds": {
+        "x": 0.154948,
+        "y": 0.328477,
+        "width": 0.690104,
+        "height": 0.649007
+      }
+    },
+    "succulent-young-r1.webp": {
+      "type": "succulent",
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "pot": {
+        "centerX": 0.504464,
+        "baseY": 0.972185,
+        "width": 0.678385
+      },
+      "paintedBounds": {
+        "x": 0.154948,
+        "y": 0.223841,
+        "width": 0.701823,
+        "height": 0.750993
+      }
+    },
+    "venus-flytrap-developing-r1.webp": {
+      "type": "venus_flytrap",
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "pot": {
+        "centerX": 0.522542,
+        "baseY": 0.977433,
+        "width": 0.459635
+      },
+      "paintedBounds": {
+        "x": 0.104167,
+        "y": 0.062059,
+        "width": 0.822917,
+        "height": 0.918195
+      }
+    },
+    "venus-flytrap-mature-r1.webp": {
+      "type": "venus_flytrap",
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "pot": {
+        "centerX": 0.523438,
+        "baseY": 0.978843,
+        "width": 0.457031
+      },
+      "paintedBounds": {
+        "x": 0.036458,
+        "y": 0.012694,
+        "width": 0.927083,
+        "height": 0.96756
+      }
+    },
+    "venus-flytrap-seedling-r1.webp": {
+      "type": "venus_flytrap",
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "pot": {
+        "centerX": 0.520327,
+        "baseY": 0.959097,
+        "width": 0.492188
+      },
+      "paintedBounds": {
+        "x": 0.269531,
+        "y": 0.317348,
+        "width": 0.497396,
+        "height": 0.64457
+      }
+    },
+    "venus-flytrap-young-r1.webp": {
+      "type": "venus_flytrap",
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "pot": {
+        "centerX": 0.523356,
+        "baseY": 0.977433,
+        "width": 0.459635
+      },
+      "paintedBounds": {
+        "x": 0.165365,
+        "y": 0.094499,
+        "width": 0.700521,
+        "height": 0.885755
+      }
+    },
+    "pot.webp": {
+      "type": null,
+      "sourceSize": {
+        "width": 256,
+        "height": 246
+      },
+      "pot": {
+        "centerX": 0.499349,
+        "baseY": 0.95935,
+        "width": 0.898438
+      },
+      "paintedBounds": {
+        "x": 0.035156,
+        "y": 0.03252,
+        "width": 0.929688,
+        "height": 0.934959
+      }
+    }
+  }
+}

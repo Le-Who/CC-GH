@@ -156,6 +156,7 @@ export default defineConfig({
           if (id.replaceAll("\\", "/").endsWith("/game-logic/merge-lab-catalog.js")) return "merge-lab-catalog";
           const sourceId = id.replaceAll("\\", "/");
           if (sourceId.endsWith("/src/games/garden-shelf/lib/gardenTranslations.ts")) return "garden-translations";
+          if (sourceId.includes("/src/games/garden-shelf/living/")) return "garden-living";
           if (sourceId.endsWith("/src/games/settlement/gameData.js")) return "settlement-catalog";
           if (sourceId.endsWith("/src/games/settlement/settlementText.js")) return "settlement-translations";
           if (sourceId.endsWith("/src/games/settlement/assetRegistry.js")) return "settlement-assets";

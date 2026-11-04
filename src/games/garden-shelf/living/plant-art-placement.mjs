@@ -1,4 +1,4 @@
-import geometry from './plant-geometry.json' with { type: 'json' };
+import geometry from './plant-runtime-geometry.json' with { type: 'json' };
 import { fitArtwork } from './plant-presentation-contract.mjs';
 
 export const plantGeometry = geometry.assets;

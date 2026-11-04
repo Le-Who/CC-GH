@@ -9,6 +9,7 @@ import { stageProfile } from '../src/games/garden-shelf/living/plant-stage-profi
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const outputFile = path.join(root, 'src/games/garden-shelf/living/plant-geometry.json');
+const runtimeFile = path.join(root, 'src/games/garden-shelf/living/plant-runtime-geometry.json');
 const evidenceDir = path.join(root, 'output/garden-pot-anchors');
 // --accept-reviewed records the completed owner/independent annotated-source
 // review. Ordinary regeneration preserves approval only for identical bytes.
@@ -199,8 +200,15 @@ const metadata = {
   assets,
 };
 const json = JSON.stringify(metadata, null, 2) + '\n';
+// The reviewed report stays in source; players receive only rendering inputs.
+const runtime = JSON.stringify({ schemaVersion: 1, assets: Object.fromEntries(Object.entries(assets).map(([name, record]) => [name, {
+  type: record.type, sourceSize: record.sourceSize,
+  pot: { centerX: record.pot.centerX, baseY: record.pot.baseY, width: record.pot.width },
+  paintedBounds: record.paintedBounds,
+}])) }, null, 2) + '\n';
 if (process.argv.includes('--check')) {
   if (await fs.readFile(outputFile, 'utf8') !== json) throw Error('Recorded Garden pot geometry differs from current source measurements');
+  if (await fs.readFile(runtimeFile, 'utf8') !== runtime) throw Error('Garden runtime geometry differs from reviewed source measurements');
   for (const [name, record] of Object.entries(assets)) {
     const p = record.pot, bounds = record.paintedBounds;
     if (![p.centerX, p.baseY, p.width].every(Number.isFinite) || p.width <= 0 || p.width > 1 || p.centerX < bounds.x || p.centerX > bounds.x + bounds.width || p.baseY < bounds.y || p.baseY > bounds.y + bounds.height + .002) throw Error(`Invalid source support: ${name}`);
@@ -209,6 +217,7 @@ if (process.argv.includes('--check')) {
   console.log('Verified57 source hashes, reviewed geometry fingerprints, exact runtime coverage and finite source-space support measurements.');
 } else {
   await fs.writeFile(outputFile, json);
+  await fs.writeFile(runtimeFile, runtime);
   await fs.mkdir(evidenceDir, { recursive: true });
   const types = Object.keys(bases).sort();
   const ordered = types.flatMap(type => [0, 1, 2, 3].map(phase => Object.entries(assets).find(([, value]) => value.type === type && value.phase === phase)));
