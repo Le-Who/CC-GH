@@ -1,0 +1,684 @@
+{
+  "liveBase": {
+    "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+    "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
+    "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
+    "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
+  },
+  "qualifiedSource": "80c4a8f4e14ec30ff3ec8be9ff7b36f5387cfbca",
+  "sourceChanges": [
+    {
+      "path": ".gitignore",
+      "before": {
+        "mode": "100644",
+        "objectId": "69573754133381cd3190d2243d954b3e1ce865c4"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "5c990f6c9bb16ba77f6f648ebcfe763df399a990"
+      },
+      "status": "M"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/conservatory-source.png",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "7263de7c77ca3f2069633691b2ba4ff781279f0a"
+      },
+      "status": "A"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/glass-frame-source.png",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "c070beabde509195c550a8267984d0a32997afe6"
+      },
+      "status": "A"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/hud-rail-source.png",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "26c2420b36afc55ccf6c080cbc62acc126a8c414"
+      },
+      "status": "A"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/menu-button-source.png",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "739973abc13b3fe7c61e4581a772da30e365b07d"
+      },
+      "status": "A"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/menu-panel-source.png",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "ebdeaf29f0a7433d3f640ce0ee32e5e996aa3a17"
+      },
+      "status": "A"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/provenance.json",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "6714ff2b1525b6b47ad8d5cf3372ae372a4a6a68"
+      },
+      "status": "A"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/shelf-source.png",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "1bddbd73e0d63444decbe0cc6a3649dc1a5a53b7"
+      },
+      "status": "A"
+    },
+    {
+      "path": "assets-source/imagegen/garden-terrarium/sign-source.png",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "fad64497414b80aaaf48a4de8a91c1b396faad9e"
+      },
+      "status": "A"
+    },
+    {
+      "path": "docs/agents/UI_QA.md",
+      "before": {
+        "mode": "100644",
+        "objectId": "74bf83df9c7bfc59ce2c58b46d1a15e404602f79"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "5d1b96a13292fe698e09a584cc62fee5fc42098c"
+      },
+      "status": "M"
+    },
+    {
+      "path": "playwright.terrarium.config.mjs",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "7a1708b4fb7df20ca5121c21ba9715a8e8a1486f"
+      },
+      "status": "A"
+    },
+    {
+      "path": "public/games/garden-v2/terrarium/conservatory.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "61b9a24a113e6c510eac70891f48831596a8cd6d"
+      },
+      "status": "A"
+    },
+    {
+      "path": "public/games/garden-v2/terrarium/glass-frame.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "a986dc2d0db6cf81caf955f2e52f9311d2b85d0c"
+      },
+      "status": "A"
+    },
+    {
+      "path": "public/games/garden-v2/terrarium/hud-rail.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "89e586b8d67e64f70c3e5b710840f34ea4dc7ab3"
+      },
+      "status": "A"
+    },
+    {
+      "path": "public/games/garden-v2/terrarium/menu-button.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "31de545a6065a5c2536964108c1fc1192bac2184"
+      },
+      "status": "A"
+    },
+    {
+      "path": "public/games/garden-v2/terrarium/menu-panel.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "885f7b518165c93228c4e3ce564a074f86431093"
+      },
+      "status": "A"
+    },
+    {
+      "path": "public/games/garden-v2/terrarium/shelf.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "a236cc8c4eb76e952394b630f069197f64f74cbd"
+      },
+      "status": "A"
+    },
+    {
+      "path": "public/games/garden-v2/terrarium/sign.webp",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "04dc332f4f719266dec934bc441fb7aecfad5032"
+      },
+      "status": "A"
+    },
+    {
+      "path": "scripts/export-garden-terrarium-art.mjs",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "384a89cfb2e46891166f6a30af31b59ec0e82cc7"
+      },
+      "status": "A"
+    },
+    {
+      "path": "scripts/measure-garden-pot-anchors.mjs",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "91c483e7bc70456ac0df556d312e5000bae8cd7d"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/app/dialogFocus.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "b8c6722cd735146c6426203c2d2dd297f4da8a6c"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "713aae858ce6e230c594369585d0d1b8dc1253d4"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/hud-layout/defaultLayouts/garden.json",
+      "before": {
+        "mode": "100644",
+        "objectId": "abb9856e936204d38e0a226a0e3229894decb996"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "f59aec6b04435453be45210a31dd9324f76b0b6d"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/app/hud-layout/registry.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "fb726953646585feece090b2b83c86c6229d8682"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "bd37ae086d4bce29c4a444d2413229a512ad756f"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "e9f2841cd35107c936451ff46c4dc3aefe6b5968"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "8fe65295ad06d09f2dc88ef7694711f1f5a76662"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenDetail.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "54037735552bf9cd7280a20bd256e1c3e50e1ec1"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "595ab9e1e91d37703d0ca312b9397b46e483e217"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenPresentation.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "1523411c3380c98b55a63ee2b31c4a62f0312a44"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "470ee17ebcd2351dfe8b22b9135257b996122b62"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenQuests.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "c6b0dc35264b4ead571e224682f8c98b51c97499"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "45073bcf18520d09373bfbc4f2bc3515ebafe7e0"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenSettingsDialog.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "63a838ad655884daa2e3362017d2d732355ecd64"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "536bd1f381eec83da7cc349f8a82128049f45255"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenShop.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "66b742720f7802778113b222f5f85f6c8a0be667"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "b631543c2ded811610958b4328f89460fdab2ed0"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenViewShared.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "c243fcedf943945ec63b367fa77878a5aba90028"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "e1e269a3f727538d547119cd573f9d0b577937a6"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/LegacyGardenGame.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "0636f50d27514b71348a56e8314725204380dffa"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "e7acaa4db015bb76b02d1da2718a485dab4a8276"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/components/GardenR2Progress.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "f691e773d75454ab09b2b0d63af4161d18be64a7"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "9a1eebc204ea11b70f0cba468c1ab72a512fa9dc"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/garden-menus.css",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "5818749cfc3ab456aee04d8ea28fcd5e6ab65750"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/games/garden-shelf/garden-terrarium.css",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "f590a37969809e26cc03275b18c8ec8573b90b90"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/games/garden-shelf/garden-theme.css",
+      "before": {
+        "mode": "100644",
+        "objectId": "5b2111da28dc2ef575516a14e266841759936b3e"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "4c58f5ab2e79a9ed234b2cd9427593b6bd9604fc"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/gardenComposition.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "80b46ad1baf0b3873fa72b6b150e9027f44fad53"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "a3c4115e8c6ed5c3e968fbc31722f24304fc3906"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/lib/GardenR2Provider.tsx",
+      "before": {
+        "mode": "100644",
+        "objectId": "d8dced3438e1a0defe3f0ce45c4887e7cba7b42b"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "0b98bf62d069566a56f787e1a5b572da5425ab34"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/lib/gardenTranslations.ts",
+      "before": {
+        "mode": "100644",
+        "objectId": "982fadd9c22f38c5877bc8a6ff01743116898375"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "1892afcd667c130960bbdaab5d241bd08630febc"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/living/living-plant-art.mjs",
+      "before": {
+        "mode": "100644",
+        "objectId": "23ca8b4e3f9f61b45a6621695ab53bf371eb3132"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "8ec0f72baa697d763121e097d92dc08d430498d0"
+      },
+      "status": "M"
+    },
+    {
+      "path": "src/games/garden-shelf/living/plant-art-placement.mjs",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "1b70592a39b92a1cd507904782e02d4612280481"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/games/garden-shelf/living/plant-geometry.json",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "fbd7c2ba118d649d48fdaa995655a55a0ad3c7c0"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/games/garden-shelf/living/plant-runtime-geometry.json",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "8322f4c60214d7853bc5057ac18bb29fb653c663"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/games/garden-shelf/useMenuCompletion.ts",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "34443b01caa6e73311f5ef671d54e06725264262"
+      },
+      "status": "A"
+    },
+    {
+      "path": "tests/e2e/garden-plant-anchors.spec.js",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "955cd892306172cbbfb28bc168b2eba3d1d67c44"
+      },
+      "status": "A"
+    },
+    {
+      "path": "tests/e2e/garden-r2.spec.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "9a2e4878a52d09affea4e350ca52850d70565e9b"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "10ef2c8d8e868f91fab3d9a20fa4461281eecab4"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/e2e/garden-shelf.spec.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "e20f53718320051987db2fc03458d42582b6c5fd"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "a51792b8e7b5574604cdb36b6cf1dd9bf1c99c21"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/e2e/garden-terrarium.spec.js",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "2cc3444b49632ed187fbe92196443c52eef90440"
+      },
+      "status": "A"
+    },
+    {
+      "path": "tests/garden-living-plant-surface.test.mjs",
+      "before": {
+        "mode": "100644",
+        "objectId": "bc50db6703bcbd4cef2569c2d430f1d79f8e7d7c"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "b1eb74254577c3b6fdc6e654e86804d5f98a2223"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/garden-r2-store.test.mjs",
+      "before": {
+        "mode": "100644",
+        "objectId": "ddaa204c831d5094ef7f5863e758992239139636"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "6b738f6a3afd49f9a6b2c6cce2c026bfec139b61"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/garden-release-integration.test.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "90ac4b84fe84b720a7156c2a5c615a2d224b6913"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "0e24656609c8ca71440a4a9563c801a72c91f719"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/ui-screen-surfaces.test.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "c9b463d14387b79a3e4e810b402af83ec86ae9b6"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "b36a5fe00d55ef106a28074d3e8b6ac7710002db"
+      },
+      "status": "M"
+    },
+    {
+      "path": "vite.config.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "049d9bed0b27e7a7969e56bd15acbfd718214292"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "c74697e3b004dc6cb584884c2891f9039b769c97"
+      },
+      "status": "M"
+    }
+  ],
+  "historical": {
+    "controller": "638a4ad2adc3242e84271c72860421d1eeca3ce3",
+    "workflowPath": ".github/workflows/catalogue-access-activate.yml",
+    "workflowSha256": "a5e397a73dea9bbab5a98ff1b0a89aadb0c891c3226b73c5e0e69409d5a2df2d",
+    "recordSha256": "ad12c20803c795d544f7a5583cd1eb3f1e362edb629e8109ce08bd9fa50017b5",
+    "candidateReceiptSha256": "957651a59f40e138f321d90fe337dbda97cb71a269b24719ca3a24880b74e4ea",
+    "imageRun": 41077241541,
+    "activationRun": 41079169223,
+    "activationJob": 124143348739
+  },
+  "runtime": {
+    "composeSha256": "d5e6e1e6afef6733ce340ccc9b3eefb45630ac2dba14ac9810a9af1676293a4f",
+    "localUrl": "http://127.0.0.1:18080/",
+    "publicUrl": "https://games.tri.mom/",
+    "dbUser": "appuser",
+    "dbName": "gamehub",
+    "protectedServices": [
+      "caddy.service"
+    ],
+    "neighborPublicHealth": "not-proven"
+  },
+  "storage": {
+    "format": "yard-persistent/v1",
+    "readVersions": [
+      1,
+      2
+    ],
+    "writeVersions": [
+      1,
+      2
+    ],
+    "transition": "first-successful-canonical-placement-writes-v2",
+    "rollback": "prior-image-compatible-replay-preserves-v2",
+    "compatibilityRequired": true,
+    "reset": "none"
+  },
+  "capabilities": {
+    "authority": "source-owned-authenticated-policy",
+    "clientGraph": true,
+    "itemKinds": [
+      "leaf_pot"
+    ],
+    "placementLimit": 2,
+    "foodSocket": "bowl-1",
+    "canonicalVisitorAdmission": false,
+    "fixtureLoader": false,
+    "devAuth": false
+  },
+  "predecessorReceiptSha256": "358437c502ce489ad79ade0ba110bbbb7a9c8c6238db31275174a657dce01128"
+}
