@@ -43,7 +43,7 @@ export async function preflight(){
  assert.equal(job?.conclusion,'success');assert(job.steps.every(step=>['success','skipped'].includes(step.conclusion)));
  await fs.mkdir(OUT,{recursive:true});
  await fs.copyFile('qa/garden-release/predecessor-receipt.json',path.join(OUT,'predecessor-active-receipt.json'));
- await save('source-inventory.json',{status:'passed',head,tree:git('rev-parse','HEAD^{tree}'),liveBase:s.liveBase,integrationParent:s.qualifiedSource,sourceChanges:product,acceptanceOnlyPaths:delta,manifestSha256:sha(await fs.readFile('qa/garden-release/manifest.json')),historical:s.historical,controllerSource:pins,scope:'Garden on exact current live base; unchanged backend, dependencies, Dockerfile and app-only release mechanisms. Historical successful activation is provenance; fresh host verification remains required.'});
+ await save('source-inventory.json',{status:'passed',head,tree:git('rev-parse','HEAD^{tree}'),liveBase:s.liveBase,integrationParent:s.qualifiedSource,sourceChanges:product,acceptanceOnlyPaths:delta,manifestSha256:sha(await fs.readFile('qa/garden-release/manifest.json')),historical:s.historical,controllerSource:pins,scope:'Garden on exact current live base; unchanged backend, dependencies, Dockerfile and app-only release guards. Historical successful activation is provenance; fresh host verification remains required.'});
  return {head,m:{...m,predecessor:s.liveBase,priorGreen:{commit:s.liveBase.commit,imageRun:s.historical.imageRun,activationRun:s.historical.activationRun},workflowTrustBoundary:'Exact one-shot first push; source closure and GitHub metadata verified; image and deployment each require independent receipts'}};
 }
 export async function verifyFreshControllerProof(){

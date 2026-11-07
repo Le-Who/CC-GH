@@ -4,16 +4,16 @@
   "repositoryId": 1162268629,
   "status": "accepted",
   "release": {
+    "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+    "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+    "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+    "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+  },
+  "predecessor": {
     "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
     "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
     "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
     "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
-  },
-  "predecessor": {
-    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
   },
   "mode": "development-protocol-evolution",
   "storage": {
@@ -44,12 +44,12 @@
     "devAuth": false
   },
   "acceptance": {
-    "runId": 41077241541,
+    "runId": 41841139213,
     "runAttempt": 1,
     "status": "completed",
     "conclusion": "success",
-    "headCommit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
-    "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614"
+    "headCommit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+    "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e"
   },
   "checks": [
     {
@@ -58,25 +58,25 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "reviewed-source-and-mocked-release-guard",
       "cases": [],
       "evidence": [
         {
           "path": "source-inventory.json",
-          "bytes": 5619,
-          "sha256": "27d130968568b1159719689b4561a401a4aaaa284e1ab50481f52a73e9ba9032"
+          "bytes": 23239,
+          "sha256": "9e6852381bf6ac8c45fdbf5b83f76bbf4932dca6ec27a071b9c4decc65dc3d1e"
         }
       ]
     },
@@ -86,25 +86,30 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [],
       "evidence": [
         {
           "path": "image-identity.json",
-          "bytes": 1526712,
-          "sha256": "3017a7ddd967de6799ac32843826506795fb396bd6bd8d39571d10a0ea4ad32e"
+          "bytes": 1531072,
+          "sha256": "c68f364459b13fd5fdd1bea6a20b9796f88fa61474628933ceafd18446f64f9b"
+        },
+        {
+          "path": "image-budget.json",
+          "bytes": 1354233,
+          "sha256": "51a807fd388c73036eabdb3c9f7f38c2bf6e04d34ff4398452f96a1aae1e82f6"
         }
       ]
     },
@@ -114,18 +119,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "api-and-warm"
@@ -134,7 +139,7 @@
         {
           "path": "api-proof.json",
           "bytes": 13598,
-          "sha256": "d96f93e2d925564715027d170711a970b191546aec6879428aa492aea8ba84c4"
+          "sha256": "773a5caef4601c8751f1ea9b7396b37679a16c72ac4d6794409c57cdd4cb690a"
         }
       ]
     },
@@ -144,18 +149,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "current-v2-pending"
@@ -164,7 +169,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -174,18 +179,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "current-v2-pending"
@@ -194,7 +199,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -204,18 +209,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "current-v2-pending"
@@ -224,7 +229,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -234,18 +239,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "current-v2-pending"
@@ -254,7 +259,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -264,18 +269,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "current-v2-pending"
@@ -284,7 +289,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -294,18 +299,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "occupied-320x568",
@@ -316,7 +321,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -326,18 +331,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "api-and-warm"
@@ -346,7 +351,7 @@
         {
           "path": "api-proof.json",
           "bytes": 13598,
-          "sha256": "d96f93e2d925564715027d170711a970b191546aec6879428aa492aea8ba84c4"
+          "sha256": "773a5caef4601c8751f1ea9b7396b37679a16c72ac4d6794409c57cdd4cb690a"
         }
       ]
     },
@@ -356,18 +361,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "occupied-320x568",
@@ -378,7 +383,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -388,25 +393,25 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "unaltered-native-originals-await-independent-review",
       "cases": [],
       "evidence": [
         {
           "path": "occupied-320x568-food.png",
-          "bytes": 213841,
-          "sha256": "fbd73ba475141d51f9ae639cb7ad94ee1089140be4118ffd22a860ffaf375b8c"
+          "bytes": 213838,
+          "sha256": "f23a8ee46c05ca73690c40daf0880490a3ba7930e902786fff5ec53691fbf403"
         },
         {
           "path": "occupied-320x568-decor.png",
@@ -420,8 +425,8 @@
         },
         {
           "path": "occupied-390x844-food.png",
-          "bytes": 1031390,
-          "sha256": "c99fb61f0f83f1841922fe5e1f77aa18582c6d2db06da06a42029bf97c8d4cab"
+          "bytes": 1031462,
+          "sha256": "88754b853b1f1d72fb1754c5427bbc22b7eb6265296f3f7a8fbefb5061586229"
         },
         {
           "path": "occupied-390x844-decor.png",
@@ -461,40 +466,40 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-rebound-controller-mechanism",
       "cases": [],
       "evidence": [
         {
           "path": "activation-controller.log",
-          "bytes": 12191,
-          "sha256": "549c7ccb154d29e53a609f3edb340b27bf03b77a1ee808c5ac1eedad6ef22ac7"
+          "bytes": 12184,
+          "sha256": "f961291ee77a911f0bebf50321b06b5fa3df9f1ff0b007b9d3755fe14bda979b"
         },
         {
           "path": "activation-controller-proof.json",
-          "bytes": 3067,
-          "sha256": "400dd368100db54ed887afee6fc8d614a6898322499ee5da0a7a9a443763e43b"
+          "bytes": 4505,
+          "sha256": "40b1c08d3dfd3f6cf2d57de31d2760be1dc60ea1307223130c74df59f604237e"
         },
         {
           "path": "activation-controller-source.json",
-          "bytes": 2172,
-          "sha256": "caa6d918274dbbf1959ee9cb7978594d5127ebf0fb8c445a3df7c4b85d80c506"
+          "bytes": 3560,
+          "sha256": "b38f028bc278c7571b890669d02e85ee10956dff3c8d58ae673ee9ddb3931c2c"
         },
         {
           "path": "activation-controller-compose.json",
           "bytes": 887,
-          "sha256": "4a193ca5e6c3e792347fecee6f4aae561377e1a614fc5abea4cd849e7a0bdc6d"
+          "sha256": "d8c5f0a5e9b508bb1d905d91c8dc243c064a9fbff0a4fb0c8f2bbb79f6d54f1c"
         },
         {
           "path": "activation-controller-formatter.log",
@@ -509,18 +514,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-api-or-browser",
       "cases": [
         "current-v2-pending"
@@ -529,7 +534,7 @@
         {
           "path": "native-proof.json",
           "bytes": 810459,
-          "sha256": "8f47e30b32ecd076da3af891b86d4b5415c0d8bff539b14483a38d4fc8ab704f"
+          "sha256": "99a95882f8808d326b542a8cfcee68aaa1e4d27b9ce951cbe10ba0ec67861668"
         }
       ]
     },
@@ -539,18 +544,18 @@
       "conclusion": "success",
       "attempts": 1,
       "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
         "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
         "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
         "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
         "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
       },
-      "predecessor": {
-        "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
-        "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
-        "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
-        "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
-      },
-      "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
       "kind": "fresh-exact-image-and-live-Vercel-browser",
       "cases": [
         "320x568",
@@ -561,12 +566,12 @@
         {
           "path": "bentoku-proof.json",
           "bytes": 1570,
-          "sha256": "5fffd1d7fd0f8afd8ff649ecb5e81b8bdd5c779f703fda12454587f645f604dc"
+          "sha256": "78f467f901f8e0c0efdac76e088427a429091fd9a9983d6329dd341a85a2ede5"
         },
         {
           "path": "catalogue-access.tap",
-          "bytes": 27341,
-          "sha256": "82d6caf4a10f9195b6709d12bb1e772a42ca3c4f426619283db5b13ca206efa4"
+          "bytes": 27340,
+          "sha256": "8baea840cd7d989ae952df9dd44dd1aaa58d12ea7d545acdbb6029c01ebc1589"
         },
         {
           "path": "bentoku-catalogue-320x568.png",
@@ -575,8 +580,8 @@
         },
         {
           "path": "bentoku-320x568.png",
-          "bytes": 144497,
-          "sha256": "72aa951f01cf52907d6fe5bfcafcbd9cde2071ba92a055cda4e4ba9ee0d00216"
+          "bytes": 144297,
+          "sha256": "108e083e91c0dfa58408eec932096f6405cfb0d4d277eb83c5fcb43b64f73d0d"
         },
         {
           "path": "bentoku-catalogue-390x844.png",
@@ -585,8 +590,8 @@
         },
         {
           "path": "bentoku-390x844.png",
-          "bytes": 277551,
-          "sha256": "46bc4c759a777d80eae7018967b6a25d9bd00f08e988510da25f02a7339996f7"
+          "bytes": 287273,
+          "sha256": "772dbab8b8eb23888e9ff2eebe8c20417f9185488fd0ba382e8fd364586daf73"
         },
         {
           "path": "bentoku-catalogue-568x320.png",
@@ -595,167 +600,558 @@
         },
         {
           "path": "bentoku-568x320.png",
-          "bytes": 142153,
-          "sha256": "57879bbd6a1a0218d8b27b48320131778cb0bc5f0cffb1101a51cd6ab151d6a1"
+          "bytes": 137956,
+          "sha256": "40c1943929c36a1e282c36ef78309bf6cb0546e607a858dc7f5e40323cc5c5a6"
         },
         {
           "path": "bentoku-catalogue-1280x720.png",
-          "bytes": 353296,
-          "sha256": "ebf192534e4e1399c8c0f5b37bb0ac533d69de2405990696a31c359041a9dec4"
+          "bytes": 353209,
+          "sha256": "930fe938b8ba5df5801732452624d1546a6498bd7749b402fb965c1361a3000b"
+        }
+      ]
+    },
+    {
+      "name": "garden-terrarium-menu",
+      "status": "completed",
+      "conclusion": "success",
+      "attempts": 1,
+      "release": {
+        "commit": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+        "tree": "96a4ca022994481bb957979b01d1d85ae626c88d",
+        "imageDigest": "sha256:4ae1d0017f26d07569f3bca5461bcc6d07500a13c9dbde220bffc2a089c4dc0a",
+        "imageId": "sha256:e68e8b390fcb1e1201669a2c2ca4e2c1f035ff03ad66fb596409820df536d2ed"
+      },
+      "predecessor": {
+        "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+        "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
+        "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
+        "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
+      },
+      "artifactSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
+      "kind": "fresh-exact-image-authenticated-browser",
+      "cases": [
+        "320x568",
+        "390x844",
+        "568x320",
+        "1280x720"
+      ],
+      "evidence": [
+        {
+          "path": "garden-proof.json",
+          "bytes": 5486,
+          "sha256": "173f9645a515335f1fe02dbf3b348afa08be1613a5c3b6e9433cf98f8d5500ea"
+        },
+        {
+          "path": "garden-source.tap",
+          "bytes": 22106,
+          "sha256": "d0f68c028bae1b0f2daca963ce036cbacce3ba327113b264bc649c8a4cd86c8e"
+        },
+        {
+          "path": "garden-contracts.tap",
+          "bytes": 25682,
+          "sha256": "b0df8b4ad41cd37f1772101002ebf6f649c7501b1434b452479d5d956d3eba26"
+        },
+        {
+          "path": "garden-surfaces.tap",
+          "bytes": 574,
+          "sha256": "aeef5d883a617772f660d3cc6899d3a6434900dde341ac12cc9c02224d638d9b"
+        },
+        {
+          "path": "garden-geometry.log",
+          "bytes": 127,
+          "sha256": "ded4699afd60eec43f00ab249b6f58d89c669c02eb8eaa58a8fcd4fc150da174"
+        },
+        {
+          "path": "garden-320x568-terrarium.png",
+          "bytes": 192327,
+          "sha256": "9f4bf2463cb6f6ed2b5190e7d2abd2c26a95a8960bda8668f071c3c572fb0efb"
+        },
+        {
+          "path": "garden-320x568-shop.png",
+          "bytes": 130082,
+          "sha256": "4054708ea3ea478f0b6a1c3c1e2b5f68ef029f1df4c4da10e9a9688dcdd27338"
+        },
+        {
+          "path": "garden-320x568-progress.png",
+          "bytes": 136577,
+          "sha256": "6e8b484d4b67fca343d325986b7cfe8cc769dd7bbff276ecfc038212b54f1673"
+        },
+        {
+          "path": "garden-320x568-quests.png",
+          "bytes": 147509,
+          "sha256": "6084006d7065622e5bfbffaa6ec63005ef5d717096c7f3739ce0a4c258ccbd26"
+        },
+        {
+          "path": "garden-390x844-terrarium.png",
+          "bytes": 1023107,
+          "sha256": "1ef1e3518ebfe362db0092481bcf82ebfc17eb4138a9e17898af65809e8668d3"
+        },
+        {
+          "path": "garden-390x844-shop.png",
+          "bytes": 596661,
+          "sha256": "a80848a2dd4b193f4334432c723bd4c50f82e44e9934dfba54252f95120af9ea"
+        },
+        {
+          "path": "garden-390x844-progress.png",
+          "bytes": 552359,
+          "sha256": "7a7f0f3b4832bb57f93194e797c405b57bd0e505e20a279de3ff0d8782c7075d"
+        },
+        {
+          "path": "garden-390x844-quests.png",
+          "bytes": 610752,
+          "sha256": "a70a8d9905a16999f4cf1f9cbb4267a33a55e299282ec74ef774fc0aca419188"
+        },
+        {
+          "path": "garden-568x320-terrarium.png",
+          "bytes": 179652,
+          "sha256": "24ea1b5c9fd555c8ddd50359db95da74518c6e88c6659308bc132efb949e38bb"
+        },
+        {
+          "path": "garden-568x320-shop.png",
+          "bytes": 97909,
+          "sha256": "4e1117223e86aed2335027e479e9ecc59ffcb2a0af326228bec5b02113b42d05"
+        },
+        {
+          "path": "garden-568x320-progress.png",
+          "bytes": 97805,
+          "sha256": "7da03a7661acf3a553b0874a7c2fab6b115a66916ee6520f02344cd9a5025392"
+        },
+        {
+          "path": "garden-568x320-quests.png",
+          "bytes": 107528,
+          "sha256": "97b391229495e55e5915e3c24550ede4227727eb39107d39eaaf289420aab3e5"
+        },
+        {
+          "path": "garden-1280x720-terrarium.png",
+          "bytes": 658911,
+          "sha256": "20e4b87bdcc671efe6ea4b68a8ebaf76b1db13ba9cefe777b7808a73ba6301dc"
+        },
+        {
+          "path": "garden-1280x720-shop.png",
+          "bytes": 402162,
+          "sha256": "d437e4c5c9a929b5bb2816b74bf6f5050d575c65b64643afd09d48cc66a963a6"
+        },
+        {
+          "path": "garden-1280x720-progress.png",
+          "bytes": 403089,
+          "sha256": "55f8dd7c98c2df86de52fc0ac28aadc71501a57ac56e099797d7412205733672"
+        },
+        {
+          "path": "garden-1280x720-quests.png",
+          "bytes": 409470,
+          "sha256": "f6de22db06a1541c551363bcadb87a01edf15b2b7d2d7e2620df70ef32982174"
         }
       ]
     }
   ],
-  "qualification": {
-    "jobId": 124136570148,
-    "workflowSha256": "4c8e3e4b933fe655f66fd6172b85bb30420d17e2f13298b23257df8eb9657ee0",
-    "runMetadataSha256": "1257b6c320e76277407523b1b7b59fef15856a0d29e6c684215c341a379c772e",
-    "jobsMetadataSha256": "60f6b2d7571131377bbacea794db268c43f8f13f34f0cebbbbbb1d4287257990",
-    "artifact": {
-      "id": 12987807934,
-      "name": "bentoku-development-image-d09e7296af6e9499a0cd19322c6fda73dfcabef7-1",
-      "bytes": 9192128,
-      "sha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614",
-      "githubDigest": "sha256:3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614"
-    },
-    "innerArchiveSha256": "b6dd9defa974459322ae06bf9832eadb9ac1ff686698d9e6fa8d7d0625efc860",
-    "originalManifestSha256": "52d8ff3eb7b17fbe750c3710ae9b742a0c79cb55866eb4968c8d0fd1dc47f3d2",
-    "sourceInventorySha256": "27d130968568b1159719689b4561a401a4aaaa284e1ab50481f52a73e9ba9032",
-    "controllerProofSha256": "400dd368100db54ed887afee6fc8d614a6898322499ee5da0a7a9a443763e43b",
-    "counts": {
-      "catalogueAccess": 120,
-      "source": 79,
-      "interaction": 19,
-      "releaseSmoke": 5,
-      "controller": 64,
-      "browser": 6
-    },
-    "physicalTelegramClientTested": false
-  },
   "visualReview": {
-    "verdict": "accepted",
-    "independent": true,
-    "reviewer": "/root/review_bentoku",
-    "observations": {
-      "scope": "Independent visual GO for the catalogue access fix and retained Yard development layout in all 23 original PNGs from successful run 41077241541, candidate d09e7296af6e9499a0cd19322c6fda73dfcabef7. Every PNG was opened separately at native resolution, without a contact sheet, crop, rescale or other pixel transformation. All 61 original evidence files were independently checked for exact byte length and SHA-256 against MANIFEST.sha256.json; the files list binds the 23 visually reviewed originals.",
-      "coverage": [
-        "Catalogue: initial 320x568, 390x844, 568x320 and 1280x720 frames. Bentoku: gameplay at the original three phone viewport sizes.",
-        "Yard: food dialog, decor dialog, escaped state and Russian/English collision refusal at each of 320x568, 390x844 and 568x320; current-v2 recovered state at 390x844. The Yard 390x844 originals are 780x1688 pixels at device scale factor 2."
-      ],
-      "findings": [
-        "All four catalogue frames show Garden first and Bentoku second, with the Bentoku cat poster and title visible in the initial viewport without searching or scrolling. No navigation-waiting message or grey disabled-card appearance is present. Desktop shows all eight complete cards, readable titles and normal active appearance together. Phone captures show the available part of the intentionally scrolling list; the lower cards need not all fit at once.",
-        "The compact 320px catalogue retains complete Garden/Bentoku identifying art, titles and descriptions with no horizontal clipping. The short landscape frame retains the first-row poster and title and visible Home/return/close controls; the list continues below the viewport as designed.",
-        "All three Bentoku gameplay originals show the complete nine-cell board, placed cat piece, remaining tray pieces, puzzle clues, difficulty/settings controls and Undo/Hint buttons. Host Home and reload controls remain visible. No clipped primary control, obstructing overlay, horizontal overflow, broken image or unreadable primary label is visible. Landscape retains its separate left navigation rail.",
-        "Yard portrait food/decor dialogs retain readable headings, occupied-bowl explanation, visible close controls and recognizable enabled/disabled actions. The selected decor and its Move/Pick up/Inspect actions fit their action surface. Food lists continue inside the declared scrolling panel; the partial next row at the lower panel edge is ordinary scroll content.",
-        "Yard landscape food/decor dialogs retain readable occupied-state instructions, visible close controls and the decor action column. The short panels intentionally scroll; this review does not claim every food control or every instruction line appears simultaneously in their initial viewport.",
-        "All six Yard collision originals retain readable Russian/English refusal text, selected-item label and distinct Cancel/Place controls. The disabled Place state is visually distinguishable and the text fits its status area without hiding the action row.",
-        "The three escaped Yard frames and the current-v2 recovered frame retain visible currency, scene, status, action and navigation surfaces. The existing hamster, bowl, leaf-pot and background elements remain recognizable in their development presentation. No new layout blocker or cross-surface overlap was found."
-      ],
-      "limitations": [
-        "This accepts catalogue/layout visual behavior for these exact 23 originals. Existing Yard development art, sparse world composition, model/sprite proportions, animation quality and food-card illustration areas receive no new production-art approval.",
-        "Pixels show normal active card appearance; actual enabled DOM state, all eight game entries, preservation of both legacy journals, account fences, gameplay, pause/resume and save/replay correctness remain claims of their separately required functional evidence, not conclusions inferred from static screenshots.",
-        "Static PNGs cannot independently establish timing, gesture behavior, absence of first-frame flashes or physical Telegram Desktop/Android/iOS behavior. This coverage is four catalogue viewports and three phone gameplay viewports, not a new full device matrix. Host preflight, activation and postdeployment verification remain separate gates."
-      ]
-    },
-    "files": [
+    "status": "passed",
+    "checkedAt": "2026-11-04T14:12:23.407Z",
+    "archiveSha256": "a085ef5fa760c8087e2598d0a368497d1bac76eed9b99df819189030f83a4d1e",
+    "runId": 41841139213,
+    "candidate": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+    "scope": "Garden terrarium and menu visual acceptance, plus preservation of the existing released Yard/Bentoku surfaces. No new Yard food-art acceptance.",
+    "reviewedFiles": [
+      "bentoku-320x568.png",
+      "bentoku-390x844.png",
+      "bentoku-568x320.png",
+      "bentoku-catalogue-1280x720.png",
+      "bentoku-catalogue-320x568.png",
+      "bentoku-catalogue-390x844.png",
+      "bentoku-catalogue-568x320.png",
+      "current-v2-recovered-390x844.png",
+      "garden-1280x720-progress.png",
+      "garden-1280x720-quests.png",
+      "garden-1280x720-shop.png",
+      "garden-1280x720-terrarium.png",
+      "garden-320x568-progress.png",
+      "garden-320x568-quests.png",
+      "garden-320x568-shop.png",
+      "garden-320x568-terrarium.png",
+      "garden-390x844-progress.png",
+      "garden-390x844-quests.png",
+      "garden-390x844-shop.png",
+      "garden-390x844-terrarium.png",
+      "garden-568x320-progress.png",
+      "garden-568x320-quests.png",
+      "garden-568x320-shop.png",
+      "garden-568x320-terrarium.png",
+      "occupied-320x568-collision-en.png",
+      "occupied-320x568-collision-ru.png",
+      "occupied-320x568-decor.png",
+      "occupied-320x568-escaped.png",
+      "occupied-320x568-food.png",
+      "occupied-390x844-collision-en.png",
+      "occupied-390x844-collision-ru.png",
+      "occupied-390x844-decor.png",
+      "occupied-390x844-escaped.png",
+      "occupied-390x844-food.png",
+      "occupied-568x320-collision-en.png",
+      "occupied-568x320-collision-ru.png",
+      "occupied-568x320-decor.png",
+      "occupied-568x320-escaped.png",
+      "occupied-568x320-food.png"
+    ],
+    "reviewers": [
       {
-        "path": "bentoku-320x568.png",
-        "sha256": "72aa951f01cf52907d6fe5bfcafcbd9cde2071ba92a055cda4e4ba9ee0d00216"
+        "name": "/root",
+        "reviewedFiles": [
+          "garden-1280x720-progress.png",
+          "garden-1280x720-quests.png",
+          "garden-1280x720-shop.png",
+          "garden-1280x720-terrarium.png",
+          "garden-320x568-progress.png",
+          "garden-320x568-quests.png",
+          "garden-320x568-shop.png",
+          "garden-320x568-terrarium.png",
+          "garden-390x844-progress.png",
+          "garden-390x844-quests.png",
+          "garden-390x844-shop.png",
+          "garden-390x844-terrarium.png",
+          "garden-568x320-progress.png",
+          "garden-568x320-quests.png",
+          "garden-568x320-shop.png",
+          "garden-568x320-terrarium.png"
+        ],
+        "status": "PASS",
+        "method": "Viewed all sixteen Garden native captures in four viewport contact sheets."
       },
       {
-        "path": "bentoku-390x844.png",
-        "sha256": "46bc4c759a777d80eae7018967b6a25d9bd00f08e988510da25f02a7339996f7"
-      },
-      {
-        "path": "bentoku-568x320.png",
-        "sha256": "57879bbd6a1a0218d8b27b48320131778cb0bc5f0cffb1101a51cd6ab151d6a1"
-      },
-      {
-        "path": "bentoku-catalogue-1280x720.png",
-        "sha256": "ebf192534e4e1399c8c0f5b37bb0ac533d69de2405990696a31c359041a9dec4"
-      },
-      {
-        "path": "bentoku-catalogue-320x568.png",
-        "sha256": "c923b93026cd2d0471e1d85c7f40624421d6414942df802bd4baf8e8accdc9cd"
-      },
-      {
-        "path": "bentoku-catalogue-390x844.png",
-        "sha256": "72643709e422ad43b2aeaf3750ef075b47778c815f9b128af10bcd7b7ab29619"
-      },
-      {
-        "path": "bentoku-catalogue-568x320.png",
-        "sha256": "6527a62e0d7e91ba5fd215b179addfe7540741100aa7cc0ea1b1af57774c09fa"
-      },
-      {
-        "path": "current-v2-recovered-390x844.png",
-        "sha256": "eeb1ba87749840eec52c741d2e249d048a01ec001a66d1ec2bd82a97a0f50c4f"
-      },
-      {
-        "path": "occupied-320x568-collision-en.png",
-        "sha256": "36409cea7dff9ca2b54fc4027d98a4cab5d7a54233d380df463037556b01523b"
-      },
-      {
-        "path": "occupied-320x568-collision-ru.png",
-        "sha256": "29495109e640197345351cccaea8ae78ee007ecf03e7edd3bcd31982b444ec2d"
-      },
-      {
-        "path": "occupied-320x568-decor.png",
-        "sha256": "af34d1e2ccdf22f0001bda14c6cd8424700f89c627a08e5b0e8e2c2bd5bf8592"
-      },
-      {
-        "path": "occupied-320x568-escaped.png",
-        "sha256": "f4ec39ce22f4ae434a15c2d2c0de46e9552f5ba4f132bf8ac8573f2612629363"
-      },
-      {
-        "path": "occupied-320x568-food.png",
-        "sha256": "fbd73ba475141d51f9ae639cb7ad94ee1089140be4118ffd22a860ffaf375b8c"
-      },
-      {
-        "path": "occupied-390x844-collision-en.png",
-        "sha256": "134a5c8ad1e504d63b22235313891cde394e34d1479d630b682e6d19d4e7e436"
-      },
-      {
-        "path": "occupied-390x844-collision-ru.png",
-        "sha256": "589b71a4349c43bf7db20b44a11bbc4607a2ac0138ee8f5ab25ffdb2fab2dd11"
-      },
-      {
-        "path": "occupied-390x844-decor.png",
-        "sha256": "7ff64c2457e5978605054d781aff7041ca7ea0a478cabebbd8ac73a1f3ed944f"
-      },
-      {
-        "path": "occupied-390x844-escaped.png",
-        "sha256": "c1c37bdf2bb8a388cd0d8338fc2e5e409cffd57605174cf0552ab9e975826acd"
-      },
-      {
-        "path": "occupied-390x844-food.png",
-        "sha256": "c99fb61f0f83f1841922fe5e1f77aa18582c6d2db06da06a42029bf97c8d4cab"
-      },
-      {
-        "path": "occupied-568x320-collision-en.png",
-        "sha256": "5edc75162f40292426587ece8520ef3ec130abfe9f2afcdf455fba7ab1ea3e5f"
-      },
-      {
-        "path": "occupied-568x320-collision-ru.png",
-        "sha256": "c5a8c3de08fc645522f9703bf847c0569fd4d6a0b23bbfb20d315ec0b301f720"
-      },
-      {
-        "path": "occupied-568x320-decor.png",
-        "sha256": "9e33ada2ce80cd11816cae5d377971cfe7b628fdd130a6522169512bd1c51b9b"
-      },
-      {
-        "path": "occupied-568x320-escaped.png",
-        "sha256": "461a6f38d5bba3ff413c1c431e0149f732b87792e176a86ed52c960f0a79334a"
-      },
-      {
-        "path": "occupied-568x320-food.png",
-        "sha256": "485b23427b627a23e6b297aeace87049e969bf723803a0dcaa658d4eaa677969"
+        "name": "/root/anchor_qa",
+        "reviewedFiles": [
+          "bentoku-320x568.png",
+          "bentoku-390x844.png",
+          "bentoku-568x320.png",
+          "bentoku-catalogue-1280x720.png",
+          "bentoku-catalogue-320x568.png",
+          "bentoku-catalogue-390x844.png",
+          "bentoku-catalogue-568x320.png",
+          "current-v2-recovered-390x844.png",
+          "garden-1280x720-progress.png",
+          "garden-1280x720-quests.png",
+          "garden-1280x720-shop.png",
+          "garden-1280x720-terrarium.png",
+          "garden-320x568-progress.png",
+          "garden-320x568-quests.png",
+          "garden-320x568-shop.png",
+          "garden-320x568-terrarium.png",
+          "garden-390x844-progress.png",
+          "garden-390x844-quests.png",
+          "garden-390x844-shop.png",
+          "garden-390x844-terrarium.png",
+          "garden-568x320-progress.png",
+          "garden-568x320-quests.png",
+          "garden-568x320-shop.png",
+          "garden-568x320-terrarium.png",
+          "occupied-320x568-collision-en.png",
+          "occupied-320x568-collision-ru.png",
+          "occupied-320x568-decor.png",
+          "occupied-320x568-escaped.png",
+          "occupied-320x568-food.png",
+          "occupied-390x844-collision-en.png",
+          "occupied-390x844-collision-ru.png",
+          "occupied-390x844-decor.png",
+          "occupied-390x844-escaped.png",
+          "occupied-390x844-food.png",
+          "occupied-568x320-collision-en.png",
+          "occupied-568x320-collision-ru.png",
+          "occupied-568x320-decor.png",
+          "occupied-568x320-escaped.png",
+          "occupied-568x320-food.png"
+        ],
+        "status": "PASS_WITH_NOTES",
+        "method": "All thirty-nine native originals inspected; every PNG compared byte-for-byte to the verified archive."
       }
-    ]
-  },
-  "limitations": [
-    "Existing live Yard development policy and storage unchanged",
-    "Shared Bentoku scores and achievements excluded",
-    "Physical Telegram client observation separate from browser evidence"
-  ],
-  "activationReady": false
+    ],
+    "independentReviewSha256": "1b56bca2dbb1eb2468cad02843872e194701538784b531b38d1d830ccc1e82a2",
+    "imageResults": [
+      {
+        "name": "bentoku-320x568.png",
+        "status": "PASS",
+        "notes": "Bento board, clue artwork, selectable food characters and bottom Undo/Hint controls render cleanly and remain visually distinct."
+      },
+      {
+        "name": "bentoku-390x844.png",
+        "status": "PASS",
+        "notes": "Bento board, clue artwork, selectable food characters and bottom Undo/Hint controls render cleanly and remain visually distinct."
+      },
+      {
+        "name": "bentoku-568x320.png",
+        "status": "PASS",
+        "notes": "Landscape Bento board, clue area, complete food tray and Undo/Hint controls are visible with no obstructive overlap."
+      },
+      {
+        "name": "bentoku-catalogue-1280x720.png",
+        "status": "PASS",
+        "notes": "All eight catalogue cards, Russian descriptions, Return and Close controls fit the desktop composition; thumbnails are complete and distinct."
+      },
+      {
+        "name": "bentoku-catalogue-320x568.png",
+        "status": "PASS",
+        "notes": "Compact catalogue shows recognizable Garden and Bentoku cards, readable navigation and close control; lower game cards intentionally continue below the page scrollport."
+      },
+      {
+        "name": "bentoku-catalogue-390x844.png",
+        "status": "PASS",
+        "notes": "Catalogue navigation, game thumbnails and Russian titles are readable; cards/descriptions below the viewport intentionally continue in the catalogue scroll flow."
+      },
+      {
+        "name": "bentoku-catalogue-568x320.png",
+        "status": "PASS",
+        "notes": "Catalogue navigation, game thumbnails and Russian titles are readable; cards/descriptions below the viewport intentionally continue in the catalogue scroll flow."
+      },
+      {
+        "name": "current-v2-recovered-390x844.png",
+        "status": "PASS",
+        "notes": "Recovered Yard renders its painted setting, actor, pot and food with a clear currency rail and readable Russian action/dock labels. No missing assets, obscured fixed controls or blank render."
+      },
+      {
+        "name": "garden-1280x720-progress.png",
+        "status": "PASS",
+        "notes": "Desktop Collections layout forms a clear two-column grid with readable species, durations and resource values. Lower collection continues within the scrollport."
+      },
+      {
+        "name": "garden-1280x720-quests.png",
+        "status": "PASS",
+        "notes": "Desktop milestone objectives, illustrations, Claim rewards and progress rows are aligned and readable; fixed close and tabs are clear."
+      },
+      {
+        "name": "garden-1280x720-shop.png",
+        "status": "PASS",
+        "notes": "Desktop three-column illustrated shop has consistent card sizes, readable names/rates/prices and no visible overlap."
+      },
+      {
+        "name": "garden-1280x720-terrarium.png",
+        "status": "PASS",
+        "notes": "Desktop side rail and enlarged terrarium are coherent, with readable controls, natural plant proportions and centered grounded pots."
+      },
+      {
+        "name": "garden-320x568-progress.png",
+        "status": "PASS",
+        "notes": "Collections tab selected; complete first collection card, readable species, duration and resource values. Lower card is intentionally below the scrollport."
+      },
+      {
+        "name": "garden-320x568-quests.png",
+        "status": "PASS",
+        "notes": "Milestones selected; centered concise objectives and visible Claim rewards fit the compact phone. Bottom progress content continues in scrollport."
+      },
+      {
+        "name": "garden-320x568-shop.png",
+        "status": "PASS",
+        "notes": "Two-column gallery retains readable plant names, rates and price buttons; no visible horizontal clipping or overlaps."
+      },
+      {
+        "name": "garden-320x568-terrarium.png",
+        "status": "PASS",
+        "notes": "Compact rail, readable title and above-canopy plant label; planted and smaller empty pots visually grounded on the wood shelf. Glass opening clear."
+      },
+      {
+        "name": "garden-390x844-progress.png",
+        "status": "PASS",
+        "notes": "Collections illustrations, species names, duration and resource values render cleanly at phone scale; selected navigation and close control are clear."
+      },
+      {
+        "name": "garden-390x844-quests.png",
+        "status": "PASS",
+        "notes": "Milestone objectives, reward amounts and real progress counts are legible with no overlapping card content."
+      },
+      {
+        "name": "garden-390x844-shop.png",
+        "status": "PASS",
+        "notes": "Two-column illustrated shop has readable rates/prices and consistent card spacing; continuation below the scrollport is intentional."
+      },
+      {
+        "name": "garden-390x844-terrarium.png",
+        "status": "PASS",
+        "notes": "High-density phone original shows coherent glass/wood scene, centered planted/empty pots and clear labels; expansion content continues below the scrollport."
+      },
+      {
+        "name": "garden-568x320-progress.png",
+        "status": "PASS",
+        "notes": "Pinned title, tabs and close control are readable. The collection card is taller than the short scrollport, so its lower details continue below the captured viewport; this is intentional scroll content."
+      },
+      {
+        "name": "garden-568x320-quests.png",
+        "status": "PASS",
+        "notes": "Landscape milestone card fits its objective, Claim reward and progress row; subsequent card continues in scrollport."
+      },
+      {
+        "name": "garden-568x320-shop.png",
+        "status": "PASS",
+        "notes": "Landscape gallery, names, rates and visible price values are clear; lower card/button portions continue below the scrollport. Fixed navigation/close controls are unobstructed."
+      },
+      {
+        "name": "garden-568x320-terrarium.png",
+        "status": "PASS",
+        "notes": "Landscape rail and terrarium are distinct compositions; all fixed HUD controls fit and planted/empty pot grounding is coherent."
+      },
+      {
+        "name": "occupied-320x568-collision-en.png",
+        "status": "PASS",
+        "notes": "English occupied-placement rejection is readable, Cancel and disabled Place are distinct, and the item/dock remain visible."
+      },
+      {
+        "name": "occupied-320x568-collision-ru.png",
+        "status": "PASS",
+        "notes": "Russian occupied-placement message wraps cleanly; Cancel/disabled Place and dock labels fit the compact phone."
+      },
+      {
+        "name": "occupied-320x568-decor.png",
+        "status": "PASS",
+        "notes": "Decor drawer has clear tabs, occupied-spot explanation, selected pot card and reachable-looking Move/Remove/Call controls without text overlap."
+      },
+      {
+        "name": "occupied-320x568-escaped.png",
+        "status": "PASS",
+        "notes": "Returned Yard scene shows actor, pot and bowl with readable placement guidance and intact action/dock composition."
+      },
+      {
+        "name": "occupied-320x568-food.png",
+        "status": "PASS_WITH_NOTES",
+        "notes": "Food drawer copy, stock/price/action controls render correctly, but native food-card illustration areas remain blank. Candidate and predecessor have identical Yard catalogue/render/UI/game-logic code; the native catalogue policy deliberately returns null for unavailable new-camera food previews rather than substituting old-camera art, while Preview reserves its span. Archived foodLocationCapabilities.presentationReady remains false. Accepted as an inherited, nonblocking limitation for this Garden-only release; this is not acceptance of new Yard food art and does not claim illustrations are present.",
+        "classification": "inherited-nonblocking-catalogue-preview-limitation"
+      },
+      {
+        "name": "occupied-390x844-collision-en.png",
+        "status": "PASS",
+        "notes": "Occupied-placement feedback and selected pot are clear; English/Russian message, Cancel, disabled Place and fixed dock fit without overlap."
+      },
+      {
+        "name": "occupied-390x844-collision-ru.png",
+        "status": "PASS",
+        "notes": "Occupied-placement feedback and selected pot are clear; English/Russian message, Cancel, disabled Place and fixed dock fit without overlap."
+      },
+      {
+        "name": "occupied-390x844-decor.png",
+        "status": "PASS",
+        "notes": "Decor panel has readable Russian instructions, complete selected pot illustration, clear tabs/close and full Move/Remove/Call actions."
+      },
+      {
+        "name": "occupied-390x844-escaped.png",
+        "status": "PASS",
+        "notes": "Escaped/returned Yard state renders the actor, bowl, scene and placement guidance cleanly with intact HUD and dock."
+      },
+      {
+        "name": "occupied-390x844-food.png",
+        "status": "PASS_WITH_NOTES",
+        "notes": "Food drawer copy, stock/price/action controls render correctly, but native food-card illustration areas remain blank. Candidate and predecessor have identical Yard catalogue/render/UI/game-logic code; the native catalogue policy deliberately returns null for unavailable new-camera food previews rather than substituting old-camera art, while Preview reserves its span. Archived foodLocationCapabilities.presentationReady remains false. Accepted as an inherited, nonblocking limitation for this Garden-only release; this is not acceptance of new Yard food art and does not claim illustrations are present.",
+        "classification": "inherited-nonblocking-catalogue-preview-limitation"
+      },
+      {
+        "name": "occupied-568x320-collision-en.png",
+        "status": "PASS",
+        "notes": "Landscape occupied-placement message, Cancel/disabled Place and side dock are clear and contained."
+      },
+      {
+        "name": "occupied-568x320-collision-ru.png",
+        "status": "PASS",
+        "notes": "Russian landscape placement rejection and compact control labels fit without horizontal clipping or overlap."
+      },
+      {
+        "name": "occupied-568x320-decor.png",
+        "status": "PASS",
+        "notes": "Landscape drawer uses a readable selected-pot card and separate fixed action column. Upper description is partly scrolled under the pinned tabs; fixed controls and selected item remain intact."
+      },
+      {
+        "name": "occupied-568x320-escaped.png",
+        "status": "PASS",
+        "notes": "Landscape returned Yard shows actor, pot and bowl, with intact side dock, guidance and Yard/Inventory controls."
+      },
+      {
+        "name": "occupied-568x320-food.png",
+        "status": "PASS",
+        "notes": "Landscape food drawer header/close, explanatory text and start of bowl section render clearly. Food catalogue content lies below the captured scrollport, so this frame does not establish catalogue illustrations."
+      }
+    ],
+    "inheritedPolicyClassification": {
+      "base": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+      "head": "4d6f3db022efcc52143d0baecb6f1763fafb17f5",
+      "changedYardPaths": [],
+      "blobs": [
+        {
+          "path": "src/games/companion-yard-v2/catalog-ui.mjs",
+          "baseBlob": "41c2484ee2dc02c93f6fe95bd4b702caf40a5c99",
+          "candidateBlob": "41c2484ee2dc02c93f6fe95bd4b702caf40a5c99"
+        },
+        {
+          "path": "src/games/companion-yard-v2/render-pack.mjs",
+          "baseBlob": "1aac324960c2d87106576c8422d30550ff5261c4",
+          "candidateBlob": "1aac324960c2d87106576c8422d30550ff5261c4"
+        },
+        {
+          "path": "src/games/companion-yard-v2/CourtyardGame.jsx",
+          "baseBlob": "4539ca42d64595a7b889523dd8d816a07304296e",
+          "candidateBlob": "4539ca42d64595a7b889523dd8d816a07304296e"
+        }
+      ],
+      "policies": {
+        "noOldCameraFoodFallback": true,
+        "nativeFoodLookupReturnsNullWhenAbsent": true,
+        "previewSpanRemainsWithNullSource": true,
+        "foodCardsUseCatalogPreview": true
+      },
+      "presentationReadyEvidence": [
+        {
+          "file": "api-proof.json",
+          "path": "$.cases.0.capability.foodLocationCapabilities.presentationReady",
+          "value": false
+        },
+        {
+          "file": "api-proof.json",
+          "path": "$.cases.0.capability.supportedBindings.foods.kibble.presentationReady",
+          "value": true
+        },
+        {
+          "file": "api-proof.json",
+          "path": "$.cases.0.capability.supportedBindings.foods.berry_plate.presentationReady",
+          "value": true
+        },
+        {
+          "file": "api-proof.json",
+          "path": "$.cases.0.capability.supportedBindings.foods.bonito_bowl.presentationReady",
+          "value": true
+        },
+        {
+          "file": "api-proof.json",
+          "path": "$.cases.0.capability.supportedBindings.bowls.bowl-1.presentationReady",
+          "value": true
+        },
+        {
+          "file": "api-proof.json",
+          "path": "$.cases.0.capability.supportedBindings.bowls.bowl-2.presentationReady",
+          "value": false
+        },
+        {
+          "file": "lost-response.json",
+          "path": "$.body.snapshot.yardRuntime.foodLocationCapabilities.presentationReady",
+          "value": false
+        },
+        {
+          "file": "lost-response.json",
+          "path": "$.body.snapshot.yardRuntime.supportedBindings.foods.kibble.presentationReady",
+          "value": true
+        },
+        {
+          "file": "lost-response.json",
+          "path": "$.body.snapshot.yardRuntime.supportedBindings.foods.berry_plate.presentationReady",
+          "value": true
+        },
+        {
+          "file": "lost-response.json",
+          "path": "$.body.snapshot.yardRuntime.supportedBindings.foods.bonito_bowl.presentationReady",
+          "value": true
+        },
+        {
+          "file": "lost-response.json",
+          "path": "$.body.snapshot.yardRuntime.supportedBindings.bowls.bowl-1.presentationReady",
+          "value": true
+        },
+        {
+          "file": "lost-response.json",
+          "path": "$.body.snapshot.yardRuntime.supportedBindings.bowls.bowl-2.presentationReady",
+          "value": false
+        }
+      ]
+    }
+  }
 }
