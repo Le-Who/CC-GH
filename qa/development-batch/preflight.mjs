@@ -1,0 +1,20 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {createHash} from 'node:crypto';import {execFileSync} from 'node:child_process';
+const m=JSON.parse(fs.readFileSync('qa/development-batch/manifest.json','utf8'));
+assert.equal(m.base,'aa43b9167c0af475bec294878d55bcb95a4ff244');assert.equal(m.sourceLive,'9b6b96b4cd1b019d016a741f7300e3172192c3ee');
+const sha=b=>createHash('sha256').update(b).digest('hex');
+for(const row of m.files)assert.equal(sha(fs.readFileSync(row.path)),row.sha256,row.path);
+const localBase=process.env.DEVELOPMENT_PREPUBLICATION_BASE;
+const blobPins=localBase?new Map(fs.readFileSync(localBase+'/base-tree-blobs.jsonl','utf8').trim().split('\n').map(line=>JSON.parse(line))):null;
+const gitSha=b=>createHash('sha1').update(`blob ${b.length}\0`).update(b).digest('hex');
+function walk(root,prefix=''){return fs.readdirSync(root,{withFileTypes:true}).flatMap(e=>e.isDirectory()?walk(root+'/'+e.name,prefix+e.name+'/'):[prefix+e.name]);}
+const changed=localBase?walk('.').filter(p=>!p.startsWith('test-results/')&&gitSha(fs.readFileSync(p))!==blobPins.get(p)).sort():execFileSync('git',['diff','--name-only',m.base,'HEAD'],{encoding:'utf8'}).trim().split('\n').filter(Boolean).sort();
+assert.deepEqual(changed,[...m.files.map(x=>x.path),'qa/development-batch/manifest.json'].sort(),'Only the explicit reviewed feature/QA paths may differ from exact live');
+const baseline=p=>{if(!localBase)return execFileSync('git',['show',`${m.base}:${p}`]);const bytes=fs.readFileSync(localBase+'/base/'+p);assert.equal(gitSha(bytes),blobPins.get(p),p);return bytes;};
+for(const p of ['playerManager.js','routes/player.js','game-logic/yard-v2/service.mjs','game-logic/yard-v2/development-release-policy.mjs','game-logic/yard-v2/release-policy.mjs','src/games/companion-yard-v2/scene-entry.mjs','src/games/companion-yard-v2/CourtyardGame.jsx','Dockerfile','package.json','pnpm-lock.yaml'])assert(fs.readFileSync(p).equals(baseline(p)),`Unfinished Yard/build boundary changed: ${p}`);
+for(const p of ['game-logic/yard-v2/canonical-runtime.mjs','game-logic/yard-v2/canonical-visit-worker.mjs','src/game-state/canonicalSavedFoodProtocol.mjs'])assert(!fs.existsSync(p),`Unfinished saved-visit candidate inherited: ${p}`);
+const hub='src/game-state/useGameHub.js',oldHub=baseline(hub).toString(),needle='snapshot: errorView === state.snapshot ? state.snapshot : { ...errorView, receivedAt: Date.now() },\n          message: result.error,';
+assert.equal(oldHub.split(needle).length,2);
+assert.equal(fs.readFileSync(hub,'utf8'),"import { isExpectedGardenTapCooldown } from '../games/garden-shelf/lib/gardenActionFeedback.js';\n"+oldHub.replace(needle,needle.replace('message: result.error,',"message: isExpectedGardenTapCooldown(action, payload, result.error) ? '' : result.error,")));
+assert.equal(m.liveBuildFlags.VITE_YARD_PIP_PREVIEW,'true');assert.equal(m.liveBuildFlags.VITE_YARD_SAVED_VISITS,'false');assert.equal(m.liveBuildFlags.VITE_YARD_PAINTED_FOOD_TRIAL,'false');
+fs.mkdirSync('test-results/development-batch',{recursive:true});fs.writeFileSync('test-results/development-batch/preflight.json',JSON.stringify({passed:true,commit:process.env.GITHUB_SHA,base:m.base,sourceLive:m.sourceLive,changed,liveBuildFlags:m.liveBuildFlags,unfinishedYardInherited:false},null,2));
+console.log(JSON.stringify({passed:true,files:m.files.length,unfinishedYardInherited:false}));

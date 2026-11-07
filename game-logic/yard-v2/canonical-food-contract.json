@@ -1,0 +1,24 @@
+{
+  "id": "canonical-food-r2/20261006",
+  "bowlId": "bowl-1",
+  "socketId": "pip-garden:food:bowl-1",
+  "locationId": "pip-garden",
+  "locationVersion": 1,
+  "geometryRevision": "pip-garden-t2-food-r2",
+  "assetGeometryRevision": "yard-food-source-r2/20261006",
+  "assetSha256": "ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66",
+  "glbBytes": 251996,
+  "canonicalUnitsPerSource": 12,
+  "coordinateSpace": "canonical-ground",
+  "anchorCanonicalXYZ": [
+    80,
+    82,
+    0
+  ],
+  "rotationCanonical": 0,
+  "unionRadiusCanonical": 3.843,
+  "unionHeightCanonical": 2.09,
+  "presentationReady": false,
+  "runtimeActivated": false,
+  "visitAdmission": false
+}

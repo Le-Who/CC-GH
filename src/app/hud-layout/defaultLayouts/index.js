@@ -4,6 +4,7 @@ import match3 from "./match3.json" with { type: "json" };
 import merge from "./merge.json" with { type: "json" };
 import bubbo from "./bubbo.json" with { type: "json" };
 import trivia from "./trivia.json" with { type: "json" };
+import bentoku from "./bentoku.json" with { type: "json" };
 import room from "./room.json" with { type: "json" };
 import settlement from "./settlement.json" with { type: "json" };
 import {
@@ -79,6 +80,7 @@ export const HUD_LAYOUT_DEFAULTS = {
   merge: withSharedEditorDefaults(merge),
   bubbo: withSharedEditorDefaults(bubbo),
   trivia: withSharedEditorDefaults(trivia),
+  bentoku: withSharedEditorDefaults(bentoku),
   room: withSharedEditorDefaults(room),
   settlement: withSharedEditorDefaults(settlement),
 };

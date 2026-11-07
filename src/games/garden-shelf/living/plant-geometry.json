@@ -1,0 +1,2774 @@
+{
+  "schemaVersion": 1,
+  "coordinateSpace": "normalizedSourceUV",
+  "origin": "top-left",
+  "algorithm": "measure-garden-pot-anchors-v1",
+  "provenance": {
+    "source": "Exact unmodified runtime WebP bytes; every source hash is recorded.",
+    "search": "Existing motion pot masks plus 0.025 horizontal /0.015 top /0.02 bottom margin only seed search windows. Missing Daisy masks use the lower pinY search.",
+    "segmentation": "Alpha>200, red>=green*0.95, red>blue*1.07, maximum RGB>40;8-connected warm ceramic components. Bonsai uses opaque alpha within its authored lower pot ROI to retain blue ceramic and paired feet. Dominant body nearest the seeded pot axis wins.",
+    "anchors": "Ordinary warm pot width is98th percentile contiguous ceramic run, excluding disconnected reddish foliage. Bonsai uses the full blue bowl envelope; String of Pearls unions ceramic pieces inside the basket and measures middle-body row envelopes across green occlusions. Base is last row with a dense support run of at least10% of body width. Axis is mean bottom-support center; Bonsai/baskets use stable wide body rows.",
+    "paintedBounds": "Independent whole-source alpha>8 bounds, including rope/foliage. They never determine the support point.",
+    "review": "Per-file source geometry approval is pinned to both sourceSha256 and geometrySha256; changed source bytes or changed support geometry automatically become pending. Annotated source review does not certify runtime fitting, growth crossfade, fallback parity or overlap. Motion pin masks remain unchanged."
+  },
+  "assets": {
+    "basil-developing-r1.webp": {
+      "path": "/games/garden-living/basil-developing-r1.webp",
+      "type": "basil",
+      "phase": 2,
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "sourceSha256": "7e1ca14deb30cd248c8544677a064e68bf31f4f33458c28a6292b140e4233f4a",
+      "pot": {
+        "centerX": 0.498613,
+        "baseY": 0.940104,
+        "width": 0.481276
+      },
+      "paintedBounds": {
+        "x": 0.113731,
+        "y": 0.148438,
+        "width": 0.816921,
+        "height": 0.794271
+      },
+      "measurement": {
+        "searchWindow": [
+          0.228849,
+          0.563802,
+          0.771151,
+          0.970052
+        ],
+        "ceramicBounds": {
+          "x": 0.263523,
+          "y": 0.563802,
+          "width": 0.481276,
+          "height": 0.377604
+        },
+        "ceramicPixels": 78154,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "7e1ca14deb30cd248c8544677a064e68bf31f4f33458c28a6292b140e4233f4a",
+        "geometrySha256": "c2d695899ed49feeb91658faf408aa30014f48c730339f3250e7bcb79bf8762c",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "basil-mature-r1.webp": {
+      "path": "/games/garden-living/basil-mature-r1.webp",
+      "type": "basil",
+      "phase": 3,
+      "sourceSize": {
+        "width": 720,
+        "height": 768
+      },
+      "sourceSha256": "e2042fd388a50a2831d4c3d7b6aa1dd5d7308221443130caac7176efb4de84b9",
+      "pot": {
+        "centerX": 0.49752,
+        "baseY": 0.977865,
+        "width": 0.473611
+      },
+      "paintedBounds": {
+        "x": 0.033333,
+        "y": 0.023438,
+        "width": 0.943056,
+        "height": 0.957031
+      },
+      "measurement": {
+        "searchWindow": [
+          0.229167,
+          0.614583,
+          0.770833,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.263889,
+          "y": 0.614583,
+          "width": 0.475,
+          "height": 0.364583
+        },
+        "ceramicPixels": 74731,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "e2042fd388a50a2831d4c3d7b6aa1dd5d7308221443130caac7176efb4de84b9",
+        "geometrySha256": "a4b3fe74c869303bd413a8a1b455378275013db4b3f82503e669c1ccdb8e569a",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "basil-seedling-r1.webp": {
+      "path": "/games/garden-living/basil-seedling-r1.webp",
+      "type": "basil",
+      "phase": 0,
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "sourceSha256": "8aff00edf783cc84338f3c08afa5199b18386156ccd6c6d5fe0f87090236899d",
+      "pot": {
+        "centerX": 0.49574,
+        "baseY": 0.977865,
+        "width": 0.478502
+      },
+      "paintedBounds": {
+        "x": 0.259362,
+        "y": 0.402344,
+        "width": 0.48405,
+        "height": 0.578125
+      },
+      "measurement": {
+        "searchWindow": [
+          0.228849,
+          0.604167,
+          0.771151,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.262136,
+          "y": 0.604167,
+          "width": 0.478502,
+          "height": 0.375
+        },
+        "ceramicPixels": 77978,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "8aff00edf783cc84338f3c08afa5199b18386156ccd6c6d5fe0f87090236899d",
+        "geometrySha256": "9ff160549e50b7a489f562d2eed6edb3f29b57b8f92908a97949d9da4452a4e7",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "basil-young-r1.webp": {
+      "path": "/games/garden-living/basil-young-r1.webp",
+      "type": "basil",
+      "phase": 1,
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "sourceSha256": "5bdc1d587ba14a479048572bbacb5250caa8e18d3c1d797149da4b3345de4890",
+      "pot": {
+        "centerX": 0.495443,
+        "baseY": 0.976563,
+        "width": 0.479889
+      },
+      "paintedBounds": {
+        "x": 0.212205,
+        "y": 0.294271,
+        "width": 0.638003,
+        "height": 0.684896
+      },
+      "measurement": {
+        "searchWindow": [
+          0.228849,
+          0.609375,
+          0.771151,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.260749,
+          "y": 0.609375,
+          "width": 0.481276,
+          "height": 0.36849
+        },
+        "ceramicPixels": 78321,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "5bdc1d587ba14a479048572bbacb5250caa8e18d3c1d797149da4b3345de4890",
+        "geometrySha256": "bdd945e483a06c906fb615e2a12121e2cadb2615d3f5227a4a6c60c8da53cec4",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "bonsai-developing-r1.webp": {
+      "path": "/games/garden-living/bonsai-developing-r1.webp",
+      "type": "bonsai",
+      "phase": 2,
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "sourceSha256": "70dab70b166fab2d1084b698486a099551bde56db4f1be0e94f65e20af8b102b",
+      "pot": {
+        "centerX": 0.543453,
+        "baseY": 0.942113,
+        "width": 0.513021
+      },
+      "paintedBounds": {
+        "x": 0.178385,
+        "y": 0.073806,
+        "width": 0.678385,
+        "height": 0.874096
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259115,
+          0.684515,
+          0.830729,
+          0.981187
+        ],
+        "ceramicBounds": {
+          "x": 0.286458,
+          "y": 0.684515,
+          "width": 0.514323,
+          "height": 0.261939
+        },
+        "ceramicPixels": 57699,
+        "componentCount": 1,
+        "material": "opaqueBlueBonsai",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Authored pot axis differs substantially from whole-image center."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "70dab70b166fab2d1084b698486a099551bde56db4f1be0e94f65e20af8b102b",
+        "geometrySha256": "4691b39abcc93f8375f145441a962bce7279467c7a0fd7f0649efb330519eb4e",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "bonsai-mature-r1.webp": {
+      "path": "/games/garden-living/bonsai-mature-r1.webp",
+      "type": "bonsai",
+      "phase": 3,
+      "sourceSize": {
+        "width": 768,
+        "height": 692
+      },
+      "sourceSha256": "9b7a3178936355f468f043959912a155709367d4dab7442636df2de940de25ea",
+      "pot": {
+        "centerX": 0.543907,
+        "baseY": 0.939306,
+        "width": 0.509115
+      },
+      "paintedBounds": {
+        "x": 0.063802,
+        "y": 0.050578,
+        "width": 0.885417,
+        "height": 0.894509
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259115,
+          0.684971,
+          0.830729,
+          0.975434
+        ],
+        "ceramicBounds": {
+          "x": 0.289063,
+          "y": 0.684971,
+          "width": 0.509115,
+          "height": 0.258671
+        },
+        "ceramicPixels": 56611,
+        "componentCount": 1,
+        "material": "opaqueBlueBonsai",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Authored pot axis differs substantially from whole-image center."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "9b7a3178936355f468f043959912a155709367d4dab7442636df2de940de25ea",
+        "geometrySha256": "000c0e093c2d1180400222d880b80c3596969845d484fd1ce82199c60919b710",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "bonsai-seedling-r1.webp": {
+      "path": "/games/garden-living/bonsai-seedling-r1.webp",
+      "type": "bonsai",
+      "phase": 0,
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "sourceSha256": "4b7fa2faa9b6b24bf598ecd9abcc0c4279f659cdfebabfadf10b5ba9d579bae8",
+      "pot": {
+        "centerX": 0.544254,
+        "baseY": 0.942113,
+        "width": 0.513021
+      },
+      "paintedBounds": {
+        "x": 0.285156,
+        "y": 0.447178,
+        "width": 0.516927,
+        "height": 0.500724
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259115,
+          0.684515,
+          0.830729,
+          0.981187
+        ],
+        "ceramicBounds": {
+          "x": 0.28776,
+          "y": 0.684515,
+          "width": 0.513021,
+          "height": 0.261939
+        },
+        "ceramicPixels": 57185,
+        "componentCount": 1,
+        "material": "opaqueBlueBonsai",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Authored pot axis differs substantially from whole-image center."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "4b7fa2faa9b6b24bf598ecd9abcc0c4279f659cdfebabfadf10b5ba9d579bae8",
+        "geometrySha256": "130f7f8b8f932f1a7a50ad935959776047d94f045f597f149dfbd70547842718",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "bonsai-young-r1.webp": {
+      "path": "/games/garden-living/bonsai-young-r1.webp",
+      "type": "bonsai",
+      "phase": 1,
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "sourceSha256": "bf460b3acb4d23b2be25f46876589370d4893908598e1d5499e0cc81207cbcf9",
+      "pot": {
+        "centerX": 0.547996,
+        "baseY": 0.949349,
+        "width": 0.503906
+      },
+      "paintedBounds": {
+        "x": 0.28776,
+        "y": 0.248915,
+        "width": 0.514323,
+        "height": 0.706223
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259115,
+          0.684515,
+          0.830729,
+          0.981187
+        ],
+        "ceramicBounds": {
+          "x": 0.295573,
+          "y": 0.684515,
+          "width": 0.503906,
+          "height": 0.269175
+        },
+        "ceramicPixels": 56477,
+        "componentCount": 1,
+        "material": "opaqueBlueBonsai",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Authored pot axis differs substantially from whole-image center."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "bf460b3acb4d23b2be25f46876589370d4893908598e1d5499e0cc81207cbcf9",
+        "geometrySha256": "3227c52e0f1f46fcb7ada9a31ef5b8862a31300a41afe6925af7c770ff7f58e8",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "daisy-budding-r1.webp": {
+      "path": "/games/garden-living/daisy-budding-r1.webp",
+      "type": "daisy",
+      "phase": 2,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "9bc8d0d50174a22fb3f48e13729052cb7df2946b1723b0d37bd2ccb5855ff8bb",
+      "pot": {
+        "centerX": 0.512207,
+        "baseY": 0.972656,
+        "width": 0.533203
+      },
+      "paintedBounds": {
+        "x": 0.072266,
+        "y": 0.092448,
+        "width": 0.878906,
+        "height": 0.88151
+      },
+      "measurement": {
+        "searchWindow": [
+          0,
+          0.654948,
+          1,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.248047,
+          "y": 0.654948,
+          "width": 0.533203,
+          "height": 0.317708
+        },
+        "ceramicPixels": 54869,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "9bc8d0d50174a22fb3f48e13729052cb7df2946b1723b0d37bd2ccb5855ff8bb",
+        "geometrySha256": "10ac06a635c8641105b93bf89cfb654142cccc695c9a2201f20de1664e57f3f8",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "daisy-mature-r2.webp": {
+      "path": "/games/garden-living/daisy-mature-r2.webp",
+      "type": "daisy",
+      "phase": 3,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "ff5d02d731f7eb55589f8270801e683ec5b4fd0756c45f639ead95b4aea4c90d",
+      "pot": {
+        "centerX": 0.511393,
+        "baseY": 0.972656,
+        "width": 0.533203
+      },
+      "paintedBounds": {
+        "x": 0.060547,
+        "y": 0.033854,
+        "width": 0.894531,
+        "height": 0.940104
+      },
+      "measurement": {
+        "searchWindow": [
+          0,
+          0.654948,
+          1,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.248047,
+          "y": 0.654948,
+          "width": 0.533203,
+          "height": 0.317708
+        },
+        "ceramicPixels": 54990,
+        "componentCount": 3,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "ff5d02d731f7eb55589f8270801e683ec5b4fd0756c45f639ead95b4aea4c90d",
+        "geometrySha256": "0ab254c9f94100fc9c5f736f9a76076e120b5ac005c454de9d9f07f098a61f54",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "daisy-seedling-r1.webp": {
+      "path": "/games/garden-living/daisy-seedling-r1.webp",
+      "type": "daisy",
+      "phase": 0,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "4a91ee9f0e75bf0cfa62b6edd31874136890973e93be1f6c8cdb591b66f677f9",
+      "pot": {
+        "centerX": 0.511556,
+        "baseY": 0.971354,
+        "width": 0.535156
+      },
+      "paintedBounds": {
+        "x": 0.246094,
+        "y": 0.565104,
+        "width": 0.539063,
+        "height": 0.408854
+      },
+      "measurement": {
+        "searchWindow": [
+          0,
+          0.654948,
+          1,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.248047,
+          "y": 0.654948,
+          "width": 0.535156,
+          "height": 0.317708
+        },
+        "ceramicPixels": 55360,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "4a91ee9f0e75bf0cfa62b6edd31874136890973e93be1f6c8cdb591b66f677f9",
+        "geometrySha256": "6af70c6fe52f7225287acb415248e18e3ef718c0f9677c585afcc47c5a995107",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "daisy-young-r1.webp": {
+      "path": "/games/garden-living/daisy-young-r1.webp",
+      "type": "daisy",
+      "phase": 1,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "db62c668a4762a4503a8668f3b9c7055874180fced889ec5d11bb4f2e818f50a",
+      "pot": {
+        "centerX": 0.512044,
+        "baseY": 0.951823,
+        "width": 0.533203
+      },
+      "paintedBounds": {
+        "x": 0.080078,
+        "y": 0.380208,
+        "width": 0.841797,
+        "height": 0.574219
+      },
+      "measurement": {
+        "searchWindow": [
+          0.214844,
+          0.614583,
+          0.826172,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.248047,
+          "y": 0.621094,
+          "width": 0.533203,
+          "height": 0.330729
+        },
+        "ceramicPixels": 54648,
+        "componentCount": 5,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "db62c668a4762a4503a8668f3b9c7055874180fced889ec5d11bb4f2e818f50a",
+        "geometrySha256": "59e251f0cce742ef865134b4e9032fe2d095502243f5a616a9fd8120d75d5db6",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "fern-developing-r1.webp": {
+      "path": "/games/garden-living/fern-developing-r1.webp",
+      "type": "fern",
+      "phase": 2,
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "sourceSha256": "8add6942ec4db93bd5366a9be442bc519dd9d02e4f3390b548ec7f270dcb79d7",
+      "pot": {
+        "centerX": 0.523546,
+        "baseY": 0.972504,
+        "width": 0.34375
+      },
+      "paintedBounds": {
+        "x": 0.158854,
+        "y": 0.156295,
+        "width": 0.757813,
+        "height": 0.817656
+      },
+      "measurement": {
+        "searchWindow": [
+          0.324219,
+          0.613603,
+          0.72526,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.352865,
+          "y": 0.613603,
+          "width": 0.34375,
+          "height": 0.3589
+        },
+        "ceramicPixels": 54479,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "8add6942ec4db93bd5366a9be442bc519dd9d02e4f3390b548ec7f270dcb79d7",
+        "geometrySha256": "7bff4041879dd66b5d1e53c791f91a2879ed7c20643bc6b4f87a33db22ea4930",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "fern-mature-r1.webp": {
+      "path": "/games/garden-living/fern-mature-r1.webp",
+      "type": "fern",
+      "phase": 3,
+      "sourceSize": {
+        "width": 768,
+        "height": 692
+      },
+      "sourceSha256": "b59e399aad3b5752eed8370bdab2a3fb5a550bfc23c256f90255c488201bc75c",
+      "pot": {
+        "centerX": 0.521484,
+        "baseY": 0.969653,
+        "width": 0.342448
+      },
+      "paintedBounds": {
+        "x": 0.035156,
+        "y": 0.028902,
+        "width": 0.946615,
+        "height": 0.943642
+      },
+      "measurement": {
+        "searchWindow": [
+          0.324219,
+          0.614162,
+          0.72526,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.352865,
+          "y": 0.614162,
+          "width": 0.342448,
+          "height": 0.356936
+        },
+        "ceramicPixels": 53754,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "b59e399aad3b5752eed8370bdab2a3fb5a550bfc23c256f90255c488201bc75c",
+        "geometrySha256": "8edc9e1b454c55fc1c0c711d273656b03930bcbad6d05dc6ad100af5e7f7b681",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "fern-seedling-r1.webp": {
+      "path": "/games/garden-living/fern-seedling-r1.webp",
+      "type": "fern",
+      "phase": 0,
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "sourceSha256": "e6d7950956972a37caf73cb5b0df96a4a40dab1c869d40f9f13728a9004f5134",
+      "pot": {
+        "centerX": 0.522786,
+        "baseY": 0.969609,
+        "width": 0.34375
+      },
+      "paintedBounds": {
+        "x": 0.315104,
+        "y": 0.499276,
+        "width": 0.40625,
+        "height": 0.473227
+      },
+      "measurement": {
+        "searchWindow": [
+          0.324219,
+          0.60492,
+          0.72526,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.352865,
+          "y": 0.60492,
+          "width": 0.34375,
+          "height": 0.366136
+        },
+        "ceramicPixels": 54679,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "e6d7950956972a37caf73cb5b0df96a4a40dab1c869d40f9f13728a9004f5134",
+        "geometrySha256": "5ef3a0a25bf9b800a86eb718488087390f415832ebf3c82eb70037e9d1fa307c",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "fern-young-r1.webp": {
+      "path": "/games/garden-living/fern-young-r1.webp",
+      "type": "fern",
+      "phase": 1,
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "sourceSha256": "eb3f15cc9168a46191a9cf4a6cd58bab50f94cab68e3add2af5362cfa0904980",
+      "pot": {
+        "centerX": 0.52322,
+        "baseY": 0.991317,
+        "width": 0.34375
+      },
+      "paintedBounds": {
+        "x": 0.264323,
+        "y": 0.337192,
+        "width": 0.575521,
+        "height": 0.657019
+      },
+      "measurement": {
+        "searchWindow": [
+          0.324219,
+          0.623734,
+          0.72526,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.352865,
+          "y": 0.623734,
+          "width": 0.34375,
+          "height": 0.36903
+        },
+        "ceramicPixels": 55169,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "eb3f15cc9168a46191a9cf4a6cd58bab50f94cab68e3add2af5362cfa0904980",
+        "geometrySha256": "218fec5c32841a622b309be351d4840791d0136f20d2f1ba85242296ef9f8ba6",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "lavender-developing-r1.webp": {
+      "path": "/games/garden-living/lavender-developing-r1.webp",
+      "type": "lavender",
+      "phase": 2,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "5d98dd104fe31be94997afeb6c6967c761de7e7a7c1e9dcdb8b3a647058e2024",
+      "pot": {
+        "centerX": 0.493327,
+        "baseY": 0.96875,
+        "width": 0.576172
+      },
+      "paintedBounds": {
+        "x": 0.095703,
+        "y": 0.0625,
+        "width": 0.847656,
+        "height": 0.908854
+      },
+      "measurement": {
+        "searchWindow": [
+          0.173828,
+          0.634115,
+          0.816406,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.207031,
+          "y": 0.634115,
+          "width": 0.576172,
+          "height": 0.334635
+        },
+        "ceramicPixels": 60429,
+        "componentCount": 4,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "5d98dd104fe31be94997afeb6c6967c761de7e7a7c1e9dcdb8b3a647058e2024",
+        "geometrySha256": "94916c8cf54fa07a526256dca0922f110a7644f868ce7c01aa2c1ee49070e4c2",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "lavender-mature-r1.webp": {
+      "path": "/games/garden-living/lavender-mature-r1.webp",
+      "type": "lavender",
+      "phase": 3,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "aa0719fe00e5dbffedce0d6044ef2b5d755f7c751c9dc2c7aa0766c33c6da994",
+      "pot": {
+        "centerX": 0.49056,
+        "baseY": 0.96875,
+        "width": 0.576172
+      },
+      "paintedBounds": {
+        "x": 0.068359,
+        "y": 0.02474,
+        "width": 0.886719,
+        "height": 0.945313
+      },
+      "measurement": {
+        "searchWindow": [
+          0.173828,
+          0.634115,
+          0.816406,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.207031,
+          "y": 0.634115,
+          "width": 0.576172,
+          "height": 0.334635
+        },
+        "ceramicPixels": 60371,
+        "componentCount": 3,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "aa0719fe00e5dbffedce0d6044ef2b5d755f7c751c9dc2c7aa0766c33c6da994",
+        "geometrySha256": "bf828b866eda0e4464ecff3d4f5689b482ddafca4c248e2b5d12a0f52ad784f4",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "lavender-seedling-r2.webp": {
+      "path": "/games/garden-living/lavender-seedling-r2.webp",
+      "type": "lavender",
+      "phase": 0,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "31bdc076b63764e54044ecccb6ce35bb750e1fb5a6add61eb19f905035bf1e59",
+      "pot": {
+        "centerX": 0.492676,
+        "baseY": 0.947917,
+        "width": 0.580078
+      },
+      "paintedBounds": {
+        "x": 0.207031,
+        "y": 0.460938,
+        "width": 0.583984,
+        "height": 0.488281
+      },
+      "measurement": {
+        "searchWindow": [
+          0.179688,
+          0.614583,
+          0.820313,
+          0.97526
+        ],
+        "ceramicBounds": {
+          "x": 0.208984,
+          "y": 0.623698,
+          "width": 0.580078,
+          "height": 0.324219
+        },
+        "ceramicPixels": 59679,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "31bdc076b63764e54044ecccb6ce35bb750e1fb5a6add61eb19f905035bf1e59",
+        "geometrySha256": "570a59d1ebc528c4353739e458e5746b555928a8e163a737250ef7746ed34858",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "lavender-young-r1.webp": {
+      "path": "/games/garden-living/lavender-young-r1.webp",
+      "type": "lavender",
+      "phase": 1,
+      "sourceSize": {
+        "width": 512,
+        "height": 768
+      },
+      "sourceSha256": "5cb4c075b675712c17afb9940e4b25c8e6419a518f4c11f16bfd52cf5fd68ab2",
+      "pot": {
+        "centerX": 0.490397,
+        "baseY": 0.947917,
+        "width": 0.576172
+      },
+      "paintedBounds": {
+        "x": 0.115234,
+        "y": 0.257813,
+        "width": 0.78125,
+        "height": 0.692708
+      },
+      "measurement": {
+        "searchWindow": [
+          0.179688,
+          0.614583,
+          0.810547,
+          0.980469
+        ],
+        "ceramicBounds": {
+          "x": 0.207031,
+          "y": 0.614583,
+          "width": 0.576172,
+          "height": 0.333333
+        },
+        "ceramicPixels": 60321,
+        "componentCount": 5,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "5cb4c075b675712c17afb9940e4b25c8e6419a518f4c11f16bfd52cf5fd68ab2",
+        "geometrySha256": "19442f9660d61b8ff7c7db77f3409464bcd4bf081c280d0bde7587e53050237a",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "monstera-developing-r1.webp": {
+      "path": "/games/garden-living/monstera-developing-r1.webp",
+      "type": "monstera",
+      "phase": 2,
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "sourceSha256": "4c98a3ba3f52b6dd72c6b8da49b783cb4f25cc09aaf373f1e4cb72ba23494bd2",
+      "pot": {
+        "centerX": 0.512681,
+        "baseY": 0.967448,
+        "width": 0.378641
+      },
+      "paintedBounds": {
+        "x": 0.171983,
+        "y": 0.119792,
+        "width": 0.705964,
+        "height": 0.85026
+      },
+      "measurement": {
+        "searchWindow": [
+          0.278779,
+          0.625,
+          0.73509,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.324549,
+          "y": 0.625,
+          "width": 0.378641,
+          "height": 0.34375
+        },
+        "ceramicPixels": 57525,
+        "componentCount": 3,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "4c98a3ba3f52b6dd72c6b8da49b783cb4f25cc09aaf373f1e4cb72ba23494bd2",
+        "geometrySha256": "06af6bfad90a18b730d9839b61db87901148f3cfe1ee20a187f9c0d0449f92cc",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "monstera-mature-r1.webp": {
+      "path": "/games/garden-living/monstera-mature-r1.webp",
+      "type": "monstera",
+      "phase": 3,
+      "sourceSize": {
+        "width": 720,
+        "height": 768
+      },
+      "sourceSha256": "d5fcd75ebf4f5b058effa3b58a8c1b127cc24be85e6462b95539c833f61db8b4",
+      "pot": {
+        "centerX": 0.507242,
+        "baseY": 0.972656,
+        "width": 0.380556
+      },
+      "paintedBounds": {
+        "x": 0.029167,
+        "y": 0.018229,
+        "width": 0.9375,
+        "height": 0.955729
+      },
+      "measurement": {
+        "searchWindow": [
+          0.279167,
+          0.625,
+          0.725,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.316667,
+          "y": 0.625,
+          "width": 0.381944,
+          "height": 0.347656
+        },
+        "ceramicPixels": 56380,
+        "componentCount": 7,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "d5fcd75ebf4f5b058effa3b58a8c1b127cc24be85e6462b95539c833f61db8b4",
+        "geometrySha256": "941673cf682707ce62dce3fc8479125964715b676552f6596379bbac6786ec55",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "monstera-seedling-r1.webp": {
+      "path": "/games/garden-living/monstera-seedling-r1.webp",
+      "type": "monstera",
+      "phase": 0,
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "sourceSha256": "5680eabc9f09f148126a923428132be26b41a4f09061e4e9e12cb09e6f4e5454",
+      "pot": {
+        "centerX": 0.50634,
+        "baseY": 0.970052,
+        "width": 0.380028
+      },
+      "paintedBounds": {
+        "x": 0.271845,
+        "y": 0.404948,
+        "width": 0.558946,
+        "height": 0.567708
+      },
+      "measurement": {
+        "searchWindow": [
+          0.278779,
+          0.625,
+          0.73509,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.317614,
+          "y": 0.625,
+          "width": 0.380028,
+          "height": 0.345052
+        },
+        "ceramicPixels": 57044,
+        "componentCount": 4,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "5680eabc9f09f148126a923428132be26b41a4f09061e4e9e12cb09e6f4e5454",
+        "geometrySha256": "739ba0982bfd7190fef76bf5c278936d1ac7e2075c80be5e28c477de7ce86662",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "monstera-young-r1.webp": {
+      "path": "/games/garden-living/monstera-young-r1.webp",
+      "type": "monstera",
+      "phase": 1,
+      "sourceSize": {
+        "width": 721,
+        "height": 768
+      },
+      "sourceSha256": "fcd6331f49a0245400a4451a521b77b5aeba8b585ec247e7a71f5430ec9d1346",
+      "pot": {
+        "centerX": 0.50961,
+        "baseY": 0.970052,
+        "width": 0.385576
+      },
+      "paintedBounds": {
+        "x": 0.18724,
+        "y": 0.264323,
+        "width": 0.664355,
+        "height": 0.708333
+      },
+      "measurement": {
+        "searchWindow": [
+          0.278779,
+          0.625,
+          0.73509,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.319001,
+          "y": 0.625,
+          "width": 0.385576,
+          "height": 0.345052
+        },
+        "ceramicPixels": 58939,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "fcd6331f49a0245400a4451a521b77b5aeba8b585ec247e7a71f5430ec9d1346",
+        "geometrySha256": "207b3c1c1c51457a8df46c77ac9e3ac120b0768644e6a26a73219bf7041ec561",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "moon-cactus-developing-r1.webp": {
+      "path": "/games/garden-living/moon-cactus-developing-r1.webp",
+      "type": "moon_cactus",
+      "phase": 2,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "73e59ab16641de5badea1abcaa142b9edc23397dca213fa60d427af3bf90d06e",
+      "pot": {
+        "centerX": 0.500521,
+        "baseY": 0.973958,
+        "width": 0.5875
+      },
+      "paintedBounds": {
+        "x": 0.207813,
+        "y": 0.102865,
+        "width": 0.590625,
+        "height": 0.873698
+      },
+      "measurement": {
+        "searchWindow": [
+          0.16875,
+          0.514323,
+          0.83125,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.209375,
+          "y": 0.514323,
+          "width": 0.5875,
+          "height": 0.460938
+        },
+        "ceramicPixels": 98548,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "73e59ab16641de5badea1abcaa142b9edc23397dca213fa60d427af3bf90d06e",
+        "geometrySha256": "fb81fd977b9813b69ef8af4c62493ce8bfa71901adce0c79e26a09738182587b",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "moon-cactus-mature-r1.webp": {
+      "path": "/games/garden-living/moon-cactus-mature-r1.webp",
+      "type": "moon_cactus",
+      "phase": 3,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "243d54eff02686ba6fb5d5d0b66d812a72cea3f5e89b1b0e1162d8f7221bad42",
+      "pot": {
+        "centerX": 0.498003,
+        "baseY": 0.973958,
+        "width": 0.582813
+      },
+      "paintedBounds": {
+        "x": 0.20625,
+        "y": 0.041667,
+        "width": 0.609375,
+        "height": 0.934896
+      },
+      "measurement": {
+        "searchWindow": [
+          0.16875,
+          0.514323,
+          0.83125,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.209375,
+          "y": 0.514323,
+          "width": 0.582813,
+          "height": 0.460938
+        },
+        "ceramicPixels": 97808,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "243d54eff02686ba6fb5d5d0b66d812a72cea3f5e89b1b0e1162d8f7221bad42",
+        "geometrySha256": "de2d9b34b922791f533451b38fd56a28144dbc622b7be6bae74e96ea1793340d",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "moon-cactus-seedling-r1.webp": {
+      "path": "/games/garden-living/moon-cactus-seedling-r1.webp",
+      "type": "moon_cactus",
+      "phase": 0,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "53b818be8916cd7d73de8cb16760b8fe1ca37f230c672d3dcf2713bbd7531078",
+      "pot": {
+        "centerX": 0.498351,
+        "baseY": 0.97526,
+        "width": 0.585938
+      },
+      "paintedBounds": {
+        "x": 0.20625,
+        "y": 0.223958,
+        "width": 0.589063,
+        "height": 0.753906
+      },
+      "measurement": {
+        "searchWindow": [
+          0.16875,
+          0.514323,
+          0.83125,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.207813,
+          "y": 0.514323,
+          "width": 0.585938,
+          "height": 0.460938
+        },
+        "ceramicPixels": 99357,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "53b818be8916cd7d73de8cb16760b8fe1ca37f230c672d3dcf2713bbd7531078",
+        "geometrySha256": "bb504f953481b7de9ab0f2068bca8ad7860c201794249341673a4aabd91efd8e",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "moon-cactus-young-r1.webp": {
+      "path": "/games/garden-living/moon-cactus-young-r1.webp",
+      "type": "moon_cactus",
+      "phase": 1,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "0fd35d13448444ae6098c007af2dbd5d9a9c165e733090a4c15cbfd5a558a448",
+      "pot": {
+        "centerX": 0.500608,
+        "baseY": 0.97526,
+        "width": 0.585938
+      },
+      "paintedBounds": {
+        "x": 0.209375,
+        "y": 0.152344,
+        "width": 0.589063,
+        "height": 0.824219
+      },
+      "measurement": {
+        "searchWindow": [
+          0.16875,
+          0.514323,
+          0.83125,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.210938,
+          "y": 0.514323,
+          "width": 0.585938,
+          "height": 0.460938
+        },
+        "ceramicPixels": 98239,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "0fd35d13448444ae6098c007af2dbd5d9a9c165e733090a4c15cbfd5a558a448",
+        "geometrySha256": "49c2ae3f1127cc1819b9d4fa3d2f5bb4eba002bfe1528a4a7fb7cf74074e89b0",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "orchid-developing-r1.webp": {
+      "path": "/games/garden-living/orchid-developing-r1.webp",
+      "type": "orchid",
+      "phase": 2,
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "sourceSha256": "e79b6fbb7c67aada5c61a0b22dbed4b58aadc7aaf910060d72da0e923116fc3f",
+      "pot": {
+        "centerX": 0.466688,
+        "baseY": 0.952991,
+        "width": 0.338542
+      },
+      "paintedBounds": {
+        "x": 0.135417,
+        "y": 0.07265,
+        "width": 0.813802,
+        "height": 0.883191
+      },
+      "measurement": {
+        "searchWindow": [
+          0.264323,
+          0.609687,
+          0.670573,
+          0.982906
+        ],
+        "ceramicBounds": {
+          "x": 0.298177,
+          "y": 0.618234,
+          "width": 0.338542,
+          "height": 0.336182
+        },
+        "ceramicPixels": 49922,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "e79b6fbb7c67aada5c61a0b22dbed4b58aadc7aaf910060d72da0e923116fc3f",
+        "geometrySha256": "5531bc6365f9e6606164c2155aaf58417f6668874bba8228f4df708f8cf2122e",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "orchid-mature-r1.webp": {
+      "path": "/games/garden-living/orchid-mature-r1.webp",
+      "type": "orchid",
+      "phase": 3,
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "sourceSha256": "132b6566106f156346043633d0cf5f8ee69ea260239904a5b4f672d155db5bbc",
+      "pot": {
+        "centerX": 0.466471,
+        "baseY": 0.952991,
+        "width": 0.33724
+      },
+      "paintedBounds": {
+        "x": 0.135417,
+        "y": 0.027066,
+        "width": 0.822917,
+        "height": 0.928775
+      },
+      "measurement": {
+        "searchWindow": [
+          0.266927,
+          0.609687,
+          0.6875,
+          0.980057
+        ],
+        "ceramicBounds": {
+          "x": 0.299479,
+          "y": 0.619658,
+          "width": 0.33724,
+          "height": 0.333333
+        },
+        "ceramicPixels": 49264,
+        "componentCount": 3,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "132b6566106f156346043633d0cf5f8ee69ea260239904a5b4f672d155db5bbc",
+        "geometrySha256": "391dedf4ca43af15c2a1816a704123d9ee6245c03d3443fb700107a035791dbf",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "orchid-seedling-r1.webp": {
+      "path": "/games/garden-living/orchid-seedling-r1.webp",
+      "type": "orchid",
+      "phase": 0,
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "sourceSha256": "519ad3720fcaa43a885dff38582ecdacc19ddc605d4682ea15cdb25174359515",
+      "pot": {
+        "centerX": 0.487956,
+        "baseY": 0.958689,
+        "width": 0.358073
+      },
+      "paintedBounds": {
+        "x": 0.174479,
+        "y": 0.441595,
+        "width": 0.61849,
+        "height": 0.519943
+      },
+      "measurement": {
+        "searchWindow": [
+          0.279948,
+          0.594017,
+          0.695313,
+          0.987179
+        ],
+        "ceramicBounds": {
+          "x": 0.308594,
+          "y": 0.605413,
+          "width": 0.358073,
+          "height": 0.354701
+        },
+        "ceramicPixels": 54910,
+        "componentCount": 3,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "519ad3720fcaa43a885dff38582ecdacc19ddc605d4682ea15cdb25174359515",
+        "geometrySha256": "8559d877a15e5638dfb2904d486fa9de4ddec2c7c17c0c5464380e7570f1559c",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "orchid-young-r1.webp": {
+      "path": "/games/garden-living/orchid-young-r1.webp",
+      "type": "orchid",
+      "phase": 1,
+      "sourceSize": {
+        "width": 768,
+        "height": 702
+      },
+      "sourceSha256": "b485eb4243a01306763ae98470f5ed28bb3fff121607c8da642eba6a468abb8d",
+      "pot": {
+        "centerX": 0.494978,
+        "baseY": 0.970085,
+        "width": 0.395833
+      },
+      "paintedBounds": {
+        "x": 0.098958,
+        "y": 0.200855,
+        "width": 0.816406,
+        "height": 0.77208
+      },
+      "measurement": {
+        "searchWindow": [
+          0.264323,
+          0.574074,
+          0.72526,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.299479,
+          "y": 0.581197,
+          "width": 0.395833,
+          "height": 0.390313
+        },
+        "ceramicPixels": 67829,
+        "componentCount": 4,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "b485eb4243a01306763ae98470f5ed28bb3fff121607c8da642eba6a468abb8d",
+        "geometrySha256": "beaa5c97ec78dc80d0b23e0b316a6cf74a21da706572b6c29aa26d7dca6253eb",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "pothos-developing-r1.webp": {
+      "path": "/games/garden-living/pothos-developing-r1.webp",
+      "type": "pothos",
+      "phase": 2,
+      "sourceSize": {
+        "width": 768,
+        "height": 742
+      },
+      "sourceSha256": "1928b5816988ce97da2d35f1b70ecd9235089769ae237c4fde23d55b1f537893",
+      "pot": {
+        "centerX": 0.526042,
+        "baseY": 0.911051,
+        "width": 0.372396
+      },
+      "paintedBounds": {
+        "x": 0.11849,
+        "y": 0.080863,
+        "width": 0.751302,
+        "height": 0.831536
+      },
+      "measurement": {
+        "searchWindow": [
+          0.313802,
+          0.514825,
+          0.746094,
+          0.940701
+        ],
+        "ceramicBounds": {
+          "x": 0.313802,
+          "y": 0.514825,
+          "width": 0.401042,
+          "height": 0.396226
+        },
+        "ceramicPixels": 65352,
+        "componentCount": 3,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": [
+          "Ceramic component meets search boundary; inspect annotated source."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "1928b5816988ce97da2d35f1b70ecd9235089769ae237c4fde23d55b1f537893",
+        "geometrySha256": "8c61672836c09149922c9b41ff72d1d2490ea7c54d0c69cb298e73341bb75a29",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "pothos-mature-r1.webp": {
+      "path": "/games/garden-living/pothos-mature-r1.webp",
+      "type": "pothos",
+      "phase": 3,
+      "sourceSize": {
+        "width": 768,
+        "height": 743
+      },
+      "sourceSha256": "5e76684b0337f98b6c9bea6724c8ba5a20a9ee254d13443b286d8e2e5fb3e963",
+      "pot": {
+        "centerX": 0.525112,
+        "baseY": 0.909825,
+        "width": 0.36849
+      },
+      "paintedBounds": {
+        "x": 0.042969,
+        "y": 0.043069,
+        "width": 0.924479,
+        "height": 0.869448
+      },
+      "measurement": {
+        "searchWindow": [
+          0.313802,
+          0.524899,
+          0.746094,
+          0.940781
+        ],
+        "ceramicBounds": {
+          "x": 0.34375,
+          "y": 0.524899,
+          "width": 0.36849,
+          "height": 0.386272
+        },
+        "ceramicPixels": 63234,
+        "componentCount": 3,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "5e76684b0337f98b6c9bea6724c8ba5a20a9ee254d13443b286d8e2e5fb3e963",
+        "geometrySha256": "367f5c8f09582c5e625590fc54a8d18fd22cc9560a4201c11487ab90eddeffb1",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "pothos-seedling-r1.webp": {
+      "path": "/games/garden-living/pothos-seedling-r1.webp",
+      "type": "pothos",
+      "phase": 0,
+      "sourceSize": {
+        "width": 768,
+        "height": 742
+      },
+      "sourceSha256": "ed934541aea9d53dc2e4aa6606be625cdce96cf59225ab0ccf164cad37f49327",
+      "pot": {
+        "centerX": 0.525391,
+        "baseY": 0.912399,
+        "width": 0.371094
+      },
+      "paintedBounds": {
+        "x": 0.298177,
+        "y": 0.300539,
+        "width": 0.417969,
+        "height": 0.613208
+      },
+      "measurement": {
+        "searchWindow": [
+          0.313802,
+          0.514825,
+          0.746094,
+          0.940701
+        ],
+        "ceramicBounds": {
+          "x": 0.33724,
+          "y": 0.514825,
+          "width": 0.376302,
+          "height": 0.397574
+        },
+        "ceramicPixels": 68048,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "ed934541aea9d53dc2e4aa6606be625cdce96cf59225ab0ccf164cad37f49327",
+        "geometrySha256": "9002a57ae1c99781ee8b92714389f4f1782a10c6fb225aac3e65ad823f88b5f2",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "pothos-young-r1.webp": {
+      "path": "/games/garden-living/pothos-young-r1.webp",
+      "type": "pothos",
+      "phase": 1,
+      "sourceSize": {
+        "width": 768,
+        "height": 742
+      },
+      "sourceSha256": "c428dc676f4d51dc700a95c8e22ee9527c4e34907655eab757bb5bac9f63a5ca",
+      "pot": {
+        "centerX": 0.525112,
+        "baseY": 0.911051,
+        "width": 0.373698
+      },
+      "paintedBounds": {
+        "x": 0.227865,
+        "y": 0.184636,
+        "width": 0.61849,
+        "height": 0.729111
+      },
+      "measurement": {
+        "searchWindow": [
+          0.313802,
+          0.514825,
+          0.746094,
+          0.940701
+        ],
+        "ceramicBounds": {
+          "x": 0.342448,
+          "y": 0.514825,
+          "width": 0.373698,
+          "height": 0.396226
+        },
+        "ceramicPixels": 65433,
+        "componentCount": 4,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "c428dc676f4d51dc700a95c8e22ee9527c4e34907655eab757bb5bac9f63a5ca",
+        "geometrySha256": "52d40e68b34477b9acd3e0e7f5403bae2c92bd12f8d8ecfd53c9f5cf397fb1c5",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "rosemary-developing-r1.webp": {
+      "path": "/games/garden-living/rosemary-developing-r1.webp",
+      "type": "rosemary",
+      "phase": 2,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "fafc5aa6acc6bc6f0cb46d387b6f074110352e2cdaa7399564c36c9217432201",
+      "pot": {
+        "centerX": 0.524107,
+        "baseY": 0.983073,
+        "width": 0.49375
+      },
+      "paintedBounds": {
+        "x": 0.1625,
+        "y": 0.014323,
+        "width": 0.757813,
+        "height": 0.971354
+      },
+      "measurement": {
+        "searchWindow": [
+          0.24375,
+          0.609375,
+          0.80625,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.278125,
+          "y": 0.609375,
+          "width": 0.49375,
+          "height": 0.375
+        },
+        "ceramicPixels": 74082,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "fafc5aa6acc6bc6f0cb46d387b6f074110352e2cdaa7399564c36c9217432201",
+        "geometrySha256": "3deba2b9596f6439e41fcc77fdf64a4082ccba8ff6575259d5904100c19cb4af",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "rosemary-mature-r1.webp": {
+      "path": "/games/garden-living/rosemary-mature-r1.webp",
+      "type": "rosemary",
+      "phase": 3,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "8a1cced21287a0268e6bb49eeea6fe10d2b4e739ed617783607bb648eae2ea54",
+      "pot": {
+        "centerX": 0.524554,
+        "baseY": 0.984375,
+        "width": 0.490625
+      },
+      "paintedBounds": {
+        "x": 0.035938,
+        "y": 0.014323,
+        "width": 0.93125,
+        "height": 0.971354
+      },
+      "measurement": {
+        "searchWindow": [
+          0.24375,
+          0.611979,
+          0.803125,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.279688,
+          "y": 0.611979,
+          "width": 0.490625,
+          "height": 0.372396
+        },
+        "ceramicPixels": 73511,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "8a1cced21287a0268e6bb49eeea6fe10d2b4e739ed617783607bb648eae2ea54",
+        "geometrySha256": "5957da23a7d9755f88554e1055d4d37c208561b04782d8c12f7a2010ba98cca1",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "rosemary-seedling-r1.webp": {
+      "path": "/games/garden-living/rosemary-seedling-r1.webp",
+      "type": "rosemary",
+      "phase": 0,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "2a9ebfe6b7a4b77ce25014d3e728ad6bc1ca7736a46fdcf626a713a135195817",
+      "pot": {
+        "centerX": 0.523326,
+        "baseY": 0.983073,
+        "width": 0.49375
+      },
+      "paintedBounds": {
+        "x": 0.276563,
+        "y": 0.35026,
+        "width": 0.496875,
+        "height": 0.635417
+      },
+      "measurement": {
+        "searchWindow": [
+          0.24375,
+          0.609375,
+          0.80625,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.278125,
+          "y": 0.609375,
+          "width": 0.49375,
+          "height": 0.375
+        },
+        "ceramicPixels": 73926,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "2a9ebfe6b7a4b77ce25014d3e728ad6bc1ca7736a46fdcf626a713a135195817",
+        "geometrySha256": "c0086f5d42b23db1f83d002aaa2ce096462c0586fa3568797dcb063893a6c1e1",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "rosemary-young-r1.webp": {
+      "path": "/games/garden-living/rosemary-young-r1.webp",
+      "type": "rosemary",
+      "phase": 1,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "04993f0cfd5291bec1d34de953f8f441c26553b10318637fea38af17c449acdf",
+      "pot": {
+        "centerX": 0.524888,
+        "baseY": 0.983073,
+        "width": 0.495313
+      },
+      "paintedBounds": {
+        "x": 0.242188,
+        "y": 0.208333,
+        "width": 0.573438,
+        "height": 0.777344
+      },
+      "measurement": {
+        "searchWindow": [
+          0.24375,
+          0.609375,
+          0.80625,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.278125,
+          "y": 0.609375,
+          "width": 0.495313,
+          "height": 0.375
+        },
+        "ceramicPixels": 73903,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "04993f0cfd5291bec1d34de953f8f441c26553b10318637fea38af17c449acdf",
+        "geometrySha256": "340ca0fd045c042746c46593d447f732f6003657f016eb495caece57b10e7056",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "strawberry-developing-r1.webp": {
+      "path": "/games/garden-living/strawberry-developing-r1.webp",
+      "type": "strawberry",
+      "phase": 2,
+      "sourceSize": {
+        "width": 768,
+        "height": 690
+      },
+      "sourceSha256": "7633cb17cae36bfe1ce3bc802137d9dc3534e6a7bf6e9743c85b5b4e18db55b5",
+      "pot": {
+        "centerX": 0.511312,
+        "baseY": 0.971014,
+        "width": 0.488281
+      },
+      "paintedBounds": {
+        "x": 0.066406,
+        "y": 0.026087,
+        "width": 0.907552,
+        "height": 0.947826
+      },
+      "measurement": {
+        "searchWindow": [
+          0.234375,
+          0.528986,
+          0.795573,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.266927,
+          "y": 0.528986,
+          "width": 0.489583,
+          "height": 0.443478
+        },
+        "ceramicPixels": 78973,
+        "componentCount": 5,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "7633cb17cae36bfe1ce3bc802137d9dc3534e6a7bf6e9743c85b5b4e18db55b5",
+        "geometrySha256": "e6ae7a80b5a89ef740f973c3c06b39599cb52a95fc7befe7106b1d942afbf9ec",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "strawberry-mature-r1.webp": {
+      "path": "/games/garden-living/strawberry-mature-r1.webp",
+      "type": "strawberry",
+      "phase": 3,
+      "sourceSize": {
+        "width": 768,
+        "height": 691
+      },
+      "sourceSha256": "fd7d26cae3021a2f6659363c60d617491a81bae9168a3e2c718a1ce2a4ef8a27",
+      "pot": {
+        "centerX": 0.510417,
+        "baseY": 0.969609,
+        "width": 0.483073
+      },
+      "paintedBounds": {
+        "x": 0.053385,
+        "y": 0.023155,
+        "width": 0.927083,
+        "height": 0.949349
+      },
+      "measurement": {
+        "searchWindow": [
+          0.234375,
+          0.513748,
+          0.795573,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.268229,
+          "y": 0.513748,
+          "width": 0.485677,
+          "height": 0.457308
+        },
+        "ceramicPixels": 84253,
+        "componentCount": 11,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "fd7d26cae3021a2f6659363c60d617491a81bae9168a3e2c718a1ce2a4ef8a27",
+        "geometrySha256": "ceba1b10523bdeebfad18eb73c16a8d37594184ce96a522ac09ff66a7bd37955",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "strawberry-seedling-r1.webp": {
+      "path": "/games/garden-living/strawberry-seedling-r1.webp",
+      "type": "strawberry",
+      "phase": 0,
+      "sourceSize": {
+        "width": 768,
+        "height": 690
+      },
+      "sourceSha256": "6b9e50d9e6b8c110d65ca908fd95c1af9be0b7d62eb5b332a2d6de9c976b5b2b",
+      "pot": {
+        "centerX": 0.510579,
+        "baseY": 0.968116,
+        "width": 0.486979
+      },
+      "paintedBounds": {
+        "x": 0.266927,
+        "y": 0.301449,
+        "width": 0.490885,
+        "height": 0.669565
+      },
+      "measurement": {
+        "searchWindow": [
+          0.234375,
+          0.484058,
+          0.795573,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.268229,
+          "y": 0.484058,
+          "width": 0.488281,
+          "height": 0.485507
+        },
+        "ceramicPixels": 90942,
+        "componentCount": 2,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "6b9e50d9e6b8c110d65ca908fd95c1af9be0b7d62eb5b332a2d6de9c976b5b2b",
+        "geometrySha256": "4a3da080e6f51f8074152ad54f7a8e0c0b1fdd2bf3382a89a4948baddf4f8e72",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "strawberry-young-r1.webp": {
+      "path": "/games/garden-living/strawberry-young-r1.webp",
+      "type": "strawberry",
+      "phase": 1,
+      "sourceSize": {
+        "width": 768,
+        "height": 690
+      },
+      "sourceSha256": "149be50c4e84946874e1f9c609ab33a1d50a908c101e2446e9ad20e545ec3cf9",
+      "pot": {
+        "centerX": 0.511149,
+        "baseY": 0.972464,
+        "width": 0.488281
+      },
+      "paintedBounds": {
+        "x": 0.139323,
+        "y": 0.104348,
+        "width": 0.80599,
+        "height": 0.869565
+      },
+      "measurement": {
+        "searchWindow": [
+          0.234375,
+          0.504348,
+          0.795573,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.266927,
+          "y": 0.504348,
+          "width": 0.519531,
+          "height": 0.468116
+        },
+        "ceramicPixels": 88011,
+        "componentCount": 4,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "149be50c4e84946874e1f9c609ab33a1d50a908c101e2446e9ad20e545ec3cf9",
+        "geometrySha256": "8013885eec4f3b04de59cd30720d91b5abd806528e49ddea4fc25d7971c0a7f0",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "string-of-pearls-developing-r1.webp": {
+      "path": "/games/garden-living/string-of-pearls-developing-r1.webp",
+      "type": "string_of_pearls",
+      "phase": 2,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "e08d89281730997e88aec1abf1f91015438097eb3e5b220283069c03e1032a1d",
+      "pot": {
+        "centerX": 0.506186,
+        "baseY": 0.708333,
+        "width": 0.432813
+      },
+      "paintedBounds": {
+        "x": 0.176563,
+        "y": 0.002604,
+        "width": 0.667188,
+        "height": 0.954427
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259375,
+          0.434896,
+          0.75625,
+          0.740885
+        ],
+        "ceramicBounds": {
+          "x": 0.285938,
+          "y": 0.450521,
+          "width": 0.440625,
+          "height": 0.259115
+        },
+        "ceramicPixels": 35376,
+        "componentCount": 25,
+        "material": "warmCeramic",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Basket base is the support; suspension rope and trailing foliage are excluded."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "e08d89281730997e88aec1abf1f91015438097eb3e5b220283069c03e1032a1d",
+        "geometrySha256": "d2f2e1dbdb36d136384562cdc9027bab179420164df3d7fb68a1bb5a902f076b",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "string-of-pearls-mature-r1.webp": {
+      "path": "/games/garden-living/string-of-pearls-mature-r1.webp",
+      "type": "string_of_pearls",
+      "phase": 3,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "084a565a7fc25a1e3d87a9bcd80d726f7a36c623cf4a3b1d6e52e48cb11e971e",
+      "pot": {
+        "centerX": 0.505498,
+        "baseY": 0.709635,
+        "width": 0.43125
+      },
+      "paintedBounds": {
+        "x": 0.153125,
+        "y": 0.003906,
+        "width": 0.745313,
+        "height": 0.989583
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259375,
+          0.434896,
+          0.75625,
+          0.740885
+        ],
+        "ceramicBounds": {
+          "x": 0.285938,
+          "y": 0.450521,
+          "width": 0.442188,
+          "height": 0.269531
+        },
+        "ceramicPixels": 36918,
+        "componentCount": 16,
+        "material": "warmCeramic",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Basket base is the support; suspension rope and trailing foliage are excluded."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "084a565a7fc25a1e3d87a9bcd80d726f7a36c623cf4a3b1d6e52e48cb11e971e",
+        "geometrySha256": "85a55f019a9f1ae1c263fd9d0e93425f8412ee5be326aba55c50896518614757",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "string-of-pearls-seedling-r1.webp": {
+      "path": "/games/garden-living/string-of-pearls-seedling-r1.webp",
+      "type": "string_of_pearls",
+      "phase": 0,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "2da9d8dc296d8161cca0519effaad96be8aaa0b5952462859f8f4e0ebce9f06b",
+      "pot": {
+        "centerX": 0.509071,
+        "baseY": 0.709635,
+        "width": 0.432813
+      },
+      "paintedBounds": {
+        "x": 0.275,
+        "y": 0.002604,
+        "width": 0.45,
+        "height": 0.709635
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259375,
+          0.434896,
+          0.75625,
+          0.740885
+        ],
+        "ceramicBounds": {
+          "x": 0.289063,
+          "y": 0.450521,
+          "width": 0.434375,
+          "height": 0.260417
+        },
+        "ceramicPixels": 44144,
+        "componentCount": 9,
+        "material": "warmCeramic",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Basket base is the support; suspension rope and trailing foliage are excluded."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "2da9d8dc296d8161cca0519effaad96be8aaa0b5952462859f8f4e0ebce9f06b",
+        "geometrySha256": "8d8288a1c2461012a814cc11d26ef0f174aa2b19fd29c2dce42e996f5f858df0",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "string-of-pearls-young-r1.webp": {
+      "path": "/games/garden-living/string-of-pearls-young-r1.webp",
+      "type": "string_of_pearls",
+      "phase": 1,
+      "sourceSize": {
+        "width": 640,
+        "height": 768
+      },
+      "sourceSha256": "2123f2efe49c170a9fbdb132f6ef2ecf539e271ccb2e6948abde3f489095a740",
+      "pot": {
+        "centerX": 0.502814,
+        "baseY": 0.708333,
+        "width": 0.429688
+      },
+      "paintedBounds": {
+        "x": 0.259375,
+        "y": 0.002604,
+        "width": 0.498438,
+        "height": 0.753906
+      },
+      "measurement": {
+        "searchWindow": [
+          0.259375,
+          0.434896,
+          0.75625,
+          0.740885
+        ],
+        "ceramicBounds": {
+          "x": 0.285938,
+          "y": 0.450521,
+          "width": 0.445313,
+          "height": 0.265625
+        },
+        "ceramicPixels": 41238,
+        "componentCount": 8,
+        "material": "warmCeramic",
+        "axisKind": "stable wide ceramic body envelope",
+        "notes": [
+          "Basket base is the support; suspension rope and trailing foliage are excluded."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "2123f2efe49c170a9fbdb132f6ef2ecf539e271ccb2e6948abde3f489095a740",
+        "geometrySha256": "cf238c77c4de4cd4264b879120f9cb35ac1d7c44592d42e2dba29f44cb3e275e",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "succulent-developing-r1.webp": {
+      "path": "/games/garden-living/succulent-developing-r1.webp",
+      "type": "succulent",
+      "phase": 2,
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "sourceSha256": "eaa3dae4cb977c96b4d9539bc3e15d75b437ca0c75913eee457a848cba5452a8",
+      "pot": {
+        "centerX": 0.497675,
+        "baseY": 0.970861,
+        "width": 0.671875
+      },
+      "paintedBounds": {
+        "x": 0.138021,
+        "y": 0.144371,
+        "width": 0.739583,
+        "height": 0.831788
+      },
+      "measurement": {
+        "searchWindow": [
+          0.125,
+          0.584106,
+          0.885417,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.157552,
+          "y": 0.584106,
+          "width": 0.691406,
+          "height": 0.389404
+        },
+        "ceramicPixels": 118073,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "eaa3dae4cb977c96b4d9539bc3e15d75b437ca0c75913eee457a848cba5452a8",
+        "geometrySha256": "096886757dc1a991db35a5774d9854d8c9413ed69aa89cced119e58df668dfff",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "succulent-mature-r1.webp": {
+      "path": "/games/garden-living/succulent-mature-r1.webp",
+      "type": "succulent",
+      "phase": 3,
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "sourceSha256": "ee9498ca2f809e7bfdff577e82cf4618836795f27f1234ced1721ee5cfe280f6",
+      "pot": {
+        "centerX": 0.505353,
+        "baseY": 0.97351,
+        "width": 0.677083
+      },
+      "paintedBounds": {
+        "x": 0.053385,
+        "y": 0.042384,
+        "width": 0.893229,
+        "height": 0.933775
+      },
+      "measurement": {
+        "searchWindow": [
+          0.125,
+          0.504636,
+          0.888021,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.125,
+          "y": 0.504636,
+          "width": 0.763021,
+          "height": 0.470199
+        },
+        "ceramicPixels": 132390,
+        "componentCount": 5,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": [
+          "Ceramic component meets search boundary; inspect annotated source."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "ee9498ca2f809e7bfdff577e82cf4618836795f27f1234ced1721ee5cfe280f6",
+        "geometrySha256": "10b356178de89222caa065c134a3153f242289b337f59ec29b61b593cce057a0",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "succulent-seedling-r1.webp": {
+      "path": "/games/garden-living/succulent-seedling-r1.webp",
+      "type": "succulent",
+      "phase": 0,
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "sourceSha256": "ad2d4e4b7fa1bfd48d9539b981af03a003a8ea2de70852857be0885f397c481e",
+      "pot": {
+        "centerX": 0.497675,
+        "baseY": 0.97351,
+        "width": 0.669271
+      },
+      "paintedBounds": {
+        "x": 0.154948,
+        "y": 0.328477,
+        "width": 0.690104,
+        "height": 0.649007
+      },
+      "measurement": {
+        "searchWindow": [
+          0.125,
+          0.609272,
+          0.885417,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.157552,
+          "y": 0.609272,
+          "width": 0.684896,
+          "height": 0.365563
+        },
+        "ceramicPixels": 110495,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "ad2d4e4b7fa1bfd48d9539b981af03a003a8ea2de70852857be0885f397c481e",
+        "geometrySha256": "57110b2b76c2f2ced8cdfc2c17feed947ec9aa07682299ed18de4bb9bb34c334",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "succulent-young-r1.webp": {
+      "path": "/games/garden-living/succulent-young-r1.webp",
+      "type": "succulent",
+      "phase": 1,
+      "sourceSize": {
+        "width": 768,
+        "height": 755
+      },
+      "sourceSha256": "f1d0e2b0e8f8daf6a4e9cdb8dddc5689e5de73e984d42877e26594a13dfe6053",
+      "pot": {
+        "centerX": 0.504464,
+        "baseY": 0.972185,
+        "width": 0.678385
+      },
+      "paintedBounds": {
+        "x": 0.154948,
+        "y": 0.223841,
+        "width": 0.701823,
+        "height": 0.750993
+      },
+      "measurement": {
+        "searchWindow": [
+          0.125,
+          0.584106,
+          0.885417,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.157552,
+          "y": 0.584106,
+          "width": 0.697917,
+          "height": 0.389404
+        },
+        "ceramicPixels": 120227,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "f1d0e2b0e8f8daf6a4e9cdb8dddc5689e5de73e984d42877e26594a13dfe6053",
+        "geometrySha256": "a797af50ff9ed36466142dd0ad801a04b177ce2ceec4388424e620a4a3de7176",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "venus-flytrap-developing-r1.webp": {
+      "path": "/games/garden-living/venus-flytrap-developing-r1.webp",
+      "type": "venus_flytrap",
+      "phase": 2,
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "sourceSha256": "0483a2a1b5a18a3d18c9ded397a38c0c0a530d31b5edae1455f8043d29220acf",
+      "pot": {
+        "centerX": 0.522542,
+        "baseY": 0.977433,
+        "width": 0.459635
+      },
+      "paintedBounds": {
+        "x": 0.104167,
+        "y": 0.062059,
+        "width": 0.822917,
+        "height": 0.918195
+      },
+      "measurement": {
+        "searchWindow": [
+          0.264323,
+          0.521862,
+          0.785156,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.291667,
+          "y": 0.521862,
+          "width": 0.46224,
+          "height": 0.455571
+        },
+        "ceramicPixels": 86708,
+        "componentCount": 10,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "0483a2a1b5a18a3d18c9ded397a38c0c0a530d31b5edae1455f8043d29220acf",
+        "geometrySha256": "6cbd39bc790f81842403bc7ad52e0762da67097ded7620d49e271e0e04225733",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "venus-flytrap-mature-r1.webp": {
+      "path": "/games/garden-living/venus-flytrap-mature-r1.webp",
+      "type": "venus_flytrap",
+      "phase": 3,
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "sourceSha256": "937fb5b0317558c6bb9ed25429b5afae27a1989009a6fbee6783c7a393c7bc25",
+      "pot": {
+        "centerX": 0.523438,
+        "baseY": 0.978843,
+        "width": 0.457031
+      },
+      "paintedBounds": {
+        "x": 0.036458,
+        "y": 0.012694,
+        "width": 0.927083,
+        "height": 0.96756
+      },
+      "measurement": {
+        "searchWindow": [
+          0.264323,
+          0.528914,
+          0.78125,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.264323,
+          "y": 0.528914,
+          "width": 0.516927,
+          "height": 0.449929
+        },
+        "ceramicPixels": 90393,
+        "componentCount": 5,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": [
+          "Ceramic component meets search boundary; inspect annotated source."
+        ]
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "937fb5b0317558c6bb9ed25429b5afae27a1989009a6fbee6783c7a393c7bc25",
+        "geometrySha256": "ab64d4dbb6ddd9a439cefc0fbeb5bde1cd1873d309e4227547576e3b213aa3f3",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "venus-flytrap-seedling-r1.webp": {
+      "path": "/games/garden-living/venus-flytrap-seedling-r1.webp",
+      "type": "venus_flytrap",
+      "phase": 0,
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "sourceSha256": "17b04047d00112996a13583083dd7d4967af35a1cdddf36df31abf09341e77db",
+      "pot": {
+        "centerX": 0.520327,
+        "baseY": 0.959097,
+        "width": 0.492188
+      },
+      "paintedBounds": {
+        "x": 0.269531,
+        "y": 0.317348,
+        "width": 0.497396,
+        "height": 0.64457
+      },
+      "measurement": {
+        "searchWindow": [
+          0.240885,
+          0.458392,
+          0.795573,
+          0.985896
+        ],
+        "ceramicBounds": {
+          "x": 0.270833,
+          "y": 0.459803,
+          "width": 0.49349,
+          "height": 0.500705
+        },
+        "ceramicPixels": 100584,
+        "componentCount": 4,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "17b04047d00112996a13583083dd7d4967af35a1cdddf36df31abf09341e77db",
+        "geometrySha256": "b14a050c7fac9062f753a8579b24fcd551d805930f0fb041e87cf605ff533827",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "venus-flytrap-young-r1.webp": {
+      "path": "/games/garden-living/venus-flytrap-young-r1.webp",
+      "type": "venus_flytrap",
+      "phase": 1,
+      "sourceSize": {
+        "width": 768,
+        "height": 709
+      },
+      "sourceSha256": "4a998a8ad96c03c04c31fe9aba8b47b0f3d47cb4846a01e323a397779cee5abb",
+      "pot": {
+        "centerX": 0.523356,
+        "baseY": 0.977433,
+        "width": 0.459635
+      },
+      "paintedBounds": {
+        "x": 0.165365,
+        "y": 0.094499,
+        "width": 0.700521,
+        "height": 0.885755
+      },
+      "measurement": {
+        "searchWindow": [
+          0.263021,
+          0.51763,
+          0.786458,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.294271,
+          "y": 0.51763,
+          "width": 0.459635,
+          "height": 0.461213
+        },
+        "ceramicPixels": 86974,
+        "componentCount": 6,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "4a998a8ad96c03c04c31fe9aba8b47b0f3d47cb4846a01e323a397779cee5abb",
+        "geometrySha256": "2d899fa3b92d865b009c3966165361ca86dc81c78739e1059982a6bedad246a0",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    },
+    "pot.webp": {
+      "path": "/games/garden-v2/pot.webp",
+      "type": null,
+      "phase": null,
+      "sourceSize": {
+        "width": 256,
+        "height": 246
+      },
+      "sourceSha256": "daa9d31590d3481059e0665a0fc52015a9323f530e87496f5d4922f6cd129db2",
+      "pot": {
+        "centerX": 0.499349,
+        "baseY": 0.95935,
+        "width": 0.898438
+      },
+      "paintedBounds": {
+        "x": 0.035156,
+        "y": 0.03252,
+        "width": 0.929688,
+        "height": 0.934959
+      },
+      "measurement": {
+        "searchWindow": [
+          0,
+          0,
+          1,
+          1
+        ],
+        "ceramicBounds": {
+          "x": 0.039063,
+          "y": 0.036585,
+          "width": 0.921875,
+          "height": 0.926829
+        },
+        "ceramicPixels": 39500,
+        "componentCount": 1,
+        "material": "warmCeramic",
+        "axisKind": "dense bottom support rows",
+        "notes": []
+      },
+      "review": {
+        "status": "reviewed",
+        "sourceSha256": "daa9d31590d3481059e0665a0fc52015a9323f530e87496f5d4922f6cd129db2",
+        "geometrySha256": "30ef0616736663e3047224ffb34ded15bca152a573bea82e758e798a32d627d1",
+        "date": "2026-11-04",
+        "method": "Owner inspected all57 source overlays; independent reviewer inspected all57 and rechecked corrected Bonsai/basket/foliage width recipes.",
+        "scope": "Semantic source pot geometry only; runtime fitting, growth crossfade, fallback parity and clipping require separate checks."
+      }
+    }
+  }
+}

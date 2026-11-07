@@ -200,7 +200,7 @@ app.use(playerRoutes(requireAuth, resolveUser));
 app.use(triviaRouter);
 app.use(match3Routes(requireAuth, resolveUser));
 app.use(bloxRoutes(requireAuth, resolveUser));
-app.use(leaderboardRoutes());
+app.use(leaderboardRoutes(requireAuth, resolveUser));
 app.use(mergeRoutes(requireAuth, resolveUser));
 app.use(questRoutes(requireAuth, resolveUser));
 app.use(achievementRoutes(requireAuth, resolveUser));
@@ -309,3 +309,4 @@ if (isDirectRun) {
     process.exit(1);
   });
 }
+

@@ -18,7 +18,7 @@ const resolve = (width, height) => resolveHudLayout({ repoLayout, viewport: { wi
 test('Garden defaults contain all registered custom and asset regions', () => {
   const result = validateHudLayout(repoLayout, { knownRegionIds: hudLayoutRegistry.allRegionIds, knownGameIds: ['garden'], source: 'repo' });
   assert.deepEqual(result.errors, []);
-  for (const id of ['gardenComposition','gardenStatusRail','gardenSheet','gardenQuestSheet','gardenBackgroundAsset','gardenSignAsset','gardenShelfAsset']) {
+  for (const id of ['gardenComposition','gardenStatusRail','gardenSheet','gardenQuestSheet','gardenBackgroundAsset','gardenSignAsset','gardenShelfAsset','gardenGlassAsset']) {
     assert.ok(repoLayout.base.regions[id], id);
     assert.ok(hudLayoutRegistry.games.garden.regions[id], id);
   }
@@ -89,7 +89,17 @@ test('all fourteen species and four phases resolve to exactly 56 runtime WebP im
 
 test('runtime UI asset closure includes every component and CSS art reference', () => {
   const names = ['background','button','coin','leaf','panel','pot','quest','shelf','sign','water'];
-  assert.deepEqual(fs.readdirSync(path.join(root,'public/games/garden-v2')).sort(),names.map(name=>name+'.webp').sort());
+  assert.deepEqual(fs.readdirSync(path.join(root,'public/games/garden-v2')).sort(),[...names.map(name=>name+'.webp'),'terrarium'].sort());
+  const terrarium = ['conservatory','glass-frame','hud-rail','menu-panel','menu-button','shelf','sign'];
+  assert.deepEqual(fs.readdirSync(path.join(root,'public/games/garden-v2/terrarium')).sort(),terrarium.map(name=>name+'.webp').sort());
+  const scene = fs.readFileSync(path.join(root,'src/games/garden-shelf/GardenPresentation.tsx'),'utf8');
+  const style = ['garden-terrarium.css','garden-menus.css'].map(file=>fs.readFileSync(path.join(root,'src/games/garden-shelf',file),'utf8')).join('\n');
+  for (const name of terrarium) {
+    assert.ok(scene.includes(`terrarium/${name}`) || style.includes(`terrarium/${name}.webp`), `unbound terrarium asset: ${name}`);
+    const bytes = fs.readFileSync(path.join(root,`public/games/garden-v2/terrarium/${name}.webp`));
+    assert.equal(bytes.subarray(0,4).toString(),'RIFF');
+    assert.equal(bytes.subarray(8,12).toString(),'WEBP');
+  }
   assert.ok(fs.statSync(path.join(root,'public/games/garden-shelf/assets_transparent.png')).size > 0, 'legacy fallback remains available');
 });
 

@@ -18,6 +18,9 @@ temp/
 tmp/
 
 # testing
+output/playwright/
+output/garden-pot-anchors/
+playwright-results.json
 playwright-report/
 test-results/
 playwright/.cache/

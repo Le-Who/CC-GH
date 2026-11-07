@@ -2,6 +2,7 @@
  * Recovered from the owned Bubbo v2 review build; see recovery manifest.
  * React and app services are imports from the production app, never bundled copies.
  */
+import {BUBBO_DANGER_ROW} from '../../game-core/bubbo/engine.js';
 import bubboLayoutDefaults from '../../app/hud-layout/defaultLayouts/bubbo.json' with {type:'json'};
 
 const rect=(i, o, r, c)=>({
@@ -97,10 +98,13 @@ function bubboFieldGeometry(width, height){
     top:cell*.5+step,
     cannonX:width/2,
     cannonY:height-35,
-    dangerY:cell*.5+step*9.5,
+    // Contact of the logical bubble lower edge, not its center. Pressure
+    // approaches this line from row 8, then commits row 9 and ends the run.
+    dangerY:cell*.5+step*(1+BUBBO_DANGER_ROW)+cell*.48,
     cols:9,
     rows:11
   }
 }
 
 export {composeBubbo, bubboFieldGeometry};
+

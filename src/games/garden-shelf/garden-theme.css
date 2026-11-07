@@ -1,0 +1,5 @@
+/* Garden keeps its authored night-conservatory materials in both shell themes.
+   A saved appearance preference must not erase glass, walnut or brass skins. */
+:root[data-ui-theme="dark"] .gs2-name input{background:#173d32;color:#f5eed7;border-color:#afc19a}
+/* Long language names stay whole in the compact preference row. */
+.gs2-dialog[data-garden-panel="settings"] .gs2-action-row>.gs2-button{padding-inline:4px}

@@ -1,0 +1,1 @@
+Typed fallback + old formatter regression, 14 strict Health cases and 7 database boolean cases passed; no raw secrets emitted.

@@ -1,6 +1,15 @@
 import {registerAppTranslations} from '../../app/i18n.jsx';
 export const MATCH3_TRANSLATIONS={
   "en": {
+    "match3.scoreRecord": "Record {points}",
+    "match3.bestChain": "Best combo",
+    "match3.gain": "+{points} points",
+    "match3.chain": "Chain {depth}",
+    "match3.toRecord": "Record: {points} points to go",
+    "match3.recordPassed": "Personal record passed",
+    "match3.firstRecord": "Set your first record",
+    "match3.idleOn": "Piece motion: on",
+    "match3.idleOff": "Piece motion: off",
     "pause.match3Frozen": "Paused",
     "pause.match3Ready": "Pick a mode before the run starts",
     "pause.match3Locked": "The mode cannot change during a game.",
@@ -43,6 +52,15 @@ export const MATCH3_TRANSLATIONS={
     "match3.boosterTooltip": "{booster}: {count} left"
   },
   "ru": {
+    "match3.scoreRecord": "Рекорд {points}",
+    "match3.bestChain": "Лучшее комбо",
+    "match3.gain": "+{points} очков",
+    "match3.chain": "Цепь {depth}",
+    "match3.toRecord": "До рекорда: {points} очков",
+    "match3.recordPassed": "Личный рекорд побит",
+    "match3.firstRecord": "Установите первый рекорд",
+    "match3.idleOn": "Движение камней: вкл.",
+    "match3.idleOff": "Движение камней: выкл.",
     "pause.match3Frozen": "Пауза",
     "pause.match3Ready": "Выберите режим игры",
     "pause.match3Locked": "Режим нельзя менять во время игры.",

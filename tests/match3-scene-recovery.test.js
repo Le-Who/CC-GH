@@ -13,9 +13,14 @@ const require = createRequire(import.meta.url), ast = require('../recovery-tools
 const { createPixiMock, loadClosure } = require('./fixtures/pixi-mock.cjs');
 const root = fileURLToPath(new URL('../', import.meta.url));
 const boardFixture = () => Array.from({ length: 8 }, (_, y) => Array.from({ length: 8 }, (_, x) => ['fire', 'water', 'earth', 'air', 'light', 'dark'][(x + y * 2) % 6]));
-function harness(width = 390, height = 844, reduced = false) {
+function harness(width = 390, height = 844, reduced = false, idleTimers = false) {
   let now = 0;
   const env = createPixiMock({ width, height, publicRoot: root + 'public', coarse: reduced });
+  const timers = new Map(); let timerId = 0;
+  if (idleTimers) {
+    env.window.setTimeout = (fn, ms) => { timers.set(++timerId, {fn, at:now+ms}); return timerId; };
+    env.window.clearTimeout = id => timers.delete(id);
+  }
   env.app.renderer.resolution = 2;
   env.ctx.Container.prototype.cacheAsTexture = function(options) { this.isCachedAsTexture = options !== false; this.cacheOptions = options; this.cacheWrites = (this.cacheWrites || 0) + 1; };
   env.app.ticker.started = true;
@@ -39,6 +44,8 @@ function harness(width = 390, height = 844, reduced = false) {
   const scene = build(env.app, data); env.flush();
   return { env, scene, composition, log, get data() { return data; },
     elapse: ms => { now += ms; },
+    timers,
+    advanceIdle: ms => { now += ms; for (const [id,timer] of [...timers]) if(timer.at<=now){timers.delete(id);timer.fn();} env.flush(); },
     targets: () => env.app.stage.children[0].children.filter(node => node.eventMode === 'static'),
     gems: () => env.app.stage.children[1].children.filter(node => node.visible),
     tick: (ms = 1000 / 60) => { now += ms; for (const tick of env.tickers) tick({ deltaTime: Math.min(100, ms) * .06, deltaMS: Math.min(100, ms) }); env.flush(); },
@@ -216,4 +223,31 @@ test('idle and drag use on-demand rendering without 64 transparent quads or alte
   for(let n=0;n<1000&&!h.log.some(item=>item[0]==='complete');n++)h.tick();
   assert.equal(h.env.app.ticker.started,false,'completion stops repainting');
   h.scene.destroy();h.env.flush();
+});
+
+
+test('idle life touches one piece briefly and keeps the ticker asleep between events',()=>{
+ const h=harness(390,844,false,true);
+ assert.equal(h.timers.size,1);assert.equal(h.env.app.ticker.started,false);
+ h.advanceIdle(11999);assert.equal(h.gems().filter(g=>g.rotation!==0).length,0);
+ h.advanceIdle(1);h.tick(360);
+ assert.equal(h.gems().filter(g=>g.rotation!==0).length,1);
+ assert.ok(h.gems().every(g=>Math.abs(g.rotation)<=.025));
+ h.tick(360);assert.equal(h.gems().filter(g=>g.rotation!==0).length,0);
+ assert.equal(h.env.app.ticker.started,false);assert.equal(h.timers.size,1);
+ h.scene.destroy();assert.equal(h.timers.size,0);
+});
+
+test('idle life cancels on selection, cascade, hidden, pause, static preference and teardown',()=>{
+ for(const stop of ['selected','cascade','hidden','pause','static']){
+  const h=harness(390,844,false,true);h.advanceIdle(12000);h.tick(200);
+  if(stop==='selected')h.update({selectedGem:{x:1,y:1}});
+  if(stop==='cascade')startAnimation(h);
+  if(stop==='hidden'){h.env.document.hidden=true;h.env.document.visibilityState='hidden';h.env.document.emit('visibilitychange');}
+  if(stop==='pause')h.update({match3:{...h.data.match3,gameActive:false}});
+  if(stop==='static')h.update({match3:{...h.data.match3,idleMotion:false}});
+  assert.equal(h.timers.size,0,stop);assert.equal(h.gems().filter(g=>g.rotation!==0).length,0,stop);
+  h.scene.destroy();assert.equal(h.timers.size,0);
+ }
+ const reduced=harness(390,844,true,true);assert.equal(reduced.timers.size,0);reduced.scene.destroy();
 });

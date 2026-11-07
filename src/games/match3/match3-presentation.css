@@ -104,3 +104,7 @@
 .m3-stage[data-m3-phase=paused] strong[data-m3-pulse=true]{animation-play-state:paused}
 @keyframes m3-combo-resonance{0%{transform:scale(1)}35%{transform:scale(1.1);color:#fff6d5}100%{transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.m3-metric strong[data-m3-pulse=true]{animation:none}}
+
+/* Record is an existing target, in the existing score region; no new board reserve. */
+.m3-score{gap:1px}
+.m3-score>span{font-size:10px;line-height:11px;max-width:100%;overflow:hidden;text-overflow:ellipsis}

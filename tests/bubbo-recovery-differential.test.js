@@ -11,10 +11,15 @@ const reference=require('./fixtures/bubbo-v2-preview-reference.cjs')(engine,defa
 const clean=value=>JSON.parse(JSON.stringify(value));
 const same=(actual,expected)=>assert.deepEqual(clean(actual),clean(expected));
 const viewports=[[320,568],[360,800],[390,844],[414,896],[568,320],[844,390],[768,1024],[1024,768],[1280,720],[393,873],[520,216]];
-test('recovered geometry/composition matches frozen preview for 11 viewports and safe-area variants',()=>{
+test('geometry/composition preserves frozen preview except corrected visual loss boundary',()=>{
  for(const[width,height]of viewports)for(const safe of [{},{top:24,bottom:34,left:16,right:16}]){
   same(composeBubbo({width,height,safe}),reference.compose({width,height,safe}));
-  const field=composeBubbo({width,height,safe}).field;same(bubboFieldGeometry(field.width,field.height),reference.geometry(field.width,field.height));
+  const field=composeBubbo({width,height,safe}).field;
+  const {dangerY,...geometry}=bubboFieldGeometry(field.width,field.height);
+  const {dangerY:oldLine,...original}=reference.geometry(field.width,field.height);
+  same(geometry,original);
+  assert.ok(dangerY>oldLine);
+  assert.ok(Math.abs(dangerY-(geometry.top+9*geometry.step+geometry.radius))<1e-8);
  }
 });
 test('recovered aim/collision matches frozen preview across 15840 seeded traces',()=>{
@@ -58,3 +63,4 @@ test('production shell consumes all four safe insets exactly once',async()=>{
  assert.deepEqual(remainingBubboSafeInsets({top:24,bottom:34,left:20,right:16}),{top:0,bottom:0,left:0,right:0});
  assert.deepEqual(remainingBubboSafeInsets({left:-2,right:'8'}),{top:0,bottom:0,left:0,right:0});
 });
+

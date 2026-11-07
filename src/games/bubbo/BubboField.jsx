@@ -9,7 +9,7 @@ import {bubboFieldGeometry} from './bubboComposition.js';
 import {BUBBO_TOKEN_ART, bubboArtUrl} from './bubboArt.js';
 import {angleFromBubboPointer, traceBubboShot, bubboCellCenter, pointAlongBubboPath, bubboKeyboardIntent} from './bubboAim.js';
 import {createBubboFlight, advanceBubboFlight, resizeBubboFlight} from './bubboMotion.js';
-import {advanceBubboAmbience, sampleBubboIdle, createBubboShotEffects, advanceBubboEffects, BUBBO_FX_LIMITS} from './bubboEffects.js';
+import {advanceBubboAmbience, sampleBubboIdle, createBubboShotEffects, advanceBubboEffects, createBubboNeighborReactions, sampleBubboNeighborReaction, BUBBO_FX_LIMITS} from './bubboEffects.js';
 import {paintBubboGlint, paintBubboEffects} from './bubboEffectsCanvas.js';
 
 const BubboField=React.forwardRef(function({
@@ -43,10 +43,13 @@ const BubboField=React.forwardRef(function({
     pointer:null,
     flight:null,
     effects:[],
+    reactions:[],
     ambience:{time:0, gain:0, hold:850},
     keyboardAim:0,
     previousBoard:state.board,
     previousPendingRow:state.pendingRow,
+    previousRowOffset:state.rowOffset,
+    previousWaveIndex:state.waveIndex,
     shotId:null,
     seed:state.seed,
     trace:null,
@@ -167,6 +170,7 @@ const BubboField=React.forwardRef(function({
         F.height=Math.round(Z.height*je);
         Y.signature="";
         Y.effects=[];
+        Y.reactions=[];
         Y.ambience.gain=0;
         Y.ambience.hold=BUBBO_FX_LIMITS.quietAfterInput;
       }
@@ -176,7 +180,8 @@ const BubboField=React.forwardRef(function({
         Y.seed=Q.seed;
         Y.flight=null;
         Y.effects=[];
-        Y.shotId=null;
+        Y.reactions=[];
+        Y.shotId=Q.lastShot?.id||null;
         Y.ambience={time:0, gain:0, hold:BUBBO_FX_LIMITS.quietAfterInput};
         Y.angle=-Math.PI/2;
         Y.signature="";
@@ -186,13 +191,19 @@ const BubboField=React.forwardRef(function({
       if(!playing){
         cancelPointer();
         Y.effects=[];
+        Y.reactions=[];
         Y.shotId=Q.lastShot?.id||null;
       }
       if(Y.flight&&(Y.flight.geometry.width!==Z.width||Y.flight.geometry.height!==Z.height))Y.flight=resizeBubboFlight(Y.flight, Z);
       Y.effects=advanceBubboEffects(Y.effects, j, {playing});
+      if(Y.previousRowOffset!==Q.rowOffset||Y.previousWaveIndex!==Q.waveIndex)Y.reactions=[];
+      Y.reactions=advanceBubboEffects(Y.reactions, j, {playing});
       if(playing&&Q.lastShot?.id&&Q.lastShot.id!==Y.shotId){
         Y.shotId=Q.lastShot.id;
         // Snapshot colors and reaction anchors before the old board is discarded.
+        Y.reactions=Y.previousRowOffset!==Q.rowOffset||Y.previousWaveIndex!==Q.waveIndex?[]:createBubboNeighborReactions(Q.lastShot, {
+          board:Q.board, pendingRow:Q.pendingRow, rowOffset:Q.rowOffset, reducedMotion:me.matches
+        });
         Y.effects=createBubboShotEffects(Q.lastShot, {
           board:Y.previousBoard, pendingRow:Y.previousPendingRow,
           rowOffset:Q.rowOffset, pressureStep:Q.pressureStep, reducedMotion:me.matches
@@ -200,17 +211,19 @@ const BubboField=React.forwardRef(function({
       }
       Y.previousBoard=Q.board;
       Y.previousPendingRow=Q.pendingRow;
+      Y.previousRowOffset=Q.rowOffset;
+      Y.previousWaveIndex=Q.waveIndex;
       Y.keyboardAim=Math.max(0, Y.keyboardAim-Math.min(j, BUBBO_FX_LIMITS.maxFrameMs));
       Y.ambience=advanceBubboAmbience(Y.ambience, j, {
         playing, reducedMotion:me.matches, aiming:Y.pointer!=null||Y.keyboardAim>0,
-        busy:!!Y.flight||Y.effects.length>0
+        busy:!!Y.flight||Y.effects.length>0||Y.reactions.length>0
       });
       const idle=sampleBubboIdle(Q, Y.ambience);
       F.dataset.bubboGeometry=JSON.stringify(Z);
       F.dataset.flight=Y.flight?"true":"false";
       F.dataset.shots=String(Q.shotsFired||0);
       F.dataset.ready=String(ge);
-      F.dataset.bubboFx=JSON.stringify({idle:idle?1:0, gain:Number(Y.ambience.gain.toFixed(3)), effects:Y.effects.length,
+      F.dataset.bubboFx=JSON.stringify({idle:idle?1:0, gain:Number(Y.ambience.gain.toFixed(3)), effects:Y.effects.length, reactions:Y.reactions.length,
         aiming:Y.pointer!=null||Y.keyboardAim>0, reducedMotion:me.matches, playing});
       if(!ge)return;
       M.strokeStyle="#8cdfe544";
@@ -237,7 +250,9 @@ const BubboField=React.forwardRef(function({
         if(!Xe)continue;
         const _t=bubboCellCenter(Z, fe, Se, Q.rowOffset, oe);
         const gesture=idle?.row===fe&&idle?.col===Se?idle:null;
-        v(Xe, _t.x, _t.y, Z.cell*.99, fe===-1?.8:1, gesture?.rotation||0);
+        const reaction=Y.reactions.find(effect=>effect.row===fe&&effect.col===Se&&effect.color===Xe);
+        const response=reaction?sampleBubboNeighborReaction(reaction):null;
+        v(Xe, _t.x, _t.y, Z.cell*.99*(response?.scale||1), fe===-1?.8:1, response?.rotation||gesture?.rotation||0);
         if(gesture?.glint)paintBubboGlint(M, _t.x, _t.y, Z.cell, gesture.glint);
       }
       paintBubboEffects(M, Y.effects, Z, v, me.matches);
@@ -284,6 +299,7 @@ const BubboField=React.forwardRef(function({
     const D=()=>{
       cancelPointer();
       sessionRef.current.effects=[];
+      sessionRef.current.reactions=[];
       sessionRef.current.ambience.gain=0;
       propsRef.current.state.gameActive&&propsRef.current.onPause?.();
     };
@@ -293,6 +309,7 @@ const BubboField=React.forwardRef(function({
     };
     const motionChanged=()=>{
       sessionRef.current.effects=[];
+      sessionRef.current.reactions=[];
       sessionRef.current.ambience.gain=0;
       wake();
     };
@@ -307,6 +324,7 @@ const BubboField=React.forwardRef(function({
       cancelAnimationFrame(re);
       wakeRef.current=null;
       sessionRef.current.effects=[];
+      sessionRef.current.reactions=[];
       sessionRef.current.flight=null;
       sessionRef.current.ambience.gain=0;
       me.removeEventListener?.("change", motionChanged);
@@ -381,3 +399,4 @@ const BubboField=React.forwardRef(function({
 });
 
 export default BubboField;
+

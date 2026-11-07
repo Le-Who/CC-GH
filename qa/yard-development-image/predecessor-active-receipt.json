@@ -1,0 +1,48 @@
+{
+  "format": "cc-gh-yard-accepted-active-controller/v1",
+  "repository": "le-who/cc-gh",
+  "repositoryId": 1162268629,
+  "status": "accepted",
+  "release": {
+    "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+    "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+    "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+    "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+  },
+  "acceptance": {
+    "runId": 37623618587,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "headCommit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+    "artifactSha256": "fd80d573e642efacd2dc807d6712ed95061449de214649244f49daa204655579"
+  },
+  "deployment": {
+    "runId": 37626026418,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "controllerHeadCommit": "bd016553563eaa2d6659f0c25b366473b9a5090a",
+    "targetCommit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+    "jobId": 112807870594,
+    "workflowSha256": "8d21d727fc4bb22ecc34bdc123915a81c23a51fe32b95fe479a55f43a73383d7",
+    "recordSha256": "f8d7419d39faa02ec033f978359cca53cd5e6a7d21884d36736df02ee6875853",
+    "verifiedAt": "2026-10-07T13:08:51Z",
+    "evidence": {
+      "acceptedImageReceiptSha256": "e67a2d9adbee8e2e9933ce73867351e18e543d40f9addce7701ff193f25e5ef2",
+      "originalImageReceiptSha256": "f44f0800942e10a73333f22ca47d23a710ba28917b78a2e619b1dd5ad68bfd26",
+      "activationResultSha256": "a36b0f565eb9c45f4cc05379bbd70f93b17c969760ca5634ddd20cae602258a6",
+      "githubRunSha256": "669b480c1b34402827d96dfd7923a7f724972a7be32fe8ba654c06c82600c4a9",
+      "githubJobsSha256": "cbc6e146e7e876c57f51bc692787fa03bf684d064638106b0e7e6efc8b90cd11",
+      "decodedJobLogSha256": "3e86d232d73046e2f23bda75434665d69c7e29f73fee9dfe9dd45a027aabac2b"
+    }
+  },
+  "scope": "Historical verified ec815 app-only activation derived from exact original image receipt, supersession, record, result, GitHub run/jobs, workflow and job log. Current host identity requires a fresh preflight.",
+  "limitations": [
+    "Development batch, not full Yard/saved-visit or final-art acceptance",
+    "No newly authenticated physical Telegram-device session",
+    "Neighbor public HTTP health not independently tested",
+    "Private host values were verified by the guarded helper, not independently downloaded. External public-web check was unavailable.",
+    "This receipt does not authorize or establish readiness of a subsequent activation."
+  ]
+}

@@ -1,4 +1,5 @@
 import { defineConfig } from "vite";
+import {yardPlannerWorkerGraph} from "./scripts/yard-planner-worker-graph.mjs";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import path from "path";
@@ -6,6 +7,7 @@ import { createShellPrecache } from "./scripts/sw-shell-precache.mjs";
 import { gameLoadingGraph } from "./scripts/game-loading-graph.mjs";
 
 import { yardRendererChunk } from "./scripts/yard-renderer-chunk.mjs";
+import { yardPipVendor } from "./scripts/yard-pip-vendor.mjs";
 import { yardContractData, yardContractChunk, yardChunkFileNames } from "./scripts/yard-contract-data.mjs";
 import { yardPublicMedia } from "./scripts/yard-public-media.mjs";
 import { retiredPublicAssets } from "./scripts/retired-public-assets.mjs";
@@ -13,10 +15,17 @@ import { retiredPublicAssets } from "./scripts/retired-public-assets.mjs";
 const shellPrecache = createShellPrecache();
 
 export default defineConfig({
+  worker: {format:"es",plugins:()=>[yardPlannerWorkerGraph()]},
+  // An absent flag must be a literal false value so Rollup removes the optional
+  // import entirely. Only the explicit build command may include the preview.
+  define: {
+    "import.meta.env.VITE_YARD_PIP_PREVIEW": JSON.stringify(process.env.VITE_YARD_PIP_PREVIEW === "true" ? "true" : "false"),
+  },
   plugins: [
     yardPublicMedia(),
     retiredPublicAssets(),
     yardContractData(),
+    yardPipVendor(),
     react(),
     gameLoadingGraph(),
     shellPrecache.plugin,
@@ -121,6 +130,9 @@ export default defineConfig({
   ],
   build: {
     outDir: "dist",
+    assetsInlineLimit(filePath) {
+      if (filePath.replaceAll("\\", "/").includes("/pip-prototype/")) return false;
+    },
     emptyOutDir: true,
     modulePreload: {
       resolveDependencies(_filename, deps) {
@@ -131,6 +143,9 @@ export default defineConfig({
       output: {
         onlyExplicitManualChunks: true,
         chunkFileNames: yardChunkFileNames,
+        // One immutable private food asset, included only by the preview graph.
+        assetFileNames: asset => asset.names?.includes('yard-food-source-r2.glb')
+          ? 'assets/yard-food-source-r2-ed618ed41d65.glb' : 'assets/[name]-[hash][extname]',
         manualChunks(id) {
           const yardRenderer = yardRendererChunk(id, import.meta.dirname);
           if (yardRenderer) return yardRenderer;
@@ -141,6 +156,7 @@ export default defineConfig({
           if (id.replaceAll("\\", "/").endsWith("/game-logic/merge-lab-catalog.js")) return "merge-lab-catalog";
           const sourceId = id.replaceAll("\\", "/");
           if (sourceId.endsWith("/src/games/garden-shelf/lib/gardenTranslations.ts")) return "garden-translations";
+          if (sourceId.includes("/src/games/garden-shelf/living/")) return "garden-living";
           if (sourceId.endsWith("/src/games/settlement/gameData.js")) return "settlement-catalog";
           if (sourceId.endsWith("/src/games/settlement/settlementText.js")) return "settlement-translations";
           if (sourceId.endsWith("/src/games/settlement/assetRegistry.js")) return "settlement-assets";
@@ -171,6 +187,7 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": path.resolve(import.meta.dirname, "./src"),
+      "three": path.resolve(import.meta.dirname, "./src/games/companion-yard-v2/pip-prototype/vendor/three/build/three.module.js"),
       "/game-logic.js": path.resolve(import.meta.dirname, "./game-logic.js"),
     },
   },

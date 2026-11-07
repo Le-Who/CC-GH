@@ -1,0 +1,687 @@
+{
+  "format": "yard-ui-and-pip-media/v1",
+  "requiredUi": [
+    {
+      "path": "assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+      "bytes": 151862,
+      "sha256": "119392d270f62bc08b8ff84a094bc07c8f9009ce463d670b7ea8e3a76f7b0268",
+      "source": "public/assets/yard-ui/surfaces/yard-ui-headerstrip-119392d270f6.webp",
+      "width": 1170,
+      "height": 172
+    },
+    {
+      "path": "assets/yard-ui/surfaces/yard-ui-panel-frame.webp",
+      "bytes": 402904,
+      "sha256": "6b2c5a838836b7c75dfa30f724123efca582d82ffec9ec98e2ac3b007e87b3ac",
+      "source": "public/assets/yard-ui/surfaces/yard-ui-panel-frame.webp",
+      "width": 512,
+      "height": 768
+    },
+    {
+      "path": "assets/yard-ui/surfaces/yard-ui-card-frame.webp",
+      "bytes": 257468,
+      "sha256": "0c070c1074e4dfbb87f8694930e4227de38feb8a4e073529715a3954c1c4410d",
+      "source": "public/assets/yard-ui/surfaces/yard-ui-card-frame.webp",
+      "width": 512,
+      "height": 512
+    },
+    {
+      "path": "assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+      "bytes": 62660,
+      "sha256": "be06b62e0b3ec78309592e2928b2224fad178e8d5e58831c2409bb7443d81df7",
+      "source": "public/assets/yard-ui/surfaces/yard-ui-button-sage-be06b62e0b3e.webp",
+      "width": 600,
+      "height": 138
+    },
+    {
+      "path": "assets/yard-ui/previews/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.webp",
+      "bytes": 37786,
+      "sha256": "078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0",
+      "source": "public/assets/yard-ui/previews/078c2906c9c5a60055ece0eb2ce389b2421ab7488436d46c3a7feaebfec6cba0.webp",
+      "width": 155,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5.webp",
+      "bytes": 51372,
+      "sha256": "489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5",
+      "source": "public/assets/yard-ui/previews/489b4a5ae0c7488882e3fea85403b27e87c424dc3776f2ffd2df41e0c914cde5.webp",
+      "width": 219,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473.webp",
+      "bytes": 54534,
+      "sha256": "4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473",
+      "source": "public/assets/yard-ui/previews/4f54d5bebebbb7e10182a069f42488c969b9066a8cef2fae46c48d929eff9473.webp",
+      "width": 228,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42.webp",
+      "bytes": 56698,
+      "sha256": "f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42",
+      "source": "public/assets/yard-ui/previews/f4981a3118333363bb4ac6927fe92a82883edb1be74f6c85be26ce9f35460c42.webp",
+      "width": 225,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3.webp",
+      "bytes": 54032,
+      "sha256": "761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3",
+      "source": "public/assets/yard-ui/previews/761b05cdc992ff1da2ae0a76d4c3a70daf3091a46a3cd56a3282aaf260e7d5c3.webp",
+      "width": 222,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535.webp",
+      "bytes": 53330,
+      "sha256": "49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535",
+      "source": "public/assets/yard-ui/previews/49b71b8eb5e1f58b673fa317eb087944c51f32b28490823163264e9294968535.webp",
+      "width": 256,
+      "height": 199
+    },
+    {
+      "path": "assets/yard-ui/previews/b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36.webp",
+      "bytes": 43186,
+      "sha256": "b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36",
+      "source": "public/assets/yard-ui/previews/b59ddb1cffec80f0f5b059ca454f6d9f089c3c33117c35be38c8a91653c84f36.webp",
+      "width": 256,
+      "height": 166
+    },
+    {
+      "path": "assets/yard-ui/previews/7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc.webp",
+      "bytes": 40930,
+      "sha256": "7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc",
+      "source": "public/assets/yard-ui/previews/7be7ea4f111810214a6d2a9bad01d210ac24f2e33dc524a297048a655d4bd9fc.webp",
+      "width": 256,
+      "height": 162
+    },
+    {
+      "path": "assets/yard-ui/previews/c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f.webp",
+      "bytes": 48208,
+      "sha256": "c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f",
+      "source": "public/assets/yard-ui/previews/c87d4a75c0f78104ce9bd601570300fd87a50a5a81278d07eff78c78a4a0695f.webp",
+      "width": 256,
+      "height": 179
+    },
+    {
+      "path": "assets/yard-ui/previews/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.webp",
+      "bytes": 46588,
+      "sha256": "19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6",
+      "source": "public/assets/yard-ui/previews/19cba40fb0f0ea65e573aa346231a7ab462ce249f033e2cdf4335f999288ebb6.webp",
+      "width": 256,
+      "height": 223
+    },
+    {
+      "path": "assets/yard-ui/previews/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.webp",
+      "bytes": 46916,
+      "sha256": "9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619",
+      "source": "public/assets/yard-ui/previews/9f872d4bbeb1daf0bf4a9f271c04e6681a7a88d9fdd5286b59f6a7f4be0f6619.webp",
+      "width": 256,
+      "height": 164
+    },
+    {
+      "path": "assets/yard-ui/previews/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.webp",
+      "bytes": 53828,
+      "sha256": "10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6",
+      "source": "public/assets/yard-ui/previews/10034554b4462cf44e6a0d66ca8f6702df464285ab99f4c22cb1cbf108fb36f6.webp",
+      "width": 219,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1.webp",
+      "bytes": 41144,
+      "sha256": "30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1",
+      "source": "public/assets/yard-ui/previews/30fbb9ae5c6ade484efa877852d7084bb2eac1714b796c8c3ab944beeab8dfb1.webp",
+      "width": 256,
+      "height": 184
+    },
+    {
+      "path": "assets/yard-ui/previews/36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9.webp",
+      "bytes": 46712,
+      "sha256": "36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9",
+      "source": "public/assets/yard-ui/previews/36f6b2157dc6a444b39d5971cb5629b1ab54f48f279bb99f19b80bd6e75ac0e9.webp",
+      "width": 186,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f.webp",
+      "bytes": 52282,
+      "sha256": "7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f",
+      "source": "public/assets/yard-ui/previews/7591e8625e428c98ad2075064ccce88fc79885dfbcacbe4ffe264170faa5c43f.webp",
+      "width": 256,
+      "height": 219
+    },
+    {
+      "path": "assets/yard-ui/previews/965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3.webp",
+      "bytes": 50928,
+      "sha256": "965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3",
+      "source": "public/assets/yard-ui/previews/965a58fa84d741bb6f7f88f8d5babf2a7b9b79f88b3cb5046e534b3309514ee3.webp",
+      "width": 256,
+      "height": 230
+    },
+    {
+      "path": "assets/yard-ui/previews/cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8.webp",
+      "bytes": 45698,
+      "sha256": "cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8",
+      "source": "public/assets/yard-ui/previews/cc0ed67798f48e0bff991fc1e901cd7ec0a848a380c3dc28744e4f0343e0f2d8.webp",
+      "width": 256,
+      "height": 166
+    },
+    {
+      "path": "assets/yard-ui/previews/39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b.webp",
+      "bytes": 64220,
+      "sha256": "39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b",
+      "source": "public/assets/yard-ui/previews/39fda791bb932ee92fc7bb3d971678a4bd9ad6ceea282364fd64c31fbe3ecf8b.webp",
+      "width": 250,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
+      "bytes": 49514,
+      "sha256": "870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6",
+      "source": "public/assets/yard-ui/previews/870aa236c0d67a6e7384a63fafe666d6047c5b39a0db584633f1b3646f4310a6.webp",
+      "width": 204,
+      "height": 232
+    },
+    {
+      "path": "assets/yard-ui/previews/106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee.webp",
+      "bytes": 35088,
+      "sha256": "106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee",
+      "source": "public/assets/yard-ui/previews/106013ffab21aa688479d017aba744ea0c7429379be05ba70ff0329d36c33bee.webp",
+      "width": 205,
+      "height": 165
+    },
+    {
+      "path": "assets/yard-ui/previews/87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b.webp",
+      "bytes": 47204,
+      "sha256": "87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b",
+      "source": "public/assets/yard-ui/previews/87e0fe8f1c58b5d709f20237e857923966a2f732ca8d67bcefccdb4b1739ca3b.webp",
+      "width": 195,
+      "height": 242
+    },
+    {
+      "path": "assets/yard-ui/previews/10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7.webp",
+      "bytes": 48214,
+      "sha256": "10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7",
+      "source": "public/assets/yard-ui/previews/10d35a962eda116762180600eef48d64f8f70ebb47e44d48c5b456c11e583fa7.webp",
+      "width": 256,
+      "height": 180
+    },
+    {
+      "path": "assets/yard-ui/previews/81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934.webp",
+      "bytes": 54860,
+      "sha256": "81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934",
+      "source": "public/assets/yard-ui/previews/81d9b200e6b301f46f61148a54ef13223631022d9f21f4d096e5611ad63f9934.webp",
+      "width": 256,
+      "height": 199
+    },
+    {
+      "path": "assets/yard-ui/previews/fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e.webp",
+      "bytes": 58086,
+      "sha256": "fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e",
+      "source": "public/assets/yard-ui/previews/fee1c9f9318fe8598c6e37ae14986b894ecdada3def7a95b76c56f489d9dc64e.webp",
+      "width": 256,
+      "height": 206
+    },
+    {
+      "path": "assets/yard-ui/previews/49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562.webp",
+      "bytes": 54896,
+      "sha256": "49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562",
+      "source": "public/assets/yard-ui/previews/49e9e2d2244d3ea94ac399e3b3bc06e6de66d9bbe53c33bc3184cfd842e35562.webp",
+      "width": 220,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41.webp",
+      "bytes": 50846,
+      "sha256": "301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41",
+      "source": "public/assets/yard-ui/previews/301aa3b70c21d9f6e74b6e7a8cae3187ba252eee44c830f28f88ef4eb2d1eb41.webp",
+      "width": 256,
+      "height": 199
+    },
+    {
+      "path": "assets/yard-ui/previews/463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284.webp",
+      "bytes": 55254,
+      "sha256": "463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284",
+      "source": "public/assets/yard-ui/previews/463f7173dee345c6252f58fdca9d0c5af8fd93a6f18810877d863710aed9f284.webp",
+      "width": 246,
+      "height": 229
+    },
+    {
+      "path": "assets/yard-ui/previews/41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486.webp",
+      "bytes": 54678,
+      "sha256": "41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486",
+      "source": "public/assets/yard-ui/previews/41c88e4a31ad84779487dd8361a67070b00bdce2fbb3b724f19a6ce997ca5486.webp",
+      "width": 221,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/previews/38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a.webp",
+      "bytes": 51420,
+      "sha256": "38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a",
+      "source": "public/assets/yard-ui/previews/38c36276416b2f2c6dbd707aebee17902e2dc07b1750b43364762fbf3f477a2a.webp",
+      "width": 256,
+      "height": 210
+    },
+    {
+      "path": "assets/yard-ui/previews/b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579.webp",
+      "bytes": 53352,
+      "sha256": "b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579",
+      "source": "public/assets/yard-ui/previews/b4e58389f5384bd55c54eafac360f6e71cf3c4690fda04e58936a762a942f579.webp",
+      "width": 256,
+      "height": 226
+    },
+    {
+      "path": "assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+      "bytes": 19178,
+      "sha256": "60bf94f0d8bcf60f75c9479d9c47093c1c9978874d03c12b6daad714bf37f26a",
+      "source": "public/assets/yard-ui/delivery/hud-treats-bare-60bf94f0.webp",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "path": "assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+      "bytes": 13192,
+      "sha256": "2b54e02b34f56818ac4f4537f1ca64ae2c0665e6672266228449f4c5a1c9edc7",
+      "source": "public/assets/yard-ui/delivery/hud-shiny-bare-2b54e02b.webp",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "path": "assets/yard-ui/delivery/hud-back.webp",
+      "bytes": 49118,
+      "sha256": "3587cf8832d96725558a3b6387df36a0a01344dd7d81a4055e0832b1da8b7525",
+      "source": "public/assets/yard-ui/delivery/hud-back.webp",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/delivery/hud-close.webp",
+      "bytes": 50686,
+      "sha256": "161202b25aa3a8fbc64c2f9069a4d284be234a0927a442600233e10b0ac096e1",
+      "source": "public/assets/yard-ui/delivery/hud-close.webp",
+      "width": 256,
+      "height": 256
+    },
+    {
+      "path": "assets/yard-ui/delivery/background-meadow.webp",
+      "bytes": 534902,
+      "sha256": "b62f2ef9714a054362fb3c3b9ddb4bc29f7b36ae3544cfcb52559b62118cf38a",
+      "source": "public/assets/yard-ui/delivery/background-meadow.webp",
+      "width": 512,
+      "height": 768
+    },
+    {
+      "path": "assets/yard-ui/delivery/background-moon_garden.webp",
+      "bytes": 571554,
+      "sha256": "8302a1578c443971285086a73c9155e0ddc47d10a1c3e0e8451895822c127458",
+      "source": "public/assets/yard-ui/delivery/background-moon_garden.webp",
+      "width": 512,
+      "height": 768
+    },
+    {
+      "path": "assets/yard-ui/delivery/background-tea_house.webp",
+      "bytes": 544702,
+      "sha256": "ffde7c568302ac9b994a64471f22098d0f351fa48d19bad1915f13235356f169",
+      "source": "public/assets/yard-ui/delivery/background-tea_house.webp",
+      "width": 512,
+      "height": 768
+    },
+    {
+      "path": "assets/yard-ui/current-portraits/7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730.png",
+      "bytes": 27298,
+      "sha256": "7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730",
+      "source": "public/assets/yard-ui/current-portraits/7ca2483da48df88bcd09fd164166b1f6a0f817699d14933f4813eb84f69e7730.png",
+      "width": 159,
+      "height": 160
+    },
+    {
+      "path": "assets/yard-ui/current-portraits/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.png",
+      "bytes": 62042,
+      "sha256": "4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093",
+      "source": "public/assets/yard-ui/current-portraits/4d8d146daecb44098c0584e7f6e01872e85398693664b1b177769a24aa3e1093.png",
+      "width": 230,
+      "height": 218
+    },
+    {
+      "path": "assets/yard-ui/current-portraits/083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6.png",
+      "bytes": 36725,
+      "sha256": "083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6",
+      "source": "public/assets/yard-ui/current-portraits/083c1d6bafe2a330717c12d92d1eb7fff19c2b8186b1a3aaa7d5b564e6b6b7b6.png",
+      "width": 188,
+      "height": 190
+    },
+    {
+      "path": "assets/yard-ui/current-portraits/c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179.png",
+      "bytes": 41416,
+      "sha256": "c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179",
+      "source": "public/assets/yard-ui/current-portraits/c64172fa6fa82700fc1f31441ad75eb4963299835f5746440b6c35e1167a7179.png",
+      "width": 206,
+      "height": 196
+    },
+    {
+      "path": "assets/yard-ui/current-portraits/83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2.png",
+      "bytes": 40616,
+      "sha256": "83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2",
+      "source": "public/assets/yard-ui/current-portraits/83fd535cb6ecc1103959e72962fef0a43de73d038d84984cce09090b3e87b2c2.png",
+      "width": 206,
+      "height": 196
+    },
+    {
+      "path": "assets/yard-ui/current-portraits/56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e.png",
+      "bytes": 54748,
+      "sha256": "56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e",
+      "source": "public/assets/yard-ui/current-portraits/56f5eea3755f59b02f980b976c41597d2264652224bd59987264fee772507e0e.png",
+      "width": 244,
+      "height": 186
+    },
+    {
+      "path": "assets/yard-ui/current-portraits/93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481.png",
+      "bytes": 62513,
+      "sha256": "93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481",
+      "source": "public/assets/yard-ui/current-portraits/93674ae9fab636cc95278ba0cc21f27fcff59a67ea0bc9d758314b298ee99481.png",
+      "width": 244,
+      "height": 188
+    },
+    {
+      "path": "assets/yard-ui/r1-pip/e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b.png",
+      "bytes": 15589,
+      "sha256": "e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b",
+      "source": "public/assets/yard-ui/r1-pip/e95729164c758816ed9952a037b085cdfaf9242bd6bd96926acd30b04dcbde7b.png",
+      "width": 82,
+      "height": 106
+    },
+    {
+      "path": "assets/yard-ui/previews/5f88954e4a00.webp",
+      "bytes": 5184,
+      "sha256": "1d5aa993fa3f19ba037a9001863486d4b21bdc3a4b74f25259f54730854f0fce",
+      "source": "public/assets/yard-ui/previews/5f88954e4a00.webp",
+      "width": 100,
+      "height": 60
+    },
+    {
+      "path": "assets/yard-ui/previews/ba0eb9cb82af.webp",
+      "bytes": 5878,
+      "sha256": "f9764f741fa82e79bb9f66e8ee154e4d0f99ff3969b499b10899a325ed734354",
+      "source": "public/assets/yard-ui/previews/ba0eb9cb82af.webp",
+      "width": 100,
+      "height": 60
+    },
+    {
+      "path": "assets/yard-ui/previews/74913f211f00.webp",
+      "bytes": 6314,
+      "sha256": "c62507015d4bd41a143906a0f87968a81cf58d87e0ab6c0a965da17b1f1b0bad",
+      "source": "public/assets/yard-ui/previews/74913f211f00.webp",
+      "width": 106,
+      "height": 54
+    },
+    {
+      "path": "assets/yard-ui/previews/65f3bb1a2364.webp",
+      "bytes": 5926,
+      "sha256": "6afb63f7009750f3c9fe8e04786acf34d57105ea5107864ec75bc186cda910b0",
+      "source": "public/assets/yard-ui/previews/65f3bb1a2364.webp",
+      "width": 98,
+      "height": 60
+    },
+    {
+      "path": "assets/yard-ui/previews/2d451fcf0d70.webp",
+      "bytes": 2608,
+      "sha256": "b915e1b2e87f9dadeaa1e8eff49366bde9f065bb99696d58fd4ed46ecef8d201",
+      "source": "public/assets/yard-ui/previews/2d451fcf0d70.webp",
+      "width": 74,
+      "height": 41
+    },
+    {
+      "path": "assets/yard-ui/previews/4bca2040b26b.webp",
+      "bytes": 24658,
+      "sha256": "ef4f1c5cc052c5705ef7058cb40b2249a40fd1b9f80f6f01dd81e1ade45dda06",
+      "source": "public/assets/yard-ui/previews/4bca2040b26b.webp",
+      "width": 340,
+      "height": 154
+    },
+    {
+      "path": "assets/yard-ui/previews/407269e06e00.webp",
+      "bytes": 139140,
+      "sha256": "a5404c1a0f072e4c20173d4aa9fc092b781ec860c46cd4752f42a675e170e3ab",
+      "source": "public/assets/yard-ui/previews/407269e06e00.webp",
+      "width": 443,
+      "height": 356
+    },
+    {
+      "path": "assets/yard-ui/previews/814799a2289d.webp",
+      "bytes": 2896,
+      "sha256": "98a12f54a1a434cca8a0beab42203293b5e240b90397c553bbe19148becb0721",
+      "source": "public/assets/yard-ui/previews/814799a2289d.webp",
+      "width": 290,
+      "height": 239
+    },
+    {
+      "path": "assets/yard-ui/previews/7ce91fc6ed4f.webp",
+      "bytes": 3192,
+      "sha256": "97910245df3c00096c253bfa8cdb26d0dd159dcb234e9b5bd46b327a62264f85",
+      "source": "public/assets/yard-ui/previews/7ce91fc6ed4f.webp",
+      "width": 290,
+      "height": 245
+    },
+    {
+      "path": "assets/yard-ui/previews/ec87edeccc49.webp",
+      "bytes": 23254,
+      "sha256": "1e255bec24ab65ba7605c97993071da92d776186b69fd8e7049f484dcdf2553d",
+      "source": "public/assets/yard-ui/previews/ec87edeccc49.webp",
+      "width": 192,
+      "height": 142
+    },
+    {
+      "path": "assets/yard-ui/previews/8494e21658e6.webp",
+      "bytes": 22636,
+      "sha256": "5590db37e002e70ca37c14c24d4a33a8488dfea92c73bed0d3f0c49a5aae5d5c",
+      "source": "public/assets/yard-ui/previews/8494e21658e6.webp",
+      "width": 192,
+      "height": 142
+    },
+    {
+      "path": "assets/yard-ui/previews/0d93d934aeff.webp",
+      "bytes": 20032,
+      "sha256": "1b48b90f6edc3df0badf07f765cb1d14f51a33730a43db065ce7d6f7adfc01cb",
+      "source": "public/assets/yard-ui/previews/0d93d934aeff.webp",
+      "width": 192,
+      "height": 124
+    },
+    {
+      "path": "assets/yard-ui/previews/88a2532f1256.webp",
+      "bytes": 90998,
+      "sha256": "f3ccba13318a19b26b8d367432cd6c02c1d66dd6d3636cd4368b2ad9f3c1b4ff",
+      "source": "public/assets/yard-ui/previews/88a2532f1256.webp",
+      "width": 343,
+      "height": 297
+    },
+    {
+      "path": "assets/yard-ui/previews/e9c062c1bf3a.webp",
+      "bytes": 3336,
+      "sha256": "4d3a7771bfa694594e958d7095d062ec8a46ebea524e91ce43f14cc4a6696372",
+      "source": "public/assets/yard-ui/previews/e9c062c1bf3a.webp",
+      "width": 248,
+      "height": 242
+    },
+    {
+      "path": "assets/yard-ui/previews/3e21a892f6b2.webp",
+      "bytes": 3846,
+      "sha256": "0a5e20211a794adfd1a11d9476b047239bb9f75174a66d277f86766b12e16058",
+      "source": "public/assets/yard-ui/previews/3e21a892f6b2.webp",
+      "width": 250,
+      "height": 275
+    },
+    {
+      "path": "assets/yard-ui/previews/d86153cd37d5.webp",
+      "bytes": 15094,
+      "sha256": "78b0623b47c20b30de23ac3993915f822868d38cce1038e2073cb529765db442",
+      "source": "public/assets/yard-ui/previews/d86153cd37d5.webp",
+      "width": 153,
+      "height": 96
+    },
+    {
+      "path": "assets/yard-ui/previews/2da963c7e75d.webp",
+      "bytes": 11254,
+      "sha256": "de317d6e666004ca04746f8ded1f6f04817d3d55080e07ec00f6e6033c2c34fb",
+      "source": "public/assets/yard-ui/previews/2da963c7e75d.webp",
+      "width": 99,
+      "height": 88
+    },
+    {
+      "path": "assets/yard-ui/previews/51dbab630726.webp",
+      "bytes": 95766,
+      "sha256": "724a1a4ba4d4ed2e9dd68f3ca6b85ff59f50975d94704d4baf2f7002885a5334",
+      "source": "public/assets/yard-ui/previews/51dbab630726.webp",
+      "width": 457,
+      "height": 239
+    },
+    {
+      "path": "assets/yard-ui/previews/b75a37a2c58e.webp",
+      "bytes": 4262,
+      "sha256": "7822a4df64eaff252b20445b8698e72a47405c706881e3739c78d1d4cacef0af",
+      "source": "public/assets/yard-ui/previews/b75a37a2c58e.webp",
+      "width": 290,
+      "height": 162
+    },
+    {
+      "path": "assets/yard-ui/previews/89a2c5e1de06.webp",
+      "bytes": 4746,
+      "sha256": "9fea6f145aca994e7325218637b839c1d32051fdd6a1f27dde7e5399df22e109",
+      "source": "public/assets/yard-ui/previews/89a2c5e1de06.webp",
+      "width": 290,
+      "height": 245
+    },
+    {
+      "path": "assets/yard-ui/previews/401a5cc2fd9b.webp",
+      "bytes": 89704,
+      "sha256": "f4fe2b83aa7e278ded20e93a8adb3847f11472ead194e2fc246d125a806899d1",
+      "source": "public/assets/yard-ui/previews/401a5cc2fd9b.webp",
+      "width": 418,
+      "height": 267
+    },
+    {
+      "path": "assets/yard-ui/previews/b3de0da10486.webp",
+      "bytes": 4578,
+      "sha256": "c2ea51021c59647c16eef9e2639f460dbdf1516dd7e0720a94abc44805aae395",
+      "source": "public/assets/yard-ui/previews/b3de0da10486.webp",
+      "width": 280,
+      "height": 223
+    },
+    {
+      "path": "assets/yard-ui/previews/840bd9cd72ac.webp",
+      "bytes": 4856,
+      "sha256": "4e25409693c205da9751e95a8814aed02c1c919e528ebde27510c2c4cc4e921f",
+      "source": "public/assets/yard-ui/previews/840bd9cd72ac.webp",
+      "width": 280,
+      "height": 245
+    },
+    {
+      "path": "assets/yard-ui/previews/11291d0cffee.webp",
+      "bytes": 12266,
+      "sha256": "85110ae29458363f7dbf0b7383e295193b2c4094708ad7c1b488b2a2ea2b88d6",
+      "source": "public/assets/yard-ui/previews/11291d0cffee.webp",
+      "width": 106,
+      "height": 141
+    },
+    {
+      "path": "assets/yard-ui/previews/64ee2dacbc26.webp",
+      "bytes": 13076,
+      "sha256": "a6de84ab8e4d03bc05b8bd5f41bc751603d29f0481403a490efce5883b0ea387",
+      "source": "public/assets/yard-ui/previews/64ee2dacbc26.webp",
+      "width": 106,
+      "height": 141
+    },
+    {
+      "path": "assets/yard-ui/previews/37b61347c4fa.webp",
+      "bytes": 12104,
+      "sha256": "0886f1a4935d076249f1b2921f2c7bc48fd224d1391d4a7de13dab761018dd9f",
+      "source": "public/assets/yard-ui/previews/37b61347c4fa.webp",
+      "width": 106,
+      "height": 141
+    },
+    {
+      "path": "assets/yard-ui/previews/981840fa87d9.webp",
+      "bytes": 200844,
+      "sha256": "cc882479d1cf023f819659d13d3bbd2cad410c74cfad120804259a8ce1d50f01",
+      "source": "public/assets/yard-ui/previews/981840fa87d9.webp",
+      "width": 652,
+      "height": 365
+    },
+    {
+      "path": "assets/yard-ui/previews/ec89d1a4d1ef.webp",
+      "bytes": 3000,
+      "sha256": "67d357ff38a85bbe5405edb23eda94ad8c3758b55cd82392283cf5634b853c07",
+      "source": "public/assets/yard-ui/previews/ec89d1a4d1ef.webp",
+      "width": 258,
+      "height": 211
+    },
+    {
+      "path": "assets/yard-ui/previews/380c38a173a4.webp",
+      "bytes": 3410,
+      "sha256": "bc7820f5959933ff952f91708245ddca4650c2711630abe8fcee9cd58e21989c",
+      "source": "public/assets/yard-ui/previews/380c38a173a4.webp",
+      "width": 258,
+      "height": 243
+    }
+  ],
+  "optionalMedia": [
+    {
+      "path": "assets/fixture-BLfHxzRU.json",
+      "source": "src/games/companion-yard-v2/pip-prototype/data/fixture.json",
+      "bytes": 10773,
+      "sha256": "8e39abd867f6833212d534e7cce0824d9a95cf76d5ca2aa073650528bdba1021"
+    },
+    {
+      "path": "assets/location-zRAtPFrk.json",
+      "source": "src/games/companion-yard-v2/pip-prototype/data/location.json",
+      "bytes": 2729,
+      "sha256": "a3c8ee0cf38f2c99e60184e4f0c904fb857fa6165d892a4be366c87a12438f9e"
+    },
+    {
+      "path": "assets/calibration-CbNkq5tP.json",
+      "source": "src/games/companion-yard-v2/pip-prototype/data/calibration.json",
+      "bytes": 1834,
+      "sha256": "a06c5ebb322e3fe6690868552ec9223dd55672c710f365667cfea7a882b53306"
+    },
+    {
+      "path": "assets/pip-rest-coat-NCEPP_w1.glsl",
+      "source": "src/games/companion-yard-v2/pip-prototype/source/pip-rest-coat.glsl",
+      "bytes": 2781,
+      "sha256": "58fe97c9518a26ee3b458f02e185665e0494e3d4bbde83be9f93711d9638e367"
+    },
+    {
+      "path": "assets/clean-garden-65ONDBWW.png",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/clean-garden.png",
+      "bytes": 1444018,
+      "sha256": "c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79"
+    },
+    {
+      "path": "assets/pip-DE_Nt72A.glb",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/pip.glb",
+      "bytes": 3972384,
+      "sha256": "74edd9400bcb69266ce670c977f05bf3ae8c62b448877f4ee34967565815c45b"
+    },
+    {
+      "path": "assets/planter-t2-C70xm5W_.glb",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/planter-t2.glb",
+      "bytes": 120776,
+      "sha256": "c2f7c317511cfd84605bde3f6e32ffd24d35ee66a3d8bc365ae8d0742557f3fd"
+    },
+    {
+      "path": "assets/leaf-pot-t2-preview-g2db27vs.webp",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/leaf-pot-t2-preview.webp",
+      "bytes": 10640,
+      "sha256": "526eb18659598971fd7f8b32a78ce860727e2f3197a86cfe688a6bad025b21c0",
+      "width": 128,
+      "height": 128
+    },
+    {
+      "path": "assets/yard-food-source-r2-ed618ed41d65.glb",
+      "source": "src/games/companion-yard-v2/pip-prototype/assets/food-r2/yard-food-source-r2.glb",
+      "bytes": 251996,
+      "sha256": "ed618ed41d65e5770eefc241e7b85db9b78a1502de2ad15aa53e3b74bd824c66"
+    }
+  ]
+}

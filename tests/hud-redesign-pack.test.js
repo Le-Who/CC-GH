@@ -5,7 +5,10 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import test from "node:test";
 import sharp from "sharp";
-import { VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
+import { GAME_REGISTRY, VISIBLE_GAME_IDS } from "../src/app/gameRegistry.js";
+
+// Hosted games own their production artwork in their independent deployment.
+const localGameIds = VISIBLE_GAME_IDS.filter(id => !GAME_REGISTRY[id].hostedUrl);
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const manifestPath = path.join(root, "assets-source", "imagegen", "hud-redesign", "hud-redesign-manifest.json");
@@ -62,7 +65,7 @@ async function assertRuntimeHasNoChromaSpill(relativePath, chromaKey, label) {
   );
 }
 
-test("HUD redesign reference pack covers every visible game", async () => {
+test("HUD redesign reference pack covers every locally rendered visible game", async () => {
   const manifest = await loadManifest();
   assert.equal(manifest.version, 1);
   assert.equal(manifest.generatedBy, "scripts/generate-hud-redesign-pack.mjs");
@@ -83,7 +86,7 @@ test("HUD redesign reference pack covers every visible game", async () => {
     "asset production policy must forbid SVG-like placeholder production art",
   );
 
-  for (const gameId of VISIBLE_GAME_IDS) {
+  for (const gameId of localGameIds) {
     const game = manifest.games[gameId];
     assert.ok(game, `${gameId} is missing from the HUD redesign manifest`);
     assert.ok(game.metrics.length >= 4, `${gameId} must list gameplay-aware HUD metrics`);
@@ -103,7 +106,7 @@ test("HUD redesign reference pack covers every visible game", async () => {
 test("HUD redesign chromakey assets are separate files with clean removable keys", async () => {
   const manifest = await loadManifest();
 
-  for (const gameId of VISIBLE_GAME_IDS) {
+  for (const gameId of localGameIds) {
     const game = manifest.games[gameId];
     assert.ok(game.assets.length >= 5, `${gameId} must have separate chromakey UI assets`);
 

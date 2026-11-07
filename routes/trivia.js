@@ -18,6 +18,8 @@ import {
   selectTriviaFiftyFiftyAnswers,
   spendTriviaLifeline,
 } from "../game-logic.js";
+import {getDb} from "../db.js";
+import {publicDuelPlayers,publicDuelOutcome} from "../game-logic/public-duel-profile.js";
 import { withPlayerLock } from "../playerManager.js";
 import { routeFail, routeOk, sendRouteResult } from "./mutationResults.js";
 
@@ -33,6 +35,14 @@ const QUESTIONS = JSON.parse(
 
 export default function triviaRoutes(requireAuth, resolveUser) {
   const router = Router();
+  const publicLanguage = req => req.query.lang === "ru" ? "ru" : "en";
+  const viewerId = req => req.authenticatedUser ? resolveUser(req).userId : null;
+  const optionalAuth = (req,res,next) => req.headers.authorization ? requireAuth(req,res,next) : next();
+  router.use("/api/trivia/duel", (_req,res,next) => {
+    res.set("Cache-Control", "private, no-store"); res.set("Surrogate-Control", "no-store"); res.vary("Authorization"); next();
+  });
+  const profileFor = (p,req) => ({nickname:p.publicProfile?.nickname, firstName:req.authenticatedUser?.telegramUser?.firstName || req.authenticatedUser?.telegramUser?.first_name || null});
+  const namesFor = (players,req) => publicDuelPlayers(players,getDb(),viewerId(req),publicLanguage(req));
 
   /* ═══════════════════════════════════════════════════
    *  SOLO MODE
@@ -301,7 +311,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         players: {
           [userId]: {
             userId,
-            username: p.username,
+            publicProfile: profileFor(p,req),
             answers: [],
             score: 0,
             streak: 0,
@@ -356,7 +366,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       if (!room.players[userId]) {
         room.players[userId] = {
           userId,
-          username: p.username,
+          publicProfile: profileFor(p,req),
           answers: [],
           score: 0,
           streak: 0,
@@ -377,7 +387,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         room.status = "lobby";
       }
 
-      const playerNames = Object.values(room.players).map((pl) => pl.username);
+      const playerNames = await namesFor(Object.values(room.players),req);
       return routeOk({
         success: true,
         roomId: room.roomId,
@@ -401,13 +411,12 @@ export default function triviaRoutes(requireAuth, resolveUser) {
 
     room.players[userId].startedAt = Date.now();
     const first = room.questions[0];
+    const opponents = await namesFor(Object.values(room.players).filter(pl=>pl.userId!==userId),req);
     res.json({
       success: true,
       question: makeClientQuestion(first, 0, room.questions.length),
-      opponent:
-        Object.values(room.players)
-          .filter((pl) => pl.userId !== userId)
-          .map((pl) => pl.username)[0] || "Waiting...",
+      opponent: opponents[0]?.displayName || null,
+      publicNameVersion: 1,
     });
   });
 
@@ -450,17 +459,17 @@ export default function triviaRoutes(requireAuth, resolveUser) {
           );
           const winner =
             sorted[0].score > sorted[1]?.score
-              ? sorted[0].username
+              ? sorted[0].userId
               : sorted[0].score === sorted[1]?.score
                 ? "Tie"
-                : sorted[0].username;
+                : sorted[0].userId;
           // Push (O(1)) instead of unshift (O(N)); reverse on read
           duelHistory.push({
             roomId: room.roomId,
             finishedAt: Date.now(),
             players: Object.values(room.players).map((pl) => ({
               userId: pl.userId,
-              username: pl.username,
+              publicProfile: pl.publicProfile,
               score: pl.score,
               correctCount: pl.answers.filter((a) => a.correct).length,
               totalQuestions: room.questions.length,
@@ -494,7 +503,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     return sendRouteResult(res, result);
   });
 
-  router.get("/api/trivia/duel/status/:roomId", (req, res) => {
+  router.get("/api/trivia/duel/status/:roomId", optionalAuth, async (req, res) => {
     const room = duelRooms.get(req.params.roomId);
     if (!room) return res.status(404).json({ error: "Room not found" });
 
@@ -514,35 +523,20 @@ export default function triviaRoutes(requireAuth, resolveUser) {
       return res.status(404).json({ error: "Room expired" });
     }
 
-    const playersInfo = Object.values(room.players).map((pl) => ({
-      username: pl.username,
-      finished: pl.finished,
-      ready: !!pl.ready,
-      score: pl.finished ? pl.score : undefined,
-      correctCount: pl.finished
-        ? pl.answers.filter((a) => a.correct).length
-        : undefined,
+    const rawPlayers = Object.values(room.players);
+    const publicPlayers = await namesFor(rawPlayers,req);
+    const playersInfo = publicPlayers.map((pl,index) => ({
+      ...pl,
+      score: rawPlayers[index].finished ? rawPlayers[index].score : undefined,
+      correctCount: rawPlayers[index].finished ? rawPlayers[index].answers.filter(a=>a.correct).length : undefined,
       totalQuestions: room.questions.length,
     }));
-
-    let winner = null;
-    if (room.status === "finished") {
-      const sorted = Object.values(room.players).sort(
-        (a, b) => b.score - a.score,
-      );
-      winner =
-        sorted[0].score > sorted[1]?.score
-          ? sorted[0].username
-          : sorted[0].score === sorted[1]?.score
-            ? "Tie"
-            : sorted[0].username;
-    }
-
     res.json({
+      publicNameVersion: 1,
       roomId: room.roomId,
       status: room.status,
       players: playersInfo,
-      winner,
+      ...(room.status === "finished" ? publicDuelOutcome(rawPlayers,publicPlayers) : {winner:null,isTie:false,winnerIndex:null}),
     });
   });
 
@@ -585,10 +579,7 @@ export default function triviaRoutes(requireAuth, resolveUser) {
         room.status = "active";
       }
 
-      const playersInfo = Object.values(room.players).map((pl) => ({
-        username: pl.username,
-        ready: !!pl.ready,
-      }));
+      const playersInfo = await namesFor(Object.values(room.players),req);
 
       return routeOk({
         success: true,
@@ -600,8 +591,8 @@ export default function triviaRoutes(requireAuth, resolveUser) {
   });
 
   /* ─── Duel History ─── */
-  router.get("/api/trivia/duel/history", (req, res) => {
-    const userId = req.query.userId || "";
+  router.get("/api/trivia/duel/history", optionalAuth, async (req, res) => {
+    const userId = req.query.userId ? viewerId(req) : "";
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.min(20, Math.max(1, parseInt(req.query.limit) || 5));
 
@@ -615,8 +606,10 @@ export default function triviaRoutes(requireAuth, resolveUser) {
     const total = filtered.length;
     const totalPages = Math.ceil(total / limit) || 1;
     const offset = (page - 1) * limit;
-    const entries = filtered.slice(offset, offset + limit);
-
+    const entries = await Promise.all(filtered.slice(offset, offset + limit).map(async entry => {
+      const players = await namesFor(entry.players,req);
+      return {publicNameVersion:1,roomId:entry.roomId,finishedAt:entry.finishedAt,players,...publicDuelOutcome(entry.players,players)};
+    }));
     res.json({ entries, page, totalPages, total });
   });
 
@@ -628,3 +621,4 @@ export default function triviaRoutes(requireAuth, resolveUser) {
 
   return router;
 }
+

@@ -1,0 +1,167 @@
+{
+  "id": "pip-clean-garden-prototype-v1",
+  "runtimeActivated": false,
+  "scaleApproval": "2.0x world-scale candidate; not user-approved",
+  "camera": {
+    "direction": [
+      5.66,
+      -8,
+      9.799775507632814
+    ],
+    "elevationDegrees": 45,
+    "right": [
+      0.8163452309462587,
+      0.5775642508944779,
+      0
+    ],
+    "down": [
+      0.40839959837841383,
+      -0.5772432485913976,
+      -0.7071067811865477
+    ],
+    "pixelsPerSceneUnitCss": 29.320579822802923,
+    "viewportCss": [
+      390,
+      648
+    ],
+    "renderPixels": [
+      780,
+      1296
+    ],
+    "projectionOriginCanonical": [
+      90.0,
+      110.0,
+      0
+    ],
+    "projectionOriginCss": [
+      195.0,
+      420.0
+    ],
+    "lookAtNativeXYZ": [
+      8.575676253248133,
+      17.5299628929355,
+      0
+    ],
+    "orthoWidthNative": 13.301237641170141,
+    "canonicalZToR5BoundaryZ": 0.125,
+    "exact": "Shared orthographic basis and uniform density. No background crop, draw-only prop scale, or perspective warp."
+  },
+  "sourceToCanonical": 16,
+  "canonicalPerSceneUnit": 8,
+  "background": {
+    "file": "../assets/clean-garden.png",
+    "width": 973,
+    "height": 1616,
+    "sha256": "c159eb042e282930b02c5f84002aa8dfd18ba377ea830985b6a1847b86d2ff79"
+  },
+  "foregroundExclusions": [
+    {
+      "id": "house-and-raised-doorstep",
+      "sourceScreenCss": [
+        [
+          0,
+          0
+        ],
+        [
+          176,
+          0
+        ],
+        [
+          176,
+          142
+        ],
+        [
+          156,
+          167
+        ],
+        [
+          145,
+          178
+        ],
+        [
+          109,
+          189
+        ],
+        [
+          70,
+          190
+        ],
+        [
+          65,
+          201
+        ],
+        [
+          0,
+          223
+        ]
+      ]
+    },
+    {
+      "id": "rear-fixed-bed-and-fence",
+      "sourceScreenCss": [
+        [
+          156,
+          0
+        ],
+        [
+          284,
+          0
+        ],
+        [
+          284,
+          159
+        ],
+        [
+          275,
+          160
+        ],
+        [
+          253,
+          164
+        ],
+        [
+          199,
+          153
+        ],
+        [
+          181,
+          162
+        ],
+        [
+          156,
+          167
+        ]
+      ]
+    },
+    {
+      "id": "right-fixed-bed-and-gate-shell",
+      "sourceScreenCss": [
+        [
+          275,
+          0
+        ],
+        [
+          390,
+          0
+        ],
+        [
+          390,
+          202
+        ],
+        [
+          344,
+          188
+        ],
+        [
+          341,
+          178
+        ],
+        [
+          275,
+          160
+        ]
+      ]
+    }
+  ],
+  "renderUnitsToCanonical": 12
+}

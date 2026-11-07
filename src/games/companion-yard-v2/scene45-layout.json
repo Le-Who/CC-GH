@@ -1,0 +1,68 @@
+{
+  "sourceStudySha256": "8916da3249a78b7b5b6f5371276f93a1cd99c48997214f3df07c136b3c840e85",
+  "cameraDirection": [
+    5.66,
+    -8,
+    9.799775507632814
+  ],
+  "worldScale": 0.9,
+  "calibration": {
+    "revision": "elevation45-original-azimuth-fullmask-fit-20261004",
+    "cameraDirection": [
+      5.66,
+      -8,
+      9.799775507632814
+    ],
+    "worldOrigin": {
+      "x": 50,
+      "y": 60
+    },
+    "unitsPerWorld": 8,
+    "artSize": {
+      "width": 1024,
+      "height": 1536
+    },
+    "pixelsPerWorld": 1,
+    "artOrigin": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  "viewports": [
+    {
+      "id": "portrait390",
+      "width": 390,
+      "height": 648,
+      "scale": 32.57842202533658,
+      "offset": {
+        "x": 195.0,
+        "y": 444.8719790512161
+      }
+    },
+    {
+      "id": "portrait320",
+      "width": 320,
+      "height": 372,
+      "scale": 25.04383103492895,
+      "offset": {
+        "x": 160.0,
+        "y": 259.20776064717234
+      }
+    },
+    {
+      "id": "landscape754",
+      "width": 754,
+      "height": 302,
+      "scale": 34.831075347429916,
+      "offset": {
+        "x": 481.0,
+        "y": 156.070563658711
+      }
+    }
+  ],
+  "backgroundArchitecturePpuByPreset": {
+    "portrait390": 27.86768935630982,
+    "portrait320": 21.951164539124044,
+    "landscape754": 23.90330064553347
+  }
+}

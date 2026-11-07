@@ -1,0 +1,87 @@
+{
+  "format": "cc-gh-yard-development-image-source/v1",
+  "caps": {
+    "jobMinutes": 10,
+    "browserMs": 220000,
+    "artifactBytes": 8388608,
+    "retentionDays": 3,
+    "retries": 0,
+    "actionMs": 5000,
+    "replyMs": 10000,
+    "checkpointBytes": 131072
+  },
+  "repositoryId": 1162268629,
+  "dockerfileSha256": "e4e0cc3f78eeabd57be5225daea0a200223ca552eba0e4f54e6ccdc13b2ab631",
+  "sourceSelection": {
+    "nonShellCount": 79,
+    "nonShellDeadlineSeconds": 20,
+    "releaseSmokeCount": 5,
+    "releaseSmokeDeadlineSeconds": 60,
+    "releaseSmokeNames": [
+      "shell success changes only app image/build identity and preserves original compose/env",
+      "shell during-switch performs actual healthy predecessor rollback",
+      "shell stale-public performs actual healthy predecessor rollback",
+      "a later invocation refuses unresolved daemon work despite a stale healthy predecessor",
+      "signal immediately after clearing a verified candidate marker cannot start an unmarked rollback"
+    ],
+    "interactionSourceCount": 19,
+    "interactionSourceDeadlineSeconds": 20,
+    "historicalExternalControllerCount": 64
+  },
+  "workflowTrustBoundary": "GitHub hosted runner and official vendor actions at existing repository major tags. Exact workflow bytes are pinned; major-tag action implementation is not represented as immutable.",
+  "finalized": true,
+  "base": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+  "integrationParent": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
+  "checks": [
+    "reviewed-source-inventory",
+    "normal-production-image",
+    "authenticated-capability-policy",
+    "canonical-placement-storage-v2",
+    "economy-inventory",
+    "lost-response-exactly-once",
+    "pending-intent-account-fences",
+    "receipt-security",
+    "occupied-food-socket",
+    "warm-client-update",
+    "mobile-functional",
+    "mobile-visual",
+    "app-only-failure-rollback",
+    "prior-image-v2-compatible-replay-preserves-state"
+  ],
+  "predecessor": {
+    "commit": "ec815065f6adb7c36d81f97b41d47ad16e614b07",
+    "tree": "b0b85f712645f772bfc138cddabc86a49d01ac07",
+    "imageDigest": "sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa",
+    "imageId": "sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d"
+  },
+  "predecessorReceipt": {
+    "json": "{\n  \"format\": \"cc-gh-yard-accepted-active-controller/v1\",\n  \"repository\": \"le-who/cc-gh\",\n  \"repositoryId\": 1162268629,\n  \"status\": \"accepted\",\n  \"release\": {\n    \"commit\": \"ec815065f6adb7c36d81f97b41d47ad16e614b07\",\n    \"tree\": \"b0b85f712645f772bfc138cddabc86a49d01ac07\",\n    \"imageDigest\": \"sha256:349b9d206cc1b5c22c3460760d4ea9a96255288942a6e536f910b1222721cdaa\",\n    \"imageId\": \"sha256:f1b49cf23885afcf3ca7aab3303d39014f744343a90ad0ddd81e89a5da3be43d\"\n  },\n  \"acceptance\": {\n    \"runId\": 37623618587,\n    \"runAttempt\": 1,\n    \"status\": \"completed\",\n    \"conclusion\": \"success\",\n    \"headCommit\": \"ec815065f6adb7c36d81f97b41d47ad16e614b07\",\n    \"artifactSha256\": \"fd80d573e642efacd2dc807d6712ed95061449de214649244f49daa204655579\"\n  },\n  \"deployment\": {\n    \"runId\": 37626026418,\n    \"runAttempt\": 1,\n    \"status\": \"completed\",\n    \"conclusion\": \"success\",\n    \"controllerHeadCommit\": \"bd016553563eaa2d6659f0c25b366473b9a5090a\",\n    \"targetCommit\": \"ec815065f6adb7c36d81f97b41d47ad16e614b07\",\n    \"jobId\": 112807870594,\n    \"workflowSha256\": \"8d21d727fc4bb22ecc34bdc123915a81c23a51fe32b95fe479a55f43a73383d7\",\n    \"recordSha256\": \"f8d7419d39faa02ec033f978359cca53cd5e6a7d21884d36736df02ee6875853\",\n    \"verifiedAt\": \"2026-10-07T13:08:51Z\",\n    \"evidence\": {\n      \"acceptedImageReceiptSha256\": \"e67a2d9adbee8e2e9933ce73867351e18e543d40f9addce7701ff193f25e5ef2\",\n      \"originalImageReceiptSha256\": \"f44f0800942e10a73333f22ca47d23a710ba28917b78a2e619b1dd5ad68bfd26\",\n      \"activationResultSha256\": \"a36b0f565eb9c45f4cc05379bbd70f93b17c969760ca5634ddd20cae602258a6\",\n      \"githubRunSha256\": \"669b480c1b34402827d96dfd7923a7f724972a7be32fe8ba654c06c82600c4a9\",\n      \"githubJobsSha256\": \"cbc6e146e7e876c57f51bc692787fa03bf684d064638106b0e7e6efc8b90cd11\",\n      \"decodedJobLogSha256\": \"3e86d232d73046e2f23bda75434665d69c7e29f73fee9dfe9dd45a027aabac2b\"\n    }\n  },\n  \"scope\": \"Historical verified ec815 app-only activation derived from exact original image receipt, supersession, record, result, GitHub run/jobs, workflow and job log. Current host identity requires a fresh preflight.\",\n  \"limitations\": [\n    \"Development batch, not full Yard/saved-visit or final-art acceptance\",\n    \"No newly authenticated physical Telegram-device session\",\n    \"Neighbor public HTTP health not independently tested\",\n    \"Private host values were verified by the guarded helper, not independently downloaded. External public-web check was unavailable.\",\n    \"This receipt does not authorize or establish readiness of a subsequent activation.\"\n  ]\n}\n",
+    "sha256": "fda1fdfe3db01daec915c98eec160029dfc8c0056386a994abaef1b65190ac4b"
+  },
+  "scope": "Image-only qualification of exact4dde interaction slice; no product, Dockerfile or activation-controller change",
+  "priorGreen": {
+    "runId": 37733412001,
+    "head": "4dde8354a1679012c1a01fe7bd35b7c36a647d42",
+    "status": "success",
+    "scope": "Source-built normal-route interaction qualification; new image originals remain independently reviewed"
+  },
+  "activationControllerQualification": "Historical exact64-case controller mechanism proof only; ec815-bound activation requires separately qualified controller and fresh host preflight",
+  "acceptanceOnlyPaths": [
+    ".github/workflows/yard-development-image.yml",
+    "qa/yard-development-image/activation-controller-compose.json",
+    "qa/yard-development-image/activation-controller-formatter.log",
+    "qa/yard-development-image/activation-controller-proof.json",
+    "qa/yard-development-image/activation-controller-source.json",
+    "qa/yard-development-image/activation-controller.log",
+    "qa/yard-development-image/interaction-qualification.json",
+    "qa/yard-development-image/manifest.json",
+    "qa/yard-development-image/predecessor-active-receipt.json",
+    "scripts/yard-development-acceptance.mjs",
+    "scripts/yard-development-receipt.mjs",
+    "tests/helpers/yard-development-acceptance.mjs",
+    "tests/yard-development-receipt.test.mjs"
+  ],
+  "activationControllerProofSha256": "fc2528986d5080a27a3ffbb6e3df6a20a4d1ac417d5acc3a98eee2ac73db656d",
+  "interactionQualificationSha256": "af90dea423e7ed3735a86a4dbc7d4a98a2805b201c3b06074adc3ddfeb60cad8",
+  "activationReady": false
+}

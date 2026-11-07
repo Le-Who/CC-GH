@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "layoutVersion": "bentoku-host-v1",
+  "gameId": "bentoku",
+  "base": {
+    "regions": {
+      "appTopbar": { "mode": "custom", "visible": false },
+      "globalStats": { "mode": "custom", "visible": false },
+      "activeGameFrame": { "mode": "custom", "visible": true },
+      "gameShell": { "mode": "custom", "visible": true },
+      "bentokuToolbar": { "mode": "custom", "x": 0, "y": 0, "visible": true },
+      "bentokuFrame": { "mode": "custom", "visible": true },
+      "bentokuCoverAsset": { "mode": "freeform", "x": 0, "y": 0, "scale": 1, "opacity": 1, "rotation": 0, "visible": true }
+    }
+  },
+  "profiles": {
+    "phone-default-portrait": { "match": { "orientation": "portrait", "maxWidth": 430 }, "regions": {} },
+    "phone-landscape": { "match": { "orientation": "landscape", "maxHeight": 480 }, "regions": {} },
+    "tablet-portrait": { "match": { "orientation": "portrait", "minWidth": 600 }, "regions": {} },
+    "tablet-landscape": { "match": { "orientation": "landscape", "minWidth": 760, "maxHeight": 900 }, "regions": {} },
+    "desktop-landscape": { "match": { "orientation": "landscape", "minWidth": 1100 }, "regions": {} }
+  },
+  "editor": {
+    "notes": "The host grid reserves navigation above the iframe in portrait and in a left rail on short landscape screens. The iframe fills the remaining space in all profiles. Bentoku owns its internal responsive composition, artwork and gameplay anchors on Vercel; these intentionally remain outside the Hub editor. The loading illustration and host navigation retain editor coverage. No shared economy or user data crosses the iframe boundary."
+  }
+}

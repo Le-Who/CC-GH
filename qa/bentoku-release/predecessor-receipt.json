@@ -1,0 +1,47 @@
+{
+  "format": "cc-gh-yard-accepted-active-controller/v1",
+  "repository": "le-who/cc-gh",
+  "repositoryId": 1162268629,
+  "status": "accepted",
+  "release": {
+    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+  },
+  "acceptance": {
+    "runId": 41014273072,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "headCommit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "artifactSha256": "9349f633483ab2b0a208a9b488fb5e187dc2eff28f79ef395b1d8c0c0338f916"
+  },
+  "deployment": {
+    "runId": 41015607071,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "controllerHeadCommit": "74869cfd1a29e28e71c018103a3e15b9733ceddb",
+    "targetCommit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "jobId": 123931134942,
+    "workflowSha256": "b81125b9d38e74a570509b7b714684547b788cefdfe09e3b2bce78b0fe744d01",
+    "recordSha256": "8af3bf5634ea22c7a05b27d32bb8ced8424ce239b887e47f0f8fcf8a06c3907a",
+    "evidence": {
+      "provenance": "immutable-public-workflow-packet-and-successful-GitHub-run-jobs-metadata",
+      "candidateReceiptSha256": "e5bdfd465b8d94fa9367bdfe4d364d02299b4ec3d55597d664a5da44bb5deb89",
+      "publicHealthBuildConfirmed": true
+    }
+  },
+  "provenance": {
+    "controller": "74869cfd1a29e28e71c018103a3e15b9733ceddb",
+    "workflowPath": ".github/workflows/bentoku-activate.yml",
+    "workflowSha256": "b81125b9d38e74a570509b7b714684547b788cefdfe09e3b2bce78b0fe744d01",
+    "recordSha256": "8af3bf5634ea22c7a05b27d32bb8ced8424ce239b887e47f0f8fcf8a06c3907a",
+    "candidateReceiptSha256": "e5bdfd465b8d94fa9367bdfe4d364d02299b4ec3d55597d664a5da44bb5deb89",
+    "imageRun": 41014273072,
+    "activationRun": 41015607071,
+    "activationJob": 123931134942,
+    "note": "Accepted Bentoku image and successful exact app-only activation; fresh host verification remains mandatory."
+  }
+}

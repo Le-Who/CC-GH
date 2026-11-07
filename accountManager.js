@@ -47,7 +47,19 @@ export async function getOrCreateAccountForIdentity(provider, externalId, profil
       AND external_id = ${normalizedExternalId}
     LIMIT 1
   `;
-  if (existing.length) return existing[0].account_id;
+  if (existing.length) {
+    // Refresh only the authenticated Telegram first name. A historical
+    // display_name/username must never serve as a public-name fallback.
+    if (normalizedProvider === "telegram") {
+      await sql`
+        UPDATE accounts
+        SET profile = profile || ${sql.json({ firstName: normalizedProfile.firstName })}, updated_at = now()
+        WHERE id = ${existing[0].account_id}
+          AND profile->>'firstName' IS DISTINCT FROM ${normalizedProfile.firstName}
+      `;
+    }
+    return existing[0].account_id;
+  }
 
   const accountId = createAccountId();
   const displayName = normalizedProfile.displayName || `Player_${normalizedExternalId.slice(-4)}`;
@@ -101,3 +113,4 @@ export async function getAccountReport() {
     orphanIdentities: orphans[0]?.count || 0,
   };
 }
+

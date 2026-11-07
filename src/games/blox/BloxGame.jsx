@@ -1,3 +1,4 @@
+import {usePublicLeaderboard} from "../../app/usePublicLeaderboard.js";
 /** Recovered game-only source from the owned Blox v2 r2 preview. See recovery manifest. */
 import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
@@ -5,7 +6,6 @@ import {useSnapshot,useAction,useReliableAction,useExitToHub,useImmersiveGame} f
 import {useAppI18n} from '../../app/i18n.jsx';
 import {useGameEvents} from '../../game-state/gameEvents.js';
 import {audioManager} from '../../services/audioManager.js';
-import {api} from '../../services/apiClient.js';
 import {getRewardChestProgress} from '../../../game-logic/hud-bonuses.js';
 import {calcBloxReward} from '../../../game-logic/economy.js';
 import {DEFAULT_BLOX_ROTATE_CHARGES,rotateBloxPiece,previewBloxPlacement} from '../../../game-logic/blox-engine.js';
@@ -36,7 +36,7 @@ function BloxGame(){
     gameActive:savedState.gameActive||snapshot?.blox?.activeGame||false
   };
   const state=optimisticState||serverState;
-  const[leaders, setLeaders]=React.useState([]);
+  const leaders=usePublicLeaderboard("/api/blox/leaderboard", state.highScore);
   const isPlaying=state.gameActive&&!paused;
   const rewardChest=getRewardChestProgress(state.score||0);
   const currentReward=state.score?calcBloxReward(Number(state.score)||0):0;
@@ -60,11 +60,7 @@ function BloxGame(){
     }
   }), [currentReward, pauseRun, performAction, state.gameActive, state.linesCleared, state.rotateCharges, state.score]);
   useImmersiveGame("blox", true, shellControls);
-  React.useEffect(()=>{
-    api("/api/blox/leaderboard").then(V=>{
-      Array.isArray(V)&&setLeaders(V)
-    })
-  }, [state.highScore]);
+
   React.useEffect(()=>{
     state.gameActive||setPaused(false)
   }, [state.gameActive]);
@@ -194,3 +190,4 @@ function BloxGame(){
 }
 
 export default BloxGame;
+

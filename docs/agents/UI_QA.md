@@ -1,5 +1,9 @@
 # Mobile-first UI acceptance
 
+## Design clarity
+
+Let composition and the action itself explain the interface. Keep secondary labels and descriptions only when they help the player choose, understand a state, recover from an error, or use an accessible alternative. Preserve essential names, prices, status and accessible control names. Review repeated instructions, duplicate action labels and permanent help bars at gameplay scale; release their space when the interface already communicates their meaning.
+
 ## Select coverage
 
 - Small contained UI change: `320x568`, `360x800` or `390x844`, plus every affected orientation/device class.

@@ -1,3 +1,5 @@
+import "../../app/public-name-layout.css";
+import {publicLeaderboardName} from "../../app/publicLeaderboardName.js";
 /** Recovered game-only source from the owned Blox v2 r2 preview. See recovery manifest. */
 import * as React from 'react';
 import * as jsxRuntime from 'react/jsx-runtime';
@@ -205,12 +207,13 @@ function BloxDialog({
           children:t("common.leaderboard")
         }), leaders.length?leaders.slice(0, 3).map((z, L)=>jsxRuntime.jsxs("div", {
           className:"bx-leader-row",
+            "aria-current":z.isSelf ? "true" : undefined,
           children:[jsxRuntime.jsxs("span", {
-            children:[z.rank||L+1, ". ", z.username]
+            children:[z.rank||L+1, ". ", publicLeaderboardName(z, t("app.player")), z.isSelf ? ` (${t("common.you")})` : ""]
           }), jsxRuntime.jsx("strong", {
             children:z.highScore
           })]
-        }, `${z.rank}-${z.username}`)):jsxRuntime.jsx("p", {
+        }, z.rank)):jsxRuntime.jsx("p", {
           children:t("common.noScores")
         })]
       })]
@@ -483,3 +486,4 @@ function BloxPresentation(props){
 }
 
 export default BloxPresentation;
+

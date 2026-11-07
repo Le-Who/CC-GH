@@ -112,7 +112,7 @@ async function assertDialogFit(page,dialog) {
 async function assertFlowRows(page, rowSelector) {
   const errors=await page.locator(rowSelector).evaluateAll(rows=>{
     const errors=[];
-    for(const row of rows){const r=row.getBoundingClientRect();
+    for(const row of rows){const r=row.getBoundingClientRect();if(!row.getClientRects().length||!r.width||!r.height||getComputedStyle(row).visibility==='hidden')continue;
       for(const child of row.children){const c=child.getBoundingClientRect();if(c.width&&c.height&&(c.left<r.left-1||c.right>r.right+1||c.top<r.top-1||c.bottom>r.bottom+1))errors.push(`${row.className}:child escapes row`);}
       const children=[...row.children].filter(c=>c.getClientRects().length);
       for(let i=0;i<children.length;i++)for(let j=i+1;j<children.length;j++){const a=children[i].getBoundingClientRect(),b=children[j].getBoundingClientRect();if(Math.max(0,Math.min(a.right,b.right)-Math.max(a.left,b.left))*Math.max(0,Math.min(a.bottom,b.bottom)-Math.max(a.top,b.top))>4)errors.push(`${row.className}:siblings overlap`);}
@@ -218,15 +218,20 @@ test.describe('Garden Living production-source flow',()=>{
     await page.locator(`[data-plant-id="${id}"] [data-plant-details-button]`).click();await page.mouse.click(2,2);await expect(page.locator('.gs2-dialog')).toHaveCount(0);
   });
 
-  test('daily priority, readable quest text and immediate repeated-claim suppression',async({page})=>{
+  test('daily priority, readable quest text and immediate repeated-claim suppression',async({page},testInfo)=>{
+    await page.setViewportSize({width:320,height:568});
     await initialize(page,uid(),'ru');const player=makePlayer({level:2,xp:0,xpRequired:getGardenXpRequired(2),levelReady:false,shelvesUnlocked:1,plants:[plant('daily-daisy',0,{level:2})],claimedQuests:['first_plant']});
     player.garden.dailyQuests={date:new Date().toISOString().slice(0,10),claimed:[],stats:{taps:12,waters:12,plantsBought:4,upgrades:3,goldEarned:80,xpEarned:80,levelUps:2}};
     const ready=buildGardenDailyQuests(player.garden).filter(q=>q.unlocked&&q.complete);expect(ready.length).toBeGreaterThan(1);player.garden.dailyQuests.claimed=[ready[0].id];const claim=ready[1],reason=`quest:${claim.id}`;
     const requests=await mountFixture(page,player,{delayAction:body=>body.action==='garden.claimQuest'&&body.payload?.questId===claim.id});await boot(page);await page.getByRole('button',{name:'Квесты сада',exact:true}).click();
+    await expect(panel(page,'quests').getByRole('tab',{name:'Сегодня',exact:true})).toHaveAttribute('aria-selected','true');
     const cards=page.locator('.gs2-quest-card');await expect(cards.first()).toBeVisible();const order=await cards.evaluateAll(cards=>cards.map(c=>({kind:c.dataset.questKind,claimed:c.dataset.questClaimed==='true',locked:c.dataset.questLocked==='true'})));
     const index=fn=>order.findIndex(fn);expect(index(q=>q.kind==='daily'&&!q.claimed&&!q.locked)).toBeGreaterThanOrEqual(0);expect(index(q=>q.kind==='story'&&!q.claimed)).toBeGreaterThan(index(q=>q.kind==='daily'&&!q.claimed&&!q.locked));expect(index(q=>q.kind==='daily'&&q.claimed)).toBeGreaterThan(index(q=>q.kind==='story'&&!q.claimed));expect(index(q=>q.kind==='story'&&q.claimed)).toBeGreaterThan(index(q=>q.kind==='daily'&&q.claimed));
     const contrast=await cards.first().evaluate(card=>{const rgb=v=>v.match(/[\d.]+/g).slice(0,3).map(Number),l=v=>rgb(v).map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4}).reduce((s,n,i)=>s+n*[.2126,.7152,.0722][i],0),a=l(getComputedStyle(card.querySelector('h3')).color),b=l(getComputedStyle(card).backgroundColor);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);});expect(contrast).toBeGreaterThanOrEqual(4.5);
-    const button=page.locator(`.gs2-quest-card[data-quest-id="${claim.id}"] button`);await button.dblclick();await expect(button).toHaveText('Получено');
+    await shot(page,testInfo,'legacy-russian-today-ready');
+    const claimedCard=page.locator(`.gs2-quest-card[data-quest-id="${claim.id}"]`),button=claimedCard.getByRole('button');await button.dblclick();await expect(claimedCard).toHaveAttribute('data-quest-claimed','true');await expect(claimedCard).toBeHidden();await expect(claimedCard.locator('button')).toHaveCount(0);
+    await shot(page,testInfo,'legacy-russian-claimed-collapsed');
+    await claimedCard.locator('xpath=ancestor::details[1]').locator('summary').click();await expect(claimedCard.getByText('Получено',{exact:true})).toBeVisible();
     await page.waitForTimeout(2200);expect(requests.filter(r=>r.action==='garden.claimQuest'&&r.payload?.questId===claim.id)).toHaveLength(1);
     // The direct quest credit must not be duplicated through passive-earnings sync.
     expect(player.garden.dailyQuests.claimed.filter(id=>id===claim.id)).toHaveLength(1);

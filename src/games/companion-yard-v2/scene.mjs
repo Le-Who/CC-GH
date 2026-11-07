@@ -1,3 +1,7 @@
+// Derived from released 6b80c9a2; compatibility changes are recorded in M2-COMPATIBILITY.md.
+import{createUiImageReserve,uiImageLifetimeLedger}from'./ui-image-reserve.mjs';
+import{offsetWorldPoint}from'./scene-layout.mjs';
+import{LEGACY_M2_BACKGROUND,drawLegacyBackground}from'./legacy-m2-background.mjs';
 import { AtlasCache, atlasPageFor } from './atlas.mjs';
 import { CANONICAL_ATLAS_POLICY,CURRENT_FOUR_ATLAS_POLICY,FAMILY_ATLAS_POLICY } from './atlas-policy.mjs';
 import { createProjection, footprintPolygon } from './projection.mjs';
@@ -23,31 +27,34 @@ import {FAMILY_ACTOR_REFERENCES} from '../../../game-logic/yard-v2/family-actor-
 const ROOT = '/assets/yard-mika/';
 const stillIds = [...new Set(['sun-cushion-clean','yarn-mouse-clean','yarn-mouse-settled-clean',
   ...Object.values(FOOD_BINDINGS).flatMap(food=>[food.filledStillId,food.emptyStillId])])];
-const image = src => new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>resolve(im);im.onerror=()=>reject(Error(`Image missing: ${src}`));im.src=src;});
 async function json(path,signal){const r=await fetch(path,{signal});if(!r.ok)throw Error(`Media ${r.status}: ${path}`);return r.json();}
 
 /** One disposable canvas owner. Server snapshots are read-only; RAF never writes a save or reward. */
-export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,backgroundImage}={}) {
+export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()=>performance.now(),actorProfiles=YARD_ACTOR_PROFILES,uiImageOwner}={}) {
   const ctx=canvas.getContext('2d'),abort=new AbortController(),timing=new FrameTelemetry();
   const familyMode=Object.values(FAMILY_ACTOR_REFERENCES).some(ref=>resolveActorProfile(ref,actorProfiles));
   const atlasPolicy=familyMode?FAMILY_ATLAS_POLICY:[MIKA_ACTOR_REFERENCE,MOCHI_ACTOR_REFERENCE,PEBBLE_ACTOR_REFERENCE,PIP_ACTOR_REFERENCE]
     .every(ref=>resolveActorProfile(ref,actorProfiles))?CURRENT_FOUR_ATLAS_POLICY:CANONICAL_ATLAS_POLICY;
   const bitmapOwners=new Map(),globalTrace=[];
+  const uiImages=uiImageOwner||createUiImageReserve();let uiReserve=uiImages.snapshot(),canvasPendingBytes=0;
+  const uiLifetimeFloor=Math.max(19138304,uiImageLifetimeLedger().bytes);
+  const uiBytes=()=>Math.max(uiLifetimeFloor,uiReserve.bytes);
+  const renderCatalog=Object.freeze({kind:'legacy-m2',sourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa'});
   let staticDecodedBytes=0,staticPendingBytes=0,backgroundDecodedBytes=0,globalPeakBytes=0,staticDecodes=0,maxGlobalDecodes=0;
-  const outside=()=>familyMode?staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+canvas.width*canvas.height*4:0;
-  function budgetSample(reason){if(!familyMode)return;const row={reason,atlasRetainedBytes:atlas.decodedBytes,atlasPendingBytes:atlas.reservedBytes,stillRetainedBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,activeDecodes:atlas.active+staticDecodes};row.totalBytes=atlas.decodedBytes+atlas.reservedBytes+outside();globalPeakBytes=Math.max(globalPeakBytes,row.totalBytes);maxGlobalDecodes=Math.max(maxGlobalDecodes,row.activeDecodes);if(row.totalBytes>atlasPolicy.maxDecodedBytes||row.activeDecodes>1)throw Error('Global decoded-image budget exceeded');globalTrace.push(row);if(globalTrace.length>240)globalTrace.shift();}
+  const outside=()=>staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+canvas.width*canvas.height*4+canvasPendingBytes;
+  function budgetSample(reason){const row={reason,atlasRetainedBytes:atlas.decodedBytes,atlasPendingBytes:atlas.reservedBytes,stillRetainedBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,activeDecodes:atlas.active+staticDecodes};row.totalBytes=atlas.decodedBytes+atlas.reservedBytes+outside();globalPeakBytes=Math.max(globalPeakBytes,row.totalBytes);maxGlobalDecodes=Math.max(maxGlobalDecodes,row.activeDecodes);if(row.totalBytes>atlasPolicy.maxDecodedBytes||row.activeDecodes>1)throw Error('Global decoded-image budget exceeded');globalTrace.push(row);if(globalTrace.length>240)globalTrace.shift();}
   const atlas=new AtlasCache(new URL(ROOT,location.origin),atlasPolicy.maxPages,
     {...atlasPolicy,externalBytes:outside,onEvent:e=>{timing.atlas(e);budgetSample(e.type);}});
   const clock=new PresentationClock(now);
   let snapshot=null,view=null,projection=null,media=null,stills=null,actorEntries={},propBindings={},sceneGeometry=MIKA_SCENE;
-  let ghost=null,disposed=false,raf=0,lastRafStamp=null,lastStatusAt=0,ready=false,pendingSize=null,resizeFailure=null;
+  let retirement=null,ghost=null,disposed=false,raf=0,lastRafStamp=null,lastStatusAt=0,ready=false,pendingSize=null,resizeFailure=null;
   const images=new Map();
   const poseFor=pet=>{const actor=actorEntryForPet(pet,actorEntries);return selectPetPose(actor.manifest,pet,{actorProfile:actor.profile});};
   function time(){return clock.read();}
-  function update(value){if(!value)return;snapshot=value;clock.update(value?.yardRuntime?.serverNow||value?.serverTime||Date.now());}
+  function update(value){if(!value)return;snapshot=value;clock.update(value?.yardRuntime?.serverNow||value?.serverTime||Date.now());if(!ready)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});}
   function applyResize(){if(!pendingSize)return true;const {width,height,dpr}=pendingSize;
     const w=Math.max(1,Math.round(width*dpr)),h=Math.max(1,Math.round(height*dpr));
-    if(familyMode){const external=staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+Math.max(canvas.width*canvas.height*4,w*h*4);
+    {const external=staticDecodedBytes+staticPendingBytes+backgroundDecodedBytes+uiBytes()+canvas.width*canvas.height*4+(canvas.width!==w||canvas.height!==h?w*h*4:0);
       const demand=[...atlas.pinned].reduce((n,key)=>n+(atlas.entries.get(key)?.bytes??atlas.jobs.get(key)?.expectedBytes??0),0);
       if(external+demand>atlasPolicy.maxDecodedBytes){
         // Keep the existing coherent backing and projection, explicitly reject
@@ -59,18 +66,20 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
     }
     resizeFailure=null;
     pendingSize=null;if(canvas.width===w&&canvas.height===h&&projection?.width===width&&projection?.height===height)return true;
-    canvas.width=w;canvas.height=h;ctx.setTransform(dpr,0,0,dpr,0,0);projection=createProjection(width,height);budgetSample('canvas-resize');return true;}
+    const changed=canvas.width!==w||canvas.height!==h;canvasPendingBytes=changed?w*h*4:0;budgetSample('canvas-resize-start');
+    if(changed){canvas.width=0;canvas.height=h;canvas.width=w;}canvasPendingBytes=0;ctx.setTransform(dpr,0,0,dpr,0,0);projection=createProjection(width,height);budgetSample('canvas-resize');return true;}
   function resize(){const r=canvas.getBoundingClientRect();pendingSize={width:r.width,height:r.height,dpr:Math.min(devicePixelRatio||1,2)};
     // Changing backing dimensions clears a canvas. While decoding, leave its
     // coherent pixels intact and let CSS fit them until the current frame can
     // be redrawn. This needs no extra canvas copy or retained atlas pages.
     if(!ready||!view)applyResize();}
+  uiImages.setAdmissionCheck(next=>{if(disposed)return false;const proposed=Math.max(uiLifetimeFloor,next.bytes);if(!atlas.reserveExternal(outside()-uiBytes()+proposed))return false;uiReserve=next;budgetSample('ui-admission');return true;});
   const observer=new ResizeObserver(resize);observer.observe(canvas);
   function shadow(p,rx,ry,opacity=.2){ctx.save();ctx.translate(p.x,p.y);ctx.scale(rx,ry);const g=ctx.createRadialGradient(0,0,0,0,0,1);g.addColorStop(0,`rgba(39,54,27,${opacity})`);g.addColorStop(1,'rgba(39,54,27,0)');ctx.fillStyle=g;ctx.fillRect(-1,-1,2,2);ctx.restore();}
   function sprite(id,p,alpha=1){const im=images.get(id),meta=stills[id];if(!im||!meta)return;const scale=projection.ppu/meta.worldPixelScale;ctx.save();ctx.globalAlpha=alpha;ctx.drawImage(im,p.x-meta.pivotPx[0]*scale,p.y-meta.pivotPx[1]*scale,im.width*scale,im.height*scale);ctx.restore();}
   const fade=pet=>pet.phase==='approach'||pet.phase==='depart'?edgeOpacity(pet.route.points,pet.phase,pet.groundDistance):1;
   function draw(v){
-    const {width,height,ppu}=projection;ctx.clearRect(0,0,width,height);
+    const {width,height,ppu}=projection;ctx.clearRect(0,0,width,height);drawLegacyBackground(ctx,images.get('legacy-background'),width,height);
     for(const food of foodBowlPresentation(v.bowls)){
       const bowl=projection.project(food.anchor);shadow(bowl,ppu*.43,ppu*.16,.25);sprite(food.stillId,bowl);
     }
@@ -109,65 +118,68 @@ export function createCourtyardScene(canvas,{onView=()=>{},onError=()=>{},now=()
       // pages while waiting would re-request images that the new working set is
       // deliberately replacing, causing eviction/decode churn with two actors.
       if(view&&!missing&&applyResize()){draw(view);timing.presented(view.pets.map(p=>{const q=poseFor(p);return{visitId:p.visitId,mediaId:q.mediaId,actorProfile:p.actorProfile,index:q.index,position:p.position||p.clipOrigin};}),at);budgetSample('presented');}
-      if(stamp-lastStatusAt>250){onView(next);lastStatusAt=stamp;}
+      if(stamp-lastStatusAt>250){onView({...next,mediaReady:true,renderCatalog,renderRevision:'legacy-m2/6b80c9a2'});lastStatusAt=stamp;}
       if(atlas.error)throw atlas.error;
     }
-  }catch(e){onError(e);return;}raf=requestAnimationFrame(tick);}
+  }catch(e){ready=false;if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);return;}raf=requestAnimationFrame(tick);}
   async function loadStill(id,meta,url){
-    if(!familyMode){const im=await image(url);if(!disposed){images.set(id,im);stills[id]=meta;}return;}
+    if(disposed)return;
     const absolute=new URL(url,location.origin);if(meta.assetRevision)absolute.searchParams.set('yard-media',meta.assetRevision);const key=absolute.href;
     if(bitmapOwners.has(key)){const old=bitmapOwners.get(key);if(meta.canvas&&(old.width!==meta.canvas[0]||old.height!==meta.canvas[1]))throw Error('Shared still dimensions disagree');images.set(id,old);stills[id]=meta;return;}
-    const response=await fetch(key,{signal:abort.signal});if(!response.ok)throw Error(`Media ${response.status}: ${key}`);const blob=await response.blob();
+    const response=await fetch(key,{signal:abort.signal});if(!response.ok)throw Error(`Media ${response.status}: ${key}`);const blob=await response.blob();if(disposed)return;
+    if(meta.verifySourceBytes){const bytes=await blob.arrayBuffer();if(disposed)return;const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',bytes))].map(n=>n.toString(16).padStart(2,'0')).join('');if(disposed)return;if(hash!==meta.sha256||bytes.byteLength!==meta.encodedBytes)throw Error('Legacy source image identity mismatch');}
     const declared=meta.canvas?meta.canvas[0]*meta.canvas[1]*4:1024*1024; // reserve a finite upper bound for older verified still descriptors
     if(!atlas.reserveExternal(outside()+declared))throw Error('Static decoded-image allocation exceeds global budget');
     staticPendingBytes=declared;staticDecodes=1;budgetSample('still-decode-start');let bitmap;
-    try{bitmap=await createImageBitmap(blob);if(disposed){bitmap.close();return;}const bytes=bitmap.width*bitmap.height*4;if(bytes>declared||meta.canvas&&(bitmap.width!==meta.canvas[0]||bitmap.height!==meta.canvas[1]))throw Error('Still dimensions differ from the verified descriptor');staticPendingBytes=0;staticDecodes=0;staticDecodedBytes+=bytes;bitmapOwners.set(key,bitmap);images.set(id,bitmap);stills[id]=meta;bitmap=null;budgetSample('still-ready');}
+    try{bitmap=await createImageBitmap(blob);if(disposed){bitmap.close();bitmap=null;return;}const bytes=bitmap.width*bitmap.height*4;if(bytes>declared||meta.canvas&&(bitmap.width!==meta.canvas[0]||bitmap.height!==meta.canvas[1]))throw Error('Still dimensions differ from the verified descriptor');staticPendingBytes=0;staticDecodes=0;staticDecodedBytes+=bytes;bitmapOwners.set(key,bitmap);images.set(id,bitmap);stills[id]=meta;bitmap=null;budgetSample('still-ready');}
     finally{bitmap?.close();staticPendingBytes=0;staticDecodes=0;}
   }
   const readyPromise=(async()=>{
-    if(familyMode){const bg=backgroundImage||canvas.parentElement?.querySelector('.cy-background');if(!bg||new URL(bg.src,location.origin).pathname!==ROOT+'background.webp')throw Error('Actual canonical background required for global budget');await bg.decode();if(disposed)return;if(!bg.naturalWidth||!bg.naturalHeight)throw Error('Decoded background dimensions unavailable');backgroundDecodedBytes=bg.naturalWidth*bg.naturalHeight*4;budgetSample('background-ready');}
+    stills={};await loadStill('legacy-background',LEGACY_M2_BACKGROUND,LEGACY_M2_BACKGROUND.url);if(disposed)return;
+    staticDecodedBytes-=LEGACY_M2_BACKGROUND.decodedBytes;backgroundDecodedBytes=LEGACY_M2_BACKGROUND.decodedBytes;budgetSample('background-ready');
     const [a,b]=await Promise.all([json(`${ROOT}runtime-media.json?v=${encodeURIComponent(MIKA_RUNTIME_MEDIA_REVISION)}`,abort.signal),json(`${ROOT}still-layer-contract.json?v=${encodeURIComponent(MIKA_RUNTIME_MEDIA_REVISION)}`,abort.signal)]);
     if(disposed)return;if(a.manifestRevision!==MIKA_RUNTIME_MEDIA_REVISION||!a.renderBindings)throw Error('Mismatched Yard runtime media revision');
     actorEntries={mika:createActorMediaEntry(a,{reference:MIKA_ACTOR_REFERENCE,assetBaseURL:new URL(ROOT,location.origin).href,clips,profiles:actorProfiles})};
     media=a;stills=b;
-    if(familyMode){for(const id of stillIds)await loadStill(id,b[id],`${ROOT}${id}.webp`);}else await Promise.all(stillIds.map(async id=>images.set(id,await image(`${ROOT}${id}.webp`))));
+    for(const id of stillIds){await loadStill(id,b[id],`${ROOT}${id}.webp`);if(disposed)return;}
     // No Mochi network/decode work in a released/default scene. The registry
     // must explicitly contain its accepted exact profile before this loads.
     if(resolveActorProfile(MOCHI_ACTOR_REFERENCE,actorProfiles)){
       const base=new URL('/assets/yard-mochi/',location.origin).href;
       const [{createMochiActorMediaEntry},manifest]=await Promise.all([import('./mochi-actor-media.mjs'),json(`${base}runtime-media.json?v=${encodeURIComponent(MOCHI_RUNTIME_MEDIA_REVISION)}`,abort.signal)]);
-      const entry=createMochiActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[id,meta]of Object.entries(entry.stills))await loadStill(id,meta,meta.assetURL);
+      if(disposed)return;const entry=createMochiActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[id,meta]of Object.entries(entry.stills)){await loadStill(id,meta,meta.assetURL);if(disposed)return;}
       if(disposed)return;actorEntries.mochi=entry;
     }
     if(resolveActorProfile(PEBBLE_ACTOR_REFERENCE,actorProfiles)){
       const base=new URL('/assets/yard-pebble/',location.origin).href;
       const [{createPebbleActorMediaEntry},manifest]=await Promise.all([import('./pebble-actor-media.mjs'),json(`${base}runtime-media.json?v=${encodeURIComponent(PEBBLE_MEDIA_REVISION)}`,abort.signal)]);
-      const entry=createPebbleActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[id,meta]of Object.entries(entry.stills))await loadStill(id,meta,meta.assetURL);
+      if(disposed)return;const entry=createPebbleActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[id,meta]of Object.entries(entry.stills)){await loadStill(id,meta,meta.assetURL);if(disposed)return;}
       if(disposed)return;actorEntries.pebble=entry;
     }
     if(resolveActorProfile(PIP_ACTOR_REFERENCE,actorProfiles)){
       const base=new URL('/assets/yard-pip/',location.origin).href;
       const [{createPipActorMediaEntry},manifest]=await Promise.all([import('./pip-actor-media.mjs'),json(`${base}runtime-media.json?v=${encodeURIComponent(PIP_MEDIA_REVISION)}`,abort.signal)]);
-      const entry=createPipActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[id,meta]of Object.entries(entry.stills))await loadStill(id,meta,meta.assetURL);
+      if(disposed)return;const entry=createPipActorMediaEntry(manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[id,meta]of Object.entries(entry.stills)){await loadStill(id,meta,meta.assetURL);if(disposed)return;}
       if(disposed)return;actorEntries.pip=entry;
     }
     for(const[id,reference]of Object.entries(FAMILY_ACTOR_REFERENCES))if(resolveActorProfile(reference,actorProfiles)){
       const base=new URL(`/assets/yard-family/${id}/`,location.origin).href;
       const [{createFamilyActorMediaEntry},manifest]=await Promise.all([import('./family-actor-media.mjs'),json(`${base}runtime-media.json`,abort.signal)]);
-      const entry=createFamilyActorMediaEntry(id,manifest,{assetBaseURL:base,profiles:actorProfiles});
-      for(const[stillId,meta]of Object.entries(entry.stills))await loadStill(stillId,meta,meta.assetURL);
+      if(disposed)return;const entry=createFamilyActorMediaEntry(id,manifest,{assetBaseURL:base,profiles:actorProfiles});
+      for(const[stillId,meta]of Object.entries(entry.stills)){await loadStill(stillId,meta,meta.assetURL);if(disposed)return;}
       if(disposed)return;actorEntries[id]=entry;
     }
     propBindings=Object.assign({},...Object.values(actorEntries).map(e=>e.propBindings||{}));
     sceneGeometry={...MIKA_SCENE,footprints:{...MIKA_SCENE.footprints,...Object.fromEntries(Object.entries(propBindings).map(([id,p])=>[id,p.footprint]))}};
     if(disposed)return;resize();ready=true;raf=requestAnimationFrame(tick);
-  })().catch(e=>{if(!disposed)onError(e);});
+  })().catch(e=>{ready=false;if(!disposed){if(snapshot)onView({...courtyardPresentation(snapshot,time(),clips,{actorProfiles}),mutable:false,mediaReady:false,renderCatalog});onError(e);}});
   return {ready:readyPromise,update,setGhost(value){ghost=value;},point(event){const r=canvas.getBoundingClientRect();return projection?.unproject({x:(event.clientX-r.left)*projection.width/r.width,y:(event.clientY-r.top)*projection.height/r.height});},
+    offsetPoint(position,delta){return projection?offsetWorldPoint(projection,position,delta):null;},
     hit(event){if(!view||!projection)return null;const r=canvas.getBoundingClientRect(),point={x:event.clientX-r.left,y:event.clientY-r.top};return view.props.filter(p=>p.supported).map(prop=>{const q=projection.project(prop.transform);return{prop,p:{x:q.x*r.width/projection.width,y:q.y*r.height/projection.height}};}).filter(v=>Math.hypot(v.p.x-point.x,v.p.y-point.y)<28).sort((a,b)=>Math.hypot(a.p.x-point.x,a.p.y-point.y)-Math.hypot(b.p.x-point.x,b.p.y-point.y))[0]?.prop;},
-    diagnostics(){return{ready,presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...(familyMode?{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}}:{}),view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
-    dispose(){disposed=true;abort.abort();cancelAnimationFrame(raf);observer.disconnect();atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;images.clear();}
+    diagnostics(){return{disposed,ready,legacySourceCommit:'6b80c9a2cca146e20afcaced6a34a035c30c13aa',renderRevision:'legacy-m2/6b80c9a2',mediaBlocked:!ready,uiReserve,uiLifetimeFloor,backgroundComposition:'original cover52%50% in owned Canvas2D',presentationTime:clock.read(),serverTime:snapshot?.yardRuntime?.serverNow,timing:timing.snapshot(),atlasPolicy,retainedPages:atlas.entries.size,pendingPages:atlas.pending.size,pendingDecodes:atlas.active,decodedBytesEstimate:atlas.decodedBytes,pendingBytesEstimate:atlas.reservedBytes,...(familyMode?{globalDecodedBudget:{limitBytes:atlasPolicy.maxDecodedBytes,totalBytes:atlas.decodedBytes+atlas.reservedBytes+outside(),peakBytes:globalPeakBytes,maxConcurrentDecodes:maxGlobalDecodes,stillBytes:staticDecodedBytes,stillPendingBytes:staticPendingBytes,backgroundBytes:backgroundDecodedBytes,uiImageReserveBytes:uiBytes(),canvasPendingBytes,canvasBackingBytes:canvas.width*canvas.height*4,heldFrameAdditionalBytes:0,bitmapOwners:bitmapOwners.size,trace:globalTrace.map(r=>({...r}))}}:{}),view,pendingResize:!!pendingSize,resizeFailure:resizeFailure?{...resizeFailure}:null,projection:projection?{width:projection.width,height:projection.height,ppu:projection.ppu}:null};},
+    dispose(){if(retirement)return retirement;const pending=[readyPromise,...atlas.pending.values()];disposed=true;ready=false;abort.abort();cancelAnimationFrame(raf);observer.disconnect();atlas.dispose();for(const b of bitmapOwners.values())b.close();bitmapOwners.clear();staticDecodedBytes=0;backgroundDecodedBytes=0;images.clear();uiImages.setAdmissionCheck(()=>false);retirement=Promise.allSettled(pending);return retirement;}
   };
 }

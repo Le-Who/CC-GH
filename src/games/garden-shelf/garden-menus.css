@@ -1,0 +1,151 @@
+/* Material skins are data-free. Composition distinguishes goals, rewards and actions. */
+.gs2-modal-layer{--gs2-ink:#f5eed7;--gs2-muted:#bdcdb9;--gs2-focus:#c6f4d6;--gs2-panel-image:url('/games/garden-v2/terrarium/menu-panel.webp');--gs2-button-image:url('/games/garden-v2/terrarium/menu-button.webp');color:var(--gs2-ink)}
+.gs2-modal-layer [hidden]{display:none!important}
+.gs2-modal-layer .gs2-scrim{background:#041711c7}
+.gs2-modal-layer .gs2-dialog{border:14px solid transparent;border-image:var(--gs2-panel-image) 96 fill / 14px stretch;border-radius:20px;background:#102f28;color:var(--gs2-ink);font-size:14px;line-height:1.4;box-shadow:0 20px 64px #020d0aaa}
+.gs2-dialog .gs2-dialog-heading{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;gap:6px;align-items:center;min-height:62px;padding:4px 4px 10px;border-bottom:1px solid #cbb97844}
+.gs2-dialog .gs2-dialog-title{grid-column:2;text-align:center;min-width:0}
+.gs2-dialog .gs2-dialog-heading h2{font:700 clamp(19px,3vw,23px)/1.2 Georgia,serif;color:#f8ebc8;text-align:center;overflow-wrap:normal}
+.gs2-dialog .gs2-close{grid-column:3;width:44px;height:44px;padding:0!important}
+.gs2-dialog .gs2-dialog-navigation{flex:none;padding:10px 4px;border-bottom:1px solid #cbb97828}
+.gs2-dialog .gs2-dialog-scroll{gap:12px;padding:12px 4px 4px;scrollbar-color:#9aa67b55 transparent}
+.gs2-dialog .gs2-dialog-scroll::-webkit-scrollbar-track{background:transparent}
+.gs2-dialog .gs2-dialog-scroll::-webkit-scrollbar-thumb{background:#9aa67b66;border-color:#14352c}
+.gs2-dialog .gs2-pending:empty{display:none}
+.gs2-dialog .gs2-pending,.gs2-dialog .gs2-muted{color:var(--gs2-muted)}
+.gs2-dialog .gs2-button{min-width:44px;min-height:44px;padding:4px 7px;border:7px solid transparent;border-image:var(--gs2-panel-image) 96 fill / 7px stretch;border-radius:10px;background:#16362d;color:#f5eed7;font-size:14px;text-align:center;box-shadow:0 3px 8px #020e0933}
+.gs2-dialog .gs2-button-content{justify-content:center;align-items:center;text-align:center;gap:6px}
+.gs2-dialog .gs2-button.gs2-primary{border-image:var(--gs2-button-image) 96 fill / 7px stretch;background:#174835;color:#fff0cb;text-shadow:0 1px 2px #041b12}
+.gs2-dialog .gs2-button.gs2-primary::before{background:#00180f16}
+.gs2-dialog .gs2-button:disabled,.gs2-dialog .gs2-button.gs2-primary:disabled{border-image:var(--gs2-panel-image) 96 fill / 7px stretch;background:#17372e;color:#aebda9;filter:saturate(.45);box-shadow:none;text-shadow:none}
+.gs2-dialog .gs2-danger{color:#f3c6a8;background:#50362b}
+.gs2-dialog .gs2-menu-tabs{display:flex;gap:6px;min-width:0}
+.gs2-dialog .gs2-menu-tabs>.gs2-button{flex:1;min-width:0;padding:2px;border-width:6px;border-image-width:6px;font-size:13px;line-height:1.2;overflow-wrap:normal}
+.gs2-dialog[data-garden-panel=progression] .gs2-menu-tabs>.gs2-button{font-size:12px}
+.gs2-dialog[data-garden-panel=progression] .gs2-menu-tabs>.gs2-button:nth-child(2){flex:1.22}
+.gs2-dialog[data-garden-panel=progression] .gs2-menu-tabs>.gs2-button:nth-child(3){flex:1.1}
+.gs2-dialog .gs2-menu-state,.gs2-dialog .gs2-menu-locked{display:flex;align-items:center;justify-content:center;gap:5px;color:#b6d8b4;font-size:12px;font-weight:700;text-align:center}
+.gs2-dialog .gs2-menu-locked{color:#c8bc95}
+.gs2-dialog .gs2-menu-cost{display:inline-flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;color:#efdfad;font-variant-numeric:tabular-nums}
+.gs2-dialog .gs2-menu-cost>span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.gs2-dialog .gs2-menu-cost .gs2-art{width:22px;height:22px}
+.gs2-dialog .gs2-menu-guide{min-width:0;text-align:center}
+.gs2-dialog .gs2-menu-guide>summary{min-height:44px;padding:10px 4px;cursor:pointer;font-size:13px;font-weight:800;color:#e5dab2;text-align:center}
+.gs2-dialog .gs2-menu-guide>summary:focus-visible,.gs2-dialog .gs2-research-branch>summary:focus-visible,.gs2-dialog .gs2-quest-archive>summary:focus-visible{outline:3px solid var(--gs2-focus);outline-offset:-3px;border-radius:4px}
+.gs2-dialog .gs2-menu-guide>p{padding:6px 10px;color:var(--gs2-muted);font-size:12px;text-align:center;line-height:1.5}
+.gs2-dialog .gs2-menu-announcement{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.gs2-dialog .gs2-progress{height:5px;background:#d5ddb324}
+.gs2-dialog .gs2-progress>i{background:linear-gradient(90deg,#79b58b,#d2ce87)}
+.gs2-dialog .gs2-fraction{font-size:12px;color:#dce8c7}
+.gs2-dialog .gs2-quest-card,.gs2-dialog .gs2-r2-card,.gs2-dialog .gs2-level-card,.gs2-dialog .gs2-catalog-row{border:7px solid transparent;border-image:var(--gs2-panel-image) 96 fill / 7px stretch;border-radius:12px;background:#123229;box-shadow:0 4px 12px #020e0933}
+.gs2-dialog .gs2-quest-list,.gs2-dialog .gs2-quest-group,.gs2-dialog .gs2-quest-archive>div{display:grid;gap:10px;min-width:0}
+.gs2-dialog .gs2-quest-card{display:grid;grid-template-columns:36px minmax(0,1fr) 52px;gap:8px;align-items:center;padding:10px 6px;min-width:0}
+.gs2-dialog .gs2-quest-card[data-quest-ready=true]{grid-template-columns:32px minmax(0,1fr) 84px}
+.gs2-dialog .gs2-quest-card h3{font-size:14px;line-height:1.3;font-weight:800;text-align:center;overflow-wrap:normal}
+.gs2-dialog .gs2-quest-crest{position:relative;display:grid;place-items:center;min-height:42px;filter:drop-shadow(0 3px 5px #aec58922)}
+.gs2-dialog .gs2-quest-crest .gs2-art{width:34px;height:34px}
+.gs2-dialog .gs2-quest-crest>svg{position:absolute;right:-4px;bottom:0;width:21px;height:21px;color:#f1d797;filter:drop-shadow(0 2px 1px #071f15)}
+.gs2-dialog .gs2-quest-reward{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;color:#f0d58b;font-size:16px;font-variant-numeric:tabular-nums}
+.gs2-dialog .gs2-quest-reward .gs2-art{width:26px;height:26px}
+.gs2-dialog .gs2-quest-claim{width:84px;min-height:64px;padding:2px;font-size:12px}
+.gs2-dialog .gs2-quest-claim .gs2-button-content{flex-direction:column;gap:2px}
+.gs2-dialog .gs2-quest-claim .gs2-quest-reward{flex-direction:row;font-size:14px;gap:3px}
+.gs2-dialog .gs2-quest-claim .gs2-art{width:18px;height:18px}
+.gs2-dialog .gs2-quest-meters{grid-column:1/-1;min-width:0}
+.gs2-dialog .gs2-quest-meters .gs2-progress-row{margin:2px 0}
+.gs2-dialog .gs2-quest-alternative{display:grid;grid-template-columns:minmax(0,1fr) minmax(72px,.8fr);align-items:center;gap:8px;margin-top:7px;font-size:11px;color:#c5ccb1;text-align:center}
+.gs2-dialog .gs2-quest-state{grid-column:1/-1}
+.gs2-dialog .gs2-quest-card[data-quest-claimed=true],.gs2-dialog .gs2-quest-card[data-quest-locked=true]{opacity:.76}
+.gs2-dialog .gs2-quest-archive>summary{min-height:44px;padding:11px 8px;color:#d1d3b4;cursor:pointer;text-align:center;font-size:13px}
+.gs2-dialog .gs2-quest-archive>summary svg{display:inline;vertical-align:middle;margin-right:7px}
+.gs2-dialog .gs2-quest-archive>summary b{margin-left:8px;color:#f0ddaa}
+.gs2-dialog .gs2-quest-archive>div{padding-top:8px}
+.gs2-dialog .gs2-progress-overview,.gs2-dialog .gs2-research-list,.gs2-dialog .gs2-collection-list{display:grid;gap:12px;min-width:0}
+.gs2-dialog .gs2-level-card{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:6px 10px;padding:10px 12px;text-align:center}
+.gs2-dialog .gs2-level-card>.gs2-art{width:34px;height:34px;grid-row:1/3}
+.gs2-dialog .gs2-level-card>span{font-size:12px;color:var(--gs2-muted)}
+.gs2-dialog .gs2-level-card>strong{font:700 28px/1.1 Georgia,serif;color:#f6e4aa}
+.gs2-dialog .gs2-level-card small{font:600 14px/1.2 'Nunito',sans-serif;color:#aebda9;margin-left:3px}
+.gs2-dialog .gs2-level-card>.gs2-progress-row{grid-column:2/-1;width:100%;margin:0}
+.gs2-dialog .gs2-level-card p{grid-column:1/-1;font-size:12px;color:var(--gs2-muted)}
+.gs2-dialog .gs2-resource-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gs2-dialog .gs2-resource-pair>div{display:grid;justify-items:center;gap:3px;padding:8px;text-align:center;min-width:0}
+.gs2-dialog .gs2-resource-pair .gs2-art{width:32px;height:32px}
+.gs2-dialog .gs2-resource-pair span{font-size:12px;color:#becbb5}
+.gs2-dialog .gs2-resource-pair strong{font-size:18px;color:#f1dfaa;white-space:nowrap}
+.gs2-dialog .gs2-resource-pair small{font-size:12px;color:#becbb5}
+.gs2-dialog .gs2-resource-guide{margin-top:-8px}
+.gs2-dialog .gs2-menu-notice{padding:9px;color:#f0d6a2;font-size:12px;text-align:center}
+.gs2-dialog .gs2-r2-card{display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px 10px;min-width:0;text-align:center}
+.gs2-dialog .gs2-r2-card h3{font-size:15px;text-align:center;line-height:1.35;color:#e5dab2}
+.gs2-dialog .gs2-r2-card p{font-size:12px;color:var(--gs2-muted);text-align:center}
+.gs2-dialog .gs2-r2-card>.gs2-button{width:min(100%,260px)}
+.gs2-dialog .gs2-study-stock{font-size:12px;color:#c5ccb1}
+.gs2-dialog .gs2-study-goals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;width:100%}
+.gs2-dialog .gs2-study-goals>div{display:grid;justify-items:center;gap:5px;min-width:0;font-size:12px;color:var(--gs2-muted)}
+.gs2-dialog .gs2-study-goals .gs2-art{width:30px;height:30px}
+.gs2-dialog .gs2-study-goals .gs2-progress-row{width:100%}
+.gs2-dialog .gs2-research-branch{border-bottom:1px solid #cbb97833}
+.gs2-dialog .gs2-research-branch>summary{min-height:60px;padding:8px;cursor:pointer;display:flex;align-items:center;gap:12px;color:#eadbb1}
+.gs2-dialog .gs2-research-branch>summary .gs2-art{width:36px;height:36px}
+.gs2-dialog .gs2-research-branch>summary>span{flex:1;text-align:center;font:700 19px/1.2 Georgia,serif}
+.gs2-dialog .gs2-research-branch>summary>b{font-size:12px;color:#bdcdb9}
+.gs2-dialog .gs2-research-branch>summary>.gs2-disclosure{flex:none;margin-left:5px;color:#d4ca9b}
+.gs2-dialog .gs2-research-branch[open]>summary>.gs2-disclosure{transform:rotate(180deg)}
+.gs2-dialog .gs2-research-branch>div{display:grid;gap:10px;padding:4px 0 12px}
+.gs2-dialog .gs2-research-node h3{display:grid;grid-template-columns:32px minmax(0,1fr);align-items:center;gap:8px;width:100%;font-size:13px}
+.gs2-dialog .gs2-research-node h3 i{font:700 18px/1 Georgia,serif;color:#d9c587;font-style:normal;white-space:nowrap;overflow-wrap:normal}
+.gs2-dialog .gs2-menu-requires svg{display:inline;vertical-align:middle;margin-right:5px}
+.gs2-dialog .gs2-project-plants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;width:100%}
+.gs2-dialog .gs2-project-plants figure{display:grid;justify-items:center;align-content:start;gap:6px;margin:0;min-width:0}
+.gs2-dialog .gs2-project-plants figcaption{font-size:11px;line-height:1.3;color:#c6d1b8;overflow-wrap:normal}
+.gs2-dialog .gs2-project-time{display:flex;align-items:center;gap:5px;font-size:12px;color:#d6c493}
+.gs2-dialog .gs2-mastery-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px;padding:8px}
+.gs2-dialog .gs2-mastery-card .gs2-menu-guide{grid-column:1/-1;width:100%}
+.gs2-dialog .gs2-mastery-steps{display:flex;align-items:center;justify-content:center;gap:10px;grid-column:1;grid-row:2}
+.gs2-dialog .gs2-mastery-steps i{opacity:.23;filter:grayscale(1)}
+.gs2-dialog .gs2-mastery-steps i[data-earned=true]{opacity:1;filter:none}
+.gs2-dialog .gs2-mastery-steps .gs2-art{width:22px;height:22px}
+.gs2-dialog .gs2-mastery-card .gs2-mastery-gain{grid-column:2;grid-row:2;font-size:12px;color:#dbe5b7}
+.gs2-dialog .gs2-mastery-card>.gs2-button,.gs2-dialog .gs2-mastery-card>.gs2-menu-locked{grid-column:1/-1;justify-self:center}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-detail{gap:12px}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-care-phase{text-align:center;font-size:12px}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-detail-tap{min-height:144px;max-width:240px;border:0;border-radius:50%;background:radial-gradient(ellipse,#aecf7823,transparent 70%);padding:0}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-detail-stage{gap:8px}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-care-facts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-detail-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:10px 4px;border:6px solid transparent;border-image:var(--gs2-panel-image) 96 fill / 6px stretch;border-radius:10px;background:#14352d;min-width:0;min-height:68px;font-size:11px;color:var(--gs2-muted);text-align:center}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-detail-stat strong{font-size:15px;white-space:normal;color:#f1e6ba;text-align:center}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-care-income{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-care-income .gs2-art{width:18px;height:18px}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-care-income small{font-size:11px;white-space:nowrap;font-weight:600}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-action-row{margin-top:2px}
+.gs2-dialog[data-garden-panel=plant-detail] .gs2-action-row>.gs2-button{font-size:13px;padding:4px}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 5px;text-align:center;min-width:0}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row>.gs2-plant-art{width:68px!important;height:72px!important}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row>div{min-width:0;width:100%}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row h3{font-size:13px;line-height:1.25;min-height:32px;display:grid;place-items:center;color:#f5eed7;overflow-wrap:normal;text-align:center}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row p,.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row small{font-size:11px;line-height:1.35;color:#bdcdb9;text-align:center}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row>.gs2-button{width:100%;margin-top:auto;font-size:13px;grid-column:auto;padding:3px}
+.gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog-row>.gs2-button .gs2-art{width:18px;height:18px}
+.gs2-dialog .gs2-empty-state{grid-column:1/-1;color:var(--gs2-muted);text-align:center}
+.gs2-dialog[data-garden-panel=settings] .gs2-setting{padding:10px 4px 16px;border-bottom:1px solid #cbb97833;gap:8px;text-align:center}
+.gs2-dialog[data-garden-panel=settings] .gs2-setting legend{margin:0 auto 8px;font-size:14px;text-align:center;padding:0 8px}
+.gs2-dialog[data-garden-panel=settings] .gs2-setting-inline{grid-template-columns:1fr;justify-items:center}
+.gs2-dialog[data-garden-panel=settings] .gs2-setting-inline>.gs2-button{min-width:150px}
+.gs2-dialog[data-garden-panel=settings] .gs2-motion-setting{text-align:center;font-size:12px}
+.gs2-dialog[data-garden-panel=settings] .gs2-motion-setting p{color:var(--gs2-muted)}
+.gs2-dialog .gs2-reward{background:none;color:#f2db94}
+.gs2-dialog .gs2-reward span{color:#c6ddb5}
+@media(min-width:600px){
+ .gs2-dialog .gs2-collection-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .gs2-dialog .gs2-collection-list>.gs2-menu-guide{grid-column:1/-1}
+ .gs2-dialog[data-garden-panel=seed-shop-inventory] .gs2-catalog{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-height:400px){
+ .gs2-modal-layer .gs2-dialog{border-width:10px;border-image-width:10px}
+ .gs2-dialog .gs2-dialog-heading{min-height:48px;padding:0 2px 6px}
+ .gs2-dialog .gs2-dialog-heading h2{font-size:18px}
+ .gs2-dialog .gs2-dialog-navigation{padding:6px 4px}
+ .gs2-dialog .gs2-dialog-scroll{padding-top:8px}
+}

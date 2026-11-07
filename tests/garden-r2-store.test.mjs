@@ -529,3 +529,36 @@ for (const result of [snapshot(), { error: 'OLD_INITIAL_FAILURE' }]) test(`unsco
   assert.equal(useGameHub.getState().snapshot, current);
   assert.equal(useGameHub.getState().status, 'ready');
 });
+
+for (const [command, code, quiet] of [
+  ['tend','GARDEN_R2_TAP_COOLDOWN',true],
+  ['tend','GARDEN_R2_PLANT_NOT_FOUND',false],
+  ['buyPlant','GARDEN_R2_TAP_COOLDOWN',false],
+  ['tend','NETWORK_ERROR',false],
+]) test(`tap feedback: ${command}/${code} stays ${quiet ? 'quiet' : 'visible'} without hiding the receipt`, async () => {
+  const initial=useGameHub.getState().snapshot;
+  const request=deferredRequest();
+  const pending=useGameHub.getState().performReliableAction('garden.r2',{accountId:'account-a',command},{clientActionId:`tap-feedback:${command}:${code}`,silent:true,feedback:false});
+  await request.ready;
+  request.finish({error:code});
+  const result=await pending;
+  assert.equal(result.error,code);
+  assert.equal(useGameHub.getState().lastResult.error,code);
+  assert.equal(useGameHub.getState().snapshot,initial,'cooldown cannot award or alter economy');
+  assert.deepEqual(useGameHub.getState().busy,{});
+  assert.equal(useGameHub.getState().message,quiet ? '' : code);
+});
+
+test('locally presented Garden failures retain their error and receipt without a duplicate global notice', async () => {
+  const initial=useGameHub.getState().snapshot;
+  const request=deferredRequest();
+  const pending=useGameHub.getState().performReliableAction('garden.r2',{accountId:'account-a',command:'tend'},{clientActionId:'local-garden-error',silent:true,feedback:false,suppressGlobalError:true});
+  await request.ready;
+  request.finish({error:'GARDEN_R2_PLANT_MISSING'});
+  const result=await pending;
+  assert.equal(result.error,'GARDEN_R2_PLANT_MISSING');
+  assert.equal(useGameHub.getState().lastResult.error,result.error);
+  assert.equal(useGameHub.getState().snapshot,initial);
+  assert.deepEqual(useGameHub.getState().busy,{});
+  assert.equal(useGameHub.getState().message,'');
+});

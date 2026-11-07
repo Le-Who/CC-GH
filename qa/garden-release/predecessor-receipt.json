@@ -1,0 +1,36 @@
+{
+  "format": "cc-gh-yard-accepted-active-controller/v1",
+  "repository": "le-who/cc-gh",
+  "repositoryId": 1162268629,
+  "status": "accepted",
+  "release": {
+    "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+    "tree": "70e8b19ec59d718daac4e813a77975b4324f1965",
+    "imageDigest": "sha256:491a7a7fcf3caa64af667827a0d5a3c045f818f909571da47c0e1a7fed209757",
+    "imageId": "sha256:f901f9976808ebd8ed74e73717d1b84dd72e56319c677acc7b0b47f7084fdb3c"
+  },
+  "acceptance": {
+    "runId": 41077241541,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "headCommit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+    "artifactSha256": "3561e762eec9671bc9aea78ae69fdcbb9fcfecdf3ed47e318a5648e3c4fee614"
+  },
+  "deployment": {
+    "runId": 41079169223,
+    "runAttempt": 1,
+    "status": "completed",
+    "conclusion": "success",
+    "controllerHeadCommit": "638a4ad2adc3242e84271c72860421d1eeca3ce3",
+    "targetCommit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+    "jobId": 124143348739,
+    "workflowSha256": "a5e397a73dea9bbab5a98ff1b0a89aadb0c891c3226b73c5e0e69409d5a2df2d",
+    "recordSha256": "ad12c20803c795d544f7a5583cd1eb3f1e362edb629e8109ce08bd9fa50017b5",
+    "evidence": {
+      "provenance": "immutable-public-workflow-packet-and-successful-GitHub-run-jobs-metadata",
+      "candidateReceiptSha256": "957651a59f40e138f321d90fe337dbda97cb71a269b24719ca3a24880b74e4ea",
+      "publicHealthBuildConfirmed": true
+    }
+  }
+}

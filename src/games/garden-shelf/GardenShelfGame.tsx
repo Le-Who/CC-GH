@@ -1,4 +1,5 @@
 import React, { lazy } from 'react';
+import './garden-theme.css';
 import { useGameHub } from '../../game-state/useGameHub.js';
 const LegacyGarden=lazy(()=>import('./LegacyGardenGame'));
 const GardenR2Provider=lazy(()=>import('./lib/GardenR2Provider'));

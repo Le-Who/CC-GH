@@ -1,0 +1,108 @@
+{
+  "liveBase": {
+    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+  },
+  "qualifiedSource": "924fb3b98a3bf9df8e3c95dce4fb2050babf8c8e",
+  "sourceChanges": [
+    {
+      "path": "playwright.catalogue-access.config.mjs",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "c1dc4f4b17b71cdff812a91c3bc328915febcfd2"
+      },
+      "status": "A"
+    },
+    {
+      "path": "src/game-state/yardOutboxStorage.js",
+      "before": {
+        "mode": "100644",
+        "objectId": "eb8c2cb902a0a27b889cbbbb10d1ed23504d426d"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "7fb26946c291a1fee44a4daaed737482133a6924"
+      },
+      "status": "M"
+    },
+    {
+      "path": "tests/catalogue-access-e2e/catalogue-access.spec.js",
+      "before": {
+        "mode": "000000",
+        "objectId": "0000000000000000000000000000000000000000"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "1d206873d1bee7169b0fdd8f257b1329f39b340b"
+      },
+      "status": "A"
+    },
+    {
+      "path": "tests/hub-account-boundaries.test.mjs",
+      "before": {
+        "mode": "100644",
+        "objectId": "5e228d03f257637dbd7e4894f9db73a5220b6acf"
+      },
+      "after": {
+        "mode": "100644",
+        "objectId": "fd2e45d75f3bae0d61ab0ac36db23b4a6045766b"
+      },
+      "status": "M"
+    }
+  ],
+  "historical": {
+    "controller": "74869cfd1a29e28e71c018103a3e15b9733ceddb",
+    "workflowPath": ".github/workflows/bentoku-activate.yml",
+    "workflowSha256": "b81125b9d38e74a570509b7b714684547b788cefdfe09e3b2bce78b0fe744d01",
+    "recordSha256": "8af3bf5634ea22c7a05b27d32bb8ced8424ce239b887e47f0f8fcf8a06c3907a",
+    "candidateReceiptSha256": "e5bdfd465b8d94fa9367bdfe4d364d02299b4ec3d55597d664a5da44bb5deb89",
+    "imageRun": 41014273072,
+    "activationRun": 41015607071,
+    "activationJob": 123931134942
+  },
+  "runtime": {
+    "composeSha256": "d5e6e1e6afef6733ce340ccc9b3eefb45630ac2dba14ac9810a9af1676293a4f",
+    "localUrl": "http://127.0.0.1:18080/",
+    "publicUrl": "https://games.tri.mom/",
+    "dbUser": "appuser",
+    "dbName": "gamehub",
+    "protectedServices": [
+      "caddy.service"
+    ],
+    "neighborPublicHealth": "not-proven"
+  },
+  "storage": {
+    "format": "yard-persistent/v1",
+    "readVersions": [
+      1,
+      2
+    ],
+    "writeVersions": [
+      1,
+      2
+    ],
+    "transition": "first-successful-canonical-placement-writes-v2",
+    "rollback": "prior-image-compatible-replay-preserves-v2",
+    "compatibilityRequired": true,
+    "reset": "none"
+  },
+  "capabilities": {
+    "authority": "source-owned-authenticated-policy",
+    "clientGraph": true,
+    "itemKinds": [
+      "leaf_pot"
+    ],
+    "placementLimit": 2,
+    "foodSocket": "bowl-1",
+    "canonicalVisitorAdmission": false,
+    "fixtureLoader": false,
+    "devAuth": false
+  },
+  "predecessorReceiptSha256": "b0a64e9180f0f729910b37b62978c4a3be9b6cbe8cff55a271e43d0fb5f35a4f"
+}

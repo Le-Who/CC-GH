@@ -1,0 +1,65 @@
+{
+  "scope": "Garden derivative: exact d09e729 live predecessor rebind; original app-only guards retained, original 15 image checks plus mandatory Garden actual-image menu check",
+  "files": [
+    {
+      "path": "controller/scripts/ccgh-app-development-release.sh",
+      "originalCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+      "originalPath": "qa/development-controller/scripts/ccgh-app-development-release.sh",
+      "originalSha256": "bd60ffd1d2321d4100e233339e5061553838c20fd3a38e9f8a62861b898bd812",
+      "sha256": "dd96a98d82052b17ccd70c01a5809eb7d4bcdde27209265f3a122ef20764ba29",
+      "parentDerivative": {
+        "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+        "path": "qa/bentoku-release/controller/scripts/ccgh-app-development-release.sh",
+        "sha256": "dc705de397a2a266012b41ba05447b6b14e4af4e0a5e3f77f1fd1dd16f7da6b4"
+      }
+    },
+    {
+      "path": "controller/scripts/yard-development-contract.mjs",
+      "originalCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+      "originalPath": "qa/development-controller/scripts/yard-development-contract.mjs",
+      "originalSha256": "d39fee6a48c582871e80d9f2f146cceda219623ba36b6e0d4183397ba95eb95a",
+      "sha256": "a0dfb9777a4ab3cef3821d8ea4c1b5817368088be3936c64d5c94cb8339b7031",
+      "parentDerivative": {
+        "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+        "path": "qa/bentoku-release/controller/scripts/yard-development-contract.mjs",
+        "sha256": "1a016b65b3f828eb4659a9644372fc42eae80779a23f42c12cdd62fc45bd2e96"
+      }
+    },
+    {
+      "path": "controller/tests/yard-development-release.test.mjs",
+      "originalCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+      "originalPath": "qa/development-controller/tests/yard-development-release.test.mjs",
+      "originalSha256": "f6efe14d8dfe4961f6c356248a8275b4d1bc62a78c468f00850581c7408ae10e",
+      "sha256": "fc0d93d42038a85a54448f7953f1e72eee9a5d544186f82b05a264749b1b2774",
+      "parentDerivative": {
+        "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+        "path": "qa/bentoku-release/controller/tests/yard-development-release.test.mjs",
+        "sha256": "fc0d93d42038a85a54448f7953f1e72eee9a5d544186f82b05a264749b1b2774"
+      }
+    },
+    {
+      "path": "controller/tests/probe-compose-repeat-release.py",
+      "originalCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+      "originalPath": "qa/development-controller/tests/probe-compose-repeat-release.py",
+      "originalSha256": "78391ae7857d4f6fc9b6d33cda481e363e2eab320939d6eae657f092790bd9c4",
+      "sha256": "78391ae7857d4f6fc9b6d33cda481e363e2eab320939d6eae657f092790bd9c4",
+      "parentDerivative": {
+        "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+        "path": "qa/bentoku-release/controller/tests/probe-compose-repeat-release.py",
+        "sha256": "78391ae7857d4f6fc9b6d33cda481e363e2eab320939d6eae657f092790bd9c4"
+      }
+    },
+    {
+      "path": "controller/inspect-format.go",
+      "originalCommit": "be4a9f27880d8b76a9600a5fd7ee2c3326c0c0f9",
+      "originalPath": "qa/development-controller/inspect-format.go",
+      "originalSha256": "e1934543430a88ddfeaf7d91a29439eb7cbbc2a4a942928838e959247f750926",
+      "sha256": "e1934543430a88ddfeaf7d91a29439eb7cbbc2a4a942928838e959247f750926",
+      "parentDerivative": {
+        "commit": "d09e7296af6e9499a0cd19322c6fda73dfcabef7",
+        "path": "qa/bentoku-release/controller/inspect-format.go",
+        "sha256": "e1934543430a88ddfeaf7d91a29439eb7cbbc2a4a942928838e959247f750926"
+      }
+    }
+  ]
+}

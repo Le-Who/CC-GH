@@ -106,8 +106,8 @@
 .gs2-water-ready{z-index:3}.gs2-live-plant{position:relative}.gs2-live-surface{contain:strict}
 
 /* R3: plants are the card focus; exact time and level belong to Care. */
-.gs2-spot:not(.gs2-empty){position:relative}
-.gs2-spot:not(.gs2-empty)>h3{order:-1;min-height:36px;padding:2px 27px 2px 2px;text-align:left;display:flex;align-items:center}
+.gs2-spot:not(.gs2-empty){position:relative;padding:0;border:0;background:transparent;overflow:hidden}
+.gs2-spot:not(.gs2-empty)>h3{order:-1;min-height:36px;padding:2px 30px 2px 5px;text-align:left;display:flex;align-items:center;border-radius:8px;background:rgba(255,248,226,.78)}
 .gs2-spot:not(.gs2-empty)>.gs2-plant-state{display:none}
 .gs2-plant-target{position:static;height:calc(var(--gs2-plant-height) + 20px);flex:1;min-height:70px}
 .gs2-plant-target>.gs2-live-plant{width:100%!important;height:100%!important;max-width:100%}
@@ -140,11 +140,12 @@
 .gs2-metric>small{white-space:normal;overflow-wrap:anywhere;line-height:1.2}
 .gs2-xp>span{white-space:normal;flex-wrap:wrap;line-height:1.15}
 
-/* A confirmed tap gets one small leaf/coin, anchored inside its own card.
-   Living-plant geometry stays untouched; this never moves a hit target. */
+/* Confirmed feedback uses the existing stage/modal visual layer. Its measured
+   anchor stays inside the tap target; it never moves or intercepts a control. */
 .gs2-button,.gs2-empty-target{transition:transform 130ms cubic-bezier(.2,.7,.25,1),filter 130ms ease}
 .gs2-button:active:not(:disabled),.gs2-empty-target:active:not(:disabled){transform:translateY(1px) scale(.985)}
 .gs2-detail-tap{position:relative;overflow:hidden}
+.gs2-tap-anchor{display:none}
 .gs2-tap-feedback{position:absolute;left:calc(50% - 12px);top:38%;z-index:4;pointer-events:none;animation:gs2-tap-reward 440ms cubic-bezier(.18,.7,.25,1) both}
 .gs2-tap-feedback>.gs2-art{width:24px;height:24px}
 .gs2-spot[data-gs2-placed=true] .gs2-plant-target{animation:gs2-plant-arrive 260ms ease-out both}
@@ -154,3 +155,12 @@
 @keyframes gs2-plant-arrive{from{opacity:.65}to{opacity:1}}
 @keyframes gs2-reward-arrive{0%{transform:scale(.9)}60%{transform:scale(1.045)}100%{transform:none}}
 @media(prefers-reduced-motion:reduce){.gs2-tap-feedback{display:none}.gs2-button:active:not(:disabled),.gs2-empty-target:active:not(:disabled){transform:none}}
+
+/* Retain a single explicit empty-slot affordance instead of nested frames. */
+.gs2-empty{border:0;background:transparent;padding:5px 2px}
+.gs2-plant-target:focus-visible{outline-offset:-3px}
+.gs2-metric[data-garden-gold]>strong{display:flex;align-items:center;gap:4px}
+.gs2-metric[data-garden-gold]>strong .gs2-art{width:16px;height:16px}
+/* Short landscape uses the registered compact plant height. Flex growth from
+   percentage-sized art must not push the name and Care outside the scrollport. */
+.gs2-stage[data-gs2-arrangement=side][data-gs2-compact=true] .gs2-plant-target{flex:none}

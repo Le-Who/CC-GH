@@ -1,0 +1,604 @@
+{
+  "base": "aa43b9167c0af475bec294878d55bcb95a4ff244",
+  "baseTree": "0a85221a42b3d0241ee18a48a2cd8c9e1ce9a266",
+  "sourceLive": "9b6b96b4cd1b019d016a741f7300e3172192c3ee",
+  "scope": "Qualified combined development fixes and Match3; exact immutable-image gate pending",
+  "reviewedInputs": {
+    "privacy": "5d7e08f157200d4b5e317d0a824fca5acc3ba31f",
+    "garden": "ac1ae8804ace497573e7638c2961e8e129081367",
+    "bubbo": "4622b4f743f53b6be268a2e7b25ede4c472fb5bb",
+    "home": "9b87a060d141e7eea7fa37feba98e98aca5c1b57",
+    "homeCompactLabel": "30931cb6e0345ff1523e7f90868556432e51e790",
+    "framing": "isolated reviewed source; combined native acceptance pending",
+    "match3": "a5f400efd524502b1178c7c61b2eda46db3fbc6f"
+  },
+  "liveBuildFlags": {
+    "VITE_YARD_PIP_PREVIEW": "true",
+    "VITE_YARD_SAVED_VISITS": "false",
+    "VITE_YARD_PAINTED_FOOD_TRIAL": "false"
+  },
+  "sharedMerges": [
+    "HomeCatalogue: profile/privacy plus preview cards and both account-session resets",
+    "useGameHub: only precise Garden tend cooldown feedback predicate",
+    "yard-pip-scene: only import/projection call/diagnostics; no saved lifecycle"
+  ],
+  "files": [
+    {
+      "path": ".github/workflows/development-batch-qa.yml",
+      "sha256": "20c7871f9757fba2523659339eb4dcb0a0578a4310d3662117df8425fd7857c3",
+      "bytes": 4681,
+      "gitBlob": "a2549dfee0765c7e01b3f624ee29bdb40f6775fb"
+    },
+    {
+      "path": ".github/workflows/yard-development-image.yml",
+      "sha256": "eb641ed421fbd3c9cf73be2772707d038af8f4f466094dac659900e596514984",
+      "bytes": 5064,
+      "gitBlob": "0d6814117ddedbbca9278967a454c0a2b186d6b4"
+    },
+    {
+      "path": "accountManager.js",
+      "sha256": "0dd813b1db5a8e1efb6393973092f7fd29d7b17b80028009921518ea59bca9e0",
+      "bytes": 3519,
+      "gitBlob": "122846207de8e73c5031a21f0d9d87eb444f78cd"
+    },
+    {
+      "path": "docs/agents/UI_QA.md",
+      "sha256": "5714a5064ae5567171c6aa939217c7d1fe58b0cdfc119a324ffe619ffc5c7962",
+      "bytes": 5386,
+      "gitBlob": "74bf83df9c7bfc59ce2c58b46d1a15e404602f79"
+    },
+    {
+      "path": "game-logic/public-duel-profile.js",
+      "sha256": "52fc6885facced62824048ace9ebe69080bb826c96fe8019ed92be025453fef6",
+      "bytes": 1864,
+      "gitBlob": "815f46a49c052bf17d83242410577fc2905aa0b1"
+    },
+    {
+      "path": "game-logic/public-profile.js",
+      "sha256": "936c2522eb07cc97623c28fdb9aca4f0f49c6014a47b9e3b19ff6376ac6612d1",
+      "bytes": 1914,
+      "gitBlob": "222c0d041a1eff40a5e3c0c91b4ee1fe57646d32"
+    },
+    {
+      "path": "playwright.development-batch.config.mjs",
+      "sha256": "52998ae344491a9b8db4d496e6d27ba3dea6a94d31e78cb019b1719064e86181",
+      "bytes": 990,
+      "gitBlob": "6c6154072534ca5807e61c53620899632415fbbb"
+    },
+    {
+      "path": "playwright.match3-combined.config.mjs",
+      "sha256": "22d8a680e34f7855b32299c470fb86e0e3e85f6deb53295a2856c4eef3e8d35a",
+      "bytes": 425,
+      "gitBlob": "d11645aa84b17dbaf6d9276c56eea7ea58256b47"
+    },
+    {
+      "path": "public/games/home-thumbnails/blox.webp",
+      "sha256": "2fb3afcb40718ae25eed54787c1d36e573afc63d304e836c30b85903645ac17f",
+      "bytes": 12156,
+      "gitBlob": "1718e0f90541df1182d4e61460c9d5fda80797df"
+    },
+    {
+      "path": "public/games/home-thumbnails/bubbo-shot-preview.mp4",
+      "sha256": "cdd4f263bfa0b5a5bb335dcf4002462ce19eab288b9377af0dea3be8b5cd64c1",
+      "bytes": 39807,
+      "gitBlob": "e884e2adec0f31262881e980fcc9e832586c8a8b"
+    },
+    {
+      "path": "public/games/home-thumbnails/bubbo.webp",
+      "sha256": "8c04108b70484da0350025dd9b260fd29c6abdb4697ac6697a14ed98b0d449b5",
+      "bytes": 29354,
+      "gitBlob": "df15cd316bcef3acb86d5bb97fd9bb4fc5053390"
+    },
+    {
+      "path": "public/games/home-thumbnails/gameplay-manifest.json",
+      "sha256": "1bfbcb627ec2afe1dc093433f647054136b66f800e6fc164db5289f9ec3caad5",
+      "bytes": 3801,
+      "gitBlob": "f388fba0ecc84994dbe1405473714ee6b1ccb9fc"
+    },
+    {
+      "path": "public/games/home-thumbnails/manifest.json",
+      "sha256": "2656deb863e5c51aebde02e6596b5e8a8294298174150ec999eae6f1635677b1",
+      "bytes": 5540,
+      "gitBlob": "655cec38d6b9064a8d2774fa608107aec270f8a0"
+    },
+    {
+      "path": "public/games/home-thumbnails/room.webp",
+      "sha256": "b5192d2d19894b7d6c34df79c56137e9c9903386d42d22288785661de047d778",
+      "bytes": 2262,
+      "gitBlob": "e20e7a64fb346bd140104a3f241e0c502197a4d5"
+    },
+    {
+      "path": "public/games/home-thumbnails/trivia.webp",
+      "sha256": "24250ba6dfdda647b99f835c475825ceaa90fac3913b8a50a6372aaa5f14d420",
+      "bytes": 11890,
+      "gitBlob": "520bf5d5397b313985b942b5ee3f361d73024cbb"
+    },
+    {
+      "path": "public/games/match3-v2/gems/air.webp",
+      "sha256": "4b7a27dafca52dfa87dd27363bd18e8c08ece03a6e3234e61459a68ab44ee7eb",
+      "bytes": 6450,
+      "gitBlob": "f5c2ec20f8d98e0c082fd7a97768877dc4d86cff"
+    },
+    {
+      "path": "public/games/match3-v2/gems/dark.webp",
+      "sha256": "f9de219533ec805bbe03eb42435a1422272029e419fcdc47406e7876b85f0985",
+      "bytes": 9252,
+      "gitBlob": "4aed7080ebd5d9e46f49e58dea28e47db5fecc39"
+    },
+    {
+      "path": "public/games/match3-v2/gems/earth.webp",
+      "sha256": "5927d2e6973b1d3bf5078a193fbd0ed5e057b3acffd146129e0317eed9e98f6c",
+      "bytes": 10118,
+      "gitBlob": "bef7d641135bc7dbf53a85953b5b12cd331ce2b8"
+    },
+    {
+      "path": "public/games/match3-v2/gems/fire.webp",
+      "sha256": "321c7befe78e5abee82fd966d5b6c15e0c40e3baed773b621cc4ba10ade5e877",
+      "bytes": 9376,
+      "gitBlob": "594553e344a429d8551935b17adaf936e96d0f47"
+    },
+    {
+      "path": "public/games/match3-v2/gems/light.webp",
+      "sha256": "27157502fe9872d13cbff3ab9847020857281395878fc003295f332e6ec67234",
+      "bytes": 8772,
+      "gitBlob": "fb6145a112f5cc3a2d277c2c0e5e67e3ce0a7fc3"
+    },
+    {
+      "path": "public/games/match3-v2/gems/water.webp",
+      "sha256": "ce1e4568f33fc17fe9816b34b07f9f472754707a9aec1117a3814fc54ab2ee65",
+      "bytes": 7776,
+      "gitBlob": "eae246637af10264cd253153ab3c9b8cdfaa390c"
+    },
+    {
+      "path": "qa/bubbo-boundary/entry.jsx",
+      "sha256": "1342f4e702bed4d30493bb1b7a66a4e7038ef065d535051ddfe05126eddbb1c9",
+      "bytes": 3033,
+      "gitBlob": "7b77a4984a8cd5e6a1cdbf4b1ce5cef6248ab6c7"
+    },
+    {
+      "path": "qa/bubbo-boundary/run.mjs",
+      "sha256": "2413b628d15ad5beb213868f4e7b29809b2ec13dbb19ba79baf096bea2197a10",
+      "bytes": 7128,
+      "gitBlob": "42b823cd21f03dabf7e7f64f5fe7da8b2ea4b38a"
+    },
+    {
+      "path": "qa/development-batch/preflight.mjs",
+      "sha256": "8159d0117aececd03b38851d18003950cb6fe8be063117939b95b824e07abc32",
+      "bytes": 3397,
+      "gitBlob": "1fa8040db2aad7d9534f3d99319315e2d576f309"
+    },
+    {
+      "path": "qa/garden-tap-layout/garden-tap-layout.spec.mjs",
+      "sha256": "9f0727f01cafca02bb92be163dde6d5ecf9688dae221aeac932bbe57653f5bea",
+      "bytes": 17348,
+      "gitBlob": "adb9a904c79079ca2cdf913297c74df226af5b19"
+    },
+    {
+      "path": "qa/yard-development-image/activation-controller-proof.json",
+      "sha256": "a6627d64a5c1f6fa394a49c79ea5fb341279f19614d471fc1fdcdaa1dcb0e135",
+      "bytes": 940,
+      "gitBlob": "1f8ad04a013f9d7cef49129496c2810de7ffba69"
+    },
+    {
+      "path": "qa/yard-development-image/activation-controller.log",
+      "sha256": "be64859cd7b67ce207767fb45d31f40bd536f20160f49818c712ca76b80d1118",
+      "bytes": 4627,
+      "gitBlob": "3db9871ae1cc36598ce87c6d21b3cd08e42ad0e2"
+    },
+    {
+      "path": "qa/yard-development-image/batch-qualification.json",
+      "sha256": "c624c1c94bd83d9b7474ef8de38b8bbf022d58b0043321d5aa22525b5e5efb05",
+      "bytes": 12761,
+      "gitBlob": "5a1efaacda4c99e61b57a3a8721d769128c7c5e2"
+    },
+    {
+      "path": "qa/yard-development-image/manifest.json",
+      "sha256": "dcd1db81364c16ed2daadc0e3b3da9bee84ec6594c13021a853f6dcae7ace69b",
+      "bytes": 17059,
+      "gitBlob": "9b795e56b950c7c99392af0acb44ad6eb0fd2d3f"
+    },
+    {
+      "path": "routes/leaderboard.js",
+      "sha256": "ea83a60a61e108c5da4dd252817c868ac2d3b821736930faa91ddea250565f50",
+      "bytes": 4678,
+      "gitBlob": "8f5794f06455c36c72db20a31976a3e889be5e0c"
+    },
+    {
+      "path": "routes/trivia.js",
+      "sha256": "e6811b872251582d8b4c9eace8556368bf73620e7a2eefd40b46a562b4ff1ae9",
+      "bytes": 23208,
+      "gitBlob": "566cc8c333f7d7e38f770f5bd2d2a149314da865"
+    },
+    {
+      "path": "scripts/yard-development-acceptance.mjs",
+      "sha256": "7b909e00e4278da4324380550c739cf050f82007abf80aacdee68efecf673b42",
+      "bytes": 16063,
+      "gitBlob": "d31c4bfae7a7658cea6ca61faa9a3f1a51a3a703"
+    },
+    {
+      "path": "scripts/yard-development-receipt.mjs",
+      "sha256": "45be75ce64eb782ab86ed7dec3667721aea900aeecdfad134b57b6a5b85affc6",
+      "bytes": 24899,
+      "gitBlob": "c15bf955e0360b9de7046b1ce5b951ca9ab47775"
+    },
+    {
+      "path": "server.js",
+      "sha256": "af65a2898db49f8b00b754146229323490ebafa20c7f66b123fd6f7f38f8d016",
+      "bytes": 10859,
+      "gitBlob": "eb247249350cc801cd7966fa393674590a55f46d"
+    },
+    {
+      "path": "src/App.jsx",
+      "sha256": "237534dc954a62d7274f28fc8a9e2c0774aa448704d045acf547d70182e7af0b",
+      "bytes": 21706,
+      "gitBlob": "50435aa092b5024e800c2621cb45c2779b237c3a"
+    },
+    {
+      "path": "src/app/HomeCatalogue.jsx",
+      "sha256": "41c237df67e3ba7ac751c9b9d9551c29054e9b1aa693818dec1b7af69d0e167d",
+      "bytes": 5913,
+      "gitBlob": "977b6779cc7341e143d52b67fd263c6edad62cbc"
+    },
+    {
+      "path": "src/app/HomeGameCard.jsx",
+      "sha256": "6fa1a79bce06344ad28fec9cfdb92a09d81540caad4769e97e005fcad3ad034c",
+      "bytes": 4110,
+      "gitBlob": "5f0f44dedbe900be7e06c8f202d689f82de587f7"
+    },
+    {
+      "path": "src/app/Leaderboard.jsx",
+      "sha256": "f1ae6a0f8f46eacfc9a5992821221fe34d8dad63be86d512077066999a678a80",
+      "bytes": 735,
+      "gitBlob": "84016603caff57f2e12bb1f94218a742e6d6da8d"
+    },
+    {
+      "path": "src/app/ProfileNickname.jsx",
+      "sha256": "89e2cfc372f06bfd6346547b1ed71e846bc927f3f6acabf2c7b500bcd7ba5518",
+      "bytes": 3760,
+      "gitBlob": "9126d761d286af37813739ae51d15f12de5dcb3a"
+    },
+    {
+      "path": "src/app/home-catalogue.css",
+      "sha256": "84af1e41117d35b6bc5009985d1adf9a316059b061bc80857f8bed2f0c85594f",
+      "bytes": 6975,
+      "gitBlob": "c777aec9e2c871df589c3d502a16068e14375f99"
+    },
+    {
+      "path": "src/app/homeGameCopy.js",
+      "sha256": "fbb72c7e08eae3cb729eb3d0d1f644be115a26a9c7885ac688592e6494afecf9",
+      "bytes": 2208,
+      "gitBlob": "b39dce5e87b83d087f3080d4e2990ef5872cf432"
+    },
+    {
+      "path": "src/app/i18n.jsx",
+      "sha256": "e9549fccdea1d938f7d3f43a44b12ad85c3b18f4a8324f8615c455262f8e72e2",
+      "bytes": 8373,
+      "gitBlob": "f7bc9c7bdd05e45c6ad5518105fff7ce4bcf9f55"
+    },
+    {
+      "path": "src/app/profile-nickname.css",
+      "sha256": "352991a431a4cceff9ca9f0c441a0b679c01f52ff759ee975cf20cb1e865dcf4",
+      "bytes": 786,
+      "gitBlob": "394aaa8bf51d2cb44b4a7c1a71a37a872a40d154"
+    },
+    {
+      "path": "src/app/public-name-layout.css",
+      "sha256": "a189bbb7ccdcaf6286543037b64b2ea9b5d23284f7ef75a8d829e80620273d74",
+      "bytes": 378,
+      "gitBlob": "d23d4e9b4bb9d9c53a603dceea82740fc729a232"
+    },
+    {
+      "path": "src/app/publicLeaderboardName.js",
+      "sha256": "84d8ed8aeef188152b002758e8bdf89eef8611bcab5ea75a86b08e545bb417c9",
+      "bytes": 383,
+      "gitBlob": "3cae6f18c9da989bb3c2fb546f639764273ac5f2"
+    },
+    {
+      "path": "src/app/uiThemeContext.js",
+      "sha256": "0ba7f65d34a809899ac94b3bce042fe25a3afdc6c4f3ae7599527760a463a86c",
+      "bytes": 306,
+      "gitBlob": "c80f78c49bc686d2035257e97daab35b6d4c8d17"
+    },
+    {
+      "path": "src/app/usePublicLeaderboard.js",
+      "sha256": "1c5079c645c1df836c75013680759f489c4fea3a61ba3761c85b28f5364bcba9",
+      "bytes": 1150,
+      "gitBlob": "2d7021396c297ff7b48b8d78f7e46dbc08e75d43"
+    },
+    {
+      "path": "src/game-core/bubbo/engine.js",
+      "sha256": "3a82e36b8a7d34ba3f99c9871ca0657a55a90d6268ba8c4dd9b5c65490093f11",
+      "bytes": 25623,
+      "gitBlob": "ed43481818e88984c47c27a57e5d99bb6ef357fe"
+    },
+    {
+      "path": "src/game-runtime/scenes/match3Scene.js",
+      "sha256": "641581e9a593f7680572e8bc09e0c8855284d2d215e81c941dbf7b3f7f523a58",
+      "bytes": 15456,
+      "gitBlob": "adc098129ab2cfa0cf2019ed4eb3263caf13d5f6"
+    },
+    {
+      "path": "src/game-state/useGameHub.js",
+      "sha256": "f7976c9d56ff439d7c16ebc3e4c8fb503991bc8f53487876381fac97ba61ee76",
+      "bytes": 36427,
+      "gitBlob": "e9f2841cd35107c936451ff46c4dc3aefe6b5968"
+    },
+    {
+      "path": "src/games/blox/BloxGame.jsx",
+      "sha256": "eb946673fa64bbccf9a61fcd2e38cf6968eae4e20ea9ca31b7aa5e02a8c90c9e",
+      "bytes": 7018,
+      "gitBlob": "5c3a083396a28c09eafbe47c74d8565b8b83dfc1"
+    },
+    {
+      "path": "src/games/blox/BloxPresentation.jsx",
+      "sha256": "a30e37db5f9d24143abec71afd75538d977a27b288335c3ed8609a5ceeb583bc",
+      "bytes": 16418,
+      "gitBlob": "99e38c4cd4f4c57ed7571356efd20870dda7e23f"
+    },
+    {
+      "path": "src/games/bubbo/BubboField.jsx",
+      "sha256": "22453946b950f340d1154c1699a9daa6fd2b991b217445cd76084fa77e747bd2",
+      "bytes": 15965,
+      "gitBlob": "66778d4585591587ba4e9802abc8ce21f7c76c2d"
+    },
+    {
+      "path": "src/games/bubbo/bubboComposition.js",
+      "sha256": "97da600710e0b60a3f41f84848820fab0700f151964c9b96d878ac259c641d0b",
+      "bytes": 3533,
+      "gitBlob": "aa19fe96ba1777cdf0ffb0e82fefe8b08c00a719"
+    },
+    {
+      "path": "src/games/bubbo/bubboEffects.js",
+      "sha256": "b17f7a542e485de7bff77201790812be6e7e30931f07c12c74fcf4b3430df18d",
+      "bytes": 7544,
+      "gitBlob": "da8c36650184da173d17ce292e7f7c97a52ae24e"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/projection.mjs",
+      "sha256": "47bc8df9052d5d954f90320e3c14034bb30e48e7aed081815c9525c959314668",
+      "bytes": 5898,
+      "gitBlob": "0e78da415725a1f2ee4d4b37586bcd4daebb772f"
+    },
+    {
+      "path": "src/games/companion-yard-v2/pip-prototype/yard-pip-scene.mjs",
+      "sha256": "c564b4ecd5ab2514947580908e8d5c5b14913b159d0ffa1c9f0f7d20673e77b2",
+      "bytes": 29005,
+      "gitBlob": "a2a340ba78d41cf7edb8244cc82d48156eee8ee3"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenPresentation.tsx",
+      "sha256": "9444cd27b26a2ddd03f21628a58a76721840566f8c2ba2b6116295cc98d3ae40",
+      "bytes": 26639,
+      "gitBlob": "1523411c3380c98b55a63ee2b31c4a62f0312a44"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenSettingsDialog.tsx",
+      "sha256": "417edb3928daaaf4c1dd77cd0135faf60b8b8a82b2d110bc31e09aaac89a5184",
+      "bytes": 2984,
+      "gitBlob": "63a838ad655884daa2e3362017d2d732355ecd64"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenShelfGame.tsx",
+      "sha256": "1217e50a093071974791c4bfa01345048457419869787e43faaa0b43939b4fdf",
+      "bytes": 942,
+      "gitBlob": "10a3575c385b8abe3124e9c3f3041b8b0609e081"
+    },
+    {
+      "path": "src/games/garden-shelf/GardenViewShared.tsx",
+      "sha256": "910296232e95128d19dc4360742f4f009c0be97f7923b603714db4523ad019f0",
+      "bytes": 8443,
+      "gitBlob": "c243fcedf943945ec63b367fa77878a5aba90028"
+    },
+    {
+      "path": "src/games/garden-shelf/garden-presentation.css",
+      "sha256": "d627b90a65e60265bf97f599b22a83ce4dc13ec68c13a293a245aacfb9e71340",
+      "bytes": 22745,
+      "gitBlob": "799a75d96f749be404390cd214499023dc7186f3"
+    },
+    {
+      "path": "src/games/garden-shelf/garden-theme.css",
+      "sha256": "3508f99b1c9b412f85cab1782f89c1dbcb855d3481aa776a425672f7f0eaba82",
+      "bytes": 3141,
+      "gitBlob": "5b2111da28dc2ef575516a14e266841759936b3e"
+    },
+    {
+      "path": "src/games/garden-shelf/lib/gardenActionFeedback.js",
+      "sha256": "8268fa7a7e5c803e5ac7296f9af6eb84f0bc9fd72c13582191ec0a308fcd936a",
+      "bytes": 336,
+      "gitBlob": "3d51097490a5db5e2254b6d1b5d1b28996d45f43"
+    },
+    {
+      "path": "src/games/match3/Match3Game.jsx",
+      "sha256": "32424868e35c5c5351f33044fbf2b1aacfb796cf881ac24937a36d2373670a81",
+      "bytes": 18849,
+      "gitBlob": "124222efdc99b19e1abd4687910bea99038d839f"
+    },
+    {
+      "path": "src/games/match3/Match3Presentation.jsx",
+      "sha256": "fd6f2cf6ec131da375fccd3f8c5ed5aaee30929a041109a57abe3a2b6047a5b7",
+      "bytes": 20415,
+      "gitBlob": "c81955aec0c2a5994d57637bba98fdb8fbcd4bb5"
+    },
+    {
+      "path": "src/games/match3/i18n.js",
+      "sha256": "8a8d6e6b4ac949615c53a87ea34e2d47e4b41e03ffef79d6a4c824f38010a973",
+      "bytes": 4885,
+      "gitBlob": "7d742a1b1c41070ece97f8b67f99a25c385cb7e1"
+    },
+    {
+      "path": "src/games/match3/match3-presentation.css",
+      "sha256": "d5d3bab69758fbd8895f00f7f0df1808e35239a0260548736182a92f8117ec1f",
+      "bytes": 10834,
+      "gitBlob": "6d413591d2df94d140b4bb50ceec3177cb4ff184"
+    },
+    {
+      "path": "src/games/trivia/TriviaGame.jsx",
+      "sha256": "6be60ac5b3adf2e391992a9418ff3d0de76300d33df074eb1be8b224fb846082",
+      "bytes": 19220,
+      "gitBlob": "74deb0f3b771c4798bfc032fe1533ded59353a98"
+    },
+    {
+      "path": "src/games/trivia/triviaCopy.js",
+      "sha256": "f972785ffbe7cd4bfad06ffd2aeeb8e490e039185c93ac01b9d7334b9de6d686",
+      "bytes": 8150,
+      "gitBlob": "414cd095604a84b6ca71e0f607ff527664ecf3bf"
+    },
+    {
+      "path": "tests/bubbo-field-motion.test.js",
+      "sha256": "e2fe687197aab114463cfb1be8fb697200cb04333c4ed5da9793857d0edeab91",
+      "bytes": 13901,
+      "gitBlob": "42a9a88c793cf5c24d5385f707f02b7bda2eb1ab"
+    },
+    {
+      "path": "tests/bubbo-loss-boundary.test.js",
+      "sha256": "02be636abf3b3b13fc7821f610e4e9485ea685c77fd2f5e9290679a8fad4bb9e",
+      "bytes": 1312,
+      "gitBlob": "8f3ba2dc079fb935e6a8a62849a29618b9d22be4"
+    },
+    {
+      "path": "tests/bubbo-neighbor-reaction.test.js",
+      "sha256": "bf6ab99d8d557e913ec586bd0f66b713fd5fcd31206a2eea18ace56b8918d8fd",
+      "bytes": 2563,
+      "gitBlob": "41d9fdf1a8cd437768ba545c856ca8c9ca6babd8"
+    },
+    {
+      "path": "tests/bubbo-recovery-differential.test.js",
+      "sha256": "6541db52a537ab3b7db07383d63b86b06c2fa3dde7b0190d6b31750003363094",
+      "bytes": 4597,
+      "gitBlob": "d49a22d8eecdc17ae6763bc8d87d114067a79387"
+    },
+    {
+      "path": "tests/development-batch-e2e/bubbo-touch.spec.mjs",
+      "sha256": "9066e5739083ca61f7e0573a4107f96cdb374a2402027de2313b7ba12eb0743c",
+      "bytes": 7494,
+      "gitBlob": "949b2b133f62739f3a24312d9a3c587efbf7c56b"
+    },
+    {
+      "path": "tests/development-batch-e2e/yard-framing.spec.mjs",
+      "sha256": "53e176f0b4c7ce2658253868e790d767894785c30cb105dde8c14ddbb42d7b2b",
+      "bytes": 9755,
+      "gitBlob": "a2d99b354bc004b2f758e23ed7749d4352ba5344"
+    },
+    {
+      "path": "tests/e2e/match3-motion.spec.js",
+      "sha256": "cdaf8ab0d432f230b90d6b4269e80977dfd05f59a7f95cec279a22bb72f0cb72",
+      "bytes": 17084,
+      "gitBlob": "4005b9515e494d9200f7072d0a17e03c16fdac80"
+    },
+    {
+      "path": "tests/garden-r2-store.test.mjs",
+      "sha256": "ffe0be2ed7695074ff5de00374dab167b4434a181e785405402a280645b888b3",
+      "bytes": 34144,
+      "gitBlob": "ddaa204c831d5094ef7f5863e758992239139636"
+    },
+    {
+      "path": "tests/helpers/yard-development-acceptance.mjs",
+      "sha256": "b644d49a61c1296ea53f8b529c32e58d185256067790e97ae2103fd79513c46a",
+      "bytes": 17783,
+      "gitBlob": "8e8e2775c5c8aa3c5a97ed45b4ad8fadf41ae3da"
+    },
+    {
+      "path": "tests/helpers/yard-normal-entry-route.mjs",
+      "sha256": "c3b2467611c6f93abcacc11c85a146ca1d7b408769e1d2f201c91a76902aae04",
+      "bytes": 1095,
+      "gitBlob": "4a91647ada67383d26cd0e061f062de3553fd7d2"
+    },
+    {
+      "path": "tests/home-game-copy.test.mjs",
+      "sha256": "2b18600bee2e0ab0dc1aeafc86eade911b5530c9f923404ea937519d1d9b6406",
+      "bytes": 1556,
+      "gitBlob": "c663d96e34791c9ae3a38b3479c91df5348dafa1"
+    },
+    {
+      "path": "tests/home-theme-e2e/home-theme.spec.mjs",
+      "sha256": "ba26382c8c53ce6e4bc0e6af1b0e0d9f4e19ffe6f3e8f78c03ba481a466aab9c",
+      "bytes": 13919,
+      "gitBlob": "ee6a32e406c05518bd344f8886051ccdb44e4a1c"
+    },
+    {
+      "path": "tests/leaderboard-privacy-e2e/privacy.spec.mjs",
+      "sha256": "fefc43976833791a02aae923f518eff43e51712ac8128fb18eaf6f68fe3097a0",
+      "bytes": 8072,
+      "gitBlob": "1b6b1c6d2e2658c1bca61e3cab1642463086d6c3"
+    },
+    {
+      "path": "tests/leaderboard-privacy-postgres.test.mjs",
+      "sha256": "5c7c095c27b932fb931e68023035e7c9a5d921b6afd5ffe39b704c2c66b9fb16",
+      "bytes": 4221,
+      "gitBlob": "55c0b4907c5b3a133fe53b3d5cdf428e479f106b"
+    },
+    {
+      "path": "tests/leaderboard-privacy.test.mjs",
+      "sha256": "59fe672fc776ceba8f1e965efcd039f391c1e58f1f0c07041b8381f54444e030",
+      "bytes": 8800,
+      "gitBlob": "5554e996d81fefc43caaf9309bc2b65d3327d2ad"
+    },
+    {
+      "path": "tests/match3-controller-recovery.test.js",
+      "sha256": "1b335c622d8355e953fcb606d415719711827c30a8f197f3cc3cfb894e6f37a3",
+      "bytes": 21743,
+      "gitBlob": "58c1b6932b1fd3bc5e1e792c8ac5f45a224aa9b1"
+    },
+    {
+      "path": "tests/match3-feedback-presentation.test.mjs",
+      "sha256": "a0ef99af9a8bc9071c2cf896005a3370f4d33d9bbb2f3a942736739bafdec446",
+      "bytes": 2126,
+      "gitBlob": "4602e8eea52946490e1b2e7bc7ca7bebbd915964"
+    },
+    {
+      "path": "tests/match3-scene-recovery.test.js",
+      "sha256": "dee73ad0d3feea02a454e689247d34a6117b758c9a1721d5dd69e73b51949741",
+      "bytes": 16546,
+      "gitBlob": "a8df31a41ed7110c0015a6db60b06c851dd612c2"
+    },
+    {
+      "path": "tests/profile-nickname-fence.test.mjs",
+      "sha256": "9b1ed30fe53d521d7d76aa21bcc209bfcd5d7ed1074cf0c363af3f3568848559",
+      "bytes": 4075,
+      "gitBlob": "8f2b7330284ee9b1a64907bd0f9fe0f6fea613c4"
+    },
+    {
+      "path": "tests/trivia-public-privacy.test.mjs",
+      "sha256": "521196b1358eed8e30d2f66de581c5125106ee92e3435b70bd14f6e2085e350b",
+      "bytes": 4197,
+      "gitBlob": "9d7133a63968420eecaf15b30422f4dfba967b58"
+    },
+    {
+      "path": "tests/yard-development-acceptance.test.mjs",
+      "sha256": "38a59c3940e773ebacb47cd66c09b68c3a7f05711377bcd9ace06b901ff15c92",
+      "bytes": 16163,
+      "gitBlob": "60e26608f7686ba61b3beadec1c2d905b9774ea8"
+    },
+    {
+      "path": "tests/yard-development-e2e/development.spec.mjs",
+      "sha256": "5b82491eca272f59cef059c89cbaae5c2d07233747a5e9b9afc6c1b14c61d321",
+      "bytes": 32500,
+      "gitBlob": "7678e3b2f42d80a7a85e1406808e50e41897640a"
+    },
+    {
+      "path": "tests/yard-development-receipt.test.mjs",
+      "sha256": "bcfed34c305cb88a7dd982baa9edb6f4674da604a45b69e11ed37230f6c9b08d",
+      "bytes": 15158,
+      "gitBlob": "0ed4ecd63cb71e316b901e6c691b08d0a41742db"
+    },
+    {
+      "path": "tests/yard-initial-framing.test.mjs",
+      "sha256": "798f7163fede3d0f2bdb359ead959f8d1fa08b4a31d6ec9ae657c29c57822697",
+      "bytes": 2347,
+      "gitBlob": "d67adde84c4c033c431b1a6d9faa7d3de3968751"
+    },
+    {
+      "path": "tests/yard-normal-entry-route.test.mjs",
+      "sha256": "f32bc9ff3a87523d397b3b6f85ef2dd28ccccc0e52dc1a9352a34c5edcd56735",
+      "bytes": 1379,
+      "gitBlob": "3c39c8a28e01bb0f6ef76654675c5514d0559fec"
+    }
+  ],
+  "imageAcceptance": {
+    "scope": "Five exact immutable-image cases with same product runtime; host controller qualification separate",
+    "integrationParent": "693b851197c7fd7002566ad883ecdd475c6830b7",
+    "predecessorActiveReceiptSha256": "fa8f4450438549bdaec5e85ef60186cf808097df1742afa670c38abe58e728fb",
+    "batchQualificationSha256": "e8418f6ad44cd63b821ad028cca624fd9fa224c6b97520e8e4d31f5d84098fb3",
+    "activationControllerProofSha256": "a6627d64a5c1f6fa394a49c79ea5fb341279f19614d471fc1fdcdaa1dcb0e135"
+  }
+}

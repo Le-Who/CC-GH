@@ -39,6 +39,7 @@ async function boot(page, viewport, reduced = false, moves = 30, initialBoard = 
   await page.addInitScript(installMatch3RefillSeed);
   const player = await mountHomePlayerFixture(page);
   fixturePlayers.set(page,player);
+  player.match3.highScore=500;
   player.match3.currentGame = { board:initialBoard,mode:'classic',score:0,movesLeft:moves,combo:0,boosters:{bomb:3,lightning:3,rainbow:2,hammer:3} };
   await page.route('**/api/leaderboard',route=>route.fulfill({contentType:'application/json',body:'[]'}));
   await loadFixture(page, player);
@@ -96,6 +97,12 @@ for(const [width,height] of viewports) test(`Match3 1x swap invalid cascade and 
   await settled(canvas);
   await expect.poll(()=>player.match3.currentGame.movesLeft).toBe(29);
   expect(player.match3.currentGame.score).toBe(90);
+  await expect(stage.locator('[data-match3-feedback="gain"]')).toContainText('+90');
+  await expect(stage.locator('[data-match3-feedback="gain"]')).toContainText(/(?:Chain|Цепь) 2/);
+  const recordMetric=stage.locator('.m3-metric').filter({hasText:/^(?:Record|Рекорд) 500/});
+  await expect(recordMetric).toHaveCount(1);
+  await expect(recordMetric).toHaveAttribute('aria-label',/^(?:Record|Рекорд) 500: 90$/);
+  await expect(recordMetric.locator('strong')).toHaveText('90');
   await seedRestored(page);
   const phases=await page.evaluate(()=>window.__match3MotionPhases);
   expect(phases).toContain('swap');expect(phases.filter(p=>p==='clear').length).toBeGreaterThanOrEqual(2);
@@ -192,4 +199,55 @@ test('Match3 reload of a final accepted zero-move save cannot grant an extra sco
   expect(mutations.filter(item=>item.action==='match3.end')).toHaveLength(1);
   expect(mutations.find(item=>item.action==='match3.end').payload.score).toBe(90);
   expect(mutations.filter(item=>item.action==='match3.syncMode')).toHaveLength(0);
+});
+
+
+test('Match3 idle life is rare and static option suppresses it',async({page},testInfo)=>{
+ const {stage,canvas}=await boot(page,{width:390,height:844});
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','false');
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','true',{timeout:17000});
+ await attachFrame(page,testInfo,'single-piece-idle');
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','false');
+ await stage.locator('[data-game-pause="true"]').click();
+ await expect(canvas).toHaveAttribute('data-match3-idle-allowed','false');
+ await stage.getByRole('button',{name:/Piece motion: on|Движение камней: вкл/}).click();
+ await stage.getByRole('button',{name:/^(Resume|Продолжить)$/}).click();
+ await expect(canvas).toHaveAttribute('data-match3-idle-allowed','false');
+ await page.waitForTimeout(17000);
+ await expect(canvas).toHaveAttribute('data-match3-idle-active','false');
+ await attachFrame(page,testInfo,'static-board');
+});
+
+
+for(const [width,height] of [[320,568],[568,320]]) test(`Match3 Russian compact feedback ${width}x${height}`,async({page},testInfo)=>{
+ await page.addInitScript(()=>localStorage.setItem('garden_shelf_language','ru'));
+ const {stage,canvas}=await boot(page,{width,height});
+ await swap(page,canvas,{x:1,y:6},{x:1,y:7},2);await settled(canvas);
+ const record=stage.locator('.m3-metric').filter({hasText:/^Рекорд 500/});
+ await expect(record).toHaveCount(1);await expect(record).toHaveAttribute('aria-label','Рекорд 500: 90');
+ await expect(stage.locator('[data-match3-feedback="gain"]')).toHaveText('+90 очков · Цепь 2');
+ await expect(stage.locator('.m3-combo')).toHaveAttribute('aria-label','Лучшее комбо: 2');
+ const combo=await stage.locator('.m3-combo>span').boundingBox(),pause=await stage.locator('[data-game-pause="true"]').boundingBox();
+ expect(combo.x+combo.width<=pause.x || combo.x>=pause.x+pause.width || combo.y+combo.height<=pause.y || combo.y>=pause.y+pause.height,'combo label never overlaps pause').toBe(true);
+ const labels=await stage.locator('.m3-metric>span,[data-match3-feedback="gain"]').evaluateAll(nodes=>nodes.map(node=>{const r=node.getBoundingClientRect();return {text:node.textContent,inside:r.left>=0&&r.right<=innerWidth,notClipped:node.scrollWidth<=node.clientWidth+1};}));
+ expect(labels.every(label=>label.inside&&label.notClipped),JSON.stringify(labels)).toBe(true);
+ await attachFrame(page,testInfo,'russian-compact-feedback');
+});
+
+
+test('Match3 shuffle clears prior gain without awarding points',async({page},testInfo)=>{
+ const {stage,canvas,player}=await boot(page,{width:320,height:568});
+ await swap(page,canvas,{x:1,y:6},{x:1,y:7},2);await settled(canvas);await seedRestored(page);
+ await expect(stage.locator('[data-match3-feedback="gain"]')).toHaveText('+90 points · Chain 2');
+ await expect.poll(()=>player.match3.currentGame.score).toBe(90);
+ const shuffle=stage.locator('[data-match3-shuffle="true"]');await expect(shuffle).toHaveAttribute('data-count','1');
+ const saved=page.waitForResponse(response=>new URL(response.url()).pathname==='/api/player/mutate'&&response.request().postDataJSON()?.action==='match3.syncMode');
+ await shuffle.click();const response=await saved;expect(response.status()).toBe(200);
+ await expect(stage.locator('[data-match3-feedback="gain"]')).toHaveCount(0);
+ await expect(shuffle).toHaveAttribute('data-count','0');
+ await expect(shuffle).toBeDisabled();
+ const record=stage.locator('.m3-metric').filter({hasText:/^Record 500/});
+ await expect(record).toHaveCount(1);await expect(record).toHaveAttribute('aria-label','Record 500: 90');
+ expect(player.match3.currentGame.score).toBe(90);expect(player.match3.currentGame.movesLeft).toBe(29);expect(player.match3.currentGame.combo).toBe(2);
+ await attachFrame(page,testInfo,'shuffle-no-stale-reward');
 });

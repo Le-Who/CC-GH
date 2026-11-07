@@ -1,0 +1,51 @@
+{
+  "format": "cc-gh-bentoku-image-source/v1",
+  "integrationParent": "924fb3b98a3bf9df8e3c95dce4fb2050babf8c8e",
+  "predecessor": {
+    "commit": "01fb01b3ca92f239682a5c63021e002d41a1f685",
+    "tree": "d9ff3cdb016f9958900b0c71b80ff4f8679e2d93",
+    "imageDigest": "sha256:d476a5e808761496b90609f4923f9d87038263db1a69631afca4977a20476195",
+    "imageId": "sha256:82c880dc2ec4a5aa0fceeeea595446d33c30e2f0acea2984e4b981dda261b806"
+  },
+  "acceptanceOnlyPaths": [
+    ".github/workflows/bentoku-image.yml",
+    "qa/bentoku-release/bentoku.spec.mjs",
+    "qa/bentoku-release/controller-source.json",
+    "qa/bentoku-release/controller/scripts/ccgh-app-development-release.sh",
+    "qa/bentoku-release/controller/scripts/yard-development-contract.mjs",
+    "qa/bentoku-release/historical-candidate-receipt.json",
+    "qa/bentoku-release/historical-record.json",
+    "qa/bentoku-release/image-helpers.mjs",
+    "qa/bentoku-release/manifest.json",
+    "qa/bentoku-release/predecessor-receipt.json",
+    "qa/bentoku-release/preflight.mjs",
+    "qa/bentoku-release/source.json",
+    "qa/bentoku-release/tests/binding.test.mjs"
+  ],
+  "files": {
+    ".github/workflows/bentoku-image.yml": "4c8e3e4b933fe655f66fd6172b85bb30420d17e2f13298b23257df8eb9657ee0",
+    "qa/bentoku-release/README.md": "b8e36796f1af16224e0a6d9e5c08ba254b7c3354eb6694a938c79ddb01566f4f",
+    "qa/bentoku-release/bentoku.spec.mjs": "e5f88cfa9ddf5d60a5626eee09441130985b3323e2d87b541f8453fe463b44bf",
+    "qa/bentoku-release/controller-source.json": "caa6d918274dbbf1959ee9cb7978594d5127ebf0fb8c445a3df7c4b85d80c506",
+    "qa/bentoku-release/controller/inspect-format.go": "e1934543430a88ddfeaf7d91a29439eb7cbbc2a4a942928838e959247f750926",
+    "qa/bentoku-release/controller/scripts/ccgh-app-development-release.sh": "dc705de397a2a266012b41ba05447b6b14e4af4e0a5e3f77f1fd1dd16f7da6b4",
+    "qa/bentoku-release/controller/scripts/yard-development-contract.mjs": "1a016b65b3f828eb4659a9644372fc42eae80779a23f42c12cdd62fc45bd2e96",
+    "qa/bentoku-release/controller/tests/probe-compose-repeat-release.py": "78391ae7857d4f6fc9b6d33cda481e363e2eab320939d6eae657f092790bd9c4",
+    "qa/bentoku-release/controller/tests/yard-development-release.test.mjs": "fc0d93d42038a85a54448f7953f1e72eee9a5d544186f82b05a264749b1b2774",
+    "qa/bentoku-release/development.spec.mjs": "23883b91ed7af4fbc49c61416c20ce3e68fd81a17489b8b92ab5d4f08eaaa1a6",
+    "qa/bentoku-release/evidence-bundle.mjs": "0afbfff20fb2edffaf6790d186a58354b9e12fd3b820e45c1974ad20ae01d48f",
+    "qa/bentoku-release/evidence-zip.py": "b9ccebdf74ff54d4c66a78aaa9d996b47120ba982c1c6d5fe11860a506ea9cfc",
+    "qa/bentoku-release/historical-candidate-receipt.json": "e5bdfd465b8d94fa9367bdfe4d364d02299b4ec3d55597d664a5da44bb5deb89",
+    "qa/bentoku-release/historical-record.json": "8af3bf5634ea22c7a05b27d32bb8ced8424ce239b887e47f0f8fcf8a06c3907a",
+    "qa/bentoku-release/image-acceptance.mjs": "8e62fc50d8a3a34cc00f1195f77faab616ba0729ba470c448103bf5edaf0add4",
+    "qa/bentoku-release/image-helpers.mjs": "ba7bd7b63e889afb45bae734f4f08c10c106cc50d662220fb6bfb419d6f16f11",
+    "qa/bentoku-release/package-evidence.mjs": "d461b13c8df221bccb48ab78b4ffb3497d049bd7f3ae7be6d87b0619f5bf7c63",
+    "qa/bentoku-release/playwright.config.mjs": "ef01889455a326a72a3dc2c6cd579fca3e6b94197264294b7afe3d69c4220de1",
+    "qa/bentoku-release/predecessor-receipt.json": "b0a64e9180f0f729910b37b62978c4a3be9b6cbe8cff55a271e43d0fb5f35a4f",
+    "qa/bentoku-release/preflight.mjs": "8e622e769db8e245d4620ae6af1fd332bbddd9e808c6ebd386da180a68c3a923",
+    "qa/bentoku-release/source.json": "b7346bd3ee3c59b5ff7f66e4470e92d8b8b1b864686525adf8781203a57e1243",
+    "qa/bentoku-release/tests/binding.test.mjs": "afafbd2823eff040aa9f1b8c12147f563e7824e7e2651b8bd49c4dac719c0ea1",
+    "qa/bentoku-release/tests/evidence-cap.test.mjs": "6df98c9f23372212b1bc07d521cc93ab617fd91e19ca365f8b6bb40eb842bee3"
+  },
+  "dockerfileSha256": "e4e0cc3f78eeabd57be5225daea0a200223ca552eba0e4f54e6ccdc13b2ab631"
+}

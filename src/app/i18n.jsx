@@ -43,6 +43,7 @@ const APP_TRANSLATIONS = {
     "tabs.merge": "Merge",
     "tabs.bubbo": "Bubbo",
     "tabs.trivia": "Trivia",
+    "tabs.bentoku": "Bentoku",
     "tabs.room": "Yard",
     "tabs.settlement": "Town",
     "tabs.farm": "Farm",
@@ -82,6 +83,7 @@ const APP_TRANSLATIONS = {
     "common.ready": "Ready",
     "common.setup": "Setup",
     "common.leaderboard": "Leaderboard",
+    "common.you": "you",
     "common.noScores": "No scores yet.",
     "common.best": "Best",
     "common.tap": "Tap",
@@ -124,6 +126,7 @@ const APP_TRANSLATIONS = {
     "tabs.merge": "Слияние",
     "tabs.bubbo": "Bubbo",
     "tabs.trivia": "Викторина",
+    "tabs.bentoku": "Bentoku",
     "tabs.room": "Двор",
     "tabs.settlement": "Город",
     "tabs.farm": "Ферма",
@@ -163,6 +166,7 @@ const APP_TRANSLATIONS = {
     "common.ready": "Готов",
     "common.setup": "Настройка",
     "common.leaderboard": "Лидеры",
+    "common.you": "вы",
     "common.noScores": "Пока нет результатов.",
     "common.best": "Рекорд",
     "common.tap": "Тап",
@@ -207,3 +211,4 @@ export const AppI18nContext = createContext({
 export function useAppI18n() {
   return useContext(AppI18nContext);
 }
+

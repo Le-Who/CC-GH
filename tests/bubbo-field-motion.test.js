@@ -212,3 +212,37 @@ test('layout commit cancels capture before the resize frame can run', async () =
   assert.equal(count(field,'start'),0);
   field.unmount();
 });
+
+
+test('survivor reaction reaches the real canvas draw and expires without moving centers',async()=>{
+  const field=await fieldHarness();
+  const board=field.props.state.board.map(row=>[...row]);
+  board[3][4]=null;
+  field.change({board,lastShot:{id:'local-hit',landed:{row:3,col:4},popped:[{row:3,col:4}],dropped:[]}});
+  assert.ok(field.session.reactions.length>0);
+  const geometry=JSON.parse(field.canvas.dataset.bubboGeometry);
+  field.draws.length=0;
+  for(let i=0;i<7;i++)field.frame(20);
+  assert.ok(field.draws.some(draw=>draw.args.at(-1)>geometry.cell*.99&&draw.args.at(-1)<=geometry.cell*.99*1.025),'live survivor art breathes gently');
+  assert.equal(field.props.state.board,board,'presentation does not replace the board');
+  for(let i=0;i<20;i++)field.frame(20);
+  assert.equal(field.session.reactions.length,0);
+  field.unmount();
+});
+
+for(const reason of ['pause','resize','reduce','row-shift','refill','new-run','blur','hidden'])test(`${reason}: survivor reaction never leaks to a later board or lifecycle`,async()=>{
+  const field=await fieldHarness();
+  const shot={id:'local-hit',landed:{row:3,col:4},popped:[],dropped:[]};
+  field.change({lastShot:shot});
+  assert.ok(field.session.reactions.length>0);
+  if(reason==='pause')field.change({gameActive:false});
+  if(reason==='resize')field.resize(304,360);
+  if(reason==='reduce')field.reduce(true);
+  if(reason==='row-shift')field.change({rowOffset:1});
+  if(reason==='refill')field.change({waveIndex:field.props.state.waveIndex+1,lastShot:{...shot,id:'refill-hit'}});
+  if(reason==='new-run')field.change({seed:'new-run'});
+  if(reason==='blur')field.blur();
+  if(reason==='hidden')field.hide();
+  assert.equal(field.session.reactions.length,0);
+  field.unmount();
+});

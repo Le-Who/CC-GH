@@ -2193,6 +2193,11 @@ button.stat-chip {
 main.telegram-app[data-active-tab] .active-game-frame {
   background-color: var(--game-entry-surface);
 }
+main.telegram-app.play-mode.immersive-mode[data-active-tab="bentoku"] {
+  --game-entry-surface: #f6f6ee;
+  --game-entry-ink: #304536;
+  padding: var(--safe-top) var(--safe-right) var(--safe-bottom) var(--safe-left);
+}
 
 .game-entry-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; }
 .game-entry-actions button {
