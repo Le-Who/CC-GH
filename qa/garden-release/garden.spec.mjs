@@ -39,10 +39,13 @@ test('Garden actual-image terrarium, care and all menu tabs across four viewport
     const fits=async()=>{const box=await page.locator('.gs2-dialog').boundingBox();assert(box&&box.x>=-1&&box.y>=-1&&box.x+box.width<=width+1&&box.y+box.height<=height+1,'Dialog must fit viewport');await expect(page.locator('.gs2-dialog .gs2-close')).toBeInViewport();};
     const close=async()=>{await page.locator('.gs2-dialog .gs2-close').click();await expect(page.locator('.gs2-dialog')).toHaveCount(0);};
     assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),'No horizontal page overflow');
+    await expect(page.locator('[data-garden-substrate] .gs2-art')).toHaveAttribute('src',/pot\.webp$/);
+    await expect(page.locator('[data-garden-substrate] strong')).toHaveText(/\d+\/\d+/);
+    assert(await page.locator('.gs2-metric').evaluateAll(nodes=>nodes.every(n=>n.scrollWidth<=n.clientWidth+1)),'Resource counters fit their actual cells');
     await capture('terrarium');
     const details=page.locator('[data-plant-id="garden-release-daisy"] [data-plant-details-button]');await details.scrollIntoViewIfNeeded();await details.click();await expect(page.locator('[data-garden-panel="plant-detail"]')).toBeVisible();await fits();await close();
     await page.locator('.gs2-empty-target').first().click();await expect(page.locator('[data-garden-panel="seed-shop-inventory"]')).toBeVisible();await expect(page.locator('.gs2-catalog-row')).toHaveCount(14);await fits();await capture('shop');await close();
-    await page.getByRole('button',{name:'Garden progress',exact:true}).click();
+    await page.locator('.gs2-progression').click();
     for(const tab of ['overview','research','collections']){await page.locator(`[data-menu-tab="${tab}"]`).click();await expect(page.locator(`#garden-progress-${tab}`)).toBeVisible();await fits();}
     await capture('progress');await page.locator('[data-menu-tab="overview"]').click();await page.getByRole('button',{name:'Garden quests',exact:true}).click();
     for(const tab of ['daily','story']){await page.locator(`#garden-quests-tabs-${tab}`).click();await expect(page.locator(`#garden-quests-tabs-${tab}`)).toHaveAttribute('aria-selected','true');await fits();}await capture('quests');await close();

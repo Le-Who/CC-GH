@@ -61,7 +61,7 @@ run_docker() { timeout --foreground --kill-after=5s 120s docker "$@"; }
 [ "$(run_docker context show)" = default ]
 [ "$(run_docker context inspect default --format '{{.Endpoints.docker.Host}}')" = unix:///var/run/docker.sock ]
 run_docker compose version >/dev/null
-readonly expected_prior_sha=d09e7296af6e9499a0cd19322c6fda73dfcabef7
+readonly expected_prior_sha=4d6f3db022efcc52143d0baecb6f1763fafb17f5
 # Bootstrap Node from the independently verified immutable predecessor, never an
 # unverified candidate or mutable tag. These inspect fields cannot contain secrets.
 [ "$(run_docker inspect --format '{{.Image}}' ccgh-app)" = "$verifier_image" ]

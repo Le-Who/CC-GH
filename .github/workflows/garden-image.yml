@@ -1,13 +1,13 @@
-name: Garden terrarium on current live development image
+name: Garden resource HUD on current live development image
 on:
   push:
-    branches: ['qa/garden-image-20261104-r2']
+    branches: ['qa/garden-ui-image-20261107']
 permissions:
   contents: read
   actions: read
   packages: write
 concurrency:
-  group: garden-image-20261104-r2
+  group: garden-ui-image-20261107
   cancel-in-progress: false
 jobs:
   acceptance:
@@ -45,9 +45,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          git fetch --no-tags --depth=1 origin d09e7296af6e9499a0cd19322c6fda73dfcabef7
-          git fetch --no-tags --depth=1 origin 638a4ad2adc3242e84271c72860421d1eeca3ce3
-          git fetch --no-tags --depth=1 origin 80c4a8f4e14ec30ff3ec8be9ff7b36f5387cfbca
+          git fetch --no-tags --depth=1 origin 4d6f3db022efcc52143d0baecb6f1763fafb17f5
+          git fetch --no-tags --depth=1 origin d5c2b98e30df25920c017aa799eb9768ea727938
+          git fetch --no-tags --depth=1 origin 11a35978efc4ff34fb9ae30ec89c99475e9057ad
           node qa/garden-release/image-acceptance.mjs preflight
       - name: Install locked test dependencies
         run: |
