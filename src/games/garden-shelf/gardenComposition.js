@@ -55,7 +55,8 @@ export function resolveGardenComposition({
     glassInset: spec.glassInset,
     shelfClearance,
     shelfOverlap,
-    crownClearance: Math.max(spec.crownClearance, (rackWidth + spec.glassInset * 2) * 180 / 1024),
+    // The painted roof ends at source y110; the remaining top slice is transparent.
+    crownClearance: Math.max(spec.crownClearance, (rackWidth + spec.glassInset * 2) * 110 / 1024),
     footClearance: Math.max(spec.footClearance, (rackWidth + spec.glassInset * 2) * 36 / 1024),
     headerHeight,
     shelfHeight: landscape ? ah : Math.max(1, ah - headerHeight - gap),

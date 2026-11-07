@@ -19,6 +19,7 @@ export function MasteryOffer({ plant, Button, run, busy }: any) {
   return <section className="gs2-r2-card gs2-mastery-card">
     <p className="gs2-menu-announcement" role="status" aria-live="polite" aria-atomic="true">{completion.message}</p>
     <details className="gs2-menu-guide"><summary tabIndex={0}>{t('r2.mastery',{level:plant.mastery})}</summary><p>{t('r2.masteryPermanent')}</p>{offer && !offer.unlocked && <p>{t('r2.masteryRequires',{chapter:offer.chapter,tier:offer.target})}{offer.target === 3 && ` ${t('r2.masteryProject')}`}</p>}</details>
+    <div className="gs2-mastery-stock" data-mastery-substrate="true" role="group" aria-label={t('r2.substrateAmount',{amount:r2.substrate,capacity:r2.substrateCapacity})}><Art name="pot"/><strong>{r2.substrate}/{r2.substrateCapacity}</strong></div>
     <div className="gs2-mastery-steps" aria-hidden="true">{[1,2,3].map(level => <i key={level} data-earned={level <= plant.mastery}><Art name="leaf"/></i>)}</div>
     {offer && <><p className="gs2-mastery-gain">{t('r2.masteryDelta',{amount:formatR2Rate(offer.delta)})}</p>
       {offer.unlocked ? <Button primary disabled={busy || !accountingReady || r2.substrate < offer.cost} aria-label={t('r2.masteryBuy',{level:offer.target,amount:offer.cost})} onClick={event => completion.run(`${plant.type}:${offer.target}`,event,() => run(() => r2Command?.('upgradeMastery',{type:plant.type})))}><span>{t('plantDetail.evolve')}</span><MenuPrice substrate={offer.cost}/></Button> : <div className="gs2-menu-locked"><Lock size={14}/><MenuPrice substrate={offer.cost}/></div>}

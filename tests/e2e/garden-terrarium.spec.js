@@ -13,14 +13,14 @@ const MENU_SIZES = ['320x568', '390x844', '568x320'];
 const panel = (page, kind) => page.locator(`.gs2-dialog[data-garden-panel="${kind}"]`);
 const species = Object.keys(PLANT_TYPES);
 
-function makePlayer({ shelves = 5, plants = 14, mature = false } = {}) {
+function makePlayer({ shelves = 5, plants = 14, mature = false, level = 30, levelReady = false } = {}) {
   const now = Date.now();
   const player = createDefaultPlayer(`terrarium-${now}-${Math.random().toString(36).slice(2)}`, 'Terrarium', now);
   player.resources.gold = 100000;
   player.garden = {
     ...createGardenEconomyState(now),
     name: 'Winter Garden',
-    level: 30, xp: 0, xpRequired: getGardenXpRequired(30), levelReady: false,
+    level, xp: 0, xpRequired: getGardenXpRequired(level), levelReady,
     shelvesUnlocked: shelves,
     plants: Array.from({ length: plants }, (_, index) => ({
       id: `terrarium-${index}`, type: species[index % species.length], level: 12,
@@ -134,7 +134,11 @@ async function shellFits(page) {
     rect: node.getBoundingClientRect().toJSON(), crown: parseFloat(getComputedStyle(node).borderTopWidth),
   }));
   const scroll = await page.locator('.gs2-shelf-viewport').boundingBox();
-  expect(scroll.y).toBeGreaterThanOrEqual(frame.rect.top + frame.crown - 1);
+  // Source-reviewed roof fades out at y110, well before the decorative y180
+  // nine-slice ends. Transparent frame pixels must not exclude gameplay.
+  const opening = scroll.y - frame.rect.top;
+  expect(opening).toBeGreaterThanOrEqual(frame.rect.width * 100 / 1024 - 1);
+  expect(opening).toBeLessThanOrEqual(Math.max(34, frame.rect.width * 120 / 1024) + 1);
   const scrollNode = page.locator('.gs2-shelf-viewport');
   await expect(scrollNode).toHaveCSS('background-image', 'none');
   await expect(scrollNode).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
@@ -143,12 +147,15 @@ async function shellFits(page) {
     expect(rail.height, 'mobile metrics share one compact rail').toBeLessThanOrEqual(64);
     const boxes = await page.locator('.gs2-metrics .gs2-metric').evaluateAll(nodes => nodes.map(n => n.getBoundingClientRect().toJSON()));
     expect(Math.max(...boxes.map(b => b.top)) - Math.min(...boxes.map(b => b.top))).toBeLessThan(1);
-    const primaryCenters = await page.locator('[data-garden-gold] > strong,[data-garden-xp] > span:first-child,.gs2-progression > span:first-child').evaluateAll(nodes => nodes.map(node => {
+    const primaryCenters = await page.locator('[data-garden-gold] > strong,[data-garden-xp] > span:first-child,[data-garden-substrate] > span:first-child,.gs2-progression > span:first-child').evaluateAll(nodes => nodes.map(node => {
       const rect = node.getBoundingClientRect(); return rect.top + rect.height / 2;
     }));
-    expect(primaryCenters).toHaveLength(3);
+    expect(primaryCenters).toHaveLength(4);
     expect(Math.max(...primaryCenters) - Math.min(...primaryCenters), 'primary HUD icon/value rows share one vertical alignment').toBeLessThan(1);
   }
+  await expect(page.locator('[data-garden-substrate] .gs2-art')).toHaveAttribute('src', /\/pot\.webp$/);
+  await expect(page.locator('[data-garden-substrate] strong')).toHaveText(/^\d+\/\d+$/);
+  expect(await page.locator('.gs2-metric').evaluateAll(nodes => nodes.every(node => node.scrollWidth <= node.clientWidth + 1))).toBe(true);
   const signSource = await sharp(fileURLToPath(new URL('../../public/games/garden-v2/terrarium/sign.webp', import.meta.url))).metadata();
   const sign = await page.locator('.gs2-name-art').boundingBox();
   expect(sign.height, 'natural sign artwork must not be cropped by a short background box')
@@ -321,11 +328,15 @@ for (const [index, [width, height]] of MATRIX.entries()) test.describe(`Terrariu
     if (width < 1100) await page.touchscreen.tap(tapPoint.x, tapPoint.y);
     else await page.mouse.click(tapPoint.x, tapPoint.y);
     await expect.poll(() => player.garden.plants[0].lastTapped).toBeGreaterThan(0);
+    await expect(first).toHaveAttribute('data-gs2-tapped', 'true');
+    await expect(first.locator('.gs2-plant-target')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(first.locator('.gs2-plant-target')).toHaveCSS('box-shadow', 'none');
     if (MENU_SIZES.includes(`${width}x${height}`)) {
       diagnostics.mark('care');
       const opener = first.locator('[data-plant-details-button]');
       await opener.scrollIntoViewIfNeeded(); await opener.click();
       await dialogFits(page, panel(page, 'plant-detail'));
+      await expect(panel(page, 'plant-detail').locator('[data-mastery-substrate]')).toContainText(/^\d+\/\d+$/);
       await capture(page, testInfo, 'care'); await closeDialog(page); await expect(opener).toBeFocused();
       diagnostics.mark('shop');
       await page.locator('.gs2-empty-target').click();
@@ -412,6 +423,40 @@ test.describe('Terrarium actionable error in short landscape', () => {
 
 test.describe('Terrarium sparse states and interactions', () => {
   test.use({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true, serviceWorkers: 'block' });
+  for (const mode of ['reduced', 'fallback']) test(`${mode} tap keeps the artwork transparent and acknowledges success`, async ({ page }, testInfo) => withEvidence(page, testInfo, async () => {
+    await page.emulateMedia({ reducedMotion: mode === 'reduced' ? 'reduce' : 'no-preference' });
+    if (mode === 'fallback') await page.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function(type, ...args) {
+        return type === 'webgl' && this.classList.contains('gs2-live-surface') ? null : original.call(this, type, ...args);
+      };
+    });
+    const player = makePlayer({ shelves: 1, plants: 1 });
+    await mount(page, player);
+    const target = page.locator('.gs2-plant-target').first();
+    await target.scrollIntoViewIfNeeded(); await target.tap();
+    await expect(page.locator('[data-plant-id="terrarium-0"]')).toHaveAttribute('data-gs2-tapped', 'true');
+    await expect(target).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(target).toHaveCSS('box-shadow', 'none');
+    await expect(page.locator('.gs2-tap-feedback')).toBeVisible();
+    if (mode === 'reduced') await expect(page.locator('.gs2-tap-feedback')).toHaveCSS('animation-name', 'none');
+    expect(player.garden.plants[0].lastTapped).toBeGreaterThan(0);
+  }));
+
+  test('pending legacy level reward fits the compact HUD and remains claimable', async ({ page }, testInfo) => withEvidence(page, testInfo, async () => {
+    await page.setViewportSize({ width: 320, height: 568 });
+    const player = makePlayer({ shelves: 1, plants: 1, level: 14, levelReady: true });
+    const { requests } = await mount(page, player);
+    await shellFits(page);
+    const claim = page.locator('.gs2-metrics [data-garden-xp]');
+    await expect(claim).toBeEnabled();
+    await expect(claim.locator('strong')).toHaveText('15');
+    await capture(page, testInfo, 'pending-level-reward');
+    await claim.tap();
+    await expect.poll(() => requests.some(request => request.payload?.command === 'claimLegacyLevelReward')).toBe(true);
+    await expect(panel(page, 'reward')).toBeVisible();
+  }));
+
   for (const language of ['en', 'ru']) for (const plants of [0, 1]) {
     test(`${language} empty and single shelf state: ${plants} plants`, async ({ page }, testInfo) => withEvidence(page, testInfo, async diagnostics => {
       const player = makePlayer({ shelves: 1, plants });

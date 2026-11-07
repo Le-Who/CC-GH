@@ -65,9 +65,9 @@
 .gs2-stage[data-gs2-arrangement=side] .gs2-settings { grid-row: 1; grid-column: 3; }
 .gs2-metrics {
   position: relative;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(64px, .85fr);
-  gap: 4px;
-  padding: 6px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(52px, .8fr) minmax(64px, 1fr) 44px;
+  gap: 2px;
+  padding: 6px 4px;
   min-height: 56px;
 }
 .gs2-metrics-art {
@@ -90,7 +90,7 @@
   background: none;
   border-radius: 6px;
   color: #fff2d3;
-  padding: 2px 5px;
+  padding: 2px;
   gap: 0;
   text-shadow: 0 1px 2px #140a05;
 }
@@ -99,16 +99,21 @@
 .gs2-metrics .gs2-metric > small { grid-row: 2; font-size: 11px; color: #dccb9f; line-height: 12px; white-space: nowrap; }
 .gs2-metrics .gs2-metric .gs2-art { width: 17px; height: 17px; }
 .gs2-metrics .gs2-metric > span, .gs2-metrics .gs2-metric > strong { grid-row: 1; display: flex; align-items: center; align-self: center; gap: 4px; }
-.gs2-metrics .gs2-xp, .gs2-metrics .gs2-progression { border-left: 1px solid #d7bf7533; }
+.gs2-metrics .gs2-xp, .gs2-metrics .gs2-substrate, .gs2-metrics .gs2-progression { border-left: 1px solid #d7bf7533; }
+.gs2-metrics .gs2-substrate small { font-size: 11px; font-weight: 600; color: #dccb9f; }
+.gs2-metrics .gs2-level-ready { color: #f3d788; font-size: 12px; }
 .gs2-metrics .gs2-xp { align-items: center; }
 .gs2-metrics .gs2-metric > .gs2-progress-row { grid-row: 2; width: min(100%, 72px); margin: 0; align-self: center; }
 .gs2-metrics .gs2-progress { height: 4px; background: #13271c99; }
 .gs2-metrics .gs2-progress > i { background: linear-gradient(90deg, #7bbd8a, #dfca7e); }
 .gs2-metrics .gs2-progression { align-items: center; }
-.gs2-stage[data-gs2-arrangement=side] .gs2-metrics { grid-template-columns: minmax(0, 1fr); }
+.gs2-stage[data-gs2-arrangement=side] .gs2-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .gs2-stage[data-gs2-arrangement=side] .gs2-metric { min-height: 44px; }
 .gs2-stage[data-gs2-arrangement=side] .gs2-metric > strong { font-size: 14px; }
-.gs2-stage[data-gs2-arrangement=side] .gs2-xp, .gs2-stage[data-gs2-arrangement=side] .gs2-progression { border-left: 0; border-top: 1px solid #d7bf7533; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-substrate { border-left: 0; border-top: 1px solid #d7bf7533; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-progression { border-top: 1px solid #d7bf7533; }
+.gs2-metrics[data-garden-resources=legacy] { grid-template-columns: minmax(0, 1.35fr) minmax(52px, 1fr) 44px; }
+.gs2-stage[data-gs2-arrangement=side] .gs2-metrics[data-garden-resources=legacy] { grid-template-columns: minmax(0, 1fr); }
 .gs2-terrarium {
   container-type: inline-size;
   position: relative;
@@ -156,14 +161,6 @@
   height: var(--gs2-plant-height);
   flex: none;
   isolation: isolate;
-}
-.gs2-plant-target::before {
-  content: '';
-  position: absolute;
-  inset: 8% 0 2%;
-  z-index: -1;
-  pointer-events: none;
-  background: radial-gradient(ellipse at 50% 65%, #c8db7240, #92d29b15 40%, transparent 70%);
 }
 .gs2-spot > .gs2-details {
   position: relative;

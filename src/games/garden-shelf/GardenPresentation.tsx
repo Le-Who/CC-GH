@@ -301,7 +301,7 @@ export default function GardenPresentation({
     setLocalError('');
     onDismissError();
   };
-  const metricDigits = !layout.landscape && layout.rail < 330 ? 7 : 9;
+  const metricDigits = layout.landscape || layout.rail < 430 ? 5 : 7;
   const shortGold = (value: number) => {
     const full = r2 ? formatR2Gold(value) : formatGardenGoldAmount(value);
     return full.length > metricDigits ? new Intl.NumberFormat('en', {
@@ -414,7 +414,22 @@ export default function GardenPresentation({
                 }} /></form> : <button type="button" onClick={() => {
                 setDraft(state.name || t('garden.defaultName'));
                 setRenaming(true);
-              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={(event: any) => openPanel('settings', event.currentTarget)}><Settings size={24} /></Button></div><div className="gs2-metrics"><HudEditableRegion id="gardenHudRailAsset" className="gs2-metrics-art" aria-hidden="true" /><div className="gs2-metric" data-garden-gold="true" role="group" aria-label={`${t('hud.gold')}: ${goldFull}${r2 ? ` · ${formatR2Rate(r2.goldMilliPerMinute)} ${t('r2.goldPerMinute')}` : ''}`}><strong><Art name="coin" />{goldShort}</strong>{r2 && <small>{new Intl.NumberFormat(language, { notation: 'compact', maximumSignificantDigits: 3 }).format(r2.goldMilliPerMinute / 1000)}{t('hud.rateUnit')}</small>}</div><button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} aria-label={`${t('hud.level')} ${state.level} · ${t(state.levelReady ? (r2 ? 'r2.claimReward' : 'level.up') : 'level.progress')}: ${xpFull}`}><span><Art name="leaf" /><strong>{state.levelReady ? `+${shortGold(r2 ? r2.pendingLegacyRewardGold : getGardenLevelReward(state.level))}` : state.level}</strong></span><Progress value={r2?.chapter === 30 ? 100 : state.xp / state.xpRequired * 100} /></button><button type="button" className="gs2-metric gs2-progression" onClick={event => openPanel(r2 ? 'progression' : 'quests', event.currentTarget)} aria-label={t(r2 ? 'r2.title' : 'quest.open')}><span><Art name="quest" /><strong>{r2 ? `${r2.substrate}/${r2.substrateCapacity}` : readyCount}</strong></span></button></div></HudRegion>
+              }} aria-label={t('garden.rename')}>{state.name || t('garden.defaultName')}</button>}</HudRegion><Button className="gs2-settings" aria-label={t('settings.open')} onClick={(event: any) => openPanel('settings', event.currentTarget)}><Settings size={24} /></Button></div><div className="gs2-metrics" data-garden-resources={r2 ? 'r2' : 'legacy'}>
+   <HudEditableRegion id="gardenHudRailAsset" className="gs2-metrics-art" aria-hidden="true" />
+   <div className="gs2-metric" data-garden-gold="true" role="group" aria-label={`${t('hud.gold')}: ${goldFull}${r2 ? ` · ${formatR2Rate(r2.goldMilliPerMinute)} ${t('r2.goldPerMinute')}` : ''}`} title={goldFull}>
+     <strong><Art name="coin" />{goldShort}</strong>{r2 && <small>{new Intl.NumberFormat(language, { notation: 'compact', maximumSignificantDigits: 3 }).format(r2.goldMilliPerMinute / 1000)}{t('hud.rateUnit')}</small>}
+   </div>
+   <button type="button" className="gs2-metric gs2-xp" data-garden-xp="true" disabled={!state.levelReady || busy || !accountingReady} onClick={() => run(levelUp)} aria-label={`${t('hud.level')} ${state.level} · ${t(state.levelReady ? (r2 ? 'r2.claimReward' : 'level.up') : 'level.progress')}: ${xpFull}`}>
+     <span><Art name="leaf" /><strong>{state.level}</strong>{state.levelReady && <b className="gs2-level-ready" aria-hidden="true">+</b>}</span>
+     <Progress value={r2?.chapter === 30 ? 100 : state.xp / state.xpRequired * 100} />
+   </button>
+   {r2 && <button type="button" className="gs2-metric gs2-substrate" data-garden-substrate="true" aria-label={t('r2.substrateAmount', { amount: r2.substrate, capacity: r2.substrateCapacity })} onClick={event => openPanel('progression', event.currentTarget)}>
+     <span><Art name="pot" /><strong>{r2.substrate}<small>/{r2.substrateCapacity}</small></strong></span>
+   </button>}
+   <button type="button" className="gs2-metric gs2-progression" onClick={event => openPanel(r2 ? 'progression' : 'quests', event.currentTarget)} aria-label={t(r2 ? 'r2.title' : 'quest.open')}>
+     <span><Art name="quest" /><strong>{readyCount}</strong></span>
+   </button>
+ </div></HudRegion>
  <div className="gs2-terrarium"><HudEditableRegion id="gardenGlassAsset" className="gs2-glass-surround" aria-hidden="true" /><HudRegion id="gardenShelf" ref={shelf} applyLayout={false} className="gs2-shelf-viewport" role="region" aria-label={t('ui.shelves')} tabIndex={0} data-no-nav-swipe="true" data-gs2-dragging={String(dragging)} onPointerDown={e => {
           if (!blocked) drag.start(e);
         }} onPointerMove={e => drag.move(e)} onPointerUp={e => drag.end(e)} onPointerCancel={e => drag.cancel(e)} onLostPointerCapture={e => drag.cancel(e)} onPointerLeave={e => drag.cancel(e)} onMouseLeave={() => drag.cancel()} onWheel={() => drag.cancel()} onDragStart={() => drag.cancel()} onClickCapture={e => drag.click(e)}><div className="gs2-rack">{Array.from({
